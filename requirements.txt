@@ -1,0 +1,12 @@
+# Core scientific computing
+numpy>=1.20.0
+scipy>=1.7.0
+matplotlib>=3.4.0
+scikit-learn>=1.0.0
+
+# Stan interface
+cmdstanpy>=1.0.0
+
+# LLM benchmarking
+openai>=1.0.0
+python-dotenv>=0.19.0

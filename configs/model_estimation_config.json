@@ -1,0 +1,7 @@
+{
+  "data_path": "applications/llm_rationality/results/run_20251021_165854/stan_data_GPT-4.json",
+  "model_path": "models/m_0.stan",
+  "output_dir": "results/estimation/custom_run",
+  "n_mcmc_samples": 2000,
+  "n_mcmc_chains": 4
+}

@@ -1,0 +1,9 @@
+{
+  "inference_model_path": "models/m_0.stan",
+  "sim_model_path": "models/m_0_sim.stan",
+  "study_design_path": "results/designs/study.json",
+  "output_dir": "results/parameter_recovery/custom_run",
+  "n_mcmc_samples": 2000,
+  "n_mcmc_chains": 4,
+  "n_iterations": 20
+}

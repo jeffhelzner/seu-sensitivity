@@ -1,0 +1,12 @@
+{
+  "K": 3,
+  "D": 10,
+  "R": 10,
+  "M_grid": [10, 20, 30, 40, 50],
+  "n_iterations": 10,
+  "n_mcmc_samples": 1000,
+  "n_mcmc_chains": 4,
+  "output_dir": "results/sample_size_estimation/custom_run",
+  "inference_model_path": "models/m_0.stan",
+  "sim_model_path": "models/m_0_sim.stan"
+}

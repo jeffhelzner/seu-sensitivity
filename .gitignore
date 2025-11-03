@@ -1,0 +1,79 @@
+# Stan compilation files
+*.rds
+*.o
+*.so
+*.dll
+*.d
+*.hpp.d
+
+# R/RStudio files
+.Rproj.user/
+.Rhistory
+.RData
+.Ruserdata
+*.Rproj
+
+# SBC analysis outputs
+analysis/sbc/*.rds
+analysis/sbc/plots/
+analysis/sbc/csv_output/
+analysis/sbc_overlap/
+
+# Parameter recovery outputs
+analysis/recovery/*.rds
+analysis/recovery/plots/
+
+# Generated data files
+data/simulated/multi_alpha/
+data/simulated/*.rds
+
+# R environment files
+.Rhistory
+.RData
+.Rproj.user/
+renv/
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# Output files
+*.pdf
+*.png
+*.jpg
+*.jpeg
+*.html
+*.log
+*.out
+
+# Temporary files
+*.tmp
+.DS_Store
+Thumbs.db
+.Rapp.history
+*.swp
+*~
+
+# Compiled binaries and packages
+*.exe
+*.bin
+*.tar.gz
+*.zip
+
+# Directories that might contain large files
+output/
+figures/
+results/
+
+# Keep .gitkeep files in empty directories
+!/**/.gitkeep
+
+*.pyc
+
+theory/m_0_theory_files/
+theory/m_0_theory.html
+models/m_0_sim
+models/m_0
+models/m_0_sbc
+
+.env

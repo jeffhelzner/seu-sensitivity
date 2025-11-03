@@ -1,0 +1,46 @@
+{
+  "context": "Your job is to provide triage to incoming property claims. You need to select which claim to process next based on urgency, severity, and policy considerations. A human expert will assess your choice on a three-point 'bad-neutral-good' scale. Claims that are urgent, have severe impact, or affect vulnerable policyholders should generally be prioritized.",
+  "consequences": ["bad", "neutral", "good"],
+  "claims": [
+    {
+      "id": "PC001",
+      "description": "Residential house fire reported 3 hours ago. Kitchen fire spread to adjoining dining room. Fire department extinguished the blaze but there is extensive smoke damage throughout the first floor. Family of four displaced and currently staying with relatives. Estimated damage: $85,000. All policy documentation verified and coverage confirmed."
+    },
+    {
+      "id": "PC002",
+      "description": "Water damage in commercial retail space reported yesterday. Burst pipe in bathroom flooded store overnight. Inventory damage estimated at $35,000 with additional structural damage. Business closed until cleanup completed. Property manager requesting emergency mitigation services. Policy is 8 months old with no previous claims."
+    },
+    {
+      "id": "PC003",
+      "description": "Hail damage to residential roof reported 5 days ago. Homeowner noticed leaking after recent storm. Temporary tarp in place. Received contractor estimate of $12,500 for replacement. Photos submitted show moderate damage to shingles and one skylight. No interior damage yet. Policy includes standard weather damage coverage."
+    },
+    {
+      "id": "PC004",
+      "description": "Commercial building collapse reported 12 hours ago. Partial wall and roof collapse at vacant warehouse under renovation. No injuries but significant structural damage. Building inspector has condemned the structure. Property valued at $450,000 with existing policy limits of $500,000. Cause of collapse still undetermined."
+    },
+    {
+      "id": "PC005", 
+      "description": "Residential theft claim reported 2 days ago. Family returned from 1-week vacation to find home burglarized. Items missing include electronics, jewelry, and cash valued at approximately $22,000. Police report filed. Home security system was not armed during incident. Policy includes theft coverage with $1,000 deductible."
+    },
+    {
+      "id": "PC006",
+      "description": "Storm damage to apartment complex reported 8 hours ago. High winds removed portions of roof affecting 6 units. Rain damage to tenants' property in 4 units. Property manager has contacted emergency services for temporary covering. Estimated damage: $95,000. Complex has history of two previous weather-related claims in past 5 years."
+    },
+    {
+      "id": "PC007",
+      "description": "Elderly homeowner (age 83) reporting broken heating system during winter storm 6 hours ago. Temperature in home currently 45°F and dropping. No alternative heating source available. Repair service estimates 3-day wait for parts. Policyholder on fixed income and concerned about hotel costs. Policy includes equipment breakdown with $500 deductible."
+    },
+    {
+      "id": "PC008",
+      "description": "Lightning strike at small business office reported yesterday. Strike damaged electrical system and network equipment. Business operating at limited capacity using temporary generators. 15 employees affected. Data recovery services required for damaged servers containing critical client information. Estimated damages: $65,000. Business continuity insurance included in policy."
+    },
+    {
+      "id": "PC009",
+      "description": "Vacation home tree damage reported 4 days ago by property management company. Large oak tree fell on guest house during storm. Property currently vacant. Photos show significant structural damage to roof and walls. Property in remote location with limited contractor availability. Estimated damage: $45,000. Policy coverage verified."
+    },
+    {
+      "id": "PC010",
+      "description": "Smoke damage at restaurant reported 5 hours ago. Kitchen exhaust system malfunction caused smoke to fill dining area. No fire damage but extensive cleaning required. Health department has closed business until cleanup completed. Weekend bookings must be cancelled. Restaurant opened 3 months ago and this is first claim. Estimated loss including business interruption: $28,000."
+    }
+  ]
+}

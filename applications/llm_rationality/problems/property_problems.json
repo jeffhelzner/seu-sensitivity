@@ -1,0 +1,187 @@
+{
+  "problems": [
+    {
+      "id": "PP001",
+      "context": "Your job is to provide triage to incoming property claims based on a description of the claim at First Notice of Loss. Two human experts will review your recommendation. The best outcome is that both agree your choice of which available alternative to send to the claims team first. The second best outcome is that one agrees and one disagrees. The worst outcome is that they both disagree with your choice.",
+      "alternatives": [
+        "Residential house fire reported 3 hours ago. Kitchen fire spread to adjoining dining room. Fire department extinguished the blaze but there is extensive smoke damage throughout the first floor. Family of four displaced and currently staying with relatives. Estimated damage: $85,000. All policy documentation verified and coverage confirmed.",
+        "Residential theft claim reported 2 days ago. Family returned from 1-week vacation to find home burglarized. Items missing include electronics, jewelry, and cash valued at approximately $22,000. Police report filed. Home security system was not armed during incident. Policy includes theft coverage with $1,000 deductible."
+      ],
+      "metadata": {
+        "claim_ids": [
+          "PC001",
+          "PC005"
+        ],
+        "num_alternatives": 2,
+        "generated_at": "2025-10-20T16:48:29.028578"
+      }
+    },
+    {
+      "id": "PP002",
+      "context": "Your job is to provide triage to incoming property claims based on a description of the claim at First Notice of Loss. Two human experts will review your recommendation. The best outcome is that both agree your choice of which available alternative to send to the claims team first. The second best outcome is that one agrees and one disagrees. The worst outcome is that they both disagree with your choice.",
+      "alternatives": [
+        "Commercial building collapse reported 12 hours ago. Partial wall and roof collapse at vacant warehouse under renovation. No injuries but significant structural damage. Building inspector has condemned the structure. Property valued at $450,000 with existing policy limits of $500,000. Cause of collapse still undetermined.",
+        "Hail damage to residential roof reported 5 days ago. Homeowner noticed leaking after recent storm. Temporary tarp in place. Received contractor estimate of $12,500 for replacement. Photos submitted show moderate damage to shingles and one skylight. No interior damage yet. Policy includes standard weather damage coverage.",
+        "Water damage in commercial retail space reported yesterday. Burst pipe in bathroom flooded store overnight. Inventory damage estimated at $35,000 with additional structural damage. Business closed until cleanup completed. Property manager requesting emergency mitigation services. Policy is 8 months old with no previous claims."
+      ],
+      "metadata": {
+        "claim_ids": [
+          "PC004",
+          "PC003",
+          "PC002"
+        ],
+        "num_alternatives": 3,
+        "generated_at": "2025-10-20T16:48:29.028608"
+      }
+    },
+    {
+      "id": "PP003",
+      "context": "Your job is to provide triage to incoming property claims based on a description of the claim at First Notice of Loss. Two human experts will review your recommendation. The best outcome is that both agree your choice of which available alternative to send to the claims team first. The second best outcome is that one agrees and one disagrees. The worst outcome is that they both disagree with your choice.",
+      "alternatives": [
+        "Smoke damage at restaurant reported 5 hours ago. Kitchen exhaust system malfunction caused smoke to fill dining area. No fire damage but extensive cleaning required. Health department has closed business until cleanup completed. Weekend bookings must be cancelled. Restaurant opened 3 months ago and this is first claim. Estimated loss including business interruption: $28,000.",
+        "Elderly homeowner (age 83) reporting broken heating system during winter storm 6 hours ago. Temperature in home currently 45\u00b0F and dropping. No alternative heating source available. Repair service estimates 3-day wait for parts. Policyholder on fixed income and concerned about hotel costs. Policy includes equipment breakdown with $500 deductible."
+      ],
+      "metadata": {
+        "claim_ids": [
+          "PC010",
+          "PC007"
+        ],
+        "num_alternatives": 2,
+        "generated_at": "2025-10-20T16:48:29.028616"
+      }
+    },
+    {
+      "id": "PP004",
+      "context": "Your job is to provide triage to incoming property claims based on a description of the claim at First Notice of Loss. Two human experts will review your recommendation. The best outcome is that both agree your choice of which available alternative to send to the claims team first. The second best outcome is that one agrees and one disagrees. The worst outcome is that they both disagree with your choice.",
+      "alternatives": [
+        "Residential house fire reported 3 hours ago. Kitchen fire spread to adjoining dining room. Fire department extinguished the blaze but there is extensive smoke damage throughout the first floor. Family of four displaced and currently staying with relatives. Estimated damage: $85,000. All policy documentation verified and coverage confirmed.",
+        "Water damage in commercial retail space reported yesterday. Burst pipe in bathroom flooded store overnight. Inventory damage estimated at $35,000 with additional structural damage. Business closed until cleanup completed. Property manager requesting emergency mitigation services. Policy is 8 months old with no previous claims."
+      ],
+      "metadata": {
+        "claim_ids": [
+          "PC001",
+          "PC002"
+        ],
+        "num_alternatives": 2,
+        "generated_at": "2025-10-20T16:48:29.028622"
+      }
+    },
+    {
+      "id": "PP005",
+      "context": "Your job is to provide triage to incoming property claims based on a description of the claim at First Notice of Loss. Two human experts will review your recommendation. The best outcome is that both agree your choice of which available alternative to send to the claims team first. The second best outcome is that one agrees and one disagrees. The worst outcome is that they both disagree with your choice.",
+      "alternatives": [
+        "Commercial building collapse reported 12 hours ago. Partial wall and roof collapse at vacant warehouse under renovation. No injuries but significant structural damage. Building inspector has condemned the structure. Property valued at $450,000 with existing policy limits of $500,000. Cause of collapse still undetermined.",
+        "Vacation home tree damage reported 4 days ago by property management company. Large oak tree fell on guest house during storm. Property currently vacant. Photos show significant structural damage to roof and walls. Property in remote location with limited contractor availability. Estimated damage: $45,000. Policy coverage verified.",
+        "Residential house fire reported 3 hours ago. Kitchen fire spread to adjoining dining room. Fire department extinguished the blaze but there is extensive smoke damage throughout the first floor. Family of four displaced and currently staying with relatives. Estimated damage: $85,000. All policy documentation verified and coverage confirmed."
+      ],
+      "metadata": {
+        "claim_ids": [
+          "PC004",
+          "PC009",
+          "PC001"
+        ],
+        "num_alternatives": 3,
+        "generated_at": "2025-10-20T16:48:29.028627"
+      }
+    },
+    {
+      "id": "PP006",
+      "context": "Your job is to provide triage to incoming property claims based on a description of the claim at First Notice of Loss. Two human experts will review your recommendation. The best outcome is that both agree your choice of which available alternative to send to the claims team first. The second best outcome is that one agrees and one disagrees. The worst outcome is that they both disagree with your choice.",
+      "alternatives": [
+        "Vacation home tree damage reported 4 days ago by property management company. Large oak tree fell on guest house during storm. Property currently vacant. Photos show significant structural damage to roof and walls. Property in remote location with limited contractor availability. Estimated damage: $45,000. Policy coverage verified.",
+        "Elderly homeowner (age 83) reporting broken heating system during winter storm 6 hours ago. Temperature in home currently 45\u00b0F and dropping. No alternative heating source available. Repair service estimates 3-day wait for parts. Policyholder on fixed income and concerned about hotel costs. Policy includes equipment breakdown with $500 deductible.",
+        "Commercial building collapse reported 12 hours ago. Partial wall and roof collapse at vacant warehouse under renovation. No injuries but significant structural damage. Building inspector has condemned the structure. Property valued at $450,000 with existing policy limits of $500,000. Cause of collapse still undetermined."
+      ],
+      "metadata": {
+        "claim_ids": [
+          "PC009",
+          "PC007",
+          "PC004"
+        ],
+        "num_alternatives": 3,
+        "generated_at": "2025-10-20T16:48:29.028632"
+      }
+    },
+    {
+      "id": "PP007",
+      "context": "Your job is to provide triage to incoming property claims based on a description of the claim at First Notice of Loss. Two human experts will review your recommendation. The best outcome is that both agree your choice of which available alternative to send to the claims team first. The second best outcome is that one agrees and one disagrees. The worst outcome is that they both disagree with your choice.",
+      "alternatives": [
+        "Smoke damage at restaurant reported 5 hours ago. Kitchen exhaust system malfunction caused smoke to fill dining area. No fire damage but extensive cleaning required. Health department has closed business until cleanup completed. Weekend bookings must be cancelled. Restaurant opened 3 months ago and this is first claim. Estimated loss including business interruption: $28,000.",
+        "Residential theft claim reported 2 days ago. Family returned from 1-week vacation to find home burglarized. Items missing include electronics, jewelry, and cash valued at approximately $22,000. Police report filed. Home security system was not armed during incident. Policy includes theft coverage with $1,000 deductible.",
+        "Residential house fire reported 3 hours ago. Kitchen fire spread to adjoining dining room. Fire department extinguished the blaze but there is extensive smoke damage throughout the first floor. Family of four displaced and currently staying with relatives. Estimated damage: $85,000. All policy documentation verified and coverage confirmed.",
+        "Elderly homeowner (age 83) reporting broken heating system during winter storm 6 hours ago. Temperature in home currently 45\u00b0F and dropping. No alternative heating source available. Repair service estimates 3-day wait for parts. Policyholder on fixed income and concerned about hotel costs. Policy includes equipment breakdown with $500 deductible.",
+        "Water damage in commercial retail space reported yesterday. Burst pipe in bathroom flooded store overnight. Inventory damage estimated at $35,000 with additional structural damage. Business closed until cleanup completed. Property manager requesting emergency mitigation services. Policy is 8 months old with no previous claims."
+      ],
+      "metadata": {
+        "claim_ids": [
+          "PC010",
+          "PC005",
+          "PC001",
+          "PC007",
+          "PC002"
+        ],
+        "num_alternatives": 5,
+        "generated_at": "2025-10-20T16:48:29.028638"
+      }
+    },
+    {
+      "id": "PP008",
+      "context": "Your job is to provide triage to incoming property claims based on a description of the claim at First Notice of Loss. Two human experts will review your recommendation. The best outcome is that both agree your choice of which available alternative to send to the claims team first. The second best outcome is that one agrees and one disagrees. The worst outcome is that they both disagree with your choice.",
+      "alternatives": [
+        "Storm damage to apartment complex reported 8 hours ago. High winds removed portions of roof affecting 6 units. Rain damage to tenants' property in 4 units. Property manager has contacted emergency services for temporary covering. Estimated damage: $95,000. Complex has history of two previous weather-related claims in past 5 years.",
+        "Residential theft claim reported 2 days ago. Family returned from 1-week vacation to find home burglarized. Items missing include electronics, jewelry, and cash valued at approximately $22,000. Police report filed. Home security system was not armed during incident. Policy includes theft coverage with $1,000 deductible.",
+        "Hail damage to residential roof reported 5 days ago. Homeowner noticed leaking after recent storm. Temporary tarp in place. Received contractor estimate of $12,500 for replacement. Photos submitted show moderate damage to shingles and one skylight. No interior damage yet. Policy includes standard weather damage coverage.",
+        "Water damage in commercial retail space reported yesterday. Burst pipe in bathroom flooded store overnight. Inventory damage estimated at $35,000 with additional structural damage. Business closed until cleanup completed. Property manager requesting emergency mitigation services. Policy is 8 months old with no previous claims.",
+        "Lightning strike at small business office reported yesterday. Strike damaged electrical system and network equipment. Business operating at limited capacity using temporary generators. 15 employees affected. Data recovery services required for damaged servers containing critical client information. Estimated damages: $65,000. Business continuity insurance included in policy."
+      ],
+      "metadata": {
+        "claim_ids": [
+          "PC006",
+          "PC005",
+          "PC003",
+          "PC002",
+          "PC008"
+        ],
+        "num_alternatives": 5,
+        "generated_at": "2025-10-20T16:48:29.028643"
+      }
+    },
+    {
+      "id": "PP009",
+      "context": "Your job is to provide triage to incoming property claims based on a description of the claim at First Notice of Loss. Two human experts will review your recommendation. The best outcome is that both agree your choice of which available alternative to send to the claims team first. The second best outcome is that one agrees and one disagrees. The worst outcome is that they both disagree with your choice.",
+      "alternatives": [
+        "Water damage in commercial retail space reported yesterday. Burst pipe in bathroom flooded store overnight. Inventory damage estimated at $35,000 with additional structural damage. Business closed until cleanup completed. Property manager requesting emergency mitigation services. Policy is 8 months old with no previous claims.",
+        "Elderly homeowner (age 83) reporting broken heating system during winter storm 6 hours ago. Temperature in home currently 45\u00b0F and dropping. No alternative heating source available. Repair service estimates 3-day wait for parts. Policyholder on fixed income and concerned about hotel costs. Policy includes equipment breakdown with $500 deductible."
+      ],
+      "metadata": {
+        "claim_ids": [
+          "PC002",
+          "PC007"
+        ],
+        "num_alternatives": 2,
+        "generated_at": "2025-10-20T16:48:29.028648"
+      }
+    },
+    {
+      "id": "PP010",
+      "context": "Your job is to provide triage to incoming property claims based on a description of the claim at First Notice of Loss. Two human experts will review your recommendation. The best outcome is that both agree your choice of which available alternative to send to the claims team first. The second best outcome is that one agrees and one disagrees. The worst outcome is that they both disagree with your choice.",
+      "alternatives": [
+        "Storm damage to apartment complex reported 8 hours ago. High winds removed portions of roof affecting 6 units. Rain damage to tenants' property in 4 units. Property manager has contacted emergency services for temporary covering. Estimated damage: $95,000. Complex has history of two previous weather-related claims in past 5 years.",
+        "Smoke damage at restaurant reported 5 hours ago. Kitchen exhaust system malfunction caused smoke to fill dining area. No fire damage but extensive cleaning required. Health department has closed business until cleanup completed. Weekend bookings must be cancelled. Restaurant opened 3 months ago and this is first claim. Estimated loss including business interruption: $28,000."
+      ],
+      "metadata": {
+        "claim_ids": [
+          "PC006",
+          "PC010"
+        ],
+        "num_alternatives": 2,
+        "generated_at": "2025-10-20T16:48:29.028652"
+      }
+    }
+  ],
+  "metadata": {
+    "num_problems": 10,
+    "base_claims_file": "/Users/jeffhelzner/Desktop/epistemic-agents/applications/llm_rationality/data/property_claims.json",
+    "generated_at": "2025-10-20T16:48:29.028716"
+  }
+}

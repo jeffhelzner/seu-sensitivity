@@ -1,5 +1,5 @@
 """
-Utility modules for the Epistemic Agents project.
+Utility modules for the SEU sensitivity project.
 """
 
 # You can expose specific modules or classes here if you want them directly importable from utils

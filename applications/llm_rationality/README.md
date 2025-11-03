@@ -204,6 +204,6 @@ Create new types of decision problems by:
 
 ## References
 
-- [Epistemic Agents Framework](https://github.com/your-org/epistemic-agents)
-- [m_0 Stan Model Documentation](https://github.com/your-org/epistemic-agents/models/m_0.stan)
+- [SEU Sensitivity Framework](https://github.com/jeffhelzner/seu-sensitivity)
+- [m_0 Stan Model Documentation](../../models/m_0.stan)
 - [OpenAI API Documentation](https://platform.openai.com/docs/api-reference)

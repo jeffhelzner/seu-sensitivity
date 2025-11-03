@@ -1,8 +1,8 @@
 """
-Study Design Generator for Epistemic Agents Project
+Study Design Generator for SEU Sensitivity Analysis
 
 This module provides tools for generating and managing study designs for 
-experimental or simulation studies in the Epistemic Agents framework.
+experimental or simulation studies in the SEU sensitivity framework.
 
 The StudyDesign class handles:
 - Generation of alternative feature vectors (w)
@@ -34,7 +34,7 @@ from pathlib import Path
 
 class StudyDesign:
     """
-    Generate, analyze, and manage study designs for epistemic agent experiments.
+    Generate, analyze, and manage study designs for SEU sensitivity experiments.
     
     A study design consists of:
     - A set of M decision problems

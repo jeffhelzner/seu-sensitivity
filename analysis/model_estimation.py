@@ -1,5 +1,5 @@
 """
-Model Estimation for Epistemic Agents
+Model Estimation for SEU Sensitivity Analysis
 
 This module provides tools for fitting Bayesian Decision Theory models to observed choice data.
 It implements a workflow for:

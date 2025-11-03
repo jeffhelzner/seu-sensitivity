@@ -1,10 +1,10 @@
-# Utils Module for Epistemic Agents
+# Utils Module for SEU Sensitivity Analysis
 
-This directory contains utility modules for the Epistemic Agents project, including tools for experimental design, data processing, and analysis.
+This directory contains utility modules for the SEU sensitivity project, including tools for experimental design, data processing, and analysis.
 
 ## Study Design
 
-The `study_design.py` module provides tools for generating and managing study designs for experiments and simulations in the Epistemic Agents framework.
+The `study_design.py` module provides tools for generating and managing study designs for experiments and simulations in the SEU sensitivity framework.
 
 ### Key Features
 

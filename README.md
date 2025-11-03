@@ -1,10 +1,28 @@
 # SEU Sensitivity
 
+![Work in Progress](https://img.shields.io/badge/status-work%20in%20progress-orange)
+
+**Note**: This is an active research project. Code and documentation are evolving.
+
 A Bayesian framework for modeling and analyzing decision-making behavior through the lens of Subjective Expected Utility (SEU) theory. This project provides tools for generating experimental designs, fitting computational models, and assessing the rationality of decision makers (including Large Language Models).
+
+## Development Status
+
+🚧 **This project is currently under active development** 🚧
+
+Current status:
+- ✅ Core theoretical framework established
+- ✅ Base Stan model (m_0) implemented and tested
+- ✅ Study design tools functional
+- 🔄 LLM benchmarking application in progress
+- 📝 Documentation being expanded
+- 🔬 Empirical validation ongoing
+
+**Note for users**: While the core functionality is stable, API and features may change as the project evolves. Feedback and contributions are welcome!
 
 ## Overview
 
-This framework implements a computational approach to understanding epistemic agents—decision makers who form beliefs and make choices under uncertainty. The core insight is that we can measure an agent's "rationality" by estimating their sensitivity parameter (α), which governs how consistently they maximize subjective expected utility.
+This framework implements a computational approach to understanding decision makers who form beliefs and make choices under uncertainty. The core insight is that we can measure an agent's "rationality" by estimating their sensitivity parameter (α), which governs how consistently they maximize subjective expected utility.
 
 **Key Features:**
 
@@ -284,30 +302,55 @@ beta_samples = fit.stan_variable("beta")
 y_pred = fit.stan_variable("y_pred")
 ```
 
-## Contributing
+## License
 
-Contributions are welcome! Areas for development:
+This project is released under the MIT License, which permits free use, modification, and distribution of the code. See [LICENSE](LICENSE) for details.
 
-- Additional Stan models (e.g., hierarchical, time-varying sensitivity)
-- New embedding methods for text alternatives
-- Support for additional LLM providers (Anthropic, Cohere)
-- Extended visualization tools
-- Simulation studies
+**Note**: While the code is freely available, if you use the methodological framework, theoretical approach, or findings from this research in your work, please cite the associated paper(s) rather than the software repository.
 
-## References
+## Citation
 
-**Foundational Theory:**
-- Luce, R. D. (1959). *Individual Choice Behavior: A Theoretical Analysis*
-- Savage, L. J. (1954). *The Foundations of Statistics*
-- McFadden, D. (1973). Conditional logit analysis of qualitative choice behavior
+If you use the **methodological framework** or **theoretical approach** from this research, please cite:
 
-**Quantal Response:**
-- McKelvey, R. D., & Palfrey, T. R. (1995). Quantal response equilibria for normal form games
+```bibtex
+@article{helzner2024seu_sensitivity,
+  title={Measuring Rationality Through Subjective Expected Utility Sensitivity: A Bayesian Framework},
+  author={Helzner, Jeff},
+  journal={[Journal Name]},
+  year={2024},
+  note={In preparation}
+}
+```
 
-**Bayesian Inference:**
-- Carpenter, B., et al. (2017). Stan: A probabilistic programming language
-- Gelman, A., et al. (2013). *Bayesian Data Analysis* (3rd ed.)
+If you use or adapt the **code** specifically:  title={SEU Sensitivity: A Bayesian Framework for Measuring Rationality},
+{Helzner, Jeff},
+```bibtex
+For the **LLM rationality benchmarking application**, please also cite:
+ measuring rationality through SEU sensitivity}
+```bibtex
+@article{helzner2024llm_rationality,
+  title={Assessing Large Language Model Rationality Through Expected Utility Sensitivity},
+  author={Helzner, Jeff},or the **LLM rationality benchmarking application**, please also cite:
+  journal={[Journal Name]},
+  year={2024},```bibtex
+  note={In preparation}elzner2024llm_rationality,
+}  title={Assessing Large Language Model Rationality Through Expected Utility Sensitivity},
+```ner, Jeff},
 
 ## Contact
+  note={In preparation}
+Jeff Helzner  
+Email: jeffhelzner@gmail.com  
+GitHub: [@jeffhelzner](https://github.com/jeffhelzner)
 
-[Jeff Helzner](mailto:jeffhelzner@gmail.com)
+
+
+
+For **code issues**, please open an issue on GitHub.For questions about the **methodology or theory**, please reach out via email.  
+
+
+
+
+
+
+For questions about the **methodology or theory**, please reach out via email.GitHub: [@jeffhelzner](https://github.com/jeffhelzner)Email: jeffhelzner@gmail.com  Jeff Helzner  ## Contact```For **code issues**, please open an issue on GitHub.

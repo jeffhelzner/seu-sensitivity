@@ -1,5 +1,5 @@
 """
-Prior Predictive Analysis for Epistemic Agents
+Prior Predictive Analysis for SEU Sensitivity Models
 
 This module provides tools for performing prior predictive analysis on Bayesian Decision Theory models.
 It allows researchers to understand the range of behaviors that a model can produce before fitting

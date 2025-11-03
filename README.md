@@ -26,7 +26,7 @@ This framework implements a computational approach to understanding decision mak
 
 **Key Features:**
 
-- **Theoretical Foundation**: Rigorous mathematical framework for softmax choice models with SEU
+- **Theoretical Foundation**: Framework for softmax choice models with SEU
 - **Stan Models**: Bayesian inference for rationality parameters using Hamiltonian Monte Carlo
 - **Study Design Tools**: Generate and analyze experimental designs for decision studies
 - **LLM Benchmarking**: Assess the rationality of Large Language Models through text-based decision problems

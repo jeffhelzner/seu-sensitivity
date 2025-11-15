@@ -94,6 +94,11 @@ generated quantities {
   
   // Generate choices
   array[M] int y;
+  // Indicator: 1 if SEU maximizer was selected, 0 otherwise
+  array[M] int<lower=0,upper=1> selected_seu_max;
+  // Total number of problems where SEU maximizer was selected
+  int<lower=0,upper=M> total_seu_max_selected;
+  
   {
     int pos = 1;
     for (i in 1:M) {
@@ -115,9 +120,24 @@ generated quantities {
       // Generate choice from categorical distribution
       y[i] = categorical_rng(choice_probs);
       
+      // Determine if an SEU maximizer was selected
+      // Find the maximum expected utility for this problem
+      real max_eta = max(problem_eta);
+      
+      // Check if the selected alternative has the maximum expected utility
+      // (within numerical tolerance)
+      if (abs(problem_eta[y[i]] - max_eta) < 1e-10) {
+        selected_seu_max[i] = 1;
+      } else {
+        selected_seu_max[i] = 0;
+      }
+      
       pos += N[i];
     }
   }
+  
+  // Calculate total number of problems where SEU maximizer was selected
+  total_seu_max_selected = sum(selected_seu_max);
 }
 
 

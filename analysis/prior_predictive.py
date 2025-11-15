@@ -186,6 +186,7 @@ class PriorPredictiveAnalysis:
         self._analyze_expected_utilities()
         self._analyze_choice_probabilities()
         self._analyze_choices()
+        self._analyze_seu_maximizer_selection()
         
         # Return samples for further analysis if needed
         return self.samples
@@ -498,6 +499,105 @@ class PriorPredictiveAnalysis:
         # Save choice counts
         with open(os.path.join(choices_dir, 'choice_counts.json'), 'w') as f:
             json.dump(choice_counts, f, indent=2)
+
+    def _analyze_seu_maximizer_selection(self):
+        """
+        Analyze the selection of SEU maximizers across decision problems.
+        
+        This method:
+        1. Calculates the probability of selecting an SEU maximizer for each problem
+        2. Analyzes the distribution of total SEU maximizers selected across problems
+        3. Creates visualizations showing SEU maximizer selection patterns
+        
+        Results are saved to the output directory under 'seu_maximizer_selection/'.
+        """
+        # Create SEU maximizer selection plots directory
+        seu_dir = os.path.join(self.output_dir, "seu_maximizer_selection")
+        os.makedirs(seu_dir, exist_ok=True)
+        
+        # Extract SEU maximizer selection indicators
+        M = self.study_design.M
+        
+        # Calculate probability of selecting SEU maximizer for each problem
+        prob_seu_max_by_problem = {}
+        for m in range(1, M + 1):
+            col = f'selected_seu_max[{m}]'
+            if col in self.samples.columns:
+                prob_seu_max_by_problem[m] = self.samples[col].mean()
+        
+        # Plot probability of selecting SEU maximizer by problem
+        if prob_seu_max_by_problem:
+            plt.figure(figsize=(12, 6))
+            problems = list(prob_seu_max_by_problem.keys())
+            probs = list(prob_seu_max_by_problem.values())
+            
+            plt.bar(problems, probs, alpha=0.7, edgecolor='black')
+            plt.axhline(y=np.mean(probs), color='red', linestyle='--', 
+                       label=f'Mean: {np.mean(probs):.3f}')
+            plt.xlabel('Decision Problem')
+            plt.ylabel('Probability of Selecting SEU Maximizer')
+            plt.title('Probability of Selecting SEU Maximizer by Problem')
+            plt.legend()
+            plt.grid(axis='y', alpha=0.3)
+            plt.tight_layout()
+            plt.savefig(os.path.join(seu_dir, 'prob_seu_max_by_problem.png'), dpi=150)
+            plt.close()
+        
+        # Analyze distribution of total SEU maximizers selected
+        if 'total_seu_max_selected' in self.samples.columns:
+            total_seu_max = self.samples['total_seu_max_selected']
+            
+            # Create histogram
+            plt.figure(figsize=(10, 6))
+            plt.hist(total_seu_max, bins=range(0, M+2), align='left', 
+                    rwidth=0.8, alpha=0.7, edgecolor='black')
+            plt.axvline(np.mean(total_seu_max), color='red', linestyle='--', 
+                       label=f'Mean: {np.mean(total_seu_max):.2f}')
+            plt.axvline(np.median(total_seu_max), color='blue', linestyle='--', 
+                       label=f'Median: {np.median(total_seu_max):.0f}')
+            plt.xlabel('Number of Problems Where SEU Maximizer Selected')
+            plt.ylabel('Frequency')
+            plt.title(f'Distribution of Total SEU Maximizers Selected (out of {M} problems)')
+            plt.legend()
+            plt.grid(axis='y', alpha=0.3)
+            plt.tight_layout()
+            plt.savefig(os.path.join(seu_dir, 'total_seu_max_distribution.png'), dpi=150)
+            plt.close()
+            
+            # Create summary statistics
+            seu_max_summary = {
+                'total_problems': M,
+                'prob_seu_max_by_problem': prob_seu_max_by_problem,
+                'overall_prob_seu_max': float(np.mean(list(prob_seu_max_by_problem.values()))),
+                'total_seu_max_selected': {
+                    'mean': float(np.mean(total_seu_max)),
+                    'std': float(np.std(total_seu_max)),
+                    'median': float(np.median(total_seu_max)),
+                    'min': int(np.min(total_seu_max)),
+                    'max': int(np.max(total_seu_max)),
+                    'q25': float(np.quantile(total_seu_max, 0.25)),
+                    'q75': float(np.quantile(total_seu_max, 0.75))
+                }
+            }
+            
+            # Save summary
+            with open(os.path.join(seu_dir, 'seu_maximizer_summary.json'), 'w') as f:
+                json.dump(seu_max_summary, f, indent=2)
+            
+            # Print summary to console
+            print("\n" + "="*60)
+            print("SEU MAXIMIZER SELECTION SUMMARY")
+            print("="*60)
+            print(f"Total problems: {M}")
+            print(f"Overall probability of selecting SEU maximizer: {seu_max_summary['overall_prob_seu_max']:.3f}")
+            print(f"\nDistribution of total SEU maximizers selected:")
+            print(f"  Mean: {seu_max_summary['total_seu_max_selected']['mean']:.2f}")
+            print(f"  Median: {seu_max_summary['total_seu_max_selected']['median']:.0f}")
+            print(f"  Range: [{seu_max_summary['total_seu_max_selected']['min']}, "
+                  f"{seu_max_summary['total_seu_max_selected']['max']}]")
+            print(f"  IQR: [{seu_max_summary['total_seu_max_selected']['q25']:.1f}, "
+                  f"{seu_max_summary['total_seu_max_selected']['q75']:.1f}]")
+            print("="*60 + "\n")
 
 if __name__ == "__main__":
     # Example usage

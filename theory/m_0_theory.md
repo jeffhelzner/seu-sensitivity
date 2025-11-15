@@ -445,6 +445,40 @@ Properties 1-3 ensure that:
 
 3. Intermediate values of α capture bounded rationality where decision makers are sensitive to SEU differences but make probabilistic choices
 
+### 5.3 SEU Maximizer Selection
+
+An important diagnostic for understanding model behavior is tracking whether agents select SEU-maximizing alternatives. For each decision problem m, we can define:
+
+**SEU Maximizer Indicator:**
+```
+I_m = 1 if chosen alternative j* satisfies η(j*) = max_j η(j)
+     0 otherwise
+```
+
+where η(j) is the expected utility of alternative j.
+
+**Expected SEU Maximizer Selection:** Under the softmax choice model with sensitivity α, the probability of selecting an SEU maximizer for problem m is:
+
+```
+P(select SEU max | m, α) = Σ_{j ∈ A*_m} exp(α·η(j)) / Σ_{k=1}^{N_m} exp(α·η(k))
+```
+
+where A*_m is the set of SEU-maximizing alternatives in problem m.
+
+**Theoretical Properties:**
+
+1. **As α → ∞:** P(select SEU max | m, α) → 1 for all m
+2. **As α → 0:** P(select SEU max | m, α) → |A*_m|/N_m (probability under random choice)
+3. **Monotonicity:** P(select SEU max | m, α) is strictly increasing in α
+
+**Aggregate Analysis:** The total number of SEU maximizers selected across M problems follows:
+
+```
+T = Σ_{m=1}^M I_m
+```
+
+Under prior predictive analysis, T provides a summary measure of how often the model generates "rational" choices given the prior distributions on parameters.
+
 ## 6. Implications for Rational Choice Theory
 
 ### 6.1 Generality of Results

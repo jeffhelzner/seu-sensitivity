@@ -156,7 +156,7 @@ See [applications/llm_rationality/README.md](applications/llm_rationality/README
 
 ## Theoretical Background
 
-Overview of three fundamental properties of seu sensitivity:
+Overview of three fundamental properties of SEU sensitivity:
 
 1. **Monotonicity**: Higher sensitivity increases probability of choosing value-maximizing alternatives
 2. **Perfect Rationality Limit**: As α → ∞, agents deterministically choose optimal alternatives
@@ -165,6 +165,8 @@ Overview of three fundamental properties of seu sensitivity:
 These properties hold for any value function, with SEU providing the substantive behavioral interpretation.
 
 **Key Result**: With utilities normalized to [0,1], the sensitivity parameter α has a precise interpretation as the log-odds change per unit of standardized SEU difference.
+
+**SEU Maximizer Selection**: The prior predictive analysis tracks the probability of selecting SEU-maximizing alternatives for each problem, providing a diagnostic for model rationality under the prior.
 
 See [theory/m_0_theory.md](theory/m_0_theory.md) for complete mathematical details.
 

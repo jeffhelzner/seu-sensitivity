@@ -331,6 +331,43 @@ class ParameterRecovery:
         
         recovery_stats["beta"] = beta_stats
         
+        # Plot beta recovery for each parameter
+        for k in range(K):
+            for d in range(D):
+                param_name = f"beta[{k+1},{d+1}]"
+                beta_true = [params["beta"][k][d] for params in all_true_params]
+                beta_mean = [summary.loc[param_name, "Mean"] for summary in all_posterior_summaries]
+                beta_lower = [summary.loc[param_name, "5%"] for summary in all_posterior_summaries]
+                beta_upper = [summary.loc[param_name, "95%"] for summary in all_posterior_summaries]
+                
+                beta_bias = beta_stats[f"beta_{k+1}_{d+1}"]["bias"]
+                beta_rmse = beta_stats[f"beta_{k+1}_{d+1}"]["rmse"]
+                beta_coverage = beta_stats[f"beta_{k+1}_{d+1}"]["coverage"]
+                
+                plt.figure(figsize=(10, 6))
+                plt.scatter(beta_true, beta_mean, alpha=0.7)
+                plt.plot([min(beta_true), max(beta_true)], [min(beta_true), max(beta_true)], 'r--')
+                plt.xlabel(f"True Beta[{k+1},{d+1}]")
+                plt.ylabel(f"Estimated Beta[{k+1},{d+1}]")
+                plt.title(f"Beta[{k+1},{d+1}] Recovery (Bias={beta_bias:.3f}, RMSE={beta_rmse:.3f}, Coverage={beta_coverage:.1%})")
+                plt.savefig(os.path.join(recovery_dir, f"beta_{k+1}_{d+1}_recovery.png"))
+                plt.close()
+                
+                # Add coverage interval plot for this beta parameter
+                plt.figure(figsize=(12, 6))
+                for i in range(len(beta_true)):
+                    color = 'green' if (beta_true[i] >= beta_lower[i] and beta_true[i] <= beta_upper[i]) else 'red'
+                    plt.plot([i, i], [beta_lower[i], beta_upper[i]], color=color, linewidth=2, alpha=0.6)
+                    plt.scatter(i, beta_mean[i], color=color, s=30, zorder=3)
+                plt.scatter(range(len(beta_true)), beta_true, color='black', s=50, marker='x', label='True Value', zorder=4)
+                plt.xlabel("Iteration")
+                plt.ylabel(f"Beta[{k+1},{d+1}] Value")
+                plt.title(f"Beta[{k+1},{d+1}]: 90% Credible Intervals (Coverage = {beta_coverage:.1%})")
+                plt.legend()
+                plt.grid(True, alpha=0.3)
+                plt.savefig(os.path.join(recovery_dir, f"beta_{k+1}_{d+1}_coverage.png"))
+                plt.close()
+        
         # Process delta parameters
         delta_stats = {}
         
@@ -363,6 +400,21 @@ class ParameterRecovery:
             plt.title(f"Delta[{k+1}] Recovery (Coverage={delta_coverage:.1%})")
             plt.savefig(os.path.join(recovery_dir, f"delta_{k+1}_recovery.png"))
             plt.close()
+            
+            # Add coverage interval plot for this delta parameter
+            plt.figure(figsize=(12, 6))
+            for i in range(len(delta_true)):
+                color = 'green' if (delta_true[i] >= delta_lower[i] and delta_true[i] <= delta_upper[i]) else 'red'
+                plt.plot([i, i], [delta_lower[i], delta_upper[i]], color=color, linewidth=2, alpha=0.6)
+                plt.scatter(i, delta_mean[i], color=color, s=30, zorder=3)
+            plt.scatter(range(len(delta_true)), delta_true, color='black', s=50, marker='x', label='True Value', zorder=4)
+            plt.xlabel("Iteration")
+            plt.ylabel(f"Delta[{k+1}] Value")
+            plt.title(f"Delta[{k+1}]: 90% Credible Intervals (Coverage = {delta_coverage:.1%})")
+            plt.legend()
+            plt.grid(True, alpha=0.3)
+            plt.savefig(os.path.join(recovery_dir, f"delta_{k+1}_coverage.png"))
+            plt.close()
         
         recovery_stats["delta"] = delta_stats
         
@@ -391,6 +443,261 @@ class ParameterRecovery:
                 }
         
         recovery_stats["upsilon"] = upsilon_stats
+        
+        # Create true value vs CI width plots
+        # Alpha: True value vs CI width
+        plt.figure(figsize=(10, 6))
+        plt.scatter(alpha_true, np.array(alpha_upper) - np.array(alpha_lower), alpha=0.7)
+        plt.xlabel("True Alpha")
+        plt.ylabel("90% CI Width")
+        plt.title("Alpha: True Value vs Credible Interval Width")
+        plt.savefig(os.path.join(recovery_dir, "alpha_ci_width.png"))
+        plt.close()
+        
+        # Alpha: True value vs RMSE (showing individual errors)
+        plt.figure(figsize=(10, 6))
+        plt.scatter(alpha_true, np.abs(np.array(alpha_mean) - np.array(alpha_true)), alpha=0.7)
+        plt.xlabel("True Alpha")
+        plt.ylabel("Absolute Error")
+        plt.title(f"Alpha: True Value vs Absolute Error (Overall RMSE={alpha_rmse:.3f})")
+        plt.savefig(os.path.join(recovery_dir, "alpha_error.png"))
+        plt.close()
+        
+        # Beta: True value vs CI width and RMSE
+        for k in range(K):
+            for d in range(D):
+                param_name = f"beta[{k+1},{d+1}]"
+                beta_true = [params["beta"][k][d] for params in all_true_params]
+                beta_mean = [summary.loc[param_name, "Mean"] for summary in all_posterior_summaries]
+                beta_lower = [summary.loc[param_name, "5%"] for summary in all_posterior_summaries]
+                beta_upper = [summary.loc[param_name, "95%"] for summary in all_posterior_summaries]
+                
+                beta_rmse = beta_stats[f"beta_{k+1}_{d+1}"]["rmse"]
+                
+                # CI width plot
+                plt.figure(figsize=(10, 6))
+                plt.scatter(beta_true, np.array(beta_upper) - np.array(beta_lower), alpha=0.7)
+                plt.xlabel(f"True Beta[{k+1},{d+1}]")
+                plt.ylabel("90% CI Width")
+                plt.title(f"Beta[{k+1},{d+1}]: True Value vs Credible Interval Width")
+                plt.savefig(os.path.join(recovery_dir, f"beta_{k+1}_{d+1}_ci_width.png"))
+                plt.close()
+                
+                # Error plot
+                plt.figure(figsize=(10, 6))
+                plt.scatter(beta_true, np.abs(np.array(beta_mean) - np.array(beta_true)), alpha=0.7)
+                plt.xlabel(f"True Beta[{k+1},{d+1}]")
+                plt.ylabel("Absolute Error")
+                plt.title(f"Beta[{k+1},{d+1}]: True Value vs Absolute Error (Overall RMSE={beta_rmse:.3f})")
+                plt.savefig(os.path.join(recovery_dir, f"beta_{k+1}_{d+1}_error.png"))
+                plt.close()
+        
+        # Delta: True value vs CI width and RMSE
+        for k in range(K - 1):
+            param_name = f"delta[{k+1}]"
+            delta_true = [params["delta"][k] for params in all_true_params]
+            delta_mean = [summary.loc[param_name, "Mean"] for summary in all_posterior_summaries]
+            delta_lower = [summary.loc[param_name, "5%"] for summary in all_posterior_summaries]
+            delta_upper = [summary.loc[param_name, "95%"] for summary in all_posterior_summaries]
+            
+            delta_rmse = delta_stats[f"delta_{k+1}"]["rmse"]
+            
+            # CI width plot
+            plt.figure(figsize=(10, 6))
+            plt.scatter(delta_true, np.array(delta_upper) - np.array(delta_lower), alpha=0.7)
+            plt.xlabel(f"True Delta[{k+1}]")
+            plt.ylabel("90% CI Width")
+            plt.title(f"Delta[{k+1}]: True Value vs Credible Interval Width")
+            plt.savefig(os.path.join(recovery_dir, f"delta_{k+1}_ci_width.png"))
+            plt.close()
+            
+            # Error plot
+            plt.figure(figsize=(10, 6))
+            plt.scatter(delta_true, np.abs(np.array(delta_mean) - np.array(delta_true)), alpha=0.7)
+            plt.xlabel(f"True Delta[{k+1}]")
+            plt.ylabel("Absolute Error")
+            plt.title(f"Delta[{k+1}]: True Value vs Absolute Error (Overall RMSE={delta_rmse:.3f})")
+            plt.savefig(os.path.join(recovery_dir, f"delta_{k+1}_error.png"))
+            plt.close()
+        
+        # Additional diagnostic plots
+        
+        # 1. Distribution plots showing bias across iterations
+        plt.figure(figsize=(12, 6))
+        bias_values = np.array(alpha_mean) - np.array(alpha_true)
+        plt.hist(bias_values, bins=20, alpha=0.7, edgecolor='black')
+        plt.axvline(0, color='red', linestyle='--', linewidth=2, label='Zero Bias')
+        plt.axvline(np.mean(bias_values), color='blue', linestyle='-', linewidth=2, label=f'Mean Bias = {np.mean(bias_values):.3f}')
+        plt.xlabel("Bias (Estimated - True)")
+        plt.ylabel("Frequency")
+        plt.title("Alpha: Distribution of Bias Across Iterations")
+        plt.legend()
+        plt.savefig(os.path.join(recovery_dir, "alpha_bias_distribution.png"))
+        plt.close()
+        
+        # 2. Coverage interval plot for alpha (showing which iterations had coverage)
+        plt.figure(figsize=(12, 6))
+        for i in range(len(alpha_true)):
+            color = 'green' if (alpha_true[i] >= alpha_lower[i] and alpha_true[i] <= alpha_upper[i]) else 'red'
+            plt.plot([i, i], [alpha_lower[i], alpha_upper[i]], color=color, linewidth=2, alpha=0.6)
+            plt.scatter(i, alpha_mean[i], color=color, s=30, zorder=3)
+        plt.scatter(range(len(alpha_true)), alpha_true, color='black', s=50, marker='x', label='True Value', zorder=4)
+        plt.xlabel("Iteration")
+        plt.ylabel("Alpha Value")
+        plt.title(f"Alpha: 90% Credible Intervals (Coverage = {alpha_coverage:.1%})")
+        plt.legend()
+        plt.grid(True, alpha=0.3)
+        plt.savefig(os.path.join(recovery_dir, "alpha_coverage_intervals.png"))
+        plt.close()
+        
+        # 3. Standardized bias (z-score) plot for alpha
+        plt.figure(figsize=(10, 6))
+        z_scores = (np.array(alpha_mean) - np.array(alpha_true)) / (np.array(alpha_upper) - np.array(alpha_lower)) * 3.29  # Approximate SE from 90% CI
+        plt.scatter(range(len(z_scores)), z_scores, alpha=0.7)
+        plt.axhline(0, color='black', linestyle='-', linewidth=1)
+        plt.axhline(1.96, color='red', linestyle='--', linewidth=1, label='±1.96 (95% bounds)')
+        plt.axhline(-1.96, color='red', linestyle='--', linewidth=1)
+        plt.xlabel("Iteration")
+        plt.ylabel("Standardized Bias (z-score)")
+        plt.title("Alpha: Standardized Bias Across Iterations")
+        plt.legend()
+        plt.grid(True, alpha=0.3)
+        plt.savefig(os.path.join(recovery_dir, "alpha_standardized_bias.png"))
+        plt.close()
+        
+        # 4. Combined parameter recovery plot (all betas aggregated)
+        fig, axes = plt.subplots(2, 2, figsize=(14, 12))
+        
+        # Collect all beta true and estimated values
+        all_beta_true = []
+        all_beta_mean = []
+        all_beta_lower = []
+        all_beta_upper = []
+        
+        for k in range(K):
+            for d in range(D):
+                param_name = f"beta[{k+1},{d+1}]"
+                all_beta_true.extend([params["beta"][k][d] for params in all_true_params])
+                all_beta_mean.extend([summary.loc[param_name, "Mean"] for summary in all_posterior_summaries])
+                all_beta_lower.extend([summary.loc[param_name, "5%"] for summary in all_posterior_summaries])
+                all_beta_upper.extend([summary.loc[param_name, "95%"] for summary in all_posterior_summaries])
+        
+        all_beta_true = np.array(all_beta_true)
+        all_beta_mean = np.array(all_beta_mean)
+        all_beta_lower = np.array(all_beta_lower)
+        all_beta_upper = np.array(all_beta_upper)
+        
+        # True vs Estimated
+        axes[0, 0].scatter(all_beta_true, all_beta_mean, alpha=0.5)
+        axes[0, 0].plot([all_beta_true.min(), all_beta_true.max()], 
+                       [all_beta_true.min(), all_beta_true.max()], 'r--')
+        axes[0, 0].set_xlabel("True Beta")
+        axes[0, 0].set_ylabel("Estimated Beta")
+        axes[0, 0].set_title("True vs Estimated (All Betas)")
+        
+        # Bias distribution
+        all_beta_bias = all_beta_mean - all_beta_true
+        axes[0, 1].hist(all_beta_bias, bins=30, alpha=0.7, edgecolor='black')
+        axes[0, 1].axvline(0, color='red', linestyle='--', linewidth=2)
+        axes[0, 1].axvline(np.mean(all_beta_bias), color='blue', linestyle='-', linewidth=2)
+        axes[0, 1].set_xlabel("Bias")
+        axes[0, 1].set_ylabel("Frequency")
+        axes[0, 1].set_title(f"Bias Distribution (Mean = {np.mean(all_beta_bias):.3f})")
+        
+        # CI width vs True value
+        all_beta_ci_width = all_beta_upper - all_beta_lower
+        axes[1, 0].scatter(all_beta_true, all_beta_ci_width, alpha=0.5)
+        axes[1, 0].set_xlabel("True Beta")
+        axes[1, 0].set_ylabel("90% CI Width")
+        axes[1, 0].set_title("CI Width vs True Value")
+        
+        # Coverage by true value bins
+        n_bins = 10
+        true_bins = np.percentile(all_beta_true, np.linspace(0, 100, n_bins + 1))
+        bin_coverage = []
+        bin_centers = []
+        
+        for i in range(n_bins):
+            mask = (all_beta_true >= true_bins[i]) & (all_beta_true < true_bins[i + 1])
+            if np.sum(mask) > 0:
+                coverage = np.mean((all_beta_true[mask] >= all_beta_lower[mask]) & 
+                                 (all_beta_true[mask] <= all_beta_upper[mask]))
+                bin_coverage.append(coverage)
+                bin_centers.append((true_bins[i] + true_bins[i + 1]) / 2)
+        
+        axes[1, 1].scatter(bin_centers, bin_coverage, s=100)
+        axes[1, 1].axhline(0.9, color='red', linestyle='--', linewidth=2, label='Nominal 90%')
+        axes[1, 1].set_xlabel("True Beta Value (binned)")
+        axes[1, 1].set_ylabel("Coverage Rate")
+        axes[1, 1].set_title("Coverage by True Value Bins")
+        axes[1, 1].legend()
+        axes[1, 1].set_ylim([0, 1])
+        
+        plt.tight_layout()
+        plt.savefig(os.path.join(recovery_dir, "beta_combined_diagnostics.png"))
+        plt.close()
+        
+        # 5. Similar combined plot for delta if present
+        if delta_stats:
+            all_delta_true = []
+            all_delta_mean = []
+            all_delta_lower = []
+            all_delta_upper = []
+            
+            for k in range(K - 1):
+                param_name = f"delta[{k+1}]"
+                all_delta_true.extend([params["delta"][k] for params in all_true_params])
+                all_delta_mean.extend([summary.loc[param_name, "Mean"] for summary in all_posterior_summaries])
+                all_delta_lower.extend([summary.loc[param_name, "5%"] for summary in all_posterior_summaries])
+                all_delta_upper.extend([summary.loc[param_name, "95%"] for summary in all_posterior_summaries])
+            
+            all_delta_true = np.array(all_delta_true)
+            all_delta_mean = np.array(all_delta_mean)
+            
+            # Coverage interval plot for all deltas
+            plt.figure(figsize=(14, 6))
+            for i in range(len(all_delta_true)):
+                covered = (all_delta_true[i] >= all_delta_lower[i] and all_delta_true[i] <= all_delta_upper[i])
+                color = 'green' if covered else 'red'
+                iteration = i % self.n_iterations
+                param_offset = i // self.n_iterations
+                x_pos = iteration + param_offset * (self.n_iterations + 2)
+                plt.plot([x_pos, x_pos], [all_delta_lower[i], all_delta_upper[i]], 
+                        color=color, linewidth=2, alpha=0.6)
+                plt.scatter(x_pos, all_delta_mean[i], color=color, s=20, zorder=3)
+            plt.scatter(range(len(all_delta_true)), all_delta_true, color='black', 
+                       s=30, marker='x', label='True Value', zorder=4)
+            plt.xlabel("Iteration (grouped by delta parameter)")
+            plt.ylabel("Delta Value")
+            plt.title(f"Delta: 90% Credible Intervals Across All Parameters")
+            plt.legend()
+            plt.grid(True, alpha=0.3)
+            plt.savefig(os.path.join(recovery_dir, "delta_all_coverage_intervals.png"))
+            plt.close()
+        
+        # 6. Correlation between bias and true values (to check for systematic patterns)
+        plt.figure(figsize=(12, 5))
+        
+        plt.subplot(1, 2, 1)
+        plt.scatter(all_beta_true, all_beta_mean - all_beta_true, alpha=0.5)
+        plt.axhline(0, color='red', linestyle='--', linewidth=2)
+        plt.xlabel("True Beta Value")
+        plt.ylabel("Bias (Estimated - True)")
+        plt.title("Beta: Bias vs True Value")
+        plt.grid(True, alpha=0.3)
+        
+        if delta_stats:
+            plt.subplot(1, 2, 2)
+            plt.scatter(all_delta_true, all_delta_mean - all_delta_true, alpha=0.5)
+            plt.axhline(0, color='red', linestyle='--', linewidth=2)
+            plt.xlabel("True Delta Value")
+            plt.ylabel("Bias (Estimated - True)")
+            plt.title("Delta: Bias vs True Value")
+            plt.grid(True, alpha=0.3)
+        
+        plt.tight_layout()
+        plt.savefig(os.path.join(recovery_dir, "bias_vs_true_value.png"))
+        plt.close()
         
         # Save recovery stats
         with open(os.path.join(recovery_dir, "recovery_statistics.json"), 'w') as f:

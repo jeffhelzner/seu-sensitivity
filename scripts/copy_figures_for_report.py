@@ -79,6 +79,46 @@ def copy_parameter_recovery_figures(source_dir_name="example_prior_recovery"):
     print("\nCopying parameter recovery figures...")
     copy_files(source_dir, files_to_copy)
 
+def copy_parameter_recovery_m01_figures(source_dir_name="example_recovery_1"):
+    """Copy parameter recovery analysis figures for m_01 model."""
+    recovery_base = project_root / "results" / "parameter_recovery"
+    
+    if source_dir_name is None:
+        # Find the most recent m_01 recovery run
+        if not recovery_base.exists():
+            print("Warning: No parameter recovery results found")
+            return
+        
+        run_dirs = [d for d in recovery_base.iterdir() if d.is_dir() and 'm01' in d.name.lower()]
+        if not run_dirs:
+            print("Warning: No m_01 parameter recovery runs found")
+            return
+        
+        source_dir = max(run_dirs, key=lambda d: d.stat().st_mtime) / "recovery_summary"
+        print(f"Using most recent m_01 run: {source_dir.parent.name}")
+    else:
+        source_dir = recovery_base / source_dir_name / "recovery_summary"
+    
+    if not source_dir.exists():
+        print(f"Warning: m_01 recovery directory not found: {source_dir}")
+        return
+    
+    # Create m01 subfolder for these results
+    m01_dest = dest_dir / "recovery_m01"
+    m01_dest.mkdir(exist_ok=True)
+    
+    files_to_copy = {
+        # Summary table - to reports root with m01 prefix
+        "summary_table.csv": "../recovery_m01_summary_table.csv",
+        
+        # Delta coverage plots - using underscore naming
+        "delta_1_coverage.png": "recovery_m01/delta_1_coverage.png",
+        "delta_2_coverage.png": "recovery_m01/delta_2_coverage.png",
+    }
+    
+    print("\nCopying m_01 parameter recovery figures...")
+    copy_files(source_dir, files_to_copy)
+
 def copy_sample_size_figures(source_dir_name="custom_run"):
     """Copy sample size estimation figures."""
     sample_size_base = project_root / "results" / "sample_size_estimation"
@@ -116,7 +156,33 @@ def copy_sample_size_figures(source_dir_name="custom_run"):
         "coverage_vs_M_comparison.png": "sample_size_coverage_comparison.png",
     }
     
-    print("\nCopying sample size estimation figures...")
+    print("\nCopying sample size estimation figures (R=5)...")
+    copy_files(source_dir, files_to_copy)
+
+def copy_sample_size_r15_figures(source_dir_name="custom_run_1"):
+    """Copy sample size estimation figures for R=15 analysis."""
+    sample_size_base = project_root / "results" / "sample_size_estimation"
+    
+    source_dir = sample_size_base / source_dir_name
+    
+    if not source_dir.exists():
+        print(f"Warning: Sample size R=15 directory not found: {source_dir}")
+        return
+    
+    # Create R15 subfolder in figures
+    r15_dest = dest_dir / "sample_size_r15"
+    r15_dest.mkdir(exist_ok=True)
+    
+    files_to_copy = {
+        # Summary data - to reports root (not project root!)
+        "recovery_summary_vs_M.csv": "../sample_size_r15_recovery_summary.csv",
+        
+        # Plots - to sample_size_r15 subfolder (relative to dest_dir)
+        "ci_width_vs_M_comparison.png": "sample_size_r15/ci_width_comparison.png",
+        "rmse_vs_M_comparison.png": "sample_size_r15/rmse_comparison.png",
+    }
+    
+    print("\nCopying sample size estimation figures (R=15)...")
     copy_files(source_dir, files_to_copy)
 
 def copy_files(source_dir, files_to_copy):
@@ -139,14 +205,18 @@ def copy_files(source_dir, files_to_copy):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Copy analysis figures to reports directory")
     parser.add_argument('--analysis', type=str, 
-                        choices=['prior', 'recovery', 'sample_size', 'all'], 
+                        choices=['prior', 'recovery', 'recovery_m01', 'sample_size', 'sample_size_r15', 'all'], 
                         default='all', help='Which analysis figures to copy')
     parser.add_argument('--prior-dir', type=str, default='example_prior_analysis',
                         help='Prior predictive analysis directory name')
     parser.add_argument('--recovery-dir', type=str, default='example_prior_recovery',
-                        help='Parameter recovery directory name')
+                        help='Parameter recovery directory name (m_0)')
+    parser.add_argument('--recovery-m01-dir', type=str, default='example_recovery_1',
+                        help='Parameter recovery directory name (m_01)')
     parser.add_argument('--sample-size-dir', type=str, default='custom_run',
-                        help='Sample size estimation directory name')
+                        help='Sample size estimation directory name (R=5)')
+    parser.add_argument('--sample-size-r15-dir', type=str, default='custom_run_1',
+                        help='Sample size estimation directory name (R=15)')
     args = parser.parse_args()
     
     if args.analysis in ['prior', 'all']:
@@ -155,7 +225,13 @@ if __name__ == "__main__":
     if args.analysis in ['recovery', 'all']:
         copy_parameter_recovery_figures(args.recovery_dir)
     
+    if args.analysis in ['recovery_m01', 'all']:
+        copy_parameter_recovery_m01_figures(args.recovery_m01_dir)
+    
     if args.analysis in ['sample_size', 'all']:
         copy_sample_size_figures(args.sample_size_dir)
+    
+    if args.analysis in ['sample_size_r15', 'all']:
+        copy_sample_size_r15_figures(args.sample_size_r15_dir)
     
     print(f"\n✓ All requested figures copied to reports directory")

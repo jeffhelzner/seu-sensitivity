@@ -32,7 +32,7 @@ The probability that the decision maker chooses alternative $r$ from the set of 
 
 $$P(\text{choose } r \mid m, \alpha, \boldsymbol{\psi}, \boldsymbol{\upsilon}) = \frac{\exp(\alpha \cdot \eta_r)}{\sum_{j: I_{m,j}=1} \exp(\alpha \cdot \eta_j)}$$
 
-Three basic properties of this abstract model are central to interpreting $\alpha$ as a measure of sensitivity to SEU maximization:
+Conditional on the problem $m$ and utilities $\upsilon$, the following properties of this model type are central to interpreting $\alpha$ as a measure of sensitivity to SEU maximization:
 
 1. **Monotonicity**: The probability of choosing SEU-maximizing alternatives increases as sensitivity increases.
 2. **Perfect Rationality Limit**: As $\alpha \to \infty$, choice probabilities concentrate on alternatives that maximize subjective expected utility.
@@ -318,16 +318,7 @@ The δ parameters represent increments on the unit utility scale, constrained to
 
 ### Observations
 
-The coverage diagnostic plots reveal distinct patterns across different parameter types:
-
-1. **Alpha (Sensitivity Parameter)**: Recovery seems reasonable, pending further analysis.
-
-2. **Beta Parameters (Feature-to-Probability Mapping)**: Recovery quality varies substantially across the six β parameters:
-   - **β[1,1] and β[1,2]** (first consequence): Recovery appears reasonable, pending further analysis.
-   - **β[2,1] and β[2,2]** (second consequence): Concerning, as it looks like the parameters are not being recovered at all; credible intervals are extremely wide and show little evidence of being informed by the data.
-   - **β[3,1] and β[3,2]** (third consequence): Recovery appears reasonable, pending further analysis.
-
-3. **Delta Parameters (Utility Increments)**: Both δ[1] and δ[2] show poor recovery.  Similar to the β parameters for the second consequence, credible intervals are extremely wide and show little evidence of being informed by the data.
+It looks like the $\alpha$ parameter, as well as the first and third sets of $\beta$ parameters are showing some evidence of recoverability, while the second set of $\beta$ parameters and both $\delta$ parameters look as though are not being informed by the data at all. Perhaps they are being informed slightly, and we just need to consider a larger study design. We can enlarge in several different directions. In the next section, we will consider increasing the number of problems (M) while holding everything else constant to see if that helps.
 
 ## Sample Size Analysis: Recovery vs. Number of Problems
 
@@ -336,6 +327,7 @@ To investigate whether the identification issues observed at M=10 are due to ins
 ### Methodology
 
 For each value of M:
+
 1. **Fixed Design Elements**: Used the identical 5 alternatives (w) from the base study design
 2. **Varying Elements**: Generated new indicator matrices (I) for M problems, with 2-4 alternatives per problem
 3. **Recovery Iterations**: Conducted 50 parameter recovery iterations per M value
@@ -350,82 +342,72 @@ This design ensures that observed changes in recovery are attributable to M rath
 ### Results: Credible Interval Width vs. M
 
 ![CI Width Comparison](figures/sample_size_ci_width_comparison.png)
-*Figure 17: Mean 90% credible interval width across parameters as a function of M. Left: Alpha shows consistent narrowing. Middle: Beta parameters show heterogeneous behavior—parameters for consequences 1 and 3 narrow with M, while consequence 2 parameters remain wide. Right: Delta parameters show minimal change, with both components maintaining wide intervals across all M values.*
-
-The credible interval width analysis reveals three distinct patterns:
-
-**Alpha (Sensitivity Parameter)**: Shows clear improvement with increasing M. The mean interval width decreases from approximately 4.2 at M=10 to 3.2 at M=30, representing a ~24% reduction. This monotonic decrease indicates that α is identified and that precision improves predictably with sample size.
-
-**Beta Parameters**: Exhibit heterogeneous behavior across the three consequences:
-- **Consequences 1 and 3** (β[1,·] and β[3,·]): Show modest but consistent narrowing of intervals as M increases, similar to α. This suggests these parameters are identified, though precision gains are smaller than for α.
-- **Consequence 2** (β[2,·]): Show essentially no improvement with increasing M. Intervals remain wide (~3.3) across all sample sizes, suggesting these parameters are poorly identified regardless of sample size.
-
-**Delta Parameters**: Show no meaningful change in interval width as M increases. Both δ[1] and δ[2] maintain intervals of approximately 0.90 across all values of M—spanning nearly the entire feasible range of the simplex. This invariance to sample size strongly suggests a structural identification issue rather than insufficient data.
+*Figure 17: Mean 90% credible interval width across parameters as a function of M. Left: $\alpha$ shows consistent narrowing. Middle: $\beta[1,]$ and $\beta[3,]$ narrow with M, while $\beta[2,]$ stays relatively constant. Right: The $\delta$ parameters maintain wide intervals across all M values, indicating persistent identification issues.*
 
 ### Results: Estimation Error vs. M
 
 ![RMSE Comparison](figures/sample_size_rmse_comparison.png)
-*Figure 18: Root mean squared error (RMSE) as a function of M. Alpha shows declining error with increased sample size. Beta parameters for consequences 1 and 3 show modest improvement, while consequence 2 parameters show no clear pattern. Delta parameters maintain high, relatively constant RMSE across all M values.*
+*Figure 18: Root mean squared error (RMSE) as a function of M. With the possible exception of $\alpha$, and possibly $\beta[1,1]$ and $\beta[3,1]$, these plots don't seem to show the error trending downward with increasing M.*
 
-The RMSE analysis largely confirms the interval width findings:
+### Alternative Space: Increasing R from 5 to 15
 
-**Alpha**: RMSE fluctuates but shows an overall declining trend, from ~1.12 at M=10 to ~1.16 at M=30. The fluctuations likely reflect sampling variability across the 20 iterations, but the general pattern supports improved estimation with larger M.
+The initial sample size analysis used R=5 distinct alternatives. To investigate whether the identification issues stem from an insufficiently rich alternative space rather than sample size alone, we conducted a second analysis with R=15 alternatives while maintaining the same range of M values.
 
-**Beta Parameters**: 
-- **Consequences 1 and 3**: Show relatively stable or slightly declining RMSE with increasing M, though with some iteration-to-iteration variability
-- **Consequence 2**: Show high RMSE (~0.99) that remains essentially constant across M, consistent with poor identification
+**Methodology**: Using a new set of 15 alternatives drawn from the same feature distribution (2-dimensional, standard normal), we repeated the sample size analysis for M ∈ {10, 15, 20, 25, 30}, with 20 recovery iterations per M value. All other aspects of the methodology remained identical to the R=5 analysis.
 
-**Delta Parameters**: Maintain approximately constant RMSE (~0.275) across all M values, showing no sensitivity to sample size. This is particularly notable given that the intervals are wide—the point estimates are not improving despite the posterior uncertainty being consistently large.
+![CI Width Comparison R15](figures/sample_size_r15/ci_width_comparison.png)
+*Figure 19: Mean 90% credible interval width with R=15 alternatives. The pattern closely mirrors the R=5 results: α and selected β parameters narrow with M, while β[2,·] and δ parameters remain wide.*
+
+![RMSE Comparison R15](figures/sample_size_r15/rmse_comparison.png)
+*Figure 20: RMSE with R=15 alternatives. Again, the patterns are remarkably similar to R=5: no clear downward trend for most parameters except possibly α and β[1,1] and β[3,1].*
+
+### Observations
+
+The increased alternative space (R=15) did not substantially improve parameter recovery compared to R=5. The persistent identification issues for certain parameters suggest that the model structure or the information content of the data may be limiting factors, rather than sample size or alternative diversity alone. We consider a slight modification to the model structure in the next section to address these issues.
+
+## Alternative Approach: Informative Prior on Utilities
+
+Given the persistent identification issues with the δ parameters (utility increments), we explored whether a more informative prior might help. The original m_0 model uses a symmetric Dirichlet(1,1) prior on the (K-1)-simplex for δ, which induces a uniform distribution over the space of possible utility configurations on [0,1].
+
+### Model m_01: Strengthened Dirichlet Prior
+
+We created model m_01, identical to m_0 except for using `delta ~ dirichlet(rep_vector(5, K-1))` instead of `dirichlet(rep_vector(1, K-1))`. This stronger prior:
+
+- Concentrates probability mass around utilities that are more evenly spaced
+- For K=3, encourages the middle utility (upsilon[2]) to be closer to 0.5
+- Reduces prior uncertainty about utility configurations
+
+**Prior Predictive Comparison**: Under the Dirichlet(5,5) prior for K=3:
+- Mean of middle utility: 0.506 (vs 0.500 under Dirichlet(1,1))
+- Std of middle utility: 0.150 (vs 0.289 under Dirichlet(1,1))
+
+The stronger prior substantially reduces the variance of the middle utility from 0.289 to 0.150—approximately a 48% reduction in standard deviation.
+
+### Parameter Recovery Results
+
+We ran the same 20-iteration parameter recovery analysis on the same 10-problem study design used for m_0.
+
+![Delta 1 Coverage m01](figures/recovery_m01/delta_1_coverage.png)
+*Figure 21: 90% credible intervals for δ[1] under model m_01 with Dirichlet(5,5) prior. Coverage = 85.0%. The intervals are noticeably narrower than under m_0, reflecting the stronger prior.*
+
+![Delta 2 Coverage m01](figures/recovery_m01/delta_2_coverage.png)
+*Figure 22: 90% credible intervals for δ[2] under model m_01 with Dirichlet(5,5) prior. Coverage = 85.0%. Again, intervals are much narrower but the posterior means show no clear relationship to true values.*
 
 ### Interpretation
 
-The sample size analysis provides strong evidence for distinguishing identification issues from sample size issues:
+The informative prior approach **successfully reduced posterior uncertainty** but **failed to solve the identification problem**:
 
-**Well-Identified Parameters** (α, β[1,·], β[3,·]): Show the expected behavior under finite-sample limitations—interval widths narrow and estimation error tends to decrease as M increases. These parameters are identified by the model and study design; larger samples improve precision.
+1. **Narrower Intervals**: The credible intervals for δ parameters are approximately half as wide as under m_0 (width ~0.50 vs ~0.90), reflecting the informative prior.
 
-**Poorly-Identified Parameters** (β[2,·], δ[1], δ[2]): Show minimal or no improvement with increasing M. The credible intervals remain wide and estimation errors remain high regardless of sample size. This invariance to M indicates a structural identification problem: these parameters cannot be separately distinguished from the choice data, even in principle, rather than simply requiring more observations.
+2. **Poor Calibration**: Coverage dropped from 92-94% under m_0 to 85%, suggesting the narrower intervals don't appropriately reflect the data's information content.
 
-The heterogeneity across β parameters for different consequences is particularly revealing. The fact that the mapping from features to probabilities is well-identified for consequences 1 and 3 but not for consequence 2 suggests that the choice data provide asymmetric information about different aspects of the belief formation process. This may relate to how alternatives are distributed across the feature space, or to the structure of the softmax transformation itself.
+3. **Unresponsive Posteriors**: Most critically, the posterior means show essentially no relationship to the true parameter values. The posteriors are dominated by the prior—they cluster around δ ≈ 0.5 regardless of the true values.
 
-### Implications
+4. **Regularization vs. Identification**: The informative prior acts as a regularizer that reduces variance, but it cannot create information that isn't in the data. The fundamental issue remains: **choice data under this experimental design do not strongly constrain the utility parameters**.
 
-These findings have important implications for model development and application:
+This negative result is important because it rules out "weak priors" as the primary cause of poor δ recovery. Even with a prior that concentrates 68% of its mass in the range [0.35, 0.65] for the middle utility, the data fail to pull the posterior away from this prior concentration.
 
-1. **For α Estimation**: The model can reliably estimate the sensitivity parameter with moderate sample sizes. Studies focused primarily on measuring rationality (α) can achieve good precision with M ≈ 20-30 problems.
+The persistent identification issues across different values of M, R, and prior specifications point toward a more fundamental problem: the confounding between subjective probabilities (ψ, determined by β) and utilities (υ, determined by δ) in the expected utility calculation η = ψ'υ. The model may achieve similar choice probabilities with different (β, δ) combinations, making these parameters empirically indistinguishable from choice data alone.
 
-2. **For Full Model Inference**: Estimating the complete belief and preference structure (β and δ) faces fundamental challenges. Some aspects of the feature-to-probability mapping are identifiable, but others are not, and the utility increments appear non-identifiable under the current model specification.
 
-3. **For Model Refinement**: The identification patterns suggest potential paths for model improvement:
-   - The simplex constraint on δ may need reparameterization or stronger priors
-   - The β parameters for consequence 2 may require additional structure or regularization
-   - Alternative parameterizations of utilities (e.g., assuming equal spacing) might improve identification
 
-4. **For Study Design**: Simply increasing M is not a solution to identification problems. Future work should explore alternative design strategies—such as manipulating the distribution of alternatives in feature space, or imposing additional structure through priors or model constraints.
-
-## Overall Assessment and Future Directions
-
-We set out to explore the feasibility of recovering the parameters of a subjective expected utility (SEU) model from choice data using Bayesian methods. The analysis proceeded from a simple baseline model with strong identifiability properties through increasingly complex models and realistic data-generating processes.
-
-### Key Findings
-
-1. **Baseline Model Recovery**: The simplest model, with independent normal priors on a reduced set of parameters, showed excellent recovery of all parameters with moderate sample sizes (M=20-30). This confirms that the basic SEU model is identifiable and that Bayesian methods can accurately recover the sensitivity parameter α and the feature-to-probability mapping β under ideal conditions.
-
-2. **Full Model with Informative Priors**: Introducing informative priors based on prior predictive checks improved recovery of the utility increment parameters δ, which were poorly identified in the baseline model. The recovery of α and β remained robust. This demonstrates the value of prior information in improving parameter identifiability.
-
-3. **Realistic Data Generating Process**: When simulating data with a more complex and realistic process (models/m_0_sim.stan), the recovery of δ parameters degraded, revealing a structural identifiability issue. The sensitivity parameter α and some β parameters remained identifiable, but others were not. This highlights the challenges of parameter recovery in realistic settings and the potential for structural model improvements.
-
-4. **Sample Size Analysis**: Varying the number of decision problems (M) revealed that the credible interval widths for α and most β parameters decreased with increasing M, indicating improved recovery. However, the δ parameters showed little change, confirming their poor identifiability. This analysis provides guidance on the necessary sample sizes for future studies aiming to estimate these parameters.
-
-### Recommendations for Future Research
-
-1. **Model Refinement**: Explore alternative model specifications, such as reparameterizing the utility increments δ or imposing additional structure on the β parameters, to improve identifiability.
-
-2. **Prior Specification**: Continue to develop and test informative priors that can aid in the recovery of difficult-to-estimate parameters.
-
-3. **Study Design**: Future empirical studies should consider designs that maximize the identifiability of all model parameters, potentially by varying the distribution of alternatives in the feature space or by using larger and more diverse samples.
-
-4. **Robustness Checks**: Implement simulation-based calibration and other robustness checks to ensure the reliability of the Bayesian inferences.
-
-5. **Theoretical Analysis**: Further theoretical work is needed to understand the structural identifiability of SEU models and to develop methods for estimating and testing these models from choice data.
-
-In conclusion, while the basic SEU model is identifiable and recoverable from choice data using Bayesian methods, challenges remain in recovering all parameters, particularly utility increments, in more complex and realistic modeling scenarios. Careful consideration of model structure, priors, and study design will be essential in overcoming these challenges and achieving reliable parameter recovery in future research.

@@ -1,0 +1,19 @@
+{
+  "model": "m_1",
+  "M": 20,
+  "N": 20,
+  "K": 3,
+  "D": 2,
+  "R": 10,
+  "S": 8,
+  "min_alts_per_problem": 2,
+  "max_alts_per_problem": 4,
+  "feature_dist": "normal",
+  "feature_params": {
+    "loc": 0,
+    "scale": 1
+  },
+  "risky_probs": "fixed",
+  "design_name": "m1_example_study",
+  "generate_on_load": true
+}

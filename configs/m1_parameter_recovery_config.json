@@ -1,0 +1,25 @@
+{
+  "inference_model_path": "models/m_1.stan",
+  "sim_model_path": "models/m_1_sim.stan",
+  "study_design_path": null,
+  "output_dir": "results/parameter_recovery/m1_recovery",
+  "n_mcmc_samples": 2000,
+  "n_mcmc_chains": 4,
+  "n_iterations": 20,
+  "study_design_config": {
+    "M": 30,
+    "N": 30,
+    "K": 3,
+    "D": 2,
+    "R": 15,
+    "S": 12,
+    "min_alts_per_problem": 2,
+    "max_alts_per_problem": 5,
+    "risky_probs": "fixed",
+    "feature_dist": "normal",
+    "feature_params": {
+      "loc": 0,
+      "scale": 1
+    }
+  }
+}

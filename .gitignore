@@ -75,7 +75,15 @@ theory/m_0_theory.html
 models/m_0_sim
 models/m_0
 models/m_0_sbc
+models/m_01_sim
+models/m_01
+models/m_01_sbc
 
 .env
 
 README_files
+
+# Reports
+reports/*.html
+reports/*.csv 
+reports/*.json  

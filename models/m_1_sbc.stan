@@ -233,4 +233,28 @@ generated quantities {
       idx += 1;
     }
   }
+  
+  // Calculate ranks as required by sbc (binary indicators)
+  vector[1 + K*D + (K-1)] ranks_;
+  {
+    int idx = 1;
+    
+    // Alpha rank
+    ranks_[idx] = (alpha > alpha_) ? 1 : 0;
+    idx += 1;
+    
+    // Beta ranks
+    for (k in 1:K) {
+      for (d in 1:D) {
+        ranks_[idx] = (beta[k,d] > beta_[k,d]) ? 1 : 0;
+        idx += 1;
+      }
+    }
+    
+    // Delta ranks
+    for (k in 1:(K-1)) {
+      ranks_[idx] = (delta[k] > delta_[k]) ? 1 : 0;
+      idx += 1;
+    }
+  }
 }

@@ -169,6 +169,16 @@ class ParameterRecovery:
         # Get data dictionary for Stan
         sim_data = self.study_design.get_data_dict()
         
+        # Check if this is an m_1 model (has risky problems)
+        is_m1_model = 'N' in sim_data
+        
+        # Add parameter generation controls for simulation models
+        sim_data.update({
+            'alpha_mean': 0.0,
+            'alpha_sd': 1.0,
+            'beta_sd': 1.0
+        })
+        
         # Create structures to store results across iterations
         all_true_params = []
         all_posterior_summaries = []
@@ -194,12 +204,21 @@ class ParameterRecovery:
             # Extract the simulated data and true parameters
             sim_samples = sim_fit.draws_pd().iloc[0]
             
-            # Extract choices
+            # Extract uncertain choices (always present)
             y = np.array([sim_samples[f'y[{i+1}]'] for i in range(self.study_design.M)], dtype=int)
             
             # Create inference data by adding the choices to the study design
             inference_data = sim_data.copy()
+            # Remove parameter generation controls (not needed for inference)
+            inference_data.pop('alpha_mean', None)
+            inference_data.pop('alpha_sd', None)
+            inference_data.pop('beta_sd', None)
             inference_data["y"] = y.tolist()
+            
+            # For m_1 models, also extract risky choices
+            if is_m1_model:
+                z = np.array([sim_samples[f'z[{i+1}]'] for i in range(sim_data['N'])], dtype=int)
+                inference_data["z"] = z.tolist()
             
             # Extract true parameter values
             true_params = {
@@ -223,25 +242,43 @@ class ParameterRecovery:
                 seed=54321 + iteration,  # Different seed for each iteration
                 iter_sampling=self.n_mcmc_samples,
                 iter_warmup=self.n_mcmc_samples // 2,
-                chains=self.n_mcmc_chains
+                chains=self.n_mcmc_chains,
+                show_console=False
             )
             
             # Get posterior summary statistics (no need to save all samples)
-            summary = inference_fit.summary()
-            summary.to_csv(os.path.join(iter_dir, "posterior_summary.csv"))
-            
-            # Save diagnostics for this iteration
-            diagnostics = inference_fit.diagnose()
-            with open(os.path.join(iter_dir, "diagnostics.txt"), 'w') as f:
-                f.write(diagnostics)
-            
-            # Store results for aggregate analysis
-            all_true_params.append(true_params)
-            all_posterior_summaries.append(summary)
+            try:
+                summary = inference_fit.summary()
+                summary.to_csv(os.path.join(iter_dir, "posterior_summary.csv"))
+                
+                # Save diagnostics for this iteration
+                diagnostics = inference_fit.diagnose()
+                with open(os.path.join(iter_dir, "diagnostics.txt"), 'w') as f:
+                    f.write(diagnostics)
+                    
+                # Store results for aggregate analysis
+                all_true_params.append(true_params)
+                all_posterior_summaries.append(summary)
+                
+            except Exception as e:
+                print(f"\n  Warning: Iteration {iteration+1} failed: {str(e)}")
+                print(f"  Skipping this iteration and continuing...")
+                # Save error information
+                with open(os.path.join(iter_dir, "error.txt"), 'w') as f:
+                    f.write(f"Error: {str(e)}\n")
+                continue
         
         # Save all true parameters
         with open(os.path.join(self.output_dir, "all_true_parameters.json"), 'w') as f:
             json.dump(all_true_params, f, indent=2)
+        
+        # Check if we have any successful iterations
+        if len(all_true_params) == 0:
+            print("\n⚠️  Warning: No iterations completed successfully!")
+            print("All iterations encountered errors during inference or summary.")
+            return all_true_params, all_posterior_summaries
+        
+        print(f"\n✓ Completed {len(all_true_params)} out of {self.n_iterations} iterations successfully")
         
         # Analyze recovery across iterations
         self._analyze_recovery(all_true_params, all_posterior_summaries)

@@ -46,6 +46,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from analysis.parameter_recovery import ParameterRecovery
 from utils.study_design import StudyDesign
+from utils.study_design_m1 import StudyDesignM1
 
 def run_from_config(config_path):
     """
@@ -82,6 +83,43 @@ def run_from_config(config_path):
         # Create study design from config
         study_design = StudyDesign.from_config(config['study_config_path'])
         print(f"Created study design from config: {config['study_config_path']}")
+    elif 'study_design_config' in config:
+        # Create study design from embedded config
+        design_config = config['study_design_config']
+        
+        # Check if this is an m_1 model (has both M and N)
+        if 'N' in design_config:
+            # Create m_1 study design
+            study_design = StudyDesignM1(
+                M=design_config.get('M', 20),
+                N=design_config.get('N', 20),
+                K=design_config.get('K', 3),
+                D=design_config.get('D', 2),
+                R=design_config.get('R', 10),
+                S=design_config.get('S', 8),
+                min_alts_per_problem=design_config.get('min_alts_per_problem', 2),
+                max_alts_per_problem=design_config.get('max_alts_per_problem', 5),
+                risky_probs=design_config.get('risky_probs', 'fixed'),
+                feature_dist=design_config.get('feature_dist', 'normal'),
+                feature_params=design_config.get('feature_params', {"loc": 0, "scale": 1})
+            )
+            print(f"Created m_1 study design: M={design_config['M']}, N={design_config['N']}")
+        else:
+            # Create standard study design
+            study_design = StudyDesign(
+                M=design_config.get('M', 20),
+                K=design_config.get('K', 3),
+                D=design_config.get('D', 2),
+                R=design_config.get('R', 10),
+                min_alts_per_problem=design_config.get('min_alts_per_problem', 2),
+                max_alts_per_problem=design_config.get('max_alts_per_problem', 5),
+                feature_dist=design_config.get('feature_dist', 'normal'),
+                feature_params=design_config.get('feature_params', {"loc": 0, "scale": 1})
+            )
+            print(f"Created study design: M={design_config['M']}")
+        
+        # Generate the design
+        study_design.generate()
     
     # Initialize and run analysis
     recovery = ParameterRecovery(

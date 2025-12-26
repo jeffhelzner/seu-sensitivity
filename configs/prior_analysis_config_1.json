@@ -1,0 +1,7 @@
+{
+  "model_path": "models/m_1_sim.stan",
+  "study_design_path": "results/prior_predictive/example_prior_analysis/study_design.json",
+  "n_param_samples": 1000,
+  "n_choice_samples": 1,
+  "output_dir": "results/prior_predictive/example_prior_analysis_2"
+}

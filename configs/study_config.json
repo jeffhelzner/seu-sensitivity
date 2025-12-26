@@ -1,15 +1,15 @@
 {
-  "M": 30,
-  "K": 4,
-  "D": 3,
+  "M": 10,
+  "K": 3,
+  "D": 2,
   "R": 15,
   "min_alts_per_problem": 2,
-  "max_alts_per_problem": 6,
-  "feature_dist": "uniform",
+  "max_alts_per_problem": 4,
+  "feature_dist": "normal",
   "feature_params": {
-    "low": -2,
-    "high": 2
+    "loc": 0,
+    "scale": 1
   },
-  "design_name": "uniform_large_study",
+  "design_name": "example_study_design",
   "generate_on_load": true
 }

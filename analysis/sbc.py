@@ -166,6 +166,16 @@ class SimulationBasedCalibration:
         # Get data dictionary for Stan
         data = self.study_design.get_data_dict()
         
+        # Check if this is an m_1 model (has risky problems)
+        is_m1_model = 'N' in data
+        
+        # Add parameter generation controls for SBC models
+        data.update({
+            'alpha_mean': 0.0,
+            'alpha_sd': 1.0,
+            'beta_sd': 1.0
+        })
+        
         # Create parameter name list
         K = self.study_design.K
         D = self.study_design.D

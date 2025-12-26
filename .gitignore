@@ -69,6 +69,8 @@ results/
 !/**/.gitkeep
 
 *.pyc
+__pycache__/
+**/__pycache__/
 
 theory/m_0_theory_files/
 theory/m_0_theory.html

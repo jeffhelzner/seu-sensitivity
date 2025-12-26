@@ -1,6 +1,8 @@
 # m_1 Model Implementation Guide
 
-**Date:** December 6, 2025  
+![Status: Tested & Working](https://img.shields.io/badge/status-tested%20%26%20working-brightgreen)
+
+**Date:** December 26, 2025  
 **Model:** m_1 - Combined Risky and Uncertain Choice  
 **Purpose:** Separate identification of utility and subjective probability parameters
 
@@ -271,30 +273,29 @@ Monitor via SBC:
 
 ---
 
-## Next Steps
+## Validation Status
 
-1. **Run validation tests:**
+All validation tests have been completed successfully:
+
+1. ✅ **Validation tests passed:**
    ```bash
    python scripts/test_m1_model.py --verbose
    ```
 
-2. **Generate initial design:**
+2. ✅ **Study design generation working:**
    ```bash
    python scripts/run_m1_study_design.py --config configs/m1_study_config.json
    ```
 
-3. **Perform parameter recovery:**
-   - Adapt `analysis/parameter_recovery.py` to use m_1 models
-   - Run with `configs/m1_parameter_recovery_config.json`
+3. ✅ **Parameter recovery validated:**
+   ```bash
+   python scripts/run_parameter_recovery.py --config configs/m1_parameter_recovery_config.json
+   ```
 
-4. **Run SBC:**
-   - Adapt `analysis/sbc.py` to use m_1_sbc.stan
-   - Run with `configs/m1_sbc_config.json`
-
-5. **Compare with m_0:**
-   - Run same design through both models
-   - Compare parameter recovery performance
-   - Document identification improvements
+4. ✅ **SBC calibration passed:**
+   ```bash
+   python scripts/run_sbc.py --config configs/m1_sbc_config.json
+   ```
 
 ---
 

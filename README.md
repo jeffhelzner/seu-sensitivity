@@ -13,6 +13,7 @@ A Bayesian framework for modeling and analyzing decision-making behavior through
 Current status:
 - ✅ Core theoretical framework established
 - ✅ Base Stan model (m_0) implemented and tested
+- ✅ Combined model (m_1) with risky and uncertain choice - implemented and tested
 - ✅ Study design tools functional
 - 🔄 LLM benchmarking application in progress
 - 📝 Documentation being expanded
@@ -39,9 +40,12 @@ seu-sensitivity/
 ├── theory/                  # Theoretical foundations and proofs
 │   └── m_0_theory.md       # Mathematical framework for the base model
 ├── models/                  # Stan model implementations
-│   └── m_0.stan            # Base SEU sensitivity model
+│   ├── m_0.stan            # Base SEU sensitivity model (uncertain choice only)
+│   ├── m_1.stan            # Combined model (risky + uncertain choice)
+│   └── README_m1.md        # m_1 implementation guide
 ├── utils/                   # Core utilities
-│   ├── study_design.py     # Experimental design generation
+│   ├── study_design.py     # Experimental design generation (m_0)
+│   ├── study_design_m1.py  # Extended design for m_1 (risky + uncertain)
 │   └── README.md           # Utils documentation
 ├── applications/            # Applied research projects
 │   └── llm_rationality/    # LLM rationality benchmarking
@@ -140,7 +144,27 @@ alpha = fit.stan_variable("alpha")
 print(f"Estimated sensitivity (α): {alpha.mean():.2f}")
 ```
 
-### 3. Benchmark LLM Rationality
+### 3. Combined Risky and Uncertain Choice (m_1 Model)
+
+For better parameter identification, use the m_1 model which combines risky (known probabilities) and uncertain (feature-derived probabilities) choice problems:
+
+```python
+from utils.study_design_m1 import StudyDesignM1
+from cmdstanpy import CmdStanModel
+
+# Create design with both risky (N) and uncertain (M) problems
+design = StudyDesignM1(M=20, N=20, K=3, D=2, R=10, S=8)
+design.generate()
+design.save("results/designs/m1_study.json")
+
+# Fit model
+model = CmdStanModel(stan_file="models/m_1.stan")
+fit = model.sample(data=design.get_data_dict())
+```
+
+See [models/README_m1.md](models/README_m1.md) for detailed m_1 documentation.
+
+### 4. Benchmark LLM Rationality
 
 ```bash
 cd applications/llm_rationality

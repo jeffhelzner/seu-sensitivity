@@ -1,0 +1,679 @@
+---
+title: "Abstract Formulation of the SEU Sensitivity Model"
+subtitle: "Foundational Report 1"
+description: |
+  A formal specification of the softmax choice model with sensitivity parameter α,
+  including complete proofs of the three fundamental properties that characterize
+  sensitivity to value maximization.
+categories: [foundations, theory, m_0]
+---
+
+```{python}
+#| label: setup
+#| include: false
+
+import sys
+import os
+sys.path.insert(0, os.path.join(os.getcwd(), '..'))
+
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.special import softmax
+```
+
+## Introduction
+
+This report establishes the theoretical foundations for our computational model of decision-making agents. We prove three fundamental properties of the softmax choice model with respect to an arbitrary value function, then show how these properties apply specifically when values are subjective expected utilities (SEU).
+
+This separation clarifies an important conceptual point: the core choice-theoretic results are independent of how values are constructed—they follow from the structure of softmax choice alone. The SEU interpretation provides the substantive behavioral content and connects our model to classical decision theory [@savage1954; @vonneumann1947].
+
+::: {.callout-note}
+## Why This Matters
+Understanding these properties is essential for interpreting the sensitivity parameter α:
+
+- **For practitioners**: α has a precise meaning as log-odds change per unit of standardized utility difference
+- **For theorists**: The properties characterize the softmax rule itself, independent of value theory
+- **For validation**: These results provide testable predictions for simulation-based calibration
+:::
+
+## General Softmax Choice Model
+
+### Notation and Definitions
+
+We begin with abstract notation for the general softmax choice model, then show how it specializes to SEU. The notation is chosen to align with our Stan implementation (`m_0.stan`).
+
+::: {.callout-note}
+## Notation Summary (Abstract Model)
+
+| Symbol | Description | Stan Variable |
+|--------|-------------|---------------|
+| $\mathcal{R} = \{1, 2, \ldots, R\}$ | Set of distinct alternatives | `R` |
+| $N_m$ | Number of alternatives available in problem $m$ | `N[m]` |
+| $V: \mathcal{R} \to \mathbb{R}$ | Value function assigning utilities to alternatives | `eta` |
+| $V(r)$ | Value of alternative $r$ | `eta[r]` |
+| $\alpha \in \mathbb{R}_+$ | Sensitivity parameter (non-negative) | `alpha` |
+| $\mathcal{R}^*$ | Set of value-maximizing alternatives | — |
+| $V^* = \max_r V(r)$ | Maximum value | — |
+| $\mathcal{R}^- = \mathcal{R} \setminus \mathcal{R}^*$ | Suboptimal alternatives | — |
+:::
+
+### The Softmax Choice Rule
+
+The probability that a decision maker selects alternative $r$ from a choice set is given by the **softmax** (or Luce choice) rule [@luce1959; @mcfadden1974]:
+
+$$
+P(\text{choose } r \mid \alpha, V) = \frac{\exp(\alpha \cdot V(r))}{\sum_{j \in \mathcal{R}} \exp(\alpha \cdot V(j))}
+$$ {#eq-softmax}
+
+In our Stan implementation, this corresponds to `chi[m] = softmax(alpha * eta_m)` where `eta_m` contains the expected utilities of alternatives available in problem $m$.
+
+This rule has several appealing properties:
+
+1. **Probabilistic**: Assigns positive probability to all alternatives
+2. **Monotonic in value**: Higher-value alternatives are more likely to be chosen
+3. **Parameterized sensitivity**: α controls how sharply choices concentrate on high-value alternatives
+
+```{python}
+#| label: fig-softmax-demo
+#| fig-cap: "Softmax choice probabilities for three alternatives with values η = (0.2, 0.5, 0.8) as sensitivity α varies. In the m_0 model, these values represent expected utilities computed as η = ψᵀυ."
+
+# Demonstrate softmax with varying alpha
+values = np.array([0.2, 0.5, 0.8])
+alphas = np.linspace(0.01, 10, 100)
+
+probs = np.array([softmax(a * values) for a in alphas])
+
+fig, ax = plt.subplots(figsize=(8, 5))
+for i, label in enumerate(['η=0.2 (low)', 'η=0.5 (medium)', 'η=0.8 (high)']):
+    ax.plot(alphas, probs[:, i], label=label, linewidth=2)
+
+ax.axhline(y=1/3, color='gray', linestyle='--', alpha=0.5, label='Uniform (α→0)')
+ax.set_xlabel('Sensitivity (α)', fontsize=12)
+ax.set_ylabel('Choice Probability χ', fontsize=12)
+ax.set_title('Softmax Choice Probabilities', fontsize=14)
+ax.legend()
+ax.set_ylim(0, 1)
+ax.grid(True, alpha=0.3)
+plt.tight_layout()
+plt.show()
+```
+
+## Fundamental Properties of Softmax Choice
+
+The following three properties hold for **any** value function $V: \mathcal{R} \to \mathbb{R}$. This generality is important—the properties characterize the softmax rule itself, not any particular theory of value.
+
+### Property 1: Monotonicity in Sensitivity {#sec-monotonicity}
+
+::: {.callout-note appearance="minimal"}
+## Theorem 1 (Monotonicity)
+For any value function $V: \mathcal{R} \to \mathbb{R}$, holding $V$ fixed:
+
+- For $r \in \mathcal{R}^*$ (value-maximizing): $P(\text{choose } r \mid \alpha, V)$ is **strictly increasing** in $\alpha$
+- For $r \notin \mathcal{R}^*$ (suboptimal): $P(\text{choose } r \mid \alpha, V)$ is **strictly decreasing** in $\alpha$
+:::
+
+::: {.callout-tip collapse="true"}
+## Proof of Theorem 1
+
+**Part A: Value-maximizing alternatives ($r \in \mathcal{R}^*$)**
+
+Let $r \in \mathcal{R}^*$ such that $V(r) = V^*$. Define the partition function:
+$$
+Z(\alpha) = \sum_{j \in \mathcal{R}} \exp(\alpha \cdot V(j))
+$$
+
+Taking the derivative of $P(r)$ with respect to $\alpha$:
+$$
+\frac{\partial P(r)}{\partial \alpha} = \frac{\partial}{\partial \alpha} \left[\frac{\exp(\alpha \cdot V(r))}{Z(\alpha)}\right]
+$$
+
+Using the quotient rule:
+$$
+\frac{\partial P(r)}{\partial \alpha} = \frac{Z(\alpha) \cdot V(r) \cdot \exp(\alpha \cdot V(r)) - \exp(\alpha \cdot V(r)) \cdot Z'(\alpha)}{Z(\alpha)^2}
+$$
+
+Simplifying:
+$$
+\frac{\partial P(r)}{\partial \alpha} = P(r) \cdot \left[V(r) - \frac{Z'(\alpha)}{Z(\alpha)}\right]
+$$
+
+Computing $Z'(\alpha)$:
+$$
+Z'(\alpha) = \sum_{j \in \mathcal{R}} V(j) \cdot \exp(\alpha \cdot V(j))
+$$
+
+Therefore:
+$$
+\frac{Z'(\alpha)}{Z(\alpha)} = \sum_{j \in \mathcal{R}} V(j) \cdot P(j) = \mathbb{E}[V]
+$$
+
+where $\mathbb{E}[V]$ is the expected value under the current choice distribution.
+
+Thus:
+$$
+\frac{\partial P(r)}{\partial \alpha} = P(r) \cdot [V^* - \mathbb{E}[V]]
+$$
+
+Since $V^* = \max_j V(j)$ and $\mathbb{E}[V]$ is a weighted average:
+$$
+\mathbb{E}[V] = \sum_{j \in \mathcal{R}} P(j) \cdot V(j) \leq V^*
+$$
+
+with equality only when $P(r) = 1$ for some $r \in \mathcal{R}^*$ (which occurs only as $\alpha \to \infty$).
+
+For any finite $\alpha$, we have $\mathbb{E}[V] < V^*$, so:
+$$
+\frac{\partial P(r)}{\partial \alpha} = P(r) \cdot [V^* - \mathbb{E}[V]] > 0 \quad \blacksquare
+$$
+
+**Part B: Suboptimal alternatives ($r \notin \mathcal{R}^*$)**
+
+For $r \notin \mathcal{R}^*$, we have $V(r) < V^*$. Following the same derivation:
+$$
+\frac{\partial P(r)}{\partial \alpha} = P(r) \cdot [V(r) - \mathbb{E}[V]]
+$$
+
+Since $r$ is suboptimal and $\mathcal{R}^*$ is non-empty (so $P(\mathcal{R}^*) > 0$ for all finite $\alpha$):
+$$
+\mathbb{E}[V] \geq P(\mathcal{R}^*) \cdot V^* + P(r) \cdot V(r) > P(\mathcal{R}^*) \cdot V(r) + P(r) \cdot V(r)
+$$
+
+The strict inequality follows because $V^* > V(r)$.
+
+Therefore, $V(r) - \mathbb{E}[V] < 0$, and:
+$$
+\frac{\partial P(r)}{\partial \alpha} = P(r) \cdot [V(r) - \mathbb{E}[V]] < 0 \quad \blacksquare
+$$
+:::
+
+### Property 2: Perfect Optimization Limit {#sec-rationality}
+
+::: {.callout-note appearance="minimal"}
+## Theorem 2 (Convergence to Value Maximization)
+For any value function $V: \mathcal{R} \to \mathbb{R}$, as $\alpha \to \infty$:
+
+$$
+\lim_{\alpha \to \infty} P(\text{choose } r \mid \alpha, V) = 
+\begin{cases}
+1/|\mathcal{R}^*| & \text{if } r \in \mathcal{R}^* \\
+0 & \text{if } r \notin \mathcal{R}^*
+\end{cases}
+$$
+:::
+
+::: {.callout-tip collapse="true"}
+## Proof of Theorem 2
+
+**Case 1: $r \in \mathcal{R}^*$ (value-maximizing)**
+
+$$
+P(r) = \frac{\exp(\alpha \cdot V^*)}{|\mathcal{R}^*| \cdot \exp(\alpha \cdot V^*) + \sum_{j \in \mathcal{R}^-} \exp(\alpha \cdot V(j))}
+$$
+
+Dividing numerator and denominator by $\exp(\alpha \cdot V^*)$:
+$$
+P(r) = \frac{1}{|\mathcal{R}^*| + \sum_{j \in \mathcal{R}^-} \exp(\alpha \cdot [V(j) - V^*])}
+$$
+
+For $j \in \mathcal{R}^-$, we have $V(j) < V^*$, so $V(j) - V^* < 0$.
+
+As $\alpha \to \infty$:
+$$
+\exp(\alpha \cdot [V(j) - V^*]) \to 0 \quad \text{for all } j \in \mathcal{R}^-
+$$
+
+Thus:
+$$
+\lim_{\alpha \to \infty} P(r) = \frac{1}{|\mathcal{R}^*|} \quad \blacksquare
+$$
+
+**Case 2: $r \notin \mathcal{R}^*$ (suboptimal)**
+
+$$
+P(r) = \frac{\exp(\alpha \cdot V(r))}{\sum_{s \in \mathcal{R}^*} \exp(\alpha \cdot V^*) + \sum_{j \in \mathcal{R}^-} \exp(\alpha \cdot V(j))}
+$$
+
+Dividing by $\exp(\alpha \cdot V^*)$:
+$$
+P(r) = \frac{\exp(\alpha \cdot [V(r) - V^*])}{|\mathcal{R}^*| + \sum_{j \in \mathcal{R}^-} \exp(\alpha \cdot [V(j) - V^*])}
+$$
+
+Since $V(r) - V^* < 0$:
+
+- Numerator $\to 0$
+- Denominator $\geq |\mathcal{R}^*| > 0$
+
+Therefore:
+$$
+\lim_{\alpha \to \infty} P(r) = 0 \quad \blacksquare
+$$
+:::
+
+### Property 3: Random Choice Limit {#sec-random}
+
+::: {.callout-note appearance="minimal"}
+## Theorem 3 (Convergence to Uniform Choice)
+For any value function $V: \mathcal{R} \to \mathbb{R}$, as $\alpha \to 0$:
+
+$$
+\lim_{\alpha \to 0} P(\text{choose } r \mid \alpha, V) = \frac{1}{|\mathcal{R}|} \quad \text{for all } r \in \mathcal{R}
+$$
+:::
+
+::: {.callout-tip collapse="true"}
+## Proof of Theorem 3
+
+Using Taylor expansion $\exp(x) = 1 + x + O(x^2)$:
+
+$$
+P(r) = \frac{1 + \alpha \cdot V(r) + O(\alpha^2)}{\sum_{j \in \mathcal{R}} (1 + \alpha \cdot V(j) + O(\alpha^2))}
+$$
+
+$$
+= \frac{1 + \alpha \cdot V(r) + O(\alpha^2)}{|\mathcal{R}| + \alpha \cdot \sum_j V(j) + O(\alpha^2)}
+$$
+
+As $\alpha \to 0$:
+$$
+\lim_{\alpha \to 0} P(r) = \frac{1}{|\mathcal{R}|} \quad \blacksquare
+$$
+
+**Alternative proof via logarithms:**
+
+$$
+\log P(r) = \alpha \cdot V(r) - \log\left[\sum_{j \in \mathcal{R}} \exp(\alpha \cdot V(j))\right]
+$$
+
+Expanding the log-sum-exp:
+$$
+\log\left[\sum_{j \in \mathcal{R}} \exp(\alpha \cdot V(j))\right] = \log|\mathcal{R}| + \frac{\alpha \cdot \sum_j V(j)}{|\mathcal{R}|} + O(\alpha^2)
+$$
+
+Therefore:
+$$
+\log P(r) = -\log|\mathcal{R}| + \alpha \cdot \left[V(r) - \frac{\sum_j V(j)}{|\mathcal{R}|}\right] + O(\alpha^2)
+$$
+
+As $\alpha \to 0$: $\log P(r) \to -\log|\mathcal{R}|$, hence $P(r) \to 1/|\mathcal{R}|$. $\blacksquare$
+:::
+
+### Summary: The Three Properties
+
+```{python}
+#| label: fig-three-properties
+#| fig-cap: "Visual summary of the three fundamental properties. Left: Monotonicity—optimal alternative probability increases with α. Middle: Limiting behavior at α→∞ (deterministic optimal choice). Right: Limiting behavior at α→0 (uniform random choice)."
+
+fig, axes = plt.subplots(1, 3, figsize=(12, 4))
+
+# Values for a 3-alternative problem
+values = np.array([0.3, 0.5, 0.9])  # Third is optimal
+
+# Property 1: Monotonicity
+alphas = np.linspace(0.01, 8, 100)
+probs = np.array([softmax(a * values) for a in alphas])
+
+axes[0].plot(alphas, probs[:, 2], 'b-', linewidth=2.5, label='Optimal (η=0.9)')
+axes[0].plot(alphas, probs[:, 1], 'orange', linewidth=2, label='Middle (η=0.5)')
+axes[0].plot(alphas, probs[:, 0], 'r-', linewidth=2, label='Low (η=0.3)')
+axes[0].axhline(y=1/3, color='gray', linestyle='--', alpha=0.5)
+axes[0].set_xlabel('α', fontsize=12)
+axes[0].set_ylabel('χ (choice probability)', fontsize=12)
+axes[0].set_title('Property 1: Monotonicity', fontsize=12, fontweight='bold')
+axes[0].legend(fontsize=9)
+axes[0].set_ylim(0, 1)
+axes[0].grid(True, alpha=0.3)
+
+# Property 2: α → ∞
+alpha_large = 20
+probs_large = softmax(alpha_large * values)
+axes[1].bar(['η=0.3', 'η=0.5', 'η=0.9'], probs_large, color=['red', 'orange', 'blue'])
+axes[1].axhline(y=1, color='blue', linestyle='--', alpha=0.5, label='Limit')
+axes[1].set_ylabel('χ (choice probability)', fontsize=12)
+axes[1].set_title('Property 2: α → ∞\n(Deterministic Optimal)', fontsize=12, fontweight='bold')
+axes[1].set_ylim(0, 1.1)
+axes[1].grid(True, alpha=0.3, axis='y')
+
+# Property 3: α → 0
+alpha_small = 0.01
+probs_small = softmax(alpha_small * values)
+axes[2].bar(['η=0.3', 'η=0.5', 'η=0.9'], probs_small, color=['red', 'orange', 'blue'])
+axes[2].axhline(y=1/3, color='gray', linestyle='--', alpha=0.5, label='Uniform')
+axes[2].set_ylabel('χ (choice probability)', fontsize=12)
+axes[2].set_title('Property 3: α → 0\n(Uniform Random)', fontsize=12, fontweight='bold')
+axes[2].set_ylim(0, 0.5)
+axes[2].grid(True, alpha=0.3, axis='y')
+
+plt.tight_layout()
+plt.show()
+```
+
+## Application to Subjective Expected Utility
+
+We now specialize the general softmax framework to the case where values are subjective expected utilities (SEU). This section introduces the notation used in our Stan implementation.
+
+### SEU as a Value Function
+
+::: {.callout-note}
+## Notation Summary (SEU Specialization)
+
+| Symbol | Description | Stan Variable |
+|--------|-------------|---------------|
+| $K$ | Number of possible consequences (outcomes) | `K` |
+| $\boldsymbol{\upsilon} \in \mathbb{R}^K$ | Ordered utility vector over consequences | `upsilon` |
+| $\boldsymbol{\psi}_r \in \Delta^{K-1}$ | Subjective probability simplex for alternative $r$ | `psi[r]` |
+| $\eta_r = \boldsymbol{\psi}_r^\top \boldsymbol{\upsilon}$ | Expected utility of alternative $r$ | `eta[r]` |
+| $\boldsymbol{\delta} \in \Delta^{K-2}$ | Utility increments (ensures ordering) | `delta` |
+| $D$ | Feature dimensions for alternatives | `D` |
+| $\mathbf{w}_r \in \mathbb{R}^D$ | Feature vector for alternative $r$ | `w[r]` |
+| $\boldsymbol{\beta} \in \mathbb{R}^{K \times D}$ | Feature-to-probability mapping | `beta` |
+| $\boldsymbol{\chi}_m$ | Choice probability vector for problem $m$ | `chi[m]` |
+:::
+
+::: {.callout-note}
+## Definition: Subjective Expected Utility
+
+In model m_0, each alternative $r$ is associated with:
+
+1. **A feature vector** $\mathbf{w}_r \in \mathbb{R}^D$ describing the alternative
+2. **Subjective probabilities** over $K$ consequences, derived from features:
+   $$
+   \boldsymbol{\psi}_r = \text{softmax}(\boldsymbol{\beta} \mathbf{w}_r)
+   $$
+3. **An expected utility** computed as:
+   $$
+   \eta_r = \boldsymbol{\psi}_r^\top \boldsymbol{\upsilon} = \sum_{k=1}^{K} \psi_{r,k} \cdot \upsilon_k
+   $$
+
+The **choice probability** for alternative $r$ in problem $m$ is then:
+$$
+\chi_{m,r} = \frac{\exp(\alpha \cdot \eta_r)}{\sum_{j: I_{m,j}=1} \exp(\alpha \cdot \eta_j)}
+$$
+
+where $I_{m,r} = 1$ indicates that alternative $r$ is available in problem $m$.
+:::
+
+**Key observation:** The expected utility $\eta_r$ serves as our value function $V(r) = \eta_r$. Therefore, all three properties proved above apply immediately.
+
+### Corollaries for SEU
+
+By substituting $V(r) = \eta_r = \boldsymbol{\psi}_r^\top \boldsymbol{\upsilon}$ into Properties 1-3:
+
+::: {.callout-note appearance="minimal"}
+## Corollary 1 (Monotonicity for SEU)
+Holding utilities $\boldsymbol{\upsilon}$ and beliefs $\boldsymbol{\psi}$ fixed, higher sensitivity $\alpha$ increases the probability of choosing alternatives that maximize expected utility $\eta$.
+:::
+
+::: {.callout-note appearance="minimal"}
+## Corollary 2 (Perfect Rationality)
+As $\alpha \to \infty$, the decision maker chooses SEU-maximizing alternatives (those with highest $\eta$) with probability 1.
+:::
+
+::: {.callout-note appearance="minimal"}
+## Corollary 3 (Random Choice)
+As $\alpha \to 0$, the decision maker chooses uniformly at random over available alternatives, independent of $\eta$ values.
+:::
+
+### What SEU Adds to the Framework
+
+While the mathematical properties of softmax choice hold for any value function, the SEU construction provides:
+
+1. **Decomposition**: Expected utilities $\eta$ decompose into beliefs ($\boldsymbol{\psi}$) and utilities ($\boldsymbol{\upsilon}$), allowing separate analysis of epistemic and preference components
+
+2. **Feature-based beliefs**: Subjective probabilities are derived from observable alternative features through the mapping $\boldsymbol{\psi}_r = \text{softmax}(\boldsymbol{\beta} \mathbf{w}_r)$
+
+3. **Normative content**: SEU maximization is a rationality criterion—Properties 1-3 characterize adherence to this normative standard [@savage1954]
+
+4. **Empirical predictions**: The model predicts that choices will track $\eta$, providing testable restrictions
+
+## Scale Invariance and Representation
+
+### The Representation Problem
+
+A fundamental property of utility functions is that they are unique only up to positive affine transformations. This raises a critical question: how can we meaningfully interpret $\alpha$ when the scale of utility is arbitrary?
+
+::: {.callout-note appearance="minimal"}
+## Theorem 4 (Scale Invariance)
+Let $\boldsymbol{\upsilon}$ be a utility vector and define a rescaled utility:
+$$
+\tilde{\upsilon}_k = a \cdot \upsilon_k + b \quad \text{where } a > 0
+$$
+
+Then:
+
+1. $\tilde{\eta}_r = a \cdot \eta_r + b$ for all alternatives $r$
+2. $P(r \mid \alpha, \tilde{\boldsymbol{\upsilon}}) = P(r \mid \alpha \cdot a, \boldsymbol{\upsilon})$
+
+The pair $(\alpha, \boldsymbol{\upsilon})$ and $(\alpha \cdot a, \tilde{\boldsymbol{\upsilon}})$ generate **identical** choice probabilities.
+:::
+
+::: {.callout-tip collapse="true"}
+## Proof of Theorem 4
+
+**Part 1:** 
+$$
+\tilde{\eta}_r = \sum_k \psi_{r,k} \cdot [a \cdot \upsilon_k + b]
+= a \cdot \sum_k \psi_{r,k} \cdot \upsilon_k + b \cdot \sum_k \psi_{r,k}
+= a \cdot \eta_r + b
+$$
+
+since $\sum_k \psi_{r,k} = 1$.
+
+**Part 2:**
+$$
+P(r \mid \alpha, \tilde{\boldsymbol{\upsilon}}) = \frac{\exp(\alpha \cdot [a \cdot \eta_r + b])}{\sum_j \exp(\alpha \cdot [a \cdot \eta_j + b])}
+$$
+
+$$
+= \frac{\exp(\alpha a \cdot \eta_r) \cdot \exp(\alpha b)}{\sum_j \exp(\alpha a \cdot \eta_j) \cdot \exp(\alpha b)}
+= \frac{\exp(\alpha a \cdot \eta_r)}{\sum_j \exp(\alpha a \cdot \eta_j)}
+= P(r \mid \alpha a, \boldsymbol{\upsilon}) \quad \blacksquare
+$$
+:::
+
+**Key Implication:** Without fixing the utility scale, $\alpha$ and the scale of utility are confounded—they cannot be separately interpreted from choice behavior alone. Scaling utilities by a factor $a$ is equivalent to scaling sensitivity by $1/a$.
+
+### Resolution: Utility Normalization
+
+To make $\alpha$ interpretable as "sensitivity to expected utility differences," we adopt a standard normalization convention.
+
+::: {.callout-important}
+## Normalization Convention
+
+We constrain utilities to lie in $[0,1]$ by assigning:
+
+- $\upsilon_{\text{worst}} = 0$ (utility of the worst consequence)
+- $\upsilon_{\text{best}} = 1$ (utility of the best consequence)
+
+For $K$ ordered consequences, this means:
+$$
+0 = \upsilon_1 \leq \upsilon_2 \leq \cdots \leq \upsilon_K = 1
+$$
+
+This is the standard normalization in decision theory, where the utility function is anchored at the endpoints of the consequence space.
+:::
+
+This normalization is without loss of generality—it simply fixes a representation from the equivalence class of utility functions related by positive affine transformations. Any utility function can be rescaled to satisfy this convention.
+
+**Interpretive Result:** Given this normalization, $\alpha$ measures sensitivity to expected utility differences on a standardized scale where the full range of possible utilities spans exactly one unit.
+
+### Interpretation of α Under Normalization
+
+With utilities normalized to $[0,1]$, expected utilities satisfy $\eta_r \in [0,1]$ for all alternatives $r$ (since $\eta_r$ is a convex combination of utilities). The maximum possible difference in expected utility is therefore 1.
+
+The sensitivity parameter $\alpha$ has a precise interpretation via the log-odds ratio:
+
+$$
+\log\left[\frac{\chi_{r}}{\chi_{s}}\right] = \alpha \cdot [\eta_r - \eta_s]
+$$
+
+```{python}
+#| label: tbl-alpha-interpretation
+#| tbl-cap: "Interpretation of α for a one-unit expected utility difference (maximum possible difference with normalized utilities)."
+
+import pandas as pd
+
+alpha_vals = [0.5, 1, 2, 3, 5, 10]
+data = []
+for a in alpha_vals:
+    odds_ratio = np.exp(a)
+    prob_better = odds_ratio / (1 + odds_ratio)
+    data.append({
+        'α': a,
+        'Log-odds': f'{a:.1f}',
+        'Odds ratio': f'{odds_ratio:.2f}',
+        'P(higher η)': f'{prob_better:.1%}'
+    })
+
+df = pd.DataFrame(data)
+df
+```
+
+**General interpretation:** $\alpha$ measures the log-odds change per unit of expected utility difference. Higher $\alpha$ means choices become more deterministically aligned with $\eta$ rankings.
+
+## Rates of Convergence
+
+The limiting behavior established in Properties 2 and 3 occurs at different rates, which we now characterize precisely.
+
+### Convergence Rate for Property 2 ($\alpha \to \infty$)
+
+::: {.callout-note appearance="minimal"}
+## Theorem 5 (Exponential Convergence to Optimality)
+Let $\Delta = \min\{V^* - V(r) : r \notin \mathcal{R}^*\}$ be the minimum gap between optimal and suboptimal values. For any suboptimal alternative $r \notin \mathcal{R}^*$:
+
+$$
+P(r \mid \alpha, V) = O\left(e^{-\alpha \Delta}\right) \quad \text{as } \alpha \to \infty
+$$
+
+Convergence to the optimality limit is exponential with rate $\Delta$.
+:::
+
+::: {.callout-tip collapse="true"}
+## Proof of Theorem 5
+
+For $r \notin \mathcal{R}^*$, recall from the proof of Property 2:
+$$
+P(r) = \frac{\exp(\alpha \cdot [V(r) - V^*])}{|\mathcal{R}^*| + \sum_{j \in \mathcal{R}^-} \exp(\alpha \cdot [V(j) - V^*])}
+$$
+
+Since $V(r) - V^* \leq -\Delta < 0$:
+$$
+P(r) \leq \frac{\exp(-\alpha \Delta)}{|\mathcal{R}^*|} = \frac{1}{|\mathcal{R}^*|} e^{-\alpha \Delta}
+$$
+
+The denominator is bounded below by $|\mathcal{R}^*| \geq 1$, giving:
+$$
+P(r) = O(e^{-\alpha \Delta}) \quad \blacksquare
+$$
+:::
+
+**Interpretation:** Larger value gaps $\Delta$ lead to faster concentration on optimal alternatives. When the best alternative is clearly superior (large $\Delta$), even moderate $\alpha$ yields near-deterministic choice.
+
+### Convergence Rate for Property 3 ($\alpha \to 0$)
+
+::: {.callout-note appearance="minimal"}
+## Theorem 6 (Linear Convergence to Uniformity)
+For any alternative $r \in \mathcal{R}$:
+
+$$
+P(r \mid \alpha, V) = \frac{1}{|\mathcal{R}|} + \alpha \cdot \left[V(r) - \bar{V}\right] \cdot \frac{1}{|\mathcal{R}|} + O(\alpha^2)
+$$
+
+where $\bar{V} = \frac{1}{|\mathcal{R}|}\sum_j V(j)$ is the mean value. Convergence to uniformity is first-order (linear) in $\alpha$.
+:::
+
+::: {.callout-tip collapse="true"}
+## Proof of Theorem 6
+
+Expanding $\exp(\alpha V(r)) = 1 + \alpha V(r) + \frac{\alpha^2 V(r)^2}{2} + O(\alpha^3)$:
+
+$$
+P(r) = \frac{1 + \alpha V(r) + O(\alpha^2)}{\sum_j [1 + \alpha V(j) + O(\alpha^2)]}
+= \frac{1 + \alpha V(r) + O(\alpha^2)}{|\mathcal{R}| + \alpha \sum_j V(j) + O(\alpha^2)}
+$$
+
+Let $S = \sum_j V(j) = |\mathcal{R}| \cdot \bar{V}$. Using the expansion $(1+x)^{-1} = 1 - x + O(x^2)$:
+
+$$
+P(r) = \frac{1 + \alpha V(r)}{|\mathcal{R}|} \cdot \left(1 + \frac{\alpha S}{|\mathcal{R}|}\right)^{-1} + O(\alpha^2)
+$$
+
+$$
+= \frac{1 + \alpha V(r)}{|\mathcal{R}|} \cdot \left(1 - \frac{\alpha S}{|\mathcal{R}|}\right) + O(\alpha^2)
+$$
+
+$$
+= \frac{1}{|\mathcal{R}|} + \frac{\alpha V(r)}{|\mathcal{R}|} - \frac{\alpha S}{|\mathcal{R}|^2} + O(\alpha^2)
+$$
+
+$$
+= \frac{1}{|\mathcal{R}|} + \frac{\alpha}{|\mathcal{R}|} \left[V(r) - \frac{S}{|\mathcal{R}|}\right] + O(\alpha^2)
+$$
+
+$$
+= \frac{1}{|\mathcal{R}|} + \frac{\alpha}{|\mathcal{R}|} \left[V(r) - \bar{V}\right] + O(\alpha^2) \quad \blacksquare
+$$
+:::
+
+**Interpretation:** Near $\alpha = 0$, deviations from uniform choice are proportional to $\alpha$ and to how much an alternative's value exceeds the mean. The coefficient $[V(r) - \bar{V}]/|\mathcal{R}|$ determines the direction and magnitude of the first-order effect.
+
+## Philosophical Interpretation
+
+Having established the mathematical properties of the softmax choice model, we turn briefly to its interpretation. How should we understand agents whose choices follow this model? Three familiar interpretive lenses suggest themselves—normative, procedural, and bounded rationality—but we find none entirely satisfactory.
+
+### What the Model Is Not
+
+**Not a normative standard.** Our model does not describe how decision makers *ought* to choose. That role is already occupied by subjective expected utility maximization, which serves as the normative anchor within our framework. The sensitivity parameter $\alpha$ modulates adherence to this standard; it does not define a competing standard.
+
+**Not a process model.** We make no claim that decision makers actually compute subjective probabilities, utilities, and expectations, then inject noise proportional to $1/\alpha$. The model is silent on cognitive processes. It is an "as-if" description of a generative process, not a theory of mental computation.
+
+**Not bounded rationality.** This may be the most tempting misinterpretation. Bounded rationality, in its canonical formulations, posits cognitive limitations that prevent agents from forming the representations required for optimization—they cannot compute all consequences, hold all probabilities in mind, or perform the requisite calculations [@simon1955; @gigerenzer1996].
+
+Our model assumes the opposite: the decision maker *has* subjective probabilities over consequences, *has* utilities over outcomes, and the expected utilities $\eta_r$ are well-defined for each alternative. The "bounds" in bounded rationality would typically prohibit precisely these things. An agent who has successfully computed $\eta_r$ for all alternatives has already done the hard cognitive work; choosing $\arg\max_r \eta_r$ is trivial by comparison.
+
+### An Alternative Lens: Commitment and Performance
+
+A more apt conceptual frame comes from Isaac Levi's distinction between **commitment** and **performance** [@levi1980]. We may be committed to standards we fail to perform up to. Most of us are committed to the laws of arithmetic despite occasionally making calculation errors. We would prefer our calculations to be consistent with these laws; the errors are failures of performance, not rejections of the standard.
+
+If we take subjective expected utility theory as specifying the decision maker's normative commitments—a significant "if," since Levi himself rejected SEU as a complete account of rational commitment—then $\alpha$ admits a natural interpretation: it measures the decision maker's **tendency to perform in accordance with their commitments**.
+
+- High $\alpha$: Choices reliably track the SEU ranking—performance aligns with commitment
+- Low $\alpha$: Choices are noisy relative to the SEU ranking—performance diverges from commitment
+- $\alpha \to \infty$: Perfect performance; choices deterministically maximize SEU
+- $\alpha \to 0$: Complete dissociation; choices are random regardless of SEU values
+
+This framing has several virtues. It preserves SEU as normatively fundamental while allowing systematic departures in observed behavior. It does not require positing cognitive limitations that prevent representation formation. And it resonates with the phenomenology of choice under uncertainty: we often *know* what we should prefer, yet choose otherwise.
+
+### The "As-If" Character of the Model
+
+We emphasize the model's status as an **as-if** description of choice behavior. The generative process specified by our model—computing expected utilities, then selecting via softmax—need not correspond to any actual cognitive procedure. What matters is that the *distribution over choices* implied by the model matches empirical choice frequencies.
+
+This as-if stance is common in economic modeling and has a distinguished pedigree [@friedman1953]. It permits agnosticism about cognitive mechanisms while enabling precise quantitative predictions. The sensitivity parameter $\alpha$ is estimated from choice data, not introspected or measured via reaction times.
+
+Whether there exists some deeper psychological or neural process that explains *why* choices follow this distribution is a separate question—interesting, but beyond the scope of the present framework.
+
+::: {.callout-note}
+## A Note on Intellectual Debts
+The interpretation sketched here draws heavily on Levi's work on rational commitment, though it applies his conceptual apparatus in ways he would likely reject. Levi was famously critical of subjective expected utility theory as a complete account of rational decision, and would not have endorsed treating it as the decision maker's normative commitment. The present framework should be understood as *inspired by* rather than *faithful to* his views.
+:::
+
+## Summary
+
+We have established three fundamental properties of the softmax choice model:
+
+1. **Monotonicity**: Higher $\alpha$ increases probability of choosing alternatives with higher value $V(r)$
+2. **Perfect optimization limit**: As $\alpha \to \infty$, choices become deterministically concentrated on value-maximizing alternatives
+3. **Random choice limit**: As $\alpha \to 0$, choices become uniformly random
+
+Additionally, we characterized the rates at which these limits are approached:
+
+- Convergence to optimality is **exponential** with rate determined by the value gap $\Delta$
+- Convergence to uniformity is **linear** (first-order) in $\alpha$
+
+These properties hold for any value function $V$. When $V$ is taken to be subjective expected utility, the framework provides a model of decision-making that interpolates between random choice and SEU maximization, with $\alpha$ governing the degree of sensitivity to expected utility differences.
+
+The normalization of utilities to $[0,1]$ fixes a representation from the equivalence class of utility functions, making $\alpha$ interpretable as sensitivity to standardized expected utility differences.
+
+## References
+
+::: {#refs}
+:::

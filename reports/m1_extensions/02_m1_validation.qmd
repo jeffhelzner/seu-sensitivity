@@ -1,0 +1,20 @@
+---
+title: "M1 Model Validation"
+subtitle: "Extension Report 2"
+description: |
+  Validation of the m_1 model through parameter recovery and 
+  simulation-based calibration.
+categories: [extensions, validation, m_1]
+draft: true
+---
+
+## Overview
+
+*This report is under development.*
+
+This report will cover:
+
+1. **Parameter Recovery**: Recovery performance for m_1 parameters
+2. **SBC Validation**: Calibration diagnostics for m_1
+3. **Comparison**: Identification improvements over m_0
+4. **Design Recommendations**: Optimal balance of risky vs uncertain problems

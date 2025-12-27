@@ -88,7 +88,14 @@ models/m_1_sbc
 
 README_files
 
-# Reports
-reports/*.html
+# Quarto outputs and caches
+reports/_output/
+reports/_freeze/
+reports/.quarto/
+reports/**/*.html
+reports/**/.jupyter_cache/
+*_files/
+
+# Reports legacy data (keep source .qmd files)
 reports/*.csv 
 reports/*.json  

@@ -37,8 +37,13 @@ This framework implements a computational approach to understanding decision mak
 
 ```
 seu-sensitivity/
-├── theory/                  # Theoretical foundations and proofs
-│   └── m_0_theory.md       # Mathematical framework for the base model
+├── reports/                 # Quarto-based documentation and reports
+│   ├── _quarto.yml         # Quarto project configuration
+│   ├── foundations/        # Foundational theoretical reports
+│   │   └── 01_abstract_formulation.qmd  # Mathematical framework
+│   ├── m1_extensions/      # Reports for m_1 model extensions
+│   ├── applications/       # Applied research reports
+│   └── legacy/             # Archived legacy reports and theory files
 ├── models/                  # Stan model implementations
 │   ├── m_0.stan            # Base SEU sensitivity model (uncertain choice only)
 │   ├── m_1.stan            # Combined model (risky + uncertain choice)
@@ -47,6 +52,11 @@ seu-sensitivity/
 │   ├── study_design.py     # Experimental design generation (m_0)
 │   ├── study_design_m1.py  # Extended design for m_1 (risky + uncertain)
 │   └── README.md           # Utils documentation
+├── analysis/                # Analysis scripts
+│   ├── parameter_recovery.py
+│   ├── prior_predictive.py
+│   ├── sbc.py              # Simulation-based calibration
+│   └── sample_size_estimation.py
 ├── applications/            # Applied research projects
 │   └── llm_rationality/    # LLM rationality benchmarking
 │       ├── claim_design.py
@@ -192,7 +202,13 @@ These properties hold for any value function, with SEU providing the substantive
 
 **SEU Maximizer Selection**: The prior predictive analysis tracks the probability of selecting SEU-maximizing alternatives for each problem, providing a diagnostic for model rationality under the prior.
 
-See [theory/m_0_theory.md](theory/m_0_theory.md) for complete mathematical details.
+See [reports/foundations/01_abstract_formulation.qmd](reports/foundations/01_abstract_formulation.qmd) for complete mathematical details and proofs. To render and view the reports locally:
+
+```bash
+cd reports
+quarto render
+open _output/index.html
+```
 
 ## Model m_0 Specification
 

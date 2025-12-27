@@ -1,0 +1,21 @@
+---
+title: "LLM Rationality Benchmarking"
+subtitle: "Application Report"
+description: |
+  Assessing the rationality of Large Language Models through the 
+  SEU sensitivity framework.
+categories: [applications, llm]
+draft: true
+---
+
+## Overview
+
+*This report is under development.*
+
+This report will cover:
+
+1. **Problem Design**: Creating decision problems for LLMs
+2. **Data Collection**: Collecting LLM choices
+3. **Model Fitting**: Estimating α for different LLMs
+4. **Results**: Comparison of rationality across models
+5. **Interpretation**: What α tells us about LLM decision-making

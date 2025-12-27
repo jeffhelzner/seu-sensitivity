@@ -1,0 +1,20 @@
+---
+title: "Simulation-Based Calibration"
+subtitle: "Foundational Report 6"
+description: |
+  SBC validation demonstrating that the inference algorithm correctly 
+  recovers the posterior distribution.
+categories: [foundations, validation, m_0]
+draft: true
+---
+
+## Overview
+
+*This report is under development.*
+
+This report will cover:
+
+1. **SBC Methodology**: The simulation-based calibration approach
+2. **Rank Statistics**: Distribution of ranks for each parameter
+3. **Uniformity Tests**: Statistical tests for calibration
+4. **Diagnostics**: ECDF plots and tolerance bands

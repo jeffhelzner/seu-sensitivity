@@ -1,0 +1,20 @@
+---
+title: "Prior Predictive Analysis"
+subtitle: "Foundational Report 3"
+description: |
+  Analysis of the prior predictive distribution for model m_0, examining 
+  implied choice behavior under the prior and validating prior selection.
+categories: [foundations, validation, m_0]
+draft: true
+---
+
+## Overview
+
+*This report is under development.*
+
+This report will cover:
+
+1. **Prior Specification**: Justification for the priors on α, β, and δ
+2. **Prior Predictive Simulation**: Generating data from the prior
+3. **Choice Behavior Under Prior**: Distribution of SEU-maximizer selection
+4. **Prior Sensitivity Analysis**: How prior choices affect implied behavior

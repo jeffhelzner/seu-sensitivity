@@ -1,0 +1,21 @@
+---
+title: "Parameter Recovery Analysis"
+subtitle: "Foundational Report 4"
+description: |
+  Validation that model parameters can be accurately recovered from 
+  simulated data, demonstrating model identifiability.
+categories: [foundations, validation, m_0]
+draft: true
+---
+
+## Overview
+
+*This report is under development.*
+
+This report will cover:
+
+1. **Recovery Design**: Simulation-recovery methodology
+2. **Bias and RMSE**: Assessment of estimation accuracy
+3. **Coverage**: 95% credible interval coverage rates
+4. **Credible Interval Width**: Precision of estimates
+5. **Visualization**: True vs. estimated parameter plots

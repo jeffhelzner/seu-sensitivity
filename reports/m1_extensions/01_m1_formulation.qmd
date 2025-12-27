@@ -1,0 +1,21 @@
+---
+title: "M1 Model Formulation"
+subtitle: "Extension Report 1"
+description: |
+  Extension of the base model to combine risky (known probability) and 
+  uncertain (feature-derived probability) choice problems for improved 
+  parameter identification.
+categories: [extensions, theory, m_1]
+draft: true
+---
+
+## Overview
+
+*This report is under development.*
+
+This report will cover:
+
+1. **Motivation**: Why combine risky and uncertain choice?
+2. **Model Specification**: The m_1 likelihood with both choice types
+3. **Identification Benefits**: Separation of utility and probability
+4. **Comparison with m_0**: What m_1 identifies that m_0 cannot

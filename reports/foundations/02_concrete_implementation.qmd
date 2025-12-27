@@ -1,0 +1,21 @@
+---
+title: "Concrete Implementation of m_0"
+subtitle: "Foundational Report 2"
+description: |
+  Details of the Stan model implementation, including the construction of 
+  subjective probabilities from features and the parameterization of utilities.
+categories: [foundations, implementation, m_0]
+draft: true
+---
+
+## Overview
+
+*This report is under development.*
+
+This report will cover:
+
+1. **Stan Model Structure**: The three model files (m_0.stan, m_0_sim.stan, m_0_sbc.stan)
+2. **Parameterization**: How features map to subjective probabilities via β
+3. **Utility Construction**: The ordered utility vector with Dirichlet increments
+4. **Likelihood**: The softmax choice likelihood
+5. **Generated Quantities**: Posterior predictions and log-likelihoods

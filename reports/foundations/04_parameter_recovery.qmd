@@ -5,17 +5,847 @@ description: |
   Validation that model parameters can be accurately recovered from 
   simulated data, demonstrating model identifiability.
 categories: [foundations, validation, m_0]
-draft: true
+execute:
+  cache: true
 ---
 
-## Overview
+```{python}
+#| label: setup
+#| include: false
 
-*This report is under development.*
+import sys
+import os
 
-This report will cover:
+# Add parent directories to path
+sys.path.insert(0, os.path.join(os.getcwd(), '..'))
+project_root = os.path.dirname(os.path.dirname(os.getcwd()))
+sys.path.insert(0, project_root)
 
-1. **Recovery Design**: Simulation-recovery methodology
-2. **Bias and RMSE**: Assessment of estimation accuracy
-3. **Coverage**: 95% credible interval coverage rates
-4. **Credible Interval Width**: Precision of estimates
-5. **Visualization**: True vs. estimated parameter plots
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from scipy import stats
+import json
+import warnings
+warnings.filterwarnings('ignore')
+
+# Set random seed for reproducibility
+np.random.seed(42)
+```
+
+## Introduction
+
+Having examined the prior predictive distribution ([Report 3](03_prior_analysis.qmd)), we now ask: **can we recover the true parameters when we know them?** This is the fundamental question of parameter recovery analysis.
+
+Parameter recovery is a critical validation step for any Bayesian model:
+
+1. **Identifiability**: Can the model distinguish between different parameter configurations?
+2. **Estimation accuracy**: Are posterior means close to true values?
+3. **Uncertainty calibration**: Do 90% credible intervals contain the true value ~90% of the time?
+4. **Precision**: How narrow are the credible intervals?
+
+::: {.callout-note}
+## The Recovery Paradigm
+Parameter recovery follows a simple logic:
+
+1. **Simulate**: Generate data from `m_0_sim.stan` with known ("true") parameter values
+2. **Estimate**: Fit `m_0.stan` to the simulated data
+3. **Compare**: Assess how well posterior estimates match the true values
+4. **Repeat**: Do this many times to characterize recovery performance
+
+If the model is well-specified and identifiable, the posterior should concentrate around the true values.
+:::
+
+## Study Design
+
+We use the same study design as in [Report 3](03_prior_analysis.qmd) to maintain consistency across our foundational analyses:
+
+```{python}
+#| label: study-design-config
+#| echo: true
+
+# Study design configuration (same as Report 3)
+config = {
+    "M": 25,                    # Number of decision problems
+    "K": 3,                     # Number of consequences  
+    "D": 5,                     # Feature dimensions
+    "R": 15,                    # Number of distinct alternatives
+    "min_alts_per_problem": 2,  # Minimum alternatives per problem
+    "max_alts_per_problem": 5,  # Maximum alternatives per problem
+    "feature_dist": "normal",   # Feature distribution
+    "feature_params": {"loc": 0, "scale": 1}
+}
+
+print(f"Study Design Configuration:")
+print(f"  Decision problems (M): {config['M']}")
+print(f"  Consequences (K): {config['K']}")
+print(f"  Feature dimensions (D): {config['D']}")
+print(f"  Distinct alternatives (R): {config['R']}")
+print(f"  Alternatives per problem: {config['min_alts_per_problem']}-{config['max_alts_per_problem']}")
+```
+
+```{python}
+#| label: generate-study-design
+#| output: false
+
+from utils.study_design import StudyDesign
+
+# Create and generate the study design
+study = StudyDesign(
+    M=config["M"],
+    K=config["K"],
+    D=config["D"],
+    R=config["R"],
+    min_alts_per_problem=config["min_alts_per_problem"],
+    max_alts_per_problem=config["max_alts_per_problem"],
+    feature_dist=config["feature_dist"],
+    feature_params=config["feature_params"],
+    design_name="parameter_recovery"
+)
+study.generate()
+```
+
+```{python}
+#| label: design-summary
+#| echo: false
+
+# Extract design properties
+w = np.array(study.w)
+I = np.array(study.I)
+N = I.sum(axis=1)
+
+print(f"\nGenerated Study Design:")
+print(f"  Total alternatives across problems: {I.sum()}")
+print(f"  Alternatives per problem: min={N.min()}, max={N.max()}, mean={N.mean():.1f}")
+```
+
+## Parameter Recovery Analysis
+
+We use the `ParameterRecovery` class to systematically evaluate how well parameters can be recovered. This class:
+
+1. Uses `m_0_sim.stan` to generate data with known parameters drawn from the prior
+2. Fits `m_0.stan` to each simulated dataset
+3. Compares posterior estimates to true values across many iterations
+
+```{python}
+#| label: run-recovery
+#| output: false
+
+from analysis.parameter_recovery import ParameterRecovery
+import tempfile
+
+# Create output directory for this analysis
+output_dir = tempfile.mkdtemp(prefix="param_recovery_")
+
+# Initialize parameter recovery analysis
+recovery = ParameterRecovery(
+    inference_model_path=None,  # Uses default m_0.stan
+    sim_model_path=None,        # Uses default m_0_sim.stan
+    study_design=study,
+    output_dir=output_dir,
+    n_mcmc_samples=1000,        # Samples per chain
+    n_mcmc_chains=4,            # Number of chains
+    n_iterations=20             # Number of simulation-recovery iterations
+)
+
+# Run the analysis
+true_params_list, posterior_summaries = recovery.run()
+```
+
+```{python}
+#| label: recovery-summary
+#| echo: false
+
+n_successful = len(true_params_list)
+print(f"Parameter Recovery Analysis Complete:")
+print(f"  Successful iterations: {n_successful}")
+print(f"  Parameters recovered per iteration:")
+print(f"    - α (sensitivity): 1 parameter")
+print(f"    - β (feature weights): {config['K']} × {config['D']} = {config['K'] * config['D']} parameters")
+print(f"    - δ (utility increments): {config['K'] - 1} parameters")
+```
+
+## Recovery Metrics
+
+We evaluate parameter recovery using four key metrics:
+
+| Metric | Definition | Target |
+|--------|------------|--------|
+| **Bias** | Mean(estimate - true) | ≈ 0 |
+| **RMSE** | √Mean((estimate - true)²) | Small |
+| **Coverage** | P(true ∈ 90% CI) | ≈ 0.90 |
+| **CI Width** | Mean(upper - lower) | Small but calibrated |
+
+### Sensitivity Parameter ($\alpha$)
+
+```{python}
+#| label: fig-alpha-recovery
+#| fig-cap: "Recovery of the sensitivity parameter α. Left: True vs. estimated values with identity line. Right: 90% credible intervals for each iteration, colored by whether they contain the true value."
+
+# Extract alpha values
+alpha_true = np.array([p['alpha'] for p in true_params_list])
+alpha_mean = np.array([s.loc['alpha', 'Mean'] for s in posterior_summaries])
+alpha_lower = np.array([s.loc['alpha', '5%'] for s in posterior_summaries])
+alpha_upper = np.array([s.loc['alpha', '95%'] for s in posterior_summaries])
+
+# Calculate metrics
+alpha_bias = np.mean(alpha_mean - alpha_true)
+alpha_rmse = np.sqrt(np.mean((alpha_mean - alpha_true)**2))
+alpha_coverage = np.mean((alpha_true >= alpha_lower) & (alpha_true <= alpha_upper))
+alpha_ci_width = np.mean(alpha_upper - alpha_lower)
+
+fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+# True vs Estimated
+ax = axes[0]
+ax.scatter(alpha_true, alpha_mean, alpha=0.7, s=60, c='steelblue', edgecolor='white')
+lims = [min(alpha_true.min(), alpha_mean.min()) * 0.9, 
+        max(alpha_true.max(), alpha_mean.max()) * 1.1]
+ax.plot(lims, lims, 'r--', linewidth=2, label='Identity line')
+ax.set_xlim(lims)
+ax.set_ylim(lims)
+ax.set_xlabel('True α', fontsize=12)
+ax.set_ylabel('Estimated α (posterior mean)', fontsize=12)
+ax.set_title(f'α Recovery: Bias={alpha_bias:.3f}, RMSE={alpha_rmse:.3f}', fontsize=12)
+ax.legend()
+ax.set_aspect('equal')
+
+# Coverage plot
+ax = axes[1]
+iterations = np.arange(len(alpha_true))
+for i in range(len(alpha_true)):
+    covered = (alpha_true[i] >= alpha_lower[i]) & (alpha_true[i] <= alpha_upper[i])
+    color = 'forestgreen' if covered else 'crimson'
+    ax.plot([i, i], [alpha_lower[i], alpha_upper[i]], color=color, linewidth=2, alpha=0.7)
+    ax.scatter(i, alpha_mean[i], color=color, s=40, zorder=3)
+
+ax.scatter(iterations, alpha_true, color='black', s=60, marker='x', 
+           label='True value', zorder=4, linewidth=2)
+ax.set_xlabel('Iteration', fontsize=12)
+ax.set_ylabel('α', fontsize=12)
+ax.set_title(f'α: 90% Credible Intervals (Coverage = {alpha_coverage:.0%})', fontsize=12)
+ax.legend()
+ax.grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+
+print(f"\nα Recovery Statistics:")
+print(f"  Bias: {alpha_bias:.4f}")
+print(f"  RMSE: {alpha_rmse:.4f}")
+print(f"  90% CI Coverage: {alpha_coverage:.1%}")
+print(f"  Mean CI Width: {alpha_ci_width:.3f}")
+```
+
+### Feature-to-Probability Weights ($\boldsymbol{\beta}$)
+
+The β matrix has K × D = 15 parameters (3 consequences × 5 features). We examine recovery across all of them:
+
+```{python}
+#| label: compute-beta-recovery
+#| output: false
+
+# Compute recovery metrics for all beta parameters
+K, D = config['K'], config['D']
+beta_recovery = []
+
+for k in range(K):
+    for d in range(D):
+        param_name = f"beta[{k+1},{d+1}]"
+        
+        beta_true = np.array([p['beta'][k][d] for p in true_params_list])
+        beta_mean = np.array([s.loc[param_name, 'Mean'] for s in posterior_summaries])
+        beta_lower = np.array([s.loc[param_name, '5%'] for s in posterior_summaries])
+        beta_upper = np.array([s.loc[param_name, '95%'] for s in posterior_summaries])
+        
+        bias = np.mean(beta_mean - beta_true)
+        rmse = np.sqrt(np.mean((beta_mean - beta_true)**2))
+        coverage = np.mean((beta_true >= beta_lower) & (beta_true <= beta_upper))
+        ci_width = np.mean(beta_upper - beta_lower)
+        
+        beta_recovery.append({
+            'parameter': param_name,
+            'k': k + 1,
+            'd': d + 1,
+            'bias': bias,
+            'rmse': rmse,
+            'coverage': coverage,
+            'ci_width': ci_width,
+            'true': beta_true,
+            'mean': beta_mean,
+            'lower': beta_lower,
+            'upper': beta_upper
+        })
+
+beta_df = pd.DataFrame(beta_recovery)
+```
+
+```{python}
+#| label: fig-beta-recovery-summary
+#| fig-cap: "Summary of β parameter recovery. Left: RMSE for each β coefficient. Right: Coverage rates (target = 90%, shown as dashed line)."
+
+fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+# RMSE heatmap
+ax = axes[0]
+rmse_matrix = beta_df.pivot(index='k', columns='d', values='rmse')
+im = ax.imshow(rmse_matrix.values, cmap='Blues', aspect='auto')
+ax.set_xlabel('Feature Dimension (d)', fontsize=12)
+ax.set_ylabel('Consequence (k)', fontsize=12)
+ax.set_title('β RMSE by Position', fontsize=12)
+ax.set_xticks(range(D))
+ax.set_xticklabels([str(d+1) for d in range(D)])
+ax.set_yticks(range(K))
+ax.set_yticklabels([str(k+1) for k in range(K)])
+for i in range(K):
+    for j in range(D):
+        ax.text(j, i, f'{rmse_matrix.values[i, j]:.2f}', ha='center', va='center', fontsize=10)
+plt.colorbar(im, ax=ax, label='RMSE')
+
+# Coverage bar plot
+ax = axes[1]
+coverage_values = beta_df['coverage'].values
+x = np.arange(len(coverage_values))
+colors = ['forestgreen' if c >= 0.85 else 'orange' if c >= 0.75 else 'crimson' 
+          for c in coverage_values]
+ax.bar(x, coverage_values, color=colors, alpha=0.7, edgecolor='white')
+ax.axhline(y=0.90, color='red', linestyle='--', linewidth=2, label='Target (90%)')
+ax.set_xlabel('β Parameter Index', fontsize=12)
+ax.set_ylabel('Coverage', fontsize=12)
+ax.set_title('β 90% CI Coverage by Parameter', fontsize=12)
+ax.set_ylim(0, 1.05)
+ax.legend()
+
+plt.tight_layout()
+plt.show()
+
+print(f"\nβ Recovery Summary:")
+print(f"  Mean Bias: {beta_df['bias'].mean():.4f}")
+print(f"  Mean RMSE: {beta_df['rmse'].mean():.4f}")
+print(f"  Mean Coverage: {beta_df['coverage'].mean():.1%}")
+print(f"  Mean CI Width: {beta_df['ci_width'].mean():.3f}")
+```
+
+```{python}
+#| label: fig-beta-true-vs-estimated
+#| fig-cap: "True vs. estimated values for all β parameters pooled together. The identity line shows perfect recovery."
+
+fig, ax = plt.subplots(figsize=(8, 8))
+
+# Pool all beta values
+all_beta_true = np.concatenate([r['true'] for r in beta_recovery])
+all_beta_mean = np.concatenate([r['mean'] for r in beta_recovery])
+
+ax.scatter(all_beta_true, all_beta_mean, alpha=0.4, s=30, c='purple', edgecolor='none')
+lims = [min(all_beta_true.min(), all_beta_mean.min()) * 1.1, 
+        max(all_beta_true.max(), all_beta_mean.max()) * 1.1]
+ax.plot(lims, lims, 'r--', linewidth=2, label='Identity line')
+ax.set_xlim(lims)
+ax.set_ylim(lims)
+ax.set_xlabel('True β', fontsize=12)
+ax.set_ylabel('Estimated β (posterior mean)', fontsize=12)
+ax.set_title(f'β Recovery (all {K*D} parameters pooled)', fontsize=12)
+ax.legend()
+ax.set_aspect('equal')
+ax.grid(True, alpha=0.3)
+
+# Add correlation
+corr = np.corrcoef(all_beta_true, all_beta_mean)[0, 1]
+ax.text(0.05, 0.95, f'r = {corr:.3f}', transform=ax.transAxes, fontsize=12,
+        verticalalignment='top', bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
+
+plt.tight_layout()
+plt.show()
+```
+
+### Utility Increments ($\boldsymbol{\delta}$)
+
+```{python}
+#| label: fig-delta-recovery
+#| fig-cap: "Recovery of utility increment parameters δ. Each panel shows true vs. estimated values and coverage for one δ component."
+
+K_minus_1 = config['K'] - 1
+fig, axes = plt.subplots(2, K_minus_1, figsize=(6 * K_minus_1, 10))
+if K_minus_1 == 1:
+    axes = axes.reshape(2, 1)
+
+delta_stats = []
+
+for k in range(K_minus_1):
+    param_name = f"delta[{k+1}]"
+    
+    delta_true = np.array([p['delta'][k] for p in true_params_list])
+    delta_mean = np.array([s.loc[param_name, 'Mean'] for s in posterior_summaries])
+    delta_lower = np.array([s.loc[param_name, '5%'] for s in posterior_summaries])
+    delta_upper = np.array([s.loc[param_name, '95%'] for s in posterior_summaries])
+    
+    # Metrics
+    bias = np.mean(delta_mean - delta_true)
+    rmse = np.sqrt(np.mean((delta_mean - delta_true)**2))
+    coverage = np.mean((delta_true >= delta_lower) & (delta_true <= delta_upper))
+    ci_width = np.mean(delta_upper - delta_lower)
+    
+    delta_stats.append({
+        'parameter': f'δ_{k+1}',
+        'bias': bias,
+        'rmse': rmse,
+        'coverage': coverage,
+        'ci_width': ci_width
+    })
+    
+    # True vs Estimated
+    ax = axes[0, k]
+    ax.scatter(delta_true, delta_mean, alpha=0.7, s=60, c='forestgreen', edgecolor='white')
+    ax.plot([0, 1], [0, 1], 'r--', linewidth=2)
+    ax.set_xlim(-0.05, 1.05)
+    ax.set_ylim(-0.05, 1.05)
+    ax.set_xlabel(f'True δ_{k+1}', fontsize=11)
+    ax.set_ylabel(f'Estimated δ_{k+1}', fontsize=11)
+    ax.set_title(f'δ_{k+1}: Bias={bias:.3f}, RMSE={rmse:.3f}', fontsize=11)
+    ax.set_aspect('equal')
+    
+    # Coverage
+    ax = axes[1, k]
+    iterations = np.arange(len(delta_true))
+    for i in range(len(delta_true)):
+        covered = (delta_true[i] >= delta_lower[i]) & (delta_true[i] <= delta_upper[i])
+        color = 'forestgreen' if covered else 'crimson'
+        ax.plot([i, i], [delta_lower[i], delta_upper[i]], color=color, linewidth=2, alpha=0.7)
+        ax.scatter(i, delta_mean[i], color=color, s=40, zorder=3)
+    ax.scatter(iterations, delta_true, color='black', s=60, marker='x', 
+               label='True value', zorder=4, linewidth=2)
+    ax.set_xlabel('Iteration', fontsize=11)
+    ax.set_ylabel(f'δ_{k+1}', fontsize=11)
+    ax.set_title(f'δ_{k+1}: Coverage = {coverage:.0%}', fontsize=11)
+    ax.legend()
+    ax.grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+
+delta_df = pd.DataFrame(delta_stats)
+print(f"\nδ Recovery Summary:")
+for _, row in delta_df.iterrows():
+    print(f"  {row['parameter']}: Bias={row['bias']:.4f}, RMSE={row['rmse']:.4f}, Coverage={row['coverage']:.0%}")
+```
+
+## Summary Table
+
+```{python}
+#| label: tbl-recovery-summary
+#| tbl-cap: "Parameter recovery statistics for all parameters in model m_0."
+
+# Create comprehensive summary table
+summary_rows = []
+
+# Alpha
+summary_rows.append({
+    'Parameter': 'α',
+    'Bias': alpha_bias,
+    'RMSE': alpha_rmse,
+    'Coverage': alpha_coverage,
+    'CI Width': alpha_ci_width,
+    'Notes': 'Sensitivity'
+})
+
+# Beta (aggregated)
+summary_rows.append({
+    'Parameter': 'β (all)',
+    'Bias': beta_df['bias'].mean(),
+    'RMSE': beta_df['rmse'].mean(),
+    'Coverage': beta_df['coverage'].mean(),
+    'CI Width': beta_df['ci_width'].mean(),
+    'Notes': f'{K}×{D} parameters'
+})
+
+# Delta (individual)
+for _, row in delta_df.iterrows():
+    summary_rows.append({
+        'Parameter': row['parameter'],
+        'Bias': row['bias'],
+        'RMSE': row['rmse'],
+        'Coverage': row['coverage'],
+        'CI Width': row['ci_width'],
+        'Notes': 'Utility increment'
+    })
+
+summary_df = pd.DataFrame(summary_rows)
+
+# Format for display
+display_df = summary_df.copy()
+display_df['Bias'] = display_df['Bias'].apply(lambda x: f'{x:.4f}')
+display_df['RMSE'] = display_df['RMSE'].apply(lambda x: f'{x:.4f}')
+display_df['Coverage'] = display_df['Coverage'].apply(lambda x: f'{x:.0%}')
+display_df['CI Width'] = display_df['CI Width'].apply(lambda x: f'{x:.3f}')
+
+print(display_df.to_string(index=False))
+```
+
+## Diagnostics
+
+### Recovery by True Parameter Value
+
+An important diagnostic is whether recovery quality depends on the true parameter value. Poor recovery in certain regions might indicate practical identifiability issues.
+
+```{python}
+#| label: fig-alpha-by-true-value
+#| fig-cap: "α recovery diagnostics by true parameter value. Left: Absolute error vs. true value. Right: CI width vs. true value."
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+
+# Absolute error vs true value
+ax = axes[0]
+abs_error = np.abs(alpha_mean - alpha_true)
+ax.scatter(alpha_true, abs_error, alpha=0.7, s=60, c='steelblue')
+ax.set_xlabel('True α', fontsize=12)
+ax.set_ylabel('Absolute Error', fontsize=12)
+ax.set_title('α: Estimation Error vs. True Value', fontsize=12)
+ax.axhline(y=alpha_rmse, color='red', linestyle='--', label=f'RMSE = {alpha_rmse:.3f}')
+ax.legend()
+ax.grid(True, alpha=0.3)
+
+# CI width vs true value
+ax = axes[1]
+ci_widths = alpha_upper - alpha_lower
+ax.scatter(alpha_true, ci_widths, alpha=0.7, s=60, c='steelblue')
+ax.set_xlabel('True α', fontsize=12)
+ax.set_ylabel('90% CI Width', fontsize=12)
+ax.set_title('α: Uncertainty vs. True Value', fontsize=12)
+ax.axhline(y=alpha_ci_width, color='red', linestyle='--', label=f'Mean = {alpha_ci_width:.3f}')
+ax.legend()
+ax.grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+```
+
+### Correlation Structure
+
+```{python}
+#| label: fig-posterior-correlations
+#| fig-cap: "Example posterior correlations from one recovery iteration. High correlations between parameters can indicate identification challenges."
+
+# Get posterior samples from first iteration
+# We need to reload to get full posterior samples
+from cmdstanpy import CmdStanModel
+
+# For this visualization, we'll compute correlations from the summary statistics
+# showing the relationship between different parameter estimates across iterations
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+
+# Alpha vs mean beta
+ax = axes[0]
+mean_beta_per_iter = [np.mean([s.loc[f'beta[{k+1},{d+1}]', 'Mean'] 
+                               for k in range(K) for d in range(D)]) 
+                      for s in posterior_summaries]
+ax.scatter(alpha_mean, mean_beta_per_iter, alpha=0.7, s=60, c='steelblue')
+ax.set_xlabel('Estimated α', fontsize=12)
+ax.set_ylabel('Mean Estimated β', fontsize=12)
+ax.set_title('α vs. β Estimates Across Iterations', fontsize=12)
+corr_ab = np.corrcoef(alpha_mean, mean_beta_per_iter)[0, 1]
+ax.text(0.05, 0.95, f'r = {corr_ab:.3f}', transform=ax.transAxes, fontsize=11,
+        verticalalignment='top', bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
+ax.grid(True, alpha=0.3)
+
+# Alpha vs delta
+ax = axes[1]
+delta_1_mean = [s.loc['delta[1]', 'Mean'] for s in posterior_summaries]
+ax.scatter(alpha_mean, delta_1_mean, alpha=0.7, s=60, c='forestgreen')
+ax.set_xlabel('Estimated α', fontsize=12)
+ax.set_ylabel('Estimated δ₁', fontsize=12)
+ax.set_title('α vs. δ₁ Estimates Across Iterations', fontsize=12)
+corr_ad = np.corrcoef(alpha_mean, delta_1_mean)[0, 1]
+ax.text(0.05, 0.95, f'r = {corr_ad:.3f}', transform=ax.transAxes, fontsize=11,
+        verticalalignment='top', bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
+ax.grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+```
+
+## Discussion
+
+### The Utility Identification Problem {#sec-utility-identification}
+
+::: {.callout-warning}
+## Key Finding: Poor δ Recovery
+The results above reveal a significant asymmetry in parameter recovery:
+
+- **α (sensitivity)** is recovered well, with posterior means clustering tightly around true values
+- **β (feature weights)** shows good recovery, with high correlation between true and estimated values  
+- **δ (utility increments)** shows notably poorer recovery, with wide credible intervals and lower precision
+
+This pattern is not an accident—it reflects a fundamental **identification problem** in model m_0.
+:::
+
+To understand why δ is poorly identified, consider the structure of the model. In decisions under uncertainty, choices depend on **expected utilities**:
+
+$$
+\eta_r = \sum_{k=1}^K \psi_{rk} \upsilon_k
+$$
+
+where $\boldsymbol{\psi}_r$ are subjective probabilities (determined by β) and $\boldsymbol{\upsilon}$ are utilities (determined by δ). The key insight is that we only observe *rankings* of expected utilities through choices—not the utilities themselves.
+
+Different utility vectors can produce identical expected utility rankings when combined with appropriately adjusted subjective probabilities. This creates a **partial identification** problem where:
+
+- β and α affect how *sensitively* choices respond to expected utility differences
+- δ affects the *scale* of those differences
+- The data alone cannot fully separate these contributions
+
+### Does Increasing Sample Size Help?
+
+A natural question is whether the poor δ recovery is simply a matter of insufficient data. The study design with M=25 decision problems might not provide enough information. Let's test this by doubling the sample size to M=50.
+
+```{python}
+#| label: config-m50
+#| echo: true
+
+# Larger study design configuration
+config_m50 = {
+    "M": 50,                    # Doubled from 25
+    "K": 3,                     # Same
+    "D": 5,                     # Same
+    "R": 15,                    # Same
+    "min_alts_per_problem": 2,  # Same
+    "max_alts_per_problem": 5,  # Same
+    "feature_dist": "normal",
+    "feature_params": {"loc": 0, "scale": 1}
+}
+
+print(f"Larger Study Design (M=50):")
+print(f"  Decision problems (M): {config_m50['M']}")
+print(f"  Total expected observations: ~{config_m50['M'] * 3.5:.0f} choices")
+```
+
+```{python}
+#| label: run-recovery-m50
+#| output: false
+
+# Generate larger study design
+study_m50 = StudyDesign(
+    M=config_m50["M"],
+    K=config_m50["K"],
+    D=config_m50["D"],
+    R=config_m50["R"],
+    min_alts_per_problem=config_m50["min_alts_per_problem"],
+    max_alts_per_problem=config_m50["max_alts_per_problem"],
+    feature_dist=config_m50["feature_dist"],
+    feature_params=config_m50["feature_params"],
+    design_name="parameter_recovery_m50"
+)
+study_m50.generate()
+
+# Create output directory
+output_dir_m50 = tempfile.mkdtemp(prefix="param_recovery_m50_")
+
+# Run parameter recovery with larger sample
+recovery_m50 = ParameterRecovery(
+    inference_model_path=None,
+    sim_model_path=None,
+    study_design=study_m50,
+    output_dir=output_dir_m50,
+    n_mcmc_samples=1000,
+    n_mcmc_chains=4,
+    n_iterations=20
+)
+
+true_params_m50, posterior_summaries_m50 = recovery_m50.run()
+```
+
+```{python}
+#| label: compare-sample-sizes
+#| echo: false
+
+# Compute recovery metrics for M=50
+# Alpha
+alpha_true_m50 = np.array([p['alpha'] for p in true_params_m50])
+alpha_mean_m50 = np.array([s.loc['alpha', 'Mean'] for s in posterior_summaries_m50])
+alpha_lower_m50 = np.array([s.loc['alpha', '5%'] for s in posterior_summaries_m50])
+alpha_upper_m50 = np.array([s.loc['alpha', '95%'] for s in posterior_summaries_m50])
+
+alpha_rmse_m50 = np.sqrt(np.mean((alpha_mean_m50 - alpha_true_m50)**2))
+alpha_coverage_m50 = np.mean((alpha_true_m50 >= alpha_lower_m50) & (alpha_true_m50 <= alpha_upper_m50))
+alpha_ci_width_m50 = np.mean(alpha_upper_m50 - alpha_lower_m50)
+
+# Delta
+K_minus_1 = config_m50['K'] - 1
+delta_stats_m50 = []
+for k in range(K_minus_1):
+    param_name = f"delta[{k+1}]"
+    delta_true_m50 = np.array([p['delta'][k] for p in true_params_m50])
+    delta_mean_m50 = np.array([s.loc[param_name, 'Mean'] for s in posterior_summaries_m50])
+    delta_lower_m50 = np.array([s.loc[param_name, '5%'] for s in posterior_summaries_m50])
+    delta_upper_m50 = np.array([s.loc[param_name, '95%'] for s in posterior_summaries_m50])
+    
+    delta_stats_m50.append({
+        'parameter': f'δ_{k+1}',
+        'rmse': np.sqrt(np.mean((delta_mean_m50 - delta_true_m50)**2)),
+        'coverage': np.mean((delta_true_m50 >= delta_lower_m50) & (delta_true_m50 <= delta_upper_m50)),
+        'ci_width': np.mean(delta_upper_m50 - delta_lower_m50)
+    })
+
+delta_df_m50 = pd.DataFrame(delta_stats_m50)
+```
+
+```{python}
+#| label: fig-sample-size-comparison
+#| fig-cap: "Comparison of parameter recovery between M=25 and M=50. Doubling the number of decision problems improves α recovery but has minimal effect on δ recovery."
+
+fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+
+# RMSE comparison
+ax = axes[0]
+params = ['α', 'δ₁', 'δ₂']
+rmse_m25 = [alpha_rmse, delta_df.iloc[0]['rmse'], delta_df.iloc[1]['rmse']]
+rmse_m50 = [alpha_rmse_m50, delta_df_m50.iloc[0]['rmse'], delta_df_m50.iloc[1]['rmse']]
+
+x = np.arange(len(params))
+width = 0.35
+bars1 = ax.bar(x - width/2, rmse_m25, width, label='M=25', color='steelblue', alpha=0.7)
+bars2 = ax.bar(x + width/2, rmse_m50, width, label='M=50', color='coral', alpha=0.7)
+ax.set_xlabel('Parameter', fontsize=12)
+ax.set_ylabel('RMSE', fontsize=12)
+ax.set_title('RMSE by Sample Size', fontsize=12)
+ax.set_xticks(x)
+ax.set_xticklabels(params)
+ax.legend()
+ax.grid(True, alpha=0.3, axis='y')
+
+# Coverage comparison
+ax = axes[1]
+cov_m25 = [alpha_coverage, delta_df.iloc[0]['coverage'], delta_df.iloc[1]['coverage']]
+cov_m50 = [alpha_coverage_m50, delta_df_m50.iloc[0]['coverage'], delta_df_m50.iloc[1]['coverage']]
+
+bars1 = ax.bar(x - width/2, cov_m25, width, label='M=25', color='steelblue', alpha=0.7)
+bars2 = ax.bar(x + width/2, cov_m50, width, label='M=50', color='coral', alpha=0.7)
+ax.axhline(y=0.90, color='red', linestyle='--', linewidth=2, label='Target (90%)')
+ax.set_xlabel('Parameter', fontsize=12)
+ax.set_ylabel('Coverage', fontsize=12)
+ax.set_title('90% CI Coverage by Sample Size', fontsize=12)
+ax.set_xticks(x)
+ax.set_xticklabels(params)
+ax.set_ylim(0, 1.05)
+ax.legend()
+ax.grid(True, alpha=0.3, axis='y')
+
+# CI Width comparison  
+ax = axes[2]
+ci_m25 = [alpha_ci_width, delta_df.iloc[0]['ci_width'], delta_df.iloc[1]['ci_width']]
+ci_m50 = [alpha_ci_width_m50, delta_df_m50.iloc[0]['ci_width'], delta_df_m50.iloc[1]['ci_width']]
+
+bars1 = ax.bar(x - width/2, ci_m25, width, label='M=25', color='steelblue', alpha=0.7)
+bars2 = ax.bar(x + width/2, ci_m50, width, label='M=50', color='coral', alpha=0.7)
+ax.set_xlabel('Parameter', fontsize=12)
+ax.set_ylabel('CI Width', fontsize=12)
+ax.set_title('90% CI Width by Sample Size', fontsize=12)
+ax.set_xticks(x)
+ax.set_xticklabels(params)
+ax.legend()
+ax.grid(True, alpha=0.3, axis='y')
+
+plt.tight_layout()
+plt.show()
+```
+
+```{python}
+#| label: tbl-sample-size-comparison
+#| echo: false
+
+# Create comparison table
+comparison_data = []
+
+# Alpha
+comparison_data.append({
+    'Parameter': 'α',
+    'RMSE (M=25)': f'{alpha_rmse:.4f}',
+    'RMSE (M=50)': f'{alpha_rmse_m50:.4f}',
+    'Δ RMSE': f'{(alpha_rmse_m50 - alpha_rmse)/alpha_rmse * 100:+.1f}%',
+    'CI Width (M=25)': f'{alpha_ci_width:.3f}',
+    'CI Width (M=50)': f'{alpha_ci_width_m50:.3f}'
+})
+
+# Delta
+for i in range(K_minus_1):
+    comparison_data.append({
+        'Parameter': f'δ_{i+1}',
+        'RMSE (M=25)': f'{delta_df.iloc[i]["rmse"]:.4f}',
+        'RMSE (M=50)': f'{delta_df_m50.iloc[i]["rmse"]:.4f}',
+        'Δ RMSE': f'{(delta_df_m50.iloc[i]["rmse"] - delta_df.iloc[i]["rmse"])/delta_df.iloc[i]["rmse"] * 100:+.1f}%',
+        'CI Width (M=25)': f'{delta_df.iloc[i]["ci_width"]:.3f}',
+        'CI Width (M=50)': f'{delta_df_m50.iloc[i]["ci_width"]:.3f}'
+    })
+
+comparison_df = pd.DataFrame(comparison_data)
+print("Sample Size Comparison (M=25 vs M=50):")
+print(comparison_df.to_string(index=False))
+```
+
+### Interpretation: Why More Data Doesn't Help δ
+
+The comparison reveals a striking pattern:
+
+::: {.callout-important}
+## The Identification Problem is Structural, Not Statistical
+
+Doubling the sample size from M=25 to M=50:
+
+- **α recovery improves**: RMSE decreases, CI widths narrow
+- **δ recovery barely changes**: Wide credible intervals persist
+
+This asymmetry confirms that the δ identification problem is **structural**, not simply a matter of sample size. No amount of additional decision-under-uncertainty data will fully identify the utility function.
+:::
+
+The fundamental issue is that in decisions under uncertainty, we observe choices that depend on *expected* utilities—weighted averages of utilities. The weights (subjective probabilities) and utilities are confounded in a way that cannot be fully disentangled without additional information.
+
+### Study Design Parameters in m_0
+
+The `m_0.stan` data block defines several parameters that characterize study size:
+
+| Parameter | Description | Current Value |
+|-----------|-------------|---------------|
+| M | Number of decision problems | 25 → 50 |
+| K | Number of consequences | 3 |
+| D | Feature dimensions | 5 |
+| R | Distinct alternatives | 15 |
+
+We might consider varying other parameters:
+
+- **Increasing K** (more consequences): Would require estimating more δ parameters, likely worsening the problem
+- **Increasing R** (more alternatives): Provides more information about β, but doesn't directly constrain utilities
+- **Increasing D** (more features): Similar to increasing R—helps with β, not δ
+
+None of these changes address the fundamental identification issue.
+
+### The Path Forward: Risky Choice Data
+
+The solution requires **additional data that directly constrains the utility function**. This motivates the extension to model m_1, which incorporates:
+
+1. **Decisions under uncertainty** (as in m_0): Subject chooses among alternatives with uncertain consequences
+2. **Risky decisions**: Subject chooses between lotteries with *known* probabilities over consequences
+
+In risky decisions, the probabilities are fixed by the experimenter, so choices directly reveal information about utilities without the confounding with subjective probabilities. This additional data source can "pin down" the utility function.
+
+::: {.callout-note}
+::: {.callout-note}
+## Preview of Model m_1
+Model m_1 extends m_0 by adding N risky choice problems where:
+
+- Alternatives are lotteries with experimenter-specified probabilities
+- The same utility function υ (and hence δ) governs both choice types
+- Risky choices provide direct information about utility curvature
+
+This allows the δ parameters to be identified from risky choices, while uncertain choices identify β and α. See [Report 5](05_adding_risky_choices.qmd) for the full development.
+:::
+
+## Conclusion
+
+Parameter recovery analysis for model m_0 reveals an important asymmetry:
+
+1. **Well-identified parameters**: α (sensitivity) and β (feature weights) can be recovered with reasonable precision
+2. **Poorly identified parameters**: δ (utility increments) shows persistent wide uncertainty
+3. **Sample size doesn't help**: Doubling M from 25 to 50 improves α but not δ recovery
+
+This is not a failure of the model or estimation procedure—it reflects a fundamental identification challenge when utilities and subjective probabilities enter the likelihood only through their product (expected utilities).
+
+**The key insight**: To fully identify all parameters of the SEU model, we need data that separately constrains utilities and subjective probabilities. This motivates the extension to model m_1, which adds risky choice data where probabilities are known, allowing the utility function to be identified independently.

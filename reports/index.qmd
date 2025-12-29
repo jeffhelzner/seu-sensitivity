@@ -17,15 +17,9 @@ These reports establish the theoretical and methodological foundations:
 2. **[Concrete Implementation](foundations/02_concrete_implementation.qmd)** — Stan model implementation details
 3. **[Prior Analysis](foundations/03_prior_analysis.qmd)** — Prior predictive analysis and prior selection
 4. **[Parameter Recovery](foundations/04_parameter_recovery.qmd)** — Validation that parameters can be recovered from data
-5. **[Sample Size Analysis](foundations/05_sample_size_analysis.qmd)** — Power analysis and design recommendations
+5. **[Adding Risky Choices](foundations/05_adding_risky_choices.qmd)** — Extension to model m_1 for utility identification
 6. **[SBC Validation](foundations/06_sbc_validation.qmd)** — Simulation-based calibration results
-
-### M1 Extensions
-
-Reports on the extended model combining risky and uncertain choice:
-
-1. **[M1 Formulation](m1_extensions/01_m1_formulation.qmd)** — Extended model for combined risky/uncertain choice
-2. **[M1 Validation](m1_extensions/02_m1_validation.qmd)** — Validation of the M1 model
+7. **[Sample Size Analysis](foundations/07_sample_size_analysis.qmd)** — Power analysis and design recommendations
 
 ### Applications
 

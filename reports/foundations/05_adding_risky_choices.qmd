@@ -1,0 +1,345 @@
+---
+title: "Adding Risky Choices"
+subtitle: "Foundational Report 5"
+description: |
+  Extension of the SEU model to include risky choice data, enabling 
+  identification of utility parameters through known-probability decisions.
+categories: [foundations, m_1]
+execute:
+  cache: true
+---
+
+```{python}
+#| label: setup
+#| include: false
+
+import sys
+import os
+
+# Add parent directories to path
+sys.path.insert(0, os.path.join(os.getcwd(), '..'))
+project_root = os.path.dirname(os.path.dirname(os.getcwd()))
+sys.path.insert(0, project_root)
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from scipy import stats
+import warnings
+warnings.filterwarnings('ignore')
+
+np.random.seed(42)
+```
+
+## Introduction
+
+[Report 4](04_parameter_recovery.qmd) revealed a fundamental identification problem: while model m_0 can reliably recover the sensitivity parameter α and feature weights β, the utility increments δ remain poorly identified even as sample size increases. This is not a statistical limitation but a structural one—decisions under uncertainty alone cannot fully disentangle utilities from subjective probabilities.
+
+The solution, developed in this report, is to incorporate a second type of choice task: **risky decisions** where probabilities are known to the decision-maker. This approach has deep roots in the foundations of decision theory.
+
+## Historical Background: Risk vs. Uncertainty
+
+The distinction between decision-making under **risk** and under **uncertainty** is one of the oldest and most fundamental in decision theory.
+
+### Knight's Distinction
+
+Frank Knight [-@knight1921risk] drew a sharp distinction between:
+
+- **Risk**: Situations where probabilities of outcomes are objectively known (e.g., a fair die)
+- **Uncertainty**: Situations where probabilities are unknown or unknowable (e.g., will it rain tomorrow?)
+
+Knight argued that these represent fundamentally different decision environments, with profit in business arising primarily from uncertainty rather than risk.
+
+### Von Neumann-Morgenstern: Expected Utility Under Risk
+
+The modern theory of rational choice under risk was axiomatized by @vonneumann1944theory. Their key insight was that preferences over **lotteries**—probability distributions over outcomes—could be represented by a utility function if certain axioms (completeness, transitivity, continuity, independence) were satisfied.
+
+For a lottery $L = (p_1, o_1; p_2, o_2; \ldots; p_K, o_K)$ giving outcome $o_k$ with known probability $p_k$, the expected utility is:
+$$
+U(L) = \sum_{k=1}^K p_k \cdot u(o_k)
+$$
+
+The vNM framework applies only to risk—the probabilities $p_k$ are taken as given.
+
+### Savage: Subjective Expected Utility Under Uncertainty
+
+Leonard Savage [-@savage1954foundations] extended expected utility theory to uncertainty by introducing **subjective probabilities**. In his framework, the decision-maker acts as if assigning personal probabilities to states of the world and maximizing expected utility with respect to these beliefs.
+
+Savage's axioms imply the existence of both:
+
+1. A utility function $u$ over consequences
+2. A probability measure $P$ over states
+
+However, Savage's approach requires eliciting utilities and probabilities simultaneously from choice behavior—raising the identification problem we encountered with m_0.
+
+### Anscombe-Aumann: The Horse Lottery Resolution
+
+@anscombe1963definition proposed an elegant solution that bridges risk and uncertainty. Their key innovation was to consider choice objects that combine both:
+
+::: {.callout-note}
+## The Horse Lottery Framework
+An **Anscombe-Aumann act** maps states of the world (the "horses") to lotteries (probability distributions over prizes). 
+
+- The probabilities in each lottery are objective (known)
+- The probabilities across states are subjective (uncertain)
+
+By varying the lotteries while holding the state-dependence fixed, one can identify the utility function from risky preferences. By varying the state-dependence while holding lotteries fixed, one can identify subjective probabilities.
+:::
+
+This insight is precisely what motivates model m_1. By observing choices in both:
+
+1. **Uncertain decisions** (like Savage's acts, mapped through features to subjective probabilities)
+2. **Risky decisions** (like vNM lotteries, with known probabilities)
+
+...we can separately identify utilities and subjective probabilities.
+
+### The Identification Logic
+
+As @kreps1988notes explains in his exposition of the Anscombe-Aumann framework:
+
+> "The introduction of objective lotteries... provides a way to calibrate cardinal utility... Once cardinal utility is pinned down by choices among lotteries, subjective probability can be inferred from choices among acts."
+
+This is exactly our strategy:
+
+| Choice Type | What It Reveals | Model Component |
+|-------------|-----------------|-----------------|
+| **Risky** (known $p$) | Utility function shape | δ parameters |
+| **Uncertain** (unknown $p$) | Subjective probability formation | β parameters |
+| **Both** | Choice sensitivity | α parameter |
+
+## Model m_1 Specification
+
+Model m_1 extends m_0 by adding N risky choice problems alongside the M uncertain choice problems. Both share the same utility function (υ, determined by δ) and sensitivity parameter (α).
+
+### Data Structure
+
+```{python}
+#| label: m1-data-structure
+#| echo: true
+#| eval: false
+
+# From m_1.stan data block:
+
+# === UNCERTAIN DECISIONS (as in m_0) ===
+# M: number of uncertain decision problems
+# K: number of possible consequences  
+# D: dimensions of alternative features
+# R: number of distinct uncertain alternatives
+# w[R]: feature vectors for uncertain alternatives (vector[D] each)
+# I[M,R]: indicator array for which alternatives appear in which problems
+# y[M]: choices for uncertain problems
+
+# === RISKY DECISIONS (new in m_1) ===
+# N: number of risky decision problems
+# S: number of distinct risky alternatives  
+# x[S]: probability simplexes for risky alternatives (simplex[K] each)
+# J[N,S]: indicator array for which risky alternatives appear in which problems
+# z[N]: choices for risky problems
+```
+
+### Key Differences from m_0
+
+The crucial difference is in how probabilities enter:
+
+**Uncertain alternatives** (same as m_0):
+$$
+\psi_{rk} = \frac{\exp(\boldsymbol{\beta}_k^\top \mathbf{w}_r)}{\sum_{k'=1}^K \exp(\boldsymbol{\beta}_{k'}^\top \mathbf{w}_r)}
+$$
+The probabilities ψ are *derived* from features via the learned mapping β.
+
+**Risky alternatives** (new in m_1):
+$$
+\pi_{sk} = x_{sk} \quad \text{(given as data)}
+$$
+The probabilities π are *provided* directly—they are the objective lottery probabilities.
+
+### Expected Utilities
+
+For **uncertain** alternatives, expected utility is:
+$$
+\eta^{(u)}_r = \sum_{k=1}^K \psi_{rk} \cdot \upsilon_k = \boldsymbol{\psi}_r^\top \boldsymbol{\upsilon}
+$$
+
+For **risky** alternatives, expected utility is:
+$$
+\eta^{(r)}_s = \sum_{k=1}^K \pi_{sk} \cdot \upsilon_k = \boldsymbol{\pi}_s^\top \boldsymbol{\upsilon}
+$$
+
+The key insight: risky expected utilities depend *only* on υ (and hence δ), not on β. This breaks the confounding that plagued m_0.
+
+### Choice Probabilities
+
+Both choice types use the same softmax rule with shared α:
+
+$$
+\chi^{(u)}_{mi} = \frac{\exp(\alpha \cdot \eta^{(u)}_{mi})}{\sum_{j=1}^{N^{(u)}_m} \exp(\alpha \cdot \eta^{(u)}_{mj})}
+\quad\text{and}\quad
+\chi^{(r)}_{ni} = \frac{\exp(\alpha \cdot \eta^{(r)}_{ni})}{\sum_{j=1}^{N^{(r)}_n} \exp(\alpha \cdot \eta^{(r)}_{nj})}
+$$
+
+### Likelihood
+
+The log-likelihood is the sum of contributions from both choice types:
+$$
+\log p(y, z | \theta) = \sum_{m=1}^M \log \chi^{(u)}_{m, y_m} + \sum_{n=1}^N \log \chi^{(r)}_{n, z_n}
+$$
+
+## Examining the Stan Implementation
+
+Let's examine key portions of `m_1.stan`:
+
+```{python}
+#| label: show-m1-stan
+#| echo: false
+
+# Display key sections of m_1.stan
+m1_code = '''
+// === PARAMETERS ===
+parameters {
+  real<lower=0> alpha;           // sensitivity (shared)
+  matrix[K,D] beta;              // feature-to-probability mapping
+  simplex[K-1] delta;            // utility increments (shared)
+}
+
+// === TRANSFORMED PARAMETERS ===
+transformed parameters {
+  // Shared utility function
+  ordered[K] upsilon = cumulative_sum(append_row(0, delta));
+  
+  // UNCERTAIN: subjective probabilities via softmax
+  for (i in 1:total_uncertain_alts) {
+    psi[i] = softmax(beta * x_uncertain[i]);
+  }
+  
+  // UNCERTAIN: expected utilities
+  for (i in 1:total_uncertain_alts) {
+    eta_uncertain[i] = dot_product(psi[i], upsilon);
+  }
+  
+  // RISKY: expected utilities (no beta involved!)
+  for (i in 1:total_risky_alts) {
+    eta_risky[i] = dot_product(x_risky[i], upsilon);  // x_risky is known
+  }
+  
+  // Choice probabilities via softmax with shared alpha
+  // ... (for both uncertain and risky problems)
+}
+
+// === MODEL ===
+model {
+  // Priors (same as m_0)
+  alpha ~ lognormal(0, 1);
+  to_vector(beta) ~ std_normal();
+  delta ~ dirichlet(rep_vector(1, K-1));
+  
+  // Likelihood: uncertain choices
+  for (m in 1:M) {
+    y[m] ~ categorical(chi_uncertain[m]);
+  }
+  
+  // Likelihood: risky choices
+  for (n in 1:N) {
+    z[n] ~ categorical(chi_risky[n]);
+  }
+}
+'''
+print(m1_code)
+```
+
+The critical line is `eta_risky[i] = dot_product(x_risky[i], upsilon)`. Unlike uncertain alternatives where β mediates between features and probabilities, risky alternatives have their probabilities given directly. This means risky choices provide *direct* information about the utility vector υ.
+
+## Why Risky Choices Identify δ
+
+Consider a concrete example. Suppose we have K=3 consequences with utilities $\upsilon = (0, \upsilon_2, 1)$ where $\upsilon_2 = \delta_1$ (since $\delta_1 + \delta_2 = 1$ and utilities are constructed cumulatively).
+
+**Risky choice**: Choose between:
+
+- Lottery A: (0.5, 0, 0.5) → outcomes 1 or 3 with equal probability
+- Lottery B: (0, 1, 0) → outcome 2 with certainty
+
+Expected utilities:
+$$
+\eta_A = 0.5 \cdot 0 + 0 \cdot \upsilon_2 + 0.5 \cdot 1 = 0.5
+$$
+$$
+\eta_B = 0 \cdot 0 + 1 \cdot \upsilon_2 + 0 \cdot 1 = \upsilon_2
+$$
+
+If the decision-maker prefers A, this implies $0.5 > \upsilon_2$, so $\upsilon_2 < 0.5$.
+If they prefer B, this implies $\upsilon_2 > 0.5$.
+
+This preference *directly* constrains υ₂ (and hence δ₁) without any confounding from subjective probabilities!
+
+## Study Design for m_1
+
+To demonstrate that adding risky choices resolves the δ identification problem, we'll use:
+
+```{python}
+#| label: m1-study-config
+#| echo: true
+
+# Study design for m_1 combining uncertain and risky problems
+config_m1 = {
+    # Uncertain problems (same as m_0)
+    "M": 25,                    # Number of uncertain decision problems
+    "K": 3,                     # Number of consequences
+    "D": 5,                     # Feature dimensions
+    "R": 15,                    # Distinct uncertain alternatives
+    "min_alts_per_problem": 2,
+    "max_alts_per_problem": 5,
+    "feature_dist": "normal",
+    "feature_params": {"loc": 0, "scale": 1},
+    
+    # Risky problems (new)
+    "N": 20,                    # Number of risky decision problems
+    "S": 8,                     # Distinct risky alternatives
+}
+
+print(f"Study Design for Model m_1:")
+print(f"\nUncertain Problems:")
+print(f"  M = {config_m1['M']} decision problems")
+print(f"  R = {config_m1['R']} distinct alternatives")
+print(f"  K = {config_m1['K']} consequences")
+print(f"\nRisky Problems:")
+print(f"  N = {config_m1['N']} decision problems")
+print(f"  S = {config_m1['S']} distinct lotteries")
+print(f"  Same K = {config_m1['K']} consequences")
+```
+
+## Parameter Recovery Comparison
+
+*To be completed: Run parameter recovery for m_1 and compare δ recovery to m_0.*
+
+```{python}
+#| label: recovery-comparison-placeholder
+#| echo: false
+#| eval: false
+
+# This will run parameter recovery for m_1 and compare to m_0 results
+# from analysis.parameter_recovery import ParameterRecovery
+# from utils.study_design_m1 import StudyDesignM1
+
+# study_m1 = StudyDesignM1(...)
+# recovery_m1 = ParameterRecovery(
+#     inference_model_path="models/m_1.stan",
+#     sim_model_path="models/m_1_sim.stan",
+#     study_design=study_m1,
+#     ...
+# )
+```
+
+## Summary
+
+The extension from m_0 to m_1 follows a principled path grounded in decision theory:
+
+1. **The identification problem** (Report 4): Uncertain choices alone cannot separate utilities from beliefs
+2. **The historical solution**: Anscombe-Aumann's insight that combining risk and uncertainty enables identification
+3. **The implementation**: Model m_1 adds risky choice problems with known probabilities
+4. **The result**: δ parameters become identifiable from risky choices, while β remains identified from uncertain choices
+
+::: {.callout-tip}
+## Key Insight
+By incorporating risky choices alongside uncertain choices, model m_1 achieves what m_0 could not: full identification of all model parameters. This is not a statistical trick but reflects the fundamental structure of expected utility theory—we need different types of evidence to pin down different aspects of preferences.
+:::
+
+## References

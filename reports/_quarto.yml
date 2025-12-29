@@ -20,16 +20,12 @@ website:
             href: foundations/03_prior_analysis.qmd
           - text: "4. Parameter Recovery"
             href: foundations/04_parameter_recovery.qmd
-          - text: "5. Sample Size Analysis"
-            href: foundations/05_sample_size_analysis.qmd
+          - text: "5. Adding Risky Choices"
+            href: foundations/05_adding_risky_choices.qmd
           - text: "6. SBC Validation"
             href: foundations/06_sbc_validation.qmd
-      - text: "M1 Extensions"
-        menu:
-          - text: "1. M1 Formulation"
-            href: m1_extensions/01_m1_formulation.qmd
-          - text: "2. M1 Validation"
-            href: m1_extensions/02_m1_validation.qmd
+          - text: "7. Sample Size Analysis"
+            href: foundations/07_sample_size_analysis.qmd
       - text: "Applications"
         menu:
           - text: "LLM Rationality"

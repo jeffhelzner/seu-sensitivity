@@ -560,6 +560,11 @@ plt.show()
 
 A key diagnostic is the **probability of selecting the SEU-maximizing alternative** under the prior. The simulation model `m_0_sim.stan` tracks this directly via the `selected_seu_max` variable.
 
+::: {.callout-note}
+## The Random Baseline
+For each decision problem with $N_m$ alternatives, a random chooser would select the SEU maximizer with probability $1/N_m$ (assuming a unique maximizer). We use this as a baseline: values above $1/N_m$ indicate that the prior allows for above-chance SEU-maximizing behavior. The baseline varies across problems because problems have different numbers of alternatives.
+:::
+
 ### By Decision Problem
 
 ```{python}

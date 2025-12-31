@@ -44,6 +44,11 @@ Parameter recovery is a critical validation step for any Bayesian model:
 3. **Uncertainty calibration**: Do 90% credible intervals contain the true value ~90% of the time?
 4. **Precision**: How narrow are the credible intervals?
 
+::: {.callout-warning}
+## Preview: A Key Finding
+This report reveals an asymmetry in parameter recovery: while α and β are well-identified, the utility increments δ show persistently wide credible intervals that do not narrow with more data. This is not a statistical limitation but a **structural identification problem**—one that will motivate the extension to model m_1 in [Report 5](05_adding_risky_choices.qmd).
+:::
+
 ::: {.callout-note}
 ## The Recovery Paradigm
 Parameter recovery follows a simple logic:

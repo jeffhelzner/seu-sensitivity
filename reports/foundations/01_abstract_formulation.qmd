@@ -52,9 +52,8 @@ We begin with abstract notation for the general softmax choice model, then show 
 | $V: \mathcal{R} \to \mathbb{R}$ | Value function assigning utilities to alternatives | `eta` |
 | $V(r)$ | Value of alternative $r$ | `eta[r]` |
 | $\alpha \in \mathbb{R}_+$ | Sensitivity parameter (non-negative) | `alpha` |
-| $\mathcal{R}^*$ | Set of value-maximizing alternatives | — |
-| $V^* = \max_r V(r)$ | Maximum value | — |
-| $\mathcal{R}^- = \mathcal{R} \setminus \mathcal{R}^*$ | Suboptimal alternatives | — |
+
+**Notation used in proofs:** We write $\mathcal{R}^* = \{r : V(r) = V^*\}$ for the set of value-maximizing alternatives, where $V^* = \max_r V(r)$, and $\mathcal{R}^- = \mathcal{R} \setminus \mathcal{R}^*$ for suboptimal alternatives.
 :::
 
 ### The Softmax Choice Rule
@@ -405,7 +404,7 @@ Holding utilities $\boldsymbol{\upsilon}$ and beliefs $\boldsymbol{\psi}$ fixed,
 
 ::: {.callout-note appearance="minimal"}
 ## Corollary 2 (Perfect Rationality)
-As $\alpha \to \infty$, the decision maker chooses SEU-maximizing alternatives (those with highest $\eta$) with probability 1.
+As $\alpha \to \infty$, the decision maker chooses uniformly among SEU-maximizing alternatives (those with highest $\eta$) with probability 1. When there is a unique maximizer, choice becomes deterministic.
 :::
 
 ::: {.callout-note appearance="minimal"}

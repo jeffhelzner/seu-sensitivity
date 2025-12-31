@@ -259,6 +259,11 @@ The linear-softmax mapping is a reasonable starting point, but alternatives exis
 These extensions would require modifying the Stan model but preserve the overall framework.
 :::
 
+::: {.callout-note}
+## On the β Prior Scale
+The $\mathcal{N}(0, 1)$ prior places 95% of coefficients within $\pm 2$. In the softmax context, this corresponds to log-odds differences up to $\pm 2$, or probability ratios up to $e^2 \approx 7.4$ per unit feature change. This is moderately informative—it allows substantial feature effects while regularizing against extreme values. For applications where features are expected to have very strong effects on beliefs, a wider prior (e.g., $\mathcal{N}(0, 2)$) may be appropriate.
+:::
+
 ## Utility Parameterization
 
 The abstract formulation required utilities to satisfy:

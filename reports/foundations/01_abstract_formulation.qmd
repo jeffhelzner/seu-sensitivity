@@ -23,7 +23,7 @@ from scipy.special import softmax
 
 ## Introduction
 
-This report establishes the theoretical foundations for our computational model of decision-making agents. We prove three fundamental properties of the softmax choice model with respect to an arbitrary value function, then show how these properties apply specifically when values are subjective expected utilities (SEU).
+This report establishes the theoretical foundations for our computational model of decision-making agents. We prove three fundamental properties of the softmax choice model with respect to an arbitrary value function, then show how these properties apply specifically when values are subjective expected utilities (SEU). Specifically, when value is taken to be subjective expected utility, $\alpha$ can be interpreted as measuring a decision maker's alignment with the normative standard of SEU rationality—how consistently their choices track the SEU ranking.
 
 This separation clarifies an important conceptual point: the core choice-theoretic results are independent of how values are constructed—they follow from the structure of softmax choice alone. The SEU interpretation provides the substantive behavioral content and connects our model to classical decision theory [@savage1954; @vonneumann1947].
 
@@ -32,15 +32,14 @@ This separation clarifies an important conceptual point: the core choice-theoret
 Understanding these properties is essential for interpreting the sensitivity parameter α:
 
 - **For practitioners**: α has a precise meaning as log-odds change per unit of standardized utility difference
-- **For theorists**: The properties characterize the softmax rule itself, independent of value theory
-- **For validation**: These results provide testable predictions for simulation-based calibration
+- **For theorists**: The properties follow from any choice model of this functional form—a softmax transformation of utilities scaled by α—independent of the particular theory of value adopted
 :::
 
 ## General Softmax Choice Model
 
 ### Notation and Definitions
 
-We begin with abstract notation for the general softmax choice model, then show how it specializes to SEU. The notation is chosen to align with our Stan implementation (`m_0.stan`).
+We begin with abstract notation for the general softmax choice model, then show how it specializes to SEU. The notation is chosen to align with our Stan implementations.
 
 ::: {.callout-note}
 ## Notation Summary (Abstract Model)
@@ -58,13 +57,17 @@ We begin with abstract notation for the general softmax choice model, then show 
 
 ### The Softmax Choice Rule
 
-The probability that a decision maker selects alternative $r$ from a choice set is given by the **softmax** (or Luce choice) rule [@luce1959; @mcfadden1974]:
+The probability that a decision maker selects alternative $r$ from a choice set is given by the **softmax** rule:
 
 $$
 P(\text{choose } r \mid \alpha, V) = \frac{\exp(\alpha \cdot V(r))}{\sum_{j \in \mathcal{R}} \exp(\alpha \cdot V(j))}
 $$ {#eq-softmax}
 
-In our Stan implementation, this corresponds to `chi[m] = softmax(alpha * eta_m)` where `eta_m` contains the expected utilities of alternatives available in problem $m$.
+This functional form has historical precedents in several research traditions. Luce [@luce1959] derived a ratio-scale choice rule from axiomatic foundations, working with abstract "scale values" rather than utilities per se. McFadden [@mcfadden1974] arrived at the same functional form from random utility theory in econometrics. The rule also appears in statistical mechanics as the Boltzmann distribution, where the sensitivity parameter is called inverse temperature. We adopt the term "softmax" from machine learning, where this transformation is ubiquitous.
+
+The sensitivity parameter $\alpha$ controls how deterministically choices track value differences.
+
+In our Stan implementations, this corresponds to `chi[m] = softmax(alpha * eta_m)` where `eta_m` contains the expected utilities of alternatives available in problem $m$.
 
 This rule has several appealing properties:
 
@@ -99,7 +102,7 @@ plt.show()
 
 ## Fundamental Properties of Softmax Choice
 
-The following three properties hold for **any** value function $V: \mathcal{R} \to \mathbb{R}$. This generality is important—the properties characterize the softmax rule itself, not any particular theory of value.
+The following three properties hold for **any** value function $V: \mathcal{R} \to \mathbb{R}$. This generality is important—the properties follow from any choice model of this functional form, not any particular theory of value.
 
 ### Property 1: Monotonicity in Sensitivity {#sec-monotonicity}
 
@@ -471,12 +474,12 @@ $$
 
 **Key Implication:** Without fixing the utility scale, $\alpha$ and the scale of utility are confounded—they cannot be separately interpreted from choice behavior alone. Scaling utilities by a factor $a$ is equivalent to scaling sensitivity by $1/a$.
 
-### Resolution: Utility Normalization
+### Resolution: Utility Standardization
 
-To make $\alpha$ interpretable as "sensitivity to expected utility differences," we adopt a standard normalization convention.
+To make $\alpha$ interpretable as "sensitivity to expected utility differences," we adopt a standard standardization convention.
 
 ::: {.callout-important}
-## Normalization Convention
+## Standardization Convention
 
 We constrain utilities to lie in $[0,1]$ by assigning:
 
@@ -488,16 +491,16 @@ $$
 0 = \upsilon_1 \leq \upsilon_2 \leq \cdots \leq \upsilon_K = 1
 $$
 
-This is the standard normalization in decision theory, where the utility function is anchored at the endpoints of the consequence space.
+This is the standard standardization in decision theory, where the utility function is anchored at the endpoints of the consequence space.
 :::
 
-This normalization is without loss of generality—it simply fixes a representation from the equivalence class of utility functions related by positive affine transformations. Any utility function can be rescaled to satisfy this convention.
+This standardization is without loss of generality—it simply fixes a representation from the equivalence class of utility functions related by positive affine transformations. Any utility function can be rescaled to satisfy this convention.
 
-**Interpretive Result:** Given this normalization, $\alpha$ measures sensitivity to expected utility differences on a standardized scale where the full range of possible utilities spans exactly one unit.
+**Interpretive Result:** Given this standardization, $\alpha$ measures sensitivity to expected utility differences on a standardized scale where the full range of possible utilities spans exactly one unit.
 
-### Interpretation of α Under Normalization
+### Interpretation of α Under Standardization
 
-With utilities normalized to $[0,1]$, expected utilities satisfy $\eta_r \in [0,1]$ for all alternatives $r$ (since $\eta_r$ is a convex combination of utilities). The maximum possible difference in expected utility is therefore 1.
+With utilities standardized to $[0,1]$, expected utilities satisfy $\eta_r \in [0,1]$ for all alternatives $r$ (since $\eta_r$ is a convex combination of utilities). The maximum possible difference in expected utility is therefore 1.
 
 The sensitivity parameter $\alpha$ has a precise interpretation via the log-odds ratio:
 
@@ -507,7 +510,7 @@ $$
 
 ```{python}
 #| label: tbl-alpha-interpretation
-#| tbl-cap: "Interpretation of α for a one-unit expected utility difference (maximum possible difference with normalized utilities)."
+#| tbl-cap: "Interpretation of α for a one-unit expected utility difference (maximum possible difference with standardized utilities)."
 
 import pandas as pd
 
@@ -615,45 +618,44 @@ $$
 
 **Interpretation:** Near $\alpha = 0$, deviations from uniform choice are proportional to $\alpha$ and to how much an alternative's value exceeds the mean. The coefficient $[V(r) - \bar{V}]/|\mathcal{R}|$ determines the direction and magnitude of the first-order effect.
 
-## Philosophical Interpretation
+## Discussion
 
-Having established the mathematical properties of the softmax choice model, we turn briefly to its interpretation. How should we understand agents whose choices follow this model? Three familiar interpretive lenses suggest themselves—normative, procedural, and bounded rationality—but we find none entirely satisfactory.
+Having established the mathematical properties of the model, we turn to its interpretation.
+
+### What the Model Describes
+
+Our model describes decision makers who are **committed to SEU maximization but have limited sensitivity to its implications**. The sensitivity parameter $\alpha$ measures how reliably their choices track the SEU ranking:
+
+- High $\alpha$: Choices reliably favor higher-$\eta$ alternatives
+- Low $\alpha$: Choices are noisy relative to the SEU ranking
+- $\alpha \to \infty$: Near-deterministic choice of SEU-maximizing alternatives
+- $\alpha \to 0$: Choices become independent of SEU values
+
+This is not a model of rational agents in the classical sense. SEU maximization—the normative standard—corresponds only to the limit $\alpha \to \infty$. For any finite $\alpha$, the model permits systematic departures from SEU maximization: lower-$\eta$ alternatives are chosen with positive probability.
 
 ### What the Model Is Not
 
-**Not a normative standard.** Our model does not describe how decision makers *ought* to choose. That role is already occupied by subjective expected utility maximization, which serves as the normative anchor within our framework. The sensitivity parameter $\alpha$ modulates adherence to this standard; it does not define a competing standard.
+**Not a cognitive process model.** We make no claim about how decision makers actually deliberate. The model is silent on whether agents compute probabilities, form expectations, or engage in any particular mental procedure. It specifies a distribution over choices, not a mechanism that generates them.
 
-**Not a process model.** We make no claim that decision makers actually compute subjective probabilities, utilities, and expectations, then inject noise proportional to $1/\alpha$. The model is silent on cognitive processes. It is an "as-if" description of a generative process, not a theory of mental computation.
+**Not bounded rationality.** Bounded rationality programs, in their various formulations [@simon1955; @gigerenzer1996], typically propose alternative decision procedures—heuristics, satisficing rules, or fast-and-frugal strategies—that agents use in place of optimization. Our model posits no such alternative procedures. Nor do we invoke notions of ecological rationality or fit between heuristics and environmental structure. The model simply describes a stochastic relationship between SEU values and choice probabilities.
 
-**Not bounded rationality.** This may be the most tempting misinterpretation. Bounded rationality, in its canonical formulations, posits cognitive limitations that prevent agents from forming the representations required for optimization—they cannot compute all consequences, hold all probabilities in mind, or perform the requisite calculations [@simon1955; @gigerenzer1996].
+### A Conceptual Frame: Commitment and Performance
 
-Our model assumes the opposite: the decision maker *has* subjective probabilities over consequences, *has* utilities over outcomes, and the expected utilities $\eta_r$ are well-defined for each alternative. The "bounds" in bounded rationality would typically prohibit precisely these things. An agent who has successfully computed $\eta_r$ for all alternatives has already done the hard cognitive work; choosing $\arg\max_r \eta_r$ is trivial by comparison.
+A useful conceptual frame comes from Isaac Levi's distinction between **commitment** and **performance** [@levi1980]. We may be committed to standards we fail to perform up to. Most of us are committed to the laws of arithmetic despite occasionally making calculation errors; the errors are failures of performance, not rejections of the standard.
 
-### An Alternative Lens: Commitment and Performance
+If we take SEU theory as specifying the decision maker's normative commitments, then $\alpha$ measures their **tendency to perform in accordance with those commitments**. This framing preserves SEU as normatively fundamental while allowing systematic departures in observed behavior.
 
-A more apt conceptual frame comes from Isaac Levi's distinction between **commitment** and **performance** [@levi1980]. We may be committed to standards we fail to perform up to. Most of us are committed to the laws of arithmetic despite occasionally making calculation errors. We would prefer our calculations to be consistent with these laws; the errors are failures of performance, not rejections of the standard.
+However, our framework differs from Levi's in important ways. Levi worked within the formal-language tradition common to philosophers, and he was not an "orthodox Bayesian"—he made important contributions to theories of indeterminate probability and to decision theories that relax the complete ordering assumption of SEU [@levi1980]. He also suggested that the commitment-performance gap could be reduced through tools (e.g., calculators reduce arithmetic errors).
 
-If we take subjective expected utility theory as specifying the decision maker's normative commitments—a significant "if," since Levi himself rejected SEU as a complete account of rational commitment—then $\alpha$ admits a natural interpretation: it measures the decision maker's **tendency to perform in accordance with their commitments**.
-
-- High $\alpha$: Choices reliably track the SEU ranking—performance aligns with commitment
-- Low $\alpha$: Choices are noisy relative to the SEU ranking—performance diverges from commitment
-- $\alpha \to \infty$: Perfect performance; choices deterministically maximize SEU
-- $\alpha \to 0$: Complete dissociation; choices are random regardless of SEU values
-
-This framing has several virtues. It preserves SEU as normatively fundamental while allowing systematic departures in observed behavior. It does not require positing cognitive limitations that prevent representation formation. And it resonates with the phenomenology of choice under uncertainty: we often *know* what we should prefer, yet choose otherwise.
+In our framework, by contrast, there is a residual stochasticity that persists even as $\alpha \to \infty$. The softmax rule assigns positive probability to all alternatives for any finite $\alpha$, and even in the limit, the model describes a *distribution* over choices anchored at log-odds of zero. Observable departures from SEU maximization can occur even for decision makers with arbitrarily high sensitivity. This places a constraint on how far the commitment-performance gap can be closed that Levi's framework does not obviously share. We borrow his conceptual vocabulary while operating in a rather different modeling tradition.
 
 ### The "As-If" Character of the Model
 
-We emphasize the model's status as an **as-if** description of choice behavior. The generative process specified by our model—computing expected utilities, then selecting via softmax—need not correspond to any actual cognitive procedure. What matters is that the *distribution over choices* implied by the model matches empirical choice frequencies.
+We emphasize the model's status as an **as-if** description of choice behavior. The generative process specified—computing expected utilities, then selecting via softmax—need not correspond to any actual cognitive procedure. What matters is that the *distribution over choices* implied by the model matches empirical choice frequencies.
 
-This as-if stance is common in economic modeling and has a distinguished pedigree [@friedman1953]. It permits agnosticism about cognitive mechanisms while enabling precise quantitative predictions. The sensitivity parameter $\alpha$ is estimated from choice data, not introspected or measured via reaction times.
+This as-if stance permits agnosticism about cognitive mechanisms while enabling precise quantitative predictions. The sensitivity parameter $\alpha$ is estimated from choice data, not introspected or measured via reaction times.
 
-Whether there exists some deeper psychological or neural process that explains *why* choices follow this distribution is a separate question—interesting, but beyond the scope of the present framework.
-
-::: {.callout-note}
-## A Note on Intellectual Debts
-The interpretation sketched here draws heavily on Levi's work on rational commitment, though it applies his conceptual apparatus in ways he would likely reject. Levi was famously critical of subjective expected utility theory as a complete account of rational decision, and would not have endorsed treating it as the decision maker's normative commitment. The present framework should be understood as *inspired by* rather than *faithful to* his views.
-:::
+However, we do not take a purely instrumentalist stance focused only on prediction. The goal of our framework is interpretation: by fitting the model and recovering a posterior distribution over $\alpha$, we aim to characterize the decision maker's sensitivity to SEU differences in a theoretically meaningful way.
 
 ## Summary
 
@@ -670,7 +672,7 @@ Additionally, we characterized the rates at which these limits are approached:
 
 These properties hold for any value function $V$. When $V$ is taken to be subjective expected utility, the framework provides a model of decision-making that interpolates between random choice and SEU maximization, with $\alpha$ governing the degree of sensitivity to expected utility differences.
 
-The normalization of utilities to $[0,1]$ fixes a representation from the equivalence class of utility functions, making $\alpha$ interpretable as sensitivity to standardized expected utility differences.
+The standardization of utilities to $[0,1]$ fixes a representation from the equivalence class of utility functions, making $\alpha$ interpretable as sensitivity to standardized expected utility differences.
 
 ## References
 

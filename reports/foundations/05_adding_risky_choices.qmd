@@ -518,7 +518,7 @@ plt.show()
 
 ```{python}
 #| label: fig-delta-ci-width-comparison
-#| fig-cap: "Credible interval widths for δ parameters: m_0 (uncertain only) vs. m_1 (uncertain + risky). The dramatic narrowing in m_1 reflects successful identification."
+#| fig-cap: "Credible interval widths for δ parameters across all conditions. This comparison isolates the effect of risky vs. uncertain alternatives."
 #| output: false
 
 # Run m_0 recovery on the SAME base study used for m_1's uncertain component
@@ -536,7 +536,7 @@ recovery_m0_compare = ParameterRecovery(
 )
 true_params_m0, posterior_summaries_m0 = recovery_m0_compare.run()
 
-# Also run m_0 with M=50 to replicate the sample size comparison from Report 4
+# Run m_0 with M=50 using SAME alternatives (only new problems)
 # This uses the SAME alternatives as study_base, just with 25 additional problems
 study_m50 = study_base.extend(additional_M=25, design_name="m0_extended_m50")
 
@@ -552,13 +552,35 @@ recovery_m0_m50 = ParameterRecovery(
 )
 true_params_m0_m50, posterior_summaries_m0_m50 = recovery_m0_m50.run()
 
-# Compute m_0 delta metrics for both M=25 and M=50
+# Run m_0 with M=50 using NEW alternatives (15 new feature vectors)
+# This parallels how m_1 adds 15 new risky alternatives
+study_m50_new_alts = study_base.extend_with_alternatives(
+    additional_M=25,
+    additional_R=15,  # Same as S in m_1
+    design_name="m0_extended_m50_new_alts",
+    new_problems_use_new_alts_only=True  # New problems only use new alternatives
+)
+
+output_dir_m0_m50_new = tempfile.mkdtemp(prefix="param_recovery_m0_m50_new_alts_")
+recovery_m0_m50_new = ParameterRecovery(
+    inference_model_path=None,
+    sim_model_path=None,
+    study_design=study_m50_new_alts,
+    output_dir=output_dir_m0_m50_new,
+    n_mcmc_samples=1000,
+    n_mcmc_chains=4,
+    n_iterations=20
+)
+true_params_m0_m50_new, posterior_summaries_m0_m50_new = recovery_m0_m50_new.run()
+
+# Compute m_0 delta metrics for all three m_0 conditions
 delta_stats_m0 = []
 delta_stats_m0_m50 = []
+delta_stats_m0_m50_new = []
 for k in range(K_minus_1):
     param_name = f"delta[{k+1}]"
     
-    # M=25
+    # M=25 (base)
     delta_true = np.array([p['delta'][k] for p in true_params_m0])
     delta_mean = np.array([s.loc[param_name, 'Mean'] for s in posterior_summaries_m0])
     delta_lower = np.array([s.loc[param_name, '5%'] for s in posterior_summaries_m0])
@@ -571,7 +593,7 @@ for k in range(K_minus_1):
         'ci_width': np.mean(delta_upper - delta_lower)
     })
     
-    # M=50
+    # M=50 (same alternatives)
     delta_true_m50 = np.array([p['delta'][k] for p in true_params_m0_m50])
     delta_mean_m50 = np.array([s.loc[param_name, 'Mean'] for s in posterior_summaries_m0_m50])
     delta_lower_m50 = np.array([s.loc[param_name, '5%'] for s in posterior_summaries_m0_m50])
@@ -583,8 +605,21 @@ for k in range(K_minus_1):
         'coverage': np.mean((delta_true_m50 >= delta_lower_m50) & (delta_true_m50 <= delta_upper_m50)),
         'ci_width': np.mean(delta_upper_m50 - delta_lower_m50)
     })
+    
+    # M=50 (new alternatives)
+    delta_true_m50_new = np.array([p['delta'][k] for p in true_params_m0_m50_new])
+    delta_mean_m50_new = np.array([s.loc[param_name, 'Mean'] for s in posterior_summaries_m0_m50_new])
+    delta_lower_m50_new = np.array([s.loc[param_name, '5%'] for s in posterior_summaries_m0_m50_new])
+    delta_upper_m50_new = np.array([s.loc[param_name, '95%'] for s in posterior_summaries_m0_m50_new])
+    
+    delta_stats_m0_m50_new.append({
+        'parameter': f'δ_{k+1}',
+        'rmse': np.sqrt(np.mean((delta_mean_m50_new - delta_true_m50_new)**2)),
+        'coverage': np.mean((delta_true_m50_new >= delta_lower_m50_new) & (delta_true_m50_new <= delta_upper_m50_new)),
+        'ci_width': np.mean(delta_upper_m50_new - delta_lower_m50_new)
+    })
 
-# Also compute alpha metrics for M=50 comparison
+# Also compute alpha metrics for all m_0 conditions
 alpha_true_m0_m50 = np.array([p['alpha'] for p in true_params_m0_m50])
 alpha_mean_m0_m50 = np.array([s.loc['alpha', 'Mean'] for s in posterior_summaries_m0_m50])
 alpha_lower_m0_m50 = np.array([s.loc['alpha', '5%'] for s in posterior_summaries_m0_m50])
@@ -592,69 +627,83 @@ alpha_upper_m0_m50 = np.array([s.loc['alpha', '95%'] for s in posterior_summarie
 alpha_rmse_m0_m50 = np.sqrt(np.mean((alpha_mean_m0_m50 - alpha_true_m0_m50)**2))
 alpha_coverage_m0_m50 = np.mean((alpha_true_m0_m50 >= alpha_lower_m0_m50) & (alpha_true_m0_m50 <= alpha_upper_m0_m50))
 alpha_ci_width_m0_m50 = np.mean(alpha_upper_m0_m50 - alpha_lower_m0_m50)
+
+alpha_true_m0_m50_new = np.array([p['alpha'] for p in true_params_m0_m50_new])
+alpha_mean_m0_m50_new = np.array([s.loc['alpha', 'Mean'] for s in posterior_summaries_m0_m50_new])
+alpha_lower_m0_m50_new = np.array([s.loc['alpha', '5%'] for s in posterior_summaries_m0_m50_new])
+alpha_upper_m0_m50_new = np.array([s.loc['alpha', '95%'] for s in posterior_summaries_m0_m50_new])
+alpha_rmse_m0_m50_new = np.sqrt(np.mean((alpha_mean_m0_m50_new - alpha_true_m0_m50_new)**2))
+alpha_coverage_m0_m50_new = np.mean((alpha_true_m0_m50_new >= alpha_lower_m0_m50_new) & (alpha_true_m0_m50_new <= alpha_upper_m0_m50_new))
+alpha_ci_width_m0_m50_new = np.mean(alpha_upper_m0_m50_new - alpha_lower_m0_m50_new)
 ```
 
 ```{python}
 #| label: fig-model-comparison-bars
-#| fig-cap: "Comparison of δ recovery across three conditions: m_0 with M=25, m_0 with M=50, and m_1 with M=25 uncertain + N=25 risky. Doubling sample size (M=50) provides minimal improvement, while adding risky choices (m_1) dramatically improves recovery."
+#| fig-cap: "Comparison of δ recovery across four conditions: m_0 (M=25), m_0 (M=50 same alts), m_0 (M=50 new alts), and m_1 (M=25 + N=25 risky). The key comparison is between m_0 with new uncertain alternatives vs. m_1 with new risky alternatives."
 
-fig, axes = plt.subplots(1, 3, figsize=(16, 5))
+fig, axes = plt.subplots(1, 3, figsize=(18, 5))
 
 params = ['δ₁', 'δ₂']
 x = np.arange(len(params))
-width = 0.25
+width = 0.2
 
 # RMSE comparison
 ax = axes[0]
 rmse_m0 = [delta_stats_m0[k]['rmse'] for k in range(K_minus_1)]
 rmse_m0_m50 = [delta_stats_m0_m50[k]['rmse'] for k in range(K_minus_1)]
+rmse_m0_m50_new = [delta_stats_m0_m50_new[k]['rmse'] for k in range(K_minus_1)]
 rmse_m1 = [delta_stats_m1[k]['rmse'] for k in range(K_minus_1)]
 
-bars1 = ax.bar(x - width, rmse_m0, width, label='m_0 (M=25)', color='steelblue', alpha=0.7)
-bars2 = ax.bar(x, rmse_m0_m50, width, label='m_0 (M=50)', color='coral', alpha=0.7)
-bars3 = ax.bar(x + width, rmse_m1, width, label='m_1 (M=25+N=25)', color='forestgreen', alpha=0.7)
+bars1 = ax.bar(x - 1.5*width, rmse_m0, width, label='m_0 (M=25)', color='steelblue', alpha=0.7)
+bars2 = ax.bar(x - 0.5*width, rmse_m0_m50, width, label='m_0 (M=50 same)', color='coral', alpha=0.7)
+bars3 = ax.bar(x + 0.5*width, rmse_m0_m50_new, width, label='m_0 (M=50 new)', color='mediumseagreen', alpha=0.7)
+bars4 = ax.bar(x + 1.5*width, rmse_m1, width, label='m_1 (M=25+N=25)', color='purple', alpha=0.7)
 ax.set_xlabel('Parameter', fontsize=12)
 ax.set_ylabel('RMSE', fontsize=12)
-ax.set_title('δ RMSE by Model/Sample Size', fontsize=12)
+ax.set_title('δ RMSE by Condition', fontsize=12)
 ax.set_xticks(x)
 ax.set_xticklabels(params)
-ax.legend(loc='upper right')
+ax.legend(loc='upper right', fontsize=9)
 ax.grid(True, alpha=0.3, axis='y')
 
 # Coverage comparison
 ax = axes[1]
 cov_m0 = [delta_stats_m0[k]['coverage'] for k in range(K_minus_1)]
 cov_m0_m50 = [delta_stats_m0_m50[k]['coverage'] for k in range(K_minus_1)]
+cov_m0_m50_new = [delta_stats_m0_m50_new[k]['coverage'] for k in range(K_minus_1)]
 cov_m1 = [delta_stats_m1[k]['coverage'] for k in range(K_minus_1)]
 
-bars1 = ax.bar(x - width, cov_m0, width, label='m_0 (M=25)', color='steelblue', alpha=0.7)
-bars2 = ax.bar(x, cov_m0_m50, width, label='m_0 (M=50)', color='coral', alpha=0.7)
-bars3 = ax.bar(x + width, cov_m1, width, label='m_1 (M=25+N=25)', color='forestgreen', alpha=0.7)
+bars1 = ax.bar(x - 1.5*width, cov_m0, width, label='m_0 (M=25)', color='steelblue', alpha=0.7)
+bars2 = ax.bar(x - 0.5*width, cov_m0_m50, width, label='m_0 (M=50 same)', color='coral', alpha=0.7)
+bars3 = ax.bar(x + 0.5*width, cov_m0_m50_new, width, label='m_0 (M=50 new)', color='mediumseagreen', alpha=0.7)
+bars4 = ax.bar(x + 1.5*width, cov_m1, width, label='m_1 (M=25+N=25)', color='purple', alpha=0.7)
 ax.axhline(y=0.90, color='red', linestyle='--', linewidth=2, label='Target (90%)')
 ax.set_xlabel('Parameter', fontsize=12)
 ax.set_ylabel('Coverage', fontsize=12)
-ax.set_title('δ 90% CI Coverage by Model/Sample Size', fontsize=12)
+ax.set_title('δ 90% CI Coverage by Condition', fontsize=12)
 ax.set_xticks(x)
 ax.set_xticklabels(params)
 ax.set_ylim(0, 1.05)
-ax.legend(loc='lower right')
+ax.legend(loc='lower right', fontsize=9)
 ax.grid(True, alpha=0.3, axis='y')
 
 # CI Width comparison
 ax = axes[2]
 ci_m0 = [delta_stats_m0[k]['ci_width'] for k in range(K_minus_1)]
 ci_m0_m50 = [delta_stats_m0_m50[k]['ci_width'] for k in range(K_minus_1)]
+ci_m0_m50_new = [delta_stats_m0_m50_new[k]['ci_width'] for k in range(K_minus_1)]
 ci_m1 = [delta_stats_m1[k]['ci_width'] for k in range(K_minus_1)]
 
-bars1 = ax.bar(x - width, ci_m0, width, label='m_0 (M=25)', color='steelblue', alpha=0.7)
-bars2 = ax.bar(x, ci_m0_m50, width, label='m_0 (M=50)', color='coral', alpha=0.7)
-bars3 = ax.bar(x + width, ci_m1, width, label='m_1 (M=25+N=25)', color='forestgreen', alpha=0.7)
+bars1 = ax.bar(x - 1.5*width, ci_m0, width, label='m_0 (M=25)', color='steelblue', alpha=0.7)
+bars2 = ax.bar(x - 0.5*width, ci_m0_m50, width, label='m_0 (M=50 same)', color='coral', alpha=0.7)
+bars3 = ax.bar(x + 0.5*width, ci_m0_m50_new, width, label='m_0 (M=50 new)', color='mediumseagreen', alpha=0.7)
+bars4 = ax.bar(x + 1.5*width, ci_m1, width, label='m_1 (M=25+N=25)', color='purple', alpha=0.7)
 ax.set_xlabel('Parameter', fontsize=12)
 ax.set_ylabel('CI Width', fontsize=12)
-ax.set_title('δ 90% CI Width by Model/Sample Size', fontsize=12)
+ax.set_title('δ 90% CI Width by Condition', fontsize=12)
 ax.set_xticks(x)
 ax.set_xticklabels(params)
-ax.legend(loc='upper right')
+ax.legend(loc='upper right', fontsize=9)
 ax.grid(True, alpha=0.3, axis='y')
 
 plt.tight_layout()
@@ -665,9 +714,9 @@ plt.show()
 
 ```{python}
 #| label: tbl-model-comparison
-#| tbl-cap: "Parameter recovery comparison across three conditions. Doubling sample size (M=50) shows minimal improvement for δ, while adding risky choices (m_1) dramatically improves recovery."
+#| tbl-cap: "Parameter recovery comparison across four conditions. The key comparison is m_0 with new uncertain alternatives vs. m_1 with new risky alternatives."
 
-# Build comparison table with all three conditions
+# Build comparison table with all four conditions
 comparison_rows = []
 
 # Compute alpha metrics for m_0 M=25
@@ -682,33 +731,30 @@ alpha_ci_width_m0 = np.mean(alpha_upper_m0 - alpha_lower_m0)
 # Alpha row
 comparison_rows.append({
     'Parameter': 'α',
-    'm_0 (M=25) RMSE': f'{alpha_rmse_m0:.4f}',
-    'm_0 (M=50) RMSE': f'{alpha_rmse_m0_m50:.4f}',
-    'm_1 RMSE': f'{alpha_rmse_m1:.4f}',
-    'm_0 (M=25) Coverage': f'{alpha_coverage_m0:.0%}',
-    'm_0 (M=50) Coverage': f'{alpha_coverage_m0_m50:.0%}',
-    'm_1 Coverage': f'{alpha_coverage_m1:.0%}',
+    'm_0 (M=25)': f'{alpha_rmse_m0:.4f}',
+    'm_0 (M=50 same)': f'{alpha_rmse_m0_m50:.4f}',
+    'm_0 (M=50 new)': f'{alpha_rmse_m0_m50_new:.4f}',
+    'm_1': f'{alpha_rmse_m1:.4f}',
 })
 
 # Delta rows
 for k in range(K_minus_1):
     comparison_rows.append({
         'Parameter': f'δ_{k+1}',
-        'm_0 (M=25) RMSE': f'{delta_stats_m0[k]["rmse"]:.4f}',
-        'm_0 (M=50) RMSE': f'{delta_stats_m0_m50[k]["rmse"]:.4f}',
-        'm_1 RMSE': f'{delta_stats_m1[k]["rmse"]:.4f}',
-        'm_0 (M=25) Coverage': f'{delta_stats_m0[k]["coverage"]:.0%}',
-        'm_0 (M=50) Coverage': f'{delta_stats_m0_m50[k]["coverage"]:.0%}',
-        'm_1 Coverage': f'{delta_stats_m1[k]["coverage"]:.0%}',
+        'm_0 (M=25)': f'{delta_stats_m0[k]["rmse"]:.4f}',
+        'm_0 (M=50 same)': f'{delta_stats_m0_m50[k]["rmse"]:.4f}',
+        'm_0 (M=50 new)': f'{delta_stats_m0_m50_new[k]["rmse"]:.4f}',
+        'm_1': f'{delta_stats_m1[k]["rmse"]:.4f}',
     })
 
 comparison_df = pd.DataFrame(comparison_rows)
+print("RMSE Comparison:")
 print(comparison_df.to_string(index=False))
 ```
 
 ```{python}
 #| label: tbl-ci-widths
-#| tbl-cap: "90% credible interval widths across conditions. The m_1 model achieves substantially narrower intervals for δ parameters."
+#| tbl-cap: "90% credible interval widths across all four conditions."
 
 # Build CI width comparison table
 ci_rows = []
@@ -716,7 +762,8 @@ ci_rows = []
 ci_rows.append({
     'Parameter': 'α',
     'm_0 (M=25)': f'{alpha_ci_width_m0:.3f}',
-    'm_0 (M=50)': f'{alpha_ci_width_m0_m50:.3f}',
+    'm_0 (M=50 same)': f'{alpha_ci_width_m0_m50:.3f}',
+    'm_0 (M=50 new)': f'{alpha_ci_width_m0_m50_new:.3f}',
     'm_1 (M=25+N=25)': f'{alpha_ci_width_m1:.3f}'
 })
 
@@ -724,7 +771,8 @@ for k in range(K_minus_1):
     ci_rows.append({
         'Parameter': f'δ_{k+1}',
         'm_0 (M=25)': f'{delta_stats_m0[k]["ci_width"]:.3f}',
-        'm_0 (M=50)': f'{delta_stats_m0_m50[k]["ci_width"]:.3f}',
+        'm_0 (M=50 same)': f'{delta_stats_m0_m50[k]["ci_width"]:.3f}',
+        'm_0 (M=50 new)': f'{delta_stats_m0_m50_new[k]["ci_width"]:.3f}',
         'm_1 (M=25+N=25)': f'{delta_stats_m1[k]["ci_width"]:.3f}'
     })
 
@@ -733,17 +781,23 @@ print(ci_df.to_string(index=False))
 ```
 
 ::: {.callout-tip}
-## Key Result: Risky Choices Improve δ Recovery
+## Key Result: Comparing Uncertain vs. Risky Alternative Extensions
 
-The three-way comparison shows that adding risky choices helps with δ recovery:
+The four-way comparison now isolates what drives δ recovery improvement:
 
-1. **Doubling sample size (M=50) shows modest improvement**: The m_0 model with M=50 does improve over M=25, suggesting δ is informed by uncertain choice data—just slowly
-2. **Adding risky choices (m_1) shows stronger improvement**: With the same 25 uncertain problems plus 25 risky problems, δ recovery improves more substantially on several metrics
-3. **Neither approach is perfect**: All conditions show some remaining uncertainty in δ estimates
+| Condition | Description | What it tests |
+|-----------|-------------|---------------|
+| m_0 (M=25) | Base study | Baseline |
+| m_0 (M=50 same) | +25 problems, same R=15 alternatives | More data, same feature space |
+| m_0 (M=50 new) | +25 problems using 15 **new** alternatives | Expanded feature space |
+| m_1 (M=25+N=25) | +25 risky problems using 15 **new** lotteries | Known probabilities |
 
-The comparison suggests that risky choices provide a more efficient route to constraining utility parameters than simply adding more uncertain choice problems. However, m_0 should not be written off—it does learn about utilities, just more slowly.
+**The crucial comparison** is between conditions 3 and 4:
+- Both add 25 new problems
+- Both introduce 15 new choice objects (uncertain alternatives vs. risky lotteries)
+- The key difference: risky alternatives have *known* probabilities, uncertain alternatives have *inferred* probabilities
 
-**Important caveat**: The degree of improvement depends on experimental design—specifically, the diversity of lotteries presented. Lotteries should span the consequence space to effectively constrain the utility function.
+If m_1 outperforms m_0 (M=50 new), it demonstrates that the **type** of data matters—not just the amount or diversity. Risky choices provide qualitatively different information about utilities because they bypass the probability inference step entirely.
 :::
 
 ### Why This Helps
@@ -768,16 +822,20 @@ The risky choice likelihood depends on δ through υ = cumsum(δ), but **not** o
 
 The extension from m_0 to m_1 follows a principled path grounded in decision theory:
 
-1. **Differential recovery in m_0** (Report 4): Utility parameters show wider uncertainty than sensitivity parameters, though they do respond to data
-2. **The historical insight**: Anscombe-Aumann recognized that combining risk and uncertainty provides complementary information about preferences
-3. **The implementation**: Model m_1 adds risky choice problems with known probabilities
-4. **The result**: δ recovery improves, with risky choices providing a more direct route to constraining utilities
+1. **Differential recovery in m_0** ([Report 4](04_parameter_recovery.qmd)): Utility parameters show wider uncertainty than sensitivity parameters, though they do respond to data
+2. **Three extensions compared**: More problems (same alternatives), more problems (new alternatives), risky problems (new lotteries)
+3. **The historical insight**: Anscombe-Aumann recognized that combining risk and uncertainty provides complementary information about preferences
+4. **The key comparison**: m_0 with new uncertain alternatives vs. m_1 with new risky alternatives isolates whether known probabilities provide unique advantages
 
 ::: {.callout-tip}
 ## Key Insight
-Adding risky choices provides a more efficient way to learn about utility parameters than simply increasing the number of uncertain choice problems. This reflects the Anscombe-Aumann insight that different types of choice data provide complementary information about preferences.
+The four-way comparison reveals whether the benefit of risky choices comes from:
+- Simply having more diverse choice problems (testable via m_0 with new alternatives), or
+- The qualitatively different information provided by known probabilities (unique to m_1)
 
-However, this should not be interpreted as m_0 being fundamentally broken—it does learn about utilities, just more slowly. The choice between models depends on practical considerations: the feasibility of including risky choice tasks, the importance of precise utility estimation for the research question, and the available sample size.
+If m_1 outperforms the expanded m_0, it validates the Anscombe-Aumann insight: risky choices provide a more direct route to utility identification because they bypass the subjective probability inference step.
+
+The choice between approaches depends on practical considerations: the feasibility of including risky choice tasks, the importance of precise utility estimation, and whether the research question requires separating utilities from beliefs.
 :::
 
 ## References

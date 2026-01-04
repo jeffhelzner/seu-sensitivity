@@ -457,6 +457,118 @@ class StudyDesign:
         
         return new_design
     
+    def extend_with_alternatives(self, additional_M, additional_R, design_name=None,
+                                  new_problems_use_new_alts_only=True):
+        """
+        Create a new study design by extending with additional alternatives AND problems.
+        
+        Unlike extend() which adds problems over the same alternatives, this method
+        adds both new alternatives (with new feature vectors) and new problems that
+        use those new alternatives. This enables comparisons where the extension
+        involves genuinely new information in feature space.
+        
+        The new design will have:
+        - The original R alternatives (w[:R]) plus additional_R new alternatives
+        - The original M problems from this design (using only original alternatives)
+        - additional_M new problems using the new alternatives
+        
+        This parallels how m_1's from_base_study() adds new risky alternatives (S)
+        along with new risky problems (N), enabling fairer comparisons between:
+        - m_0 extended with new uncertain alternatives
+        - m_1 extended with new risky alternatives
+        
+        Parameters:
+            additional_M (int): Number of additional decision problems to add
+            additional_R (int): Number of additional alternatives to add
+            design_name (str): Name for the new design (defaults to appending "_extended_alts")
+            new_problems_use_new_alts_only (bool): If True, new problems only use new 
+                alternatives. If False, new problems can use any alternative (original or new).
+                Default True for cleaner experimental comparisons.
+            
+        Returns:
+            StudyDesign: A new StudyDesign instance with extended alternatives and problems
+            
+        Example:
+            # Create base study with M=25, R=15
+            base = StudyDesign(M=25, R=15, ...).generate()
+            
+            # Extend with 15 new alternatives and 25 new problems
+            extended = base.extend_with_alternatives(additional_M=25, additional_R=15)
+            # Result: M=50, R=30, where problems 26-50 use alternatives 16-30
+        """
+        if not hasattr(self, 'w') or not hasattr(self, 'I'):
+            raise ValueError("Cannot extend a design that hasn't been generated")
+        
+        # Create new design with extended M and R
+        new_M = self.M + additional_M
+        new_R = self.R + additional_R
+        new_design = StudyDesign(
+            M=new_M,
+            K=self.K,
+            D=self.D,
+            R=new_R,
+            min_alts_per_problem=self.min_alts,
+            max_alts_per_problem=self.max_alts,
+            feature_dist=self.feature_dist,
+            feature_params=self.feature_params,
+            design_name=design_name or f"{self.design_name}_extended_alts"
+        )
+        
+        # Copy the original alternatives and generate new ones
+        new_design.w = [np.array(w_vec) for w_vec in self.w]  # Copy original
+        
+        # Generate additional_R new feature vectors
+        if self.feature_dist == "normal":
+            for _ in range(additional_R):
+                new_design.w.append(np.random.normal(
+                    loc=self.feature_params["loc"],
+                    scale=self.feature_params["scale"],
+                    size=self.D
+                ))
+        elif self.feature_dist == "uniform":
+            low = self.feature_params.get("low", -1)
+            high = self.feature_params.get("high", 1)
+            for _ in range(additional_R):
+                new_design.w.append(np.random.uniform(low=low, high=high, size=self.D))
+        else:
+            raise ValueError(f"Unsupported feature distribution: {self.feature_dist}")
+        
+        # Build extended indicator array
+        I_extended = np.zeros((new_M, new_R), dtype=int)
+        
+        # Copy original problems (they only reference original alternatives)
+        I_extended[:self.M, :self.R] = self.I
+        
+        # Generate new problems
+        for m in range(self.M, new_M):
+            n_alts = np.random.randint(self.min_alts, self.max_alts + 1)
+            
+            if new_problems_use_new_alts_only:
+                # New problems only use new alternatives (indices R to R+additional_R-1)
+                available_alts = np.arange(self.R, new_R)
+                n_alts = min(n_alts, additional_R)  # Can't exceed available new alts
+            else:
+                # New problems can use any alternative
+                available_alts = np.arange(new_R)
+            
+            alts_in_problem = np.random.choice(available_alts, size=n_alts, replace=False)
+            for alt in alts_in_problem:
+                I_extended[m, alt] = 1
+        
+        new_design.I = I_extended
+        new_design.metadata = new_design._generate_metadata()
+        
+        # Store extension info in metadata for documentation
+        new_design.metadata['extension_info'] = {
+            'base_M': self.M,
+            'base_R': self.R,
+            'additional_M': additional_M,
+            'additional_R': additional_R,
+            'new_problems_use_new_alts_only': new_problems_use_new_alts_only
+        }
+        
+        return new_design
+    
     def analyze(self):
         """
         Print analysis of the study design.

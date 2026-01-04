@@ -769,22 +769,218 @@ print("Sample Size Comparison (M=25 vs M=50):")
 print(comparison_df.to_string(index=False))
 ```
 
-### Interpretation: Sample Size Effects
+### Does Adding New Alternatives Help?
 
-The comparison reveals differential effects of increased sample size:
+The M=50 extension above adds problems over the **same** alternatives—it doesn't expand the feature space. But we might hypothesize that adding **new** alternatives (with new feature vectors) provides qualitatively different information that could help with δ recovery.
+
+To test this, we use `extend_with_alternatives()` to add 15 new alternatives along with 25 new problems that use those alternatives. This parallels how model m_1 (in [Report 5](05_adding_risky_choices.qmd)) adds new risky alternatives along with new risky problems, enabling a fairer comparison.
+
+```{python}
+#| label: config-m50-new-alts
+#| echo: true
+
+# Extend with both new alternatives AND new problems
+# New problems only use the new alternatives (paralleling m_1's risky component)
+study_m50_new_alts = study.extend_with_alternatives(
+    additional_M=25,
+    additional_R=15,  # Same number of new alternatives as m_1 has risky alternatives
+    design_name="parameter_recovery_m50_new_alts",
+    new_problems_use_new_alts_only=True
+)
+
+print(f"Extended Study Design (M=50 with new alternatives):")
+print(f"  Decision problems: {study_m50_new_alts.M} (original {study.M} + 25 new)")
+print(f"  Alternatives: R={study_m50_new_alts.R} (original {study.R} + 15 new)")
+print(f"  Original problems (1-25) use original alternatives (1-15)")
+print(f"  New problems (26-50) use new alternatives (16-30)")
+```
+
+```{python}
+#| label: run-recovery-m50-new-alts
+#| output: false
+
+# Create output directory
+output_dir_m50_new_alts = tempfile.mkdtemp(prefix="param_recovery_m50_new_alts_")
+
+# Run parameter recovery with new alternatives
+recovery_m50_new_alts = ParameterRecovery(
+    inference_model_path=None,
+    sim_model_path=None,
+    study_design=study_m50_new_alts,
+    output_dir=output_dir_m50_new_alts,
+    n_mcmc_samples=1000,
+    n_mcmc_chains=4,
+    n_iterations=20
+)
+
+true_params_m50_new_alts, posterior_summaries_m50_new_alts = recovery_m50_new_alts.run()
+```
+
+```{python}
+#| label: compare-all-extensions
+#| echo: false
+
+# Compute recovery metrics for M=50 with new alternatives
+# Alpha
+alpha_true_m50_new = np.array([p['alpha'] for p in true_params_m50_new_alts])
+alpha_mean_m50_new = np.array([s.loc['alpha', 'Mean'] for s in posterior_summaries_m50_new_alts])
+alpha_lower_m50_new = np.array([s.loc['alpha', '5%'] for s in posterior_summaries_m50_new_alts])
+alpha_upper_m50_new = np.array([s.loc['alpha', '95%'] for s in posterior_summaries_m50_new_alts])
+
+alpha_rmse_m50_new = np.sqrt(np.mean((alpha_mean_m50_new - alpha_true_m50_new)**2))
+alpha_coverage_m50_new = np.mean((alpha_true_m50_new >= alpha_lower_m50_new) & (alpha_true_m50_new <= alpha_upper_m50_new))
+alpha_ci_width_m50_new = np.mean(alpha_upper_m50_new - alpha_lower_m50_new)
+
+# Delta
+delta_stats_m50_new = []
+for k in range(K_minus_1):
+    param_name = f"delta[{k+1}]"
+    delta_true_m50_new = np.array([p['delta'][k] for p in true_params_m50_new_alts])
+    delta_mean_m50_new = np.array([s.loc[param_name, 'Mean'] for s in posterior_summaries_m50_new_alts])
+    delta_lower_m50_new = np.array([s.loc[param_name, '5%'] for s in posterior_summaries_m50_new_alts])
+    delta_upper_m50_new = np.array([s.loc[param_name, '95%'] for s in posterior_summaries_m50_new_alts])
+    
+    delta_stats_m50_new.append({
+        'parameter': f'δ_{k+1}',
+        'rmse': np.sqrt(np.mean((delta_mean_m50_new - delta_true_m50_new)**2)),
+        'coverage': np.mean((delta_true_m50_new >= delta_lower_m50_new) & (delta_true_m50_new <= delta_upper_m50_new)),
+        'ci_width': np.mean(delta_upper_m50_new - delta_lower_m50_new)
+    })
+
+delta_df_m50_new = pd.DataFrame(delta_stats_m50_new)
+```
+
+```{python}
+#| label: fig-three-way-comparison
+#| fig-cap: "Three-way comparison of δ recovery: M=25 (base), M=50 (same alternatives), and M=50 (new alternatives). Adding new alternatives may provide different information than simply adding more problems over existing alternatives."
+
+fig, axes = plt.subplots(1, 3, figsize=(16, 5))
+
+params = ['δ₁', 'δ₂']
+x = np.arange(len(params))
+width = 0.25
+
+# RMSE comparison
+ax = axes[0]
+rmse_m25_d = [delta_df.iloc[k]['rmse'] for k in range(K_minus_1)]
+rmse_m50_d = [delta_df_m50.iloc[k]['rmse'] for k in range(K_minus_1)]
+rmse_m50_new_d = [delta_stats_m50_new[k]['rmse'] for k in range(K_minus_1)]
+
+bars1 = ax.bar(x - width, rmse_m25_d, width, label='M=25 (base)', color='steelblue', alpha=0.7)
+bars2 = ax.bar(x, rmse_m50_d, width, label='M=50 (same alts)', color='coral', alpha=0.7)
+bars3 = ax.bar(x + width, rmse_m50_new_d, width, label='M=50 (new alts)', color='mediumseagreen', alpha=0.7)
+ax.set_xlabel('Parameter', fontsize=12)
+ax.set_ylabel('RMSE', fontsize=12)
+ax.set_title('δ RMSE by Extension Type', fontsize=12)
+ax.set_xticks(x)
+ax.set_xticklabels(params)
+ax.legend(loc='upper right')
+ax.grid(True, alpha=0.3, axis='y')
+
+# Coverage comparison
+ax = axes[1]
+cov_m25_d = [delta_df.iloc[k]['coverage'] for k in range(K_minus_1)]
+cov_m50_d = [delta_df_m50.iloc[k]['coverage'] for k in range(K_minus_1)]
+cov_m50_new_d = [delta_stats_m50_new[k]['coverage'] for k in range(K_minus_1)]
+
+bars1 = ax.bar(x - width, cov_m25_d, width, label='M=25 (base)', color='steelblue', alpha=0.7)
+bars2 = ax.bar(x, cov_m50_d, width, label='M=50 (same alts)', color='coral', alpha=0.7)
+bars3 = ax.bar(x + width, cov_m50_new_d, width, label='M=50 (new alts)', color='mediumseagreen', alpha=0.7)
+ax.axhline(y=0.90, color='red', linestyle='--', linewidth=2, label='Target (90%)')
+ax.set_xlabel('Parameter', fontsize=12)
+ax.set_ylabel('Coverage', fontsize=12)
+ax.set_title('δ 90% CI Coverage by Extension Type', fontsize=12)
+ax.set_xticks(x)
+ax.set_xticklabels(params)
+ax.set_ylim(0, 1.05)
+ax.legend(loc='lower right')
+ax.grid(True, alpha=0.3, axis='y')
+
+# CI Width comparison  
+ax = axes[2]
+ci_m25_d = [delta_df.iloc[k]['ci_width'] for k in range(K_minus_1)]
+ci_m50_d = [delta_df_m50.iloc[k]['ci_width'] for k in range(K_minus_1)]
+ci_m50_new_d = [delta_stats_m50_new[k]['ci_width'] for k in range(K_minus_1)]
+
+bars1 = ax.bar(x - width, ci_m25_d, width, label='M=25 (base)', color='steelblue', alpha=0.7)
+bars2 = ax.bar(x, ci_m50_d, width, label='M=50 (same alts)', color='coral', alpha=0.7)
+bars3 = ax.bar(x + width, ci_m50_new_d, width, label='M=50 (new alts)', color='mediumseagreen', alpha=0.7)
+ax.set_xlabel('Parameter', fontsize=12)
+ax.set_ylabel('CI Width', fontsize=12)
+ax.set_title('δ 90% CI Width by Extension Type', fontsize=12)
+ax.set_xticks(x)
+ax.set_xticklabels(params)
+ax.legend(loc='upper right')
+ax.grid(True, alpha=0.3, axis='y')
+
+plt.tight_layout()
+plt.show()
+```
+
+```{python}
+#| label: tbl-three-way-comparison
+#| echo: false
+
+# Create three-way comparison table
+three_way_data = []
+
+# Alpha
+three_way_data.append({
+    'Parameter': 'α',
+    'M=25 RMSE': f'{alpha_rmse:.4f}',
+    'M=50 (same) RMSE': f'{alpha_rmse_m50:.4f}',
+    'M=50 (new) RMSE': f'{alpha_rmse_m50_new:.4f}',
+    'M=25 CI': f'{alpha_ci_width:.3f}',
+    'M=50 (same) CI': f'{alpha_ci_width_m50:.3f}',
+    'M=50 (new) CI': f'{alpha_ci_width_m50_new:.3f}'
+})
+
+# Delta
+for i in range(K_minus_1):
+    three_way_data.append({
+        'Parameter': f'δ_{i+1}',
+        'M=25 RMSE': f'{delta_df.iloc[i]["rmse"]:.4f}',
+        'M=50 (same) RMSE': f'{delta_df_m50.iloc[i]["rmse"]:.4f}',
+        'M=50 (new) RMSE': f'{delta_stats_m50_new[i]["rmse"]:.4f}',
+        'M=25 CI': f'{delta_df.iloc[i]["ci_width"]:.3f}',
+        'M=50 (same) CI': f'{delta_df_m50.iloc[i]["ci_width"]:.3f}',
+        'M=50 (new) CI': f'{delta_stats_m50_new[i]["ci_width"]:.3f}'
+    })
+
+three_way_df = pd.DataFrame(three_way_data)
+print("Three-Way Extension Comparison:")
+print(three_way_df.to_string(index=False))
+```
+
+### Interpretation: Sample Size and Alternative Effects
+
+The three-way comparison reveals important patterns about what helps δ recovery:
 
 ::: {.callout-note}
-## Sample Size Effects Vary by Parameter
+## Extension Type Matters
 
-Doubling the sample size from M=25 to M=50:
+Comparing the three conditions:
 
-- **α recovery improves**: RMSE decreases, CI widths narrow noticeably
-- **δ recovery shows modest improvement**: Some reduction in RMSE and CI width, but less dramatic than for α
+1. **M=25 (base)**: Baseline recovery with modest δ precision
+2. **M=50 (same alternatives)**: Adding 25 problems over the same R=15 alternatives
+3. **M=50 (new alternatives)**: Adding 25 problems using 15 **new** alternatives (R increases to 30)
 
-This suggests that δ parameters *are* informed by the data—they're not completely unidentified—but the information accumulates more slowly. Whether δ would achieve the same precision as α with sufficiently large M is an open question that would require larger-scale simulations to answer definitively.
+Key findings:
+- **α recovery** improves with more data regardless of extension type
+- **δ recovery** may benefit differently from new alternatives vs. more problems over existing alternatives
+- Adding new feature vectors expands the feature space, potentially providing different information about how features map to subjective probabilities
+
+The comparison between conditions 2 and 3 is particularly important for understanding what helps δ recovery. If new alternatives (condition 3) outperform same alternatives (condition 2), it suggests that expanding the feature space provides qualitatively different information.
 :::
 
-The asymmetry in learning rates likely reflects the model structure: in decisions under uncertainty, utilities and subjective probabilities enter the likelihood through their product (expected utilities). This creates a partial confounding that makes δ harder to pin down than parameters like α that more directly govern choice sensitivity.
+This three-way comparison sets up a crucial comparison for [Report 5](05_adding_risky_choices.qmd), where we add risky alternatives (lotteries with known probabilities) instead of additional uncertain alternatives. By comparing:
+
+- **M=50 with new uncertain alternatives** (this report): Expands uncertain feature space
+- **M=25 + N=25 with new risky alternatives** (Report 5): Adds known-probability lotteries
+
+...we can isolate whether improvements come from the *type* of data (risk vs. uncertainty) or simply from adding more diverse choice problems.
+
+The asymmetry in learning rates for δ likely reflects the model structure: in decisions under uncertainty, utilities and subjective probabilities enter the likelihood through their product (expected utilities). This creates a partial confounding that makes δ harder to pin down than parameters like α that more directly govern choice sensitivity.
 
 ### Study Design Parameters in m_0
 

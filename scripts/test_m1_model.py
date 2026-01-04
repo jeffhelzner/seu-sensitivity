@@ -128,8 +128,8 @@ def test_simulation_model(design, data, verbose=False):
     sim_df = sim_fit.draws_pd()
     
     # Validate outputs
-    assert 'sim_alpha' in sim_df.columns, "sim_alpha not in output"
-    assert 'sim_delta[1]' in sim_df.columns, "sim_delta not in output"
+    assert 'alpha' in sim_df.columns, "alpha not in output"
+    assert 'delta[1]' in sim_df.columns, "delta not in output"
     
     # Check that choices were generated
     y_cols = [f'y[{i+1}]' for i in range(data['M'])]
@@ -145,8 +145,8 @@ def test_simulation_model(design, data, verbose=False):
     
     if verbose:
         print(f"\n  Generated parameters:")
-        print(f"    alpha: {sim_df['sim_alpha'].values[0]:.3f}")
-        print(f"    delta: {[sim_df[f'sim_delta[{i+1}]'].values[0] for i in range(data['K']-1)]}")
+        print(f"    alpha: {sim_df['alpha'].values[0]:.3f}")
+        print(f"    delta: {[sim_df[f'delta[{i+1}]'].values[0] for i in range(data['K']-1)]}")
         print(f"  Generated {data['M']} uncertain choices and {data['N']} risky choices")
     
     return sim_fit, sim_df
@@ -211,7 +211,7 @@ def test_inference_model(design, data, sim_df, verbose=False):
     
     if verbose:
         # Compare true vs estimated parameters
-        true_alpha = sim_df['sim_alpha'].values[0]
+        true_alpha = sim_df['alpha'].values[0]
         est_alpha_mean = inf_df['alpha'].mean()
         
         print(f"\n  Parameter comparison (true vs. estimated mean):")

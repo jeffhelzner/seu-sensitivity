@@ -26,7 +26,7 @@ import pandas as pd
 
 The [previous report](01_abstract_formulation.qmd) established the theoretical foundations of the softmax choice model with sensitivity parameter $\alpha$. We proved three fundamental properties and showed how they apply when values are subjective expected utilities.
 
-This report bridges theory and practice by documenting the concrete implementation in Stan. We show precisely how the abstract formulation is instantiated, highlighting the specific choices made for:
+This report bridges theory and practice by specifying an initial concrete implementation in Stan. We show precisely how the abstract formulation is instantiated, highlighting the specific choices made for:
 
 1. **Subjective probability formation**: How features of alternatives map to beliefs about consequences
 2. **Utility parameterization**: How we construct ordered utilities on the unit scale
@@ -39,24 +39,13 @@ This report is intended for readers who want to understand, modify, or extend th
 
 ## From Abstract to Concrete
 
-Recall the key quantities from the abstract formulation:
-
-| Abstract Notation | Description |
-|-------------------|-------------|
-| $\mathcal{R} = \{1, \ldots, R\}$ | Set of distinct alternatives |
-| $K$ | Number of possible consequences |
-| $\boldsymbol{\psi}_r \in \Delta^{K-1}$ | Subjective probabilities for alternative $r$ |
-| $\boldsymbol{\upsilon} \in [0,1]^K$ | Ordered utility vector |
-| $\eta_r = \boldsymbol{\psi}_r^\top \boldsymbol{\upsilon}$ | Expected utility of alternative $r$ |
-| $\alpha \geq 0$ | Sensitivity parameter |
-
-The abstract formulation left several things unspecified:
+The abstract formulation in [Report 1](01_abstract_formulation.qmd) established notation for alternatives ($\mathcal{R}$), consequences ($K$), subjective probabilities ($\boldsymbol{\psi}_r$), utilities ($\boldsymbol{\upsilon}$), expected utilities ($\eta_r$), and the sensitivity parameter ($\alpha$). That formulation left several things unspecified:
 
 - **Where do subjective probabilities come from?** The abstract model takes $\boldsymbol{\psi}_r$ as given
 - **How are utilities parameterized?** We required $0 = \upsilon_1 \leq \cdots \leq \upsilon_K = 1$, but not how to achieve this
 - **What priors should we use?** The theoretical results are prior-free
 
-The m_0 model provides concrete answers to each of these questions.
+The m_0 model provides a concrete answer to each of these questions.
 
 ## Data Structure
 
@@ -87,16 +76,22 @@ data {
 ```
 
 ::: {.callout-note}
-## Notation Mapping
-| Stan Variable | Abstract Notation | Description |
-|---------------|-------------------|-------------|
-| `M` | $M$ | Number of decision problems |
-| `K` | $K$ | Number of consequences |
-| `D` | $D$ | Feature dimensions |
-| `R` | $R$ | Number of distinct alternatives |
-| `w[r]` | $\mathbf{w}_r$ | Feature vector for alternative $r$ |
-| `I[m,r]` | $I_{m,r}$ | Indicator for alternative availability |
-| `y[m]` | $y_m$ | Observed choice in problem $m$ |
+## Notation: Data Structure
+
+| Symbol | Stan Variable | Description |
+|--------|---------------|-------------|
+| $M$ | `M` | Number of decision problems |
+| $D$ | `D` | Feature dimensions |
+| $\mathbf{w}_r \in \mathbb{R}^D$ | `w[r]` | Feature vector for alternative $r$ |
+| $I_{m,r} \in \{0,1\}$ | `I[m,r]` | Indicator: 1 if alternative $r$ available in problem $m$ |
+| $y_m$ | `y[m]` | Observed choice in problem $m$ |
+
+The variables $R$, $K$, and $\alpha$ retain their meanings from Report 1.
+:::
+
+::: {.callout-note}
+## On "Distinct" Alternatives
+The variable `R` represents the number of distinct alternatives in the study design. "Distinct" here reflects a judgment by the study designer about how to individuate alternatives. Within the model, two alternatives with identical feature vectors $\mathbf{w}_r$ will have the same subjective probability distribution over consequences, and thus the same expected utility. The model itself has no notion of alternative identity beyond the feature representation.
 :::
 
 ### Transformed Data
@@ -145,7 +140,7 @@ parameters {
 
 ### The Sensitivity Parameter ($\alpha$)
 
-The parameter `alpha` is constrained to be non-negative, matching the theoretical requirement $\alpha \geq 0$. Its interpretation was established in Report 1: with utilities normalized to $[0,1]$, $\alpha$ represents the log-odds change per unit of expected utility difference.
+The parameter `alpha` is constrained to be non-negative, matching the theoretical requirement $\alpha \geq 0$. Its interpretation was established in Report 1: with utilities standardized to $[0,1]$, $\alpha$ represents the log-odds change per unit of expected utility difference.
 
 ### The Feature-to-Probability Mapping ($\boldsymbol{\beta}$)
 
@@ -324,12 +319,17 @@ for i in range(n_samples):
     upsilon = np.cumsum(np.concatenate([[0], delta]))
     
     # Plot delta
-    axes[0].bar([f'δ₁ (sample {i+1})', f'δ₂ (sample {i+1})'], delta, 
-                alpha=0.7, color=colors[i], label=f'Sample {i+1}')
+    x_positions = [i * 2.5, i * 2.5 + 1]
+    axes[0].bar(x_positions, delta, 
+                alpha=0.7, color=colors[i], label=f'Sample {i+1}', width=0.8)
     
     # Plot upsilon
     axes[1].plot([1, 2, 3], upsilon, 'o-', color=colors[i], 
                  linewidth=2, markersize=8, label=f'Sample {i+1}')
+
+# Set x-axis labels for delta plot
+axes[0].set_xticks([0.5, 3, 5.5])
+axes[0].set_xticklabels(['Sample 1\n(δ₁, δ₂)', 'Sample 2\n(δ₁, δ₂)', 'Sample 3\n(δ₁, δ₂)'])
 
 axes[0].set_ylabel('Increment Value')
 axes[0].set_title('Utility Increments δ ~ Dirichlet(1,1)')
@@ -526,67 +526,6 @@ Each element of the $K \times D$ matrix $\boldsymbol{\beta}$ receives an indepen
 ### Prior on $\boldsymbol{\delta}$: Symmetric Dirichlet
 
 As discussed above, `delta ~ dirichlet(rep_vector(1, K-1))` induces a uniform distribution over valid utility configurations.
-
-## Generated Quantities
-
-The model includes generated quantities for model checking and comparison:
-
-```{.stan filename="m_0.stan (generated quantities)"}
-generated quantities {
-  // Log-likelihood for model comparison (e.g., LOO-CV)
-  vector[M] log_lik;
-  for (i in 1:M) {
-    log_lik[i] = categorical_lpmf(y[i] | chi[i]);
-  }
-  
-  // Posterior predictive samples
-  array[M] int y_pred;
-  for (i in 1:M) {
-    y_pred[i] = categorical_rng(chi[i]);
-  }
-}
-```
-
-- **`log_lik`**: Point-wise log-likelihoods for leave-one-out cross-validation
-- **`y_pred`**: Posterior predictive samples for checking model fit
-
-## The Simulation Model (m_0_sim.stan)
-
-For prior predictive analysis and parameter recovery studies, we use a companion model that generates synthetic data:
-
-```{.stan filename="m_0_sim.stan (key excerpts)"}
-transformed data {
-  // Generate parameters from priors
-  real alpha = lognormal_rng(alpha_mean, alpha_sd);
-  
-  matrix[K,D] beta;
-  for (k in 1:K) {
-    for (d in 1:D) {
-      beta[k,d] = normal_rng(0, beta_sd);
-    }
-  }
-  
-  simplex[K-1] delta = dirichlet_rng(rep_vector(1.0, K-1));
-}
-
-generated quantities {
-  // Generate choices under the model
-  array[M] int y;
-  array[M] int<lower=0,upper=1> selected_seu_max;
-  
-  // ... (computation of psi, upsilon, eta, choice_probs) ...
-  
-  for (i in 1:M) {
-    y[i] = categorical_rng(choice_probs);
-    
-    // Track whether SEU maximizer was selected
-    real max_eta = max(problem_eta);
-    selected_seu_max[i] = (abs(problem_eta[y[i]] - max_eta) < 1e-10) ? 1 : 0;
-  }
-}
-```
-
-The simulation model additionally tracks `selected_seu_max`—whether the SEU-maximizing alternative was chosen in each problem. This is useful for prior predictive analysis of "rationality" under the prior.
 
 ## Summary
 

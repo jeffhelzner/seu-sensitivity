@@ -23,7 +23,7 @@ from scipy.special import softmax
 
 ## Introduction
 
-This report establishes the theoretical foundations for our computational model of decision-making agents. We prove three fundamental properties of the softmax choice model with respect to an arbitrary value function, then show how these properties apply specifically when values are subjective expected utilities (SEU). Specifically, when value is taken to be subjective expected utility, $\alpha$ can be interpreted as measuring a decision maker's alignment with the normative standard of SEU rationality—how consistently their choices track the SEU ranking.
+This report establishes the theoretical foundations for our computational model of decision-making agents. We derive three properties of the softmax choice model with respect to an arbitrary value function, then show how these properties apply specifically when values are subjective expected utilities (SEU). While mathematically straightforward, these properties are essential to our intended interpretation: when value is taken to be subjective expected utility, $\alpha$ can be interpreted as measuring a decision maker's alignment with the normative standard of SEU rationality—how consistently their choices track the SEU ranking.
 
 This separation clarifies an important conceptual point: the core choice-theoretic results are independent of how values are constructed—they follow from the structure of softmax choice alone. The SEU interpretation provides the substantive behavioral content and connects our model to classical decision theory [@savage1954; @vonneumann1947].
 
@@ -44,13 +44,13 @@ We begin with abstract notation for the general softmax choice model, then show 
 ::: {.callout-note}
 ## Notation Summary (Abstract Model)
 
-| Symbol | Description | Stan Variable |
-|--------|-------------|---------------|
-| $\mathcal{R} = \{1, 2, \ldots, R\}$ | Set of distinct alternatives | `R` |
-| $N_m$ | Number of alternatives available in problem $m$ | `N[m]` |
-| $V: \mathcal{R} \to \mathbb{R}$ | Value function assigning utilities to alternatives | `eta` |
-| $V(r)$ | Value of alternative $r$ | `eta[r]` |
-| $\alpha \in \mathbb{R}_+$ | Sensitivity parameter (non-negative) | `alpha` |
+| Symbol | Description |
+|--------|-------------|
+| $\mathcal{R} = \{1, 2, \ldots, R\}$ | Set of distinct alternatives |
+| $N_m$ | Number of alternatives available in problem $m$ |
+| $V: \mathcal{R} \to \mathbb{R}$ | Value function assigning utilities to alternatives |
+| $V(r)$ | Value of alternative $r$ |
+| $\alpha \in \mathbb{R}_+$ | Sensitivity parameter (non-negative) |
 
 **Notation used in proofs:** We write $\mathcal{R}^* = \{r : V(r) = V^*\}$ for the set of value-maximizing alternatives, where $V^* = \max_r V(r)$, and $\mathcal{R}^- = \mathcal{R} \setminus \mathcal{R}^*$ for suboptimal alternatives.
 :::
@@ -351,37 +351,29 @@ plt.show()
 
 ## Application to Subjective Expected Utility
 
-We now specialize the general softmax framework to the case where values are subjective expected utilities (SEU). This section introduces the notation used in our Stan implementation.
+We now specialize the general softmax framework to the case where values are subjective expected utilities (SEU).
 
 ### SEU as a Value Function
 
 ::: {.callout-note}
 ## Notation Summary (SEU Specialization)
 
-| Symbol | Description | Stan Variable |
-|--------|-------------|---------------|
-| $K$ | Number of possible consequences (outcomes) | `K` |
-| $\boldsymbol{\upsilon} \in \mathbb{R}^K$ | Ordered utility vector over consequences | `upsilon` |
-| $\boldsymbol{\psi}_r \in \Delta^{K-1}$ | Subjective probability simplex for alternative $r$ | `psi[r]` |
-| $\eta_r = \boldsymbol{\psi}_r^\top \boldsymbol{\upsilon}$ | Expected utility of alternative $r$ | `eta[r]` |
-| $\boldsymbol{\delta} \in \Delta^{K-2}$ | Utility increments (ensures ordering) | `delta` |
-| $D$ | Feature dimensions for alternatives | `D` |
-| $\mathbf{w}_r \in \mathbb{R}^D$ | Feature vector for alternative $r$ | `w[r]` |
-| $\boldsymbol{\beta} \in \mathbb{R}^{K \times D}$ | Feature-to-probability mapping | `beta` |
-| $\boldsymbol{\chi}_m$ | Choice probability vector for problem $m$ | `chi[m]` |
+| Symbol | Description |
+|--------|-------------|
+| $K$ | Number of possible consequences (outcomes) |
+| $\boldsymbol{\upsilon} \in \mathbb{R}^K$ | Utility vector over consequences |
+| $\boldsymbol{\psi}_r \in \Delta^{K-1}$ | Subjective probability distribution over consequences for alternative $r$ |
+| $\eta_r = \boldsymbol{\psi}_r^\top \boldsymbol{\upsilon}$ | Expected utility of alternative $r$ |
+| $\boldsymbol{\chi}_m$ | Choice probability vector for problem $m$ |
 :::
 
 ::: {.callout-note}
 ## Definition: Subjective Expected Utility
 
-In model m_0, each alternative $r$ is associated with:
+Each alternative $r$ is associated with:
 
-1. **A feature vector** $\mathbf{w}_r \in \mathbb{R}^D$ describing the alternative
-2. **Subjective probabilities** over $K$ consequences, derived from features:
-   $$
-   \boldsymbol{\psi}_r = \text{softmax}(\boldsymbol{\beta} \mathbf{w}_r)
-   $$
-3. **An expected utility** computed as:
+1. **Subjective probabilities** $\boldsymbol{\psi}_r \in \Delta^{K-1}$ over $K$ consequences
+2. **An expected utility** computed as:
    $$
    \eta_r = \boldsymbol{\psi}_r^\top \boldsymbol{\upsilon} = \sum_{k=1}^{K} \psi_{r,k} \cdot \upsilon_k
    $$
@@ -421,11 +413,9 @@ While the mathematical properties of softmax choice hold for any value function,
 
 1. **Decomposition**: Expected utilities $\eta$ decompose into beliefs ($\boldsymbol{\psi}$) and utilities ($\boldsymbol{\upsilon}$), allowing separate analysis of epistemic and preference components
 
-2. **Feature-based beliefs**: Subjective probabilities are derived from observable alternative features through the mapping $\boldsymbol{\psi}_r = \text{softmax}(\boldsymbol{\beta} \mathbf{w}_r)$
+2. **Normative content**: SEU maximization is a rationality criterion—Properties 1-3 characterize adherence to this normative standard [@savage1954]
 
-3. **Normative content**: SEU maximization is a rationality criterion—Properties 1-3 characterize adherence to this normative standard [@savage1954]
-
-4. **Empirical predictions**: The model predicts that choices will track $\eta$, providing testable restrictions
+3. **Empirical predictions**: The model predicts that choices will track $\eta$, providing testable restrictions
 
 ## Scale Invariance and Representation
 
@@ -639,13 +629,13 @@ This is not a model of rational agents in the classical sense. SEU maximization�
 
 **Not bounded rationality.** Bounded rationality programs, in their various formulations [@simon1955; @gigerenzer1996], typically propose alternative decision procedures—heuristics, satisficing rules, or fast-and-frugal strategies—that agents use in place of optimization. Our model posits no such alternative procedures. Nor do we invoke notions of ecological rationality or fit between heuristics and environmental structure. The model simply describes a stochastic relationship between SEU values and choice probabilities.
 
-### A Conceptual Frame: Commitment and Performance
+### A Conceptual Lens: Commitment and Performance
 
-A useful conceptual frame comes from Isaac Levi's distinction between **commitment** and **performance** [@levi1980]. We may be committed to standards we fail to perform up to. Most of us are committed to the laws of arithmetic despite occasionally making calculation errors; the errors are failures of performance, not rejections of the standard.
+A useful conceptual lens comes from Isaac Levi's distinction between **commitment** and **performance** [@levi1980]. We may be committed to standards we fail to perform up to. Most of us are committed to the laws of arithmetic despite occasionally making calculation errors; the errors are failures of performance, not rejections of the standard.
 
 If we take SEU theory as specifying the decision maker's normative commitments, then $\alpha$ measures their **tendency to perform in accordance with those commitments**. This framing preserves SEU as normatively fundamental while allowing systematic departures in observed behavior.
 
-However, our framework differs from Levi's in important ways. Levi worked within the formal-language tradition common to philosophers, and he was not an "orthodox Bayesian"—he made important contributions to theories of indeterminate probability and to decision theories that relax the complete ordering assumption of SEU [@levi1980]. He also suggested that the commitment-performance gap could be reduced through tools (e.g., calculators reduce arithmetic errors).
+However, our framework differs from Levi's in important ways. Levi was not an "orthodox Bayesian"—he made important contributions to theories of indeterminate probability and to decision theories that relax the complete ordering assumption of SEU [@levi1980]. He also suggested that the commitment-performance gap could be reduced through tools (e.g., calculators reduce arithmetic errors).
 
 In our framework, by contrast, there is a residual stochasticity that persists even as $\alpha \to \infty$. The softmax rule assigns positive probability to all alternatives for any finite $\alpha$, and even in the limit, the model describes a *distribution* over choices anchored at log-odds of zero. Observable departures from SEU maximization can occur even for decision makers with arbitrarily high sensitivity. This places a constraint on how far the commitment-performance gap can be closed that Levi's framework does not obviously share. We borrow his conceptual vocabulary while operating in a rather different modeling tradition.
 

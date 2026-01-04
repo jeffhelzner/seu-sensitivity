@@ -71,7 +71,9 @@ transformed data {
       }
     }
   }
-  
+}
+
+generated quantities {
   // Generate model parameters
   real alpha = lognormal_rng(alpha_mean, alpha_sd);
   
@@ -83,17 +85,9 @@ transformed data {
   }
   
   simplex[K-1] delta = dirichlet_rng(rep_vector(1.0, K-1));
-}
-
-generated quantities {
-  // Copy parameter values for extraction
-  real sim_alpha = alpha;
-  matrix[K,D] sim_beta = beta;
-  simplex[K-1] sim_delta = delta;
   
   // Construct shared utility function
   vector[K] upsilon = cumulative_sum(append_row(0, delta));
-  vector[K] sim_upsilon = upsilon; // Copy for extraction
   
   // === UNCERTAIN CHOICE SIMULATION ===
   array[total_uncertain_alts] vector[K] psi; // subjective probabilities

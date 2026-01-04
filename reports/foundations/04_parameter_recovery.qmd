@@ -571,20 +571,20 @@ plt.show()
 
 ## Discussion
 
-### The Utility Identification Problem {#sec-utility-identification}
+### Differential Recovery Across Parameters {#sec-utility-identification}
 
-::: {.callout-warning}
-## Key Finding: Poor δ Recovery
-The results above reveal a significant asymmetry in parameter recovery:
+::: {.callout-note}
+## Key Finding: Differential Parameter Recovery
+The results above reveal an asymmetry in parameter recovery:
 
 - **α (sensitivity)** is recovered well, with posterior means clustering tightly around true values
 - **β (feature weights)** shows good recovery, with high correlation between true and estimated values  
-- **δ (utility increments)** shows notably poorer recovery, with wide credible intervals and lower precision
+- **δ (utility increments)** shows weaker recovery, with wider credible intervals and lower precision
 
-This pattern is not an accident—it reflects a fundamental **identification problem** in model m_0.
+This pattern suggests that the utility parameters are harder to learn from decisions under uncertainty, though they do respond to the data.
 :::
 
-To understand why δ is poorly identified, consider the structure of the model. In decisions under uncertainty, choices depend on **expected utilities**:
+To understand why δ is harder to recover, consider the structure of the model. In decisions under uncertainty, choices depend on **expected utilities**:
 
 $$
 \eta_r = \sum_{k=1}^K \psi_{rk} \upsilon_k
@@ -592,54 +592,37 @@ $$
 
 where $\boldsymbol{\psi}_r$ are subjective probabilities (determined by β) and $\boldsymbol{\upsilon}$ are utilities (determined by δ). The key insight is that we only observe *rankings* of expected utilities through choices—not the utilities themselves.
 
-Different utility vectors can produce identical expected utility rankings when combined with appropriately adjusted subjective probabilities. This creates a **partial identification** problem where:
+Different utility vectors can produce similar expected utility rankings when combined with appropriately adjusted subjective probabilities. This makes δ harder to pin down precisely:
 
 - β and α affect how *sensitively* choices respond to expected utility differences
 - δ affects the *scale* of those differences
-- The data alone cannot fully separate these contributions
+- The data provides weaker constraints on δ than on the other parameters
+
+Note that this does not mean δ is completely uninformed by the data—the posteriors do concentrate relative to the prior—but the information accumulates more slowly than for α and β.
 
 ### Does Increasing Sample Size Help?
 
-A natural question is whether the poor δ recovery is simply a matter of insufficient data. The study design with M=25 decision problems might not provide enough information. Let's test this by doubling the sample size to M=50.
+A natural question is whether the weaker δ recovery is simply a matter of insufficient data. The study design with M=25 decision problems might not provide enough information. Let's test this by doubling the sample size to M=50.
+
+To ensure a valid comparison, we use the `extend()` method to create the larger design from the original M=25 design. This keeps the same alternatives (features) and original problems, adding 25 new problems that use those same alternatives. Any differences in recovery can then be attributed to sample size rather than different feature configurations.
 
 ```{python}
 #| label: config-m50
 #| echo: true
 
-# Larger study design configuration
-config_m50 = {
-    "M": 50,                    # Doubled from 25
-    "K": 3,                     # Same
-    "D": 5,                     # Same
-    "R": 15,                    # Same
-    "min_alts_per_problem": 2,  # Same
-    "max_alts_per_problem": 5,  # Same
-    "feature_dist": "normal",
-    "feature_params": {"loc": 0, "scale": 1}
-}
+# Extend the original study design to M=50
+# This preserves the same alternatives and original problems
+study_m50 = study.extend(additional_M=25, design_name="parameter_recovery_m50")
 
-print(f"Larger Study Design (M=50):")
-print(f"  Decision problems (M): {config_m50['M']}")
-print(f"  Total expected observations: ~{config_m50['M'] * 3.5:.0f} choices")
+print(f"Extended Study Design (M=50):")
+print(f"  Decision problems: {study_m50.M} (original {study.M} + 25 new)")
+print(f"  Same R={study_m50.R} alternatives with identical features")
+print(f"  Total expected observations: ~{study_m50.M * 3.5:.0f} choices")
 ```
 
 ```{python}
 #| label: run-recovery-m50
 #| output: false
-
-# Generate larger study design
-study_m50 = StudyDesign(
-    M=config_m50["M"],
-    K=config_m50["K"],
-    D=config_m50["D"],
-    R=config_m50["R"],
-    min_alts_per_problem=config_m50["min_alts_per_problem"],
-    max_alts_per_problem=config_m50["max_alts_per_problem"],
-    feature_dist=config_m50["feature_dist"],
-    feature_params=config_m50["feature_params"],
-    design_name="parameter_recovery_m50"
-)
-study_m50.generate()
 
 # Create output directory
 output_dir_m50 = tempfile.mkdtemp(prefix="param_recovery_m50_")
@@ -673,8 +656,8 @@ alpha_rmse_m50 = np.sqrt(np.mean((alpha_mean_m50 - alpha_true_m50)**2))
 alpha_coverage_m50 = np.mean((alpha_true_m50 >= alpha_lower_m50) & (alpha_true_m50 <= alpha_upper_m50))
 alpha_ci_width_m50 = np.mean(alpha_upper_m50 - alpha_lower_m50)
 
-# Delta
-K_minus_1 = config_m50['K'] - 1
+# Delta (using config from original study)
+K_minus_1 = config['K'] - 1
 delta_stats_m50 = []
 for k in range(K_minus_1):
     param_name = f"delta[{k+1}]"
@@ -786,22 +769,22 @@ print("Sample Size Comparison (M=25 vs M=50):")
 print(comparison_df.to_string(index=False))
 ```
 
-### Interpretation: Why More Data Doesn't Help δ
+### Interpretation: Sample Size Effects
 
-The comparison reveals a striking pattern:
+The comparison reveals differential effects of increased sample size:
 
-::: {.callout-important}
-## The Identification Problem is Structural, Not Statistical
+::: {.callout-note}
+## Sample Size Effects Vary by Parameter
 
 Doubling the sample size from M=25 to M=50:
 
-- **α recovery improves**: RMSE decreases, CI widths narrow
-- **δ recovery barely changes**: Wide credible intervals persist
+- **α recovery improves**: RMSE decreases, CI widths narrow noticeably
+- **δ recovery shows modest improvement**: Some reduction in RMSE and CI width, but less dramatic than for α
 
-This asymmetry confirms that the δ identification problem is **structural**, not simply a matter of sample size. No amount of additional decision-under-uncertainty data will fully identify the utility function.
+This suggests that δ parameters *are* informed by the data—they're not completely unidentified—but the information accumulates more slowly. Whether δ would achieve the same precision as α with sufficiently large M is an open question that would require larger-scale simulations to answer definitively.
 :::
 
-The fundamental issue is that in decisions under uncertainty, we observe choices that depend on *expected* utilities—weighted averages of utilities. The weights (subjective probabilities) and utilities are confounded in a way that cannot be fully disentangled without additional information.
+The asymmetry in learning rates likely reflects the model structure: in decisions under uncertainty, utilities and subjective probabilities enter the likelihood through their product (expected utilities). This creates a partial confounding that makes δ harder to pin down than parameters like α that more directly govern choice sensitivity.
 
 ### Study Design Parameters in m_0
 
@@ -816,41 +799,42 @@ The `m_0.stan` data block defines several parameters that characterize study siz
 
 We might consider varying other parameters:
 
-- **Increasing K** (more consequences): Would require estimating more δ parameters, likely worsening the problem
-- **Increasing R** (more alternatives): Provides more information about β, but doesn't directly constrain utilities
-- **Increasing D** (more features): Similar to increasing R—helps with β, not δ
+- **Increasing K** (more consequences): Would require estimating more δ parameters, potentially making recovery harder
+- **Increasing R** (more alternatives): Provides more information about β, and may indirectly help δ through better-constrained expected utilities
+- **Increasing D** (more features): Similar to increasing R—primarily helps with β
 
-None of these changes address the fundamental identification issue.
+The effectiveness of these changes for δ recovery is an empirical question worth exploring in future work.
 
-### The Path Forward: Risky Choice Data
+### An Alternative Approach: Adding Risky Choice Data
 
-The solution requires **additional data that directly constrains the utility function**. This motivates the extension to model m_1, which incorporates:
+Decision theory offers a principled alternative to simply increasing sample size: adding **risky choice data** where probabilities are known to the decision-maker. This approach, motivated by the Anscombe-Aumann framework, provides a different type of information that may help constrain utility parameters more directly.
 
-1. **Decisions under uncertainty** (as in m_0): Subject chooses among alternatives with uncertain consequences
-2. **Risky decisions**: Subject chooses between lotteries with *known* probabilities over consequences
+In risky decisions, the probabilities are fixed by the experimenter, so choices directly reveal information about utilities without the partial confounding with subjective probabilities that occurs in decisions under uncertainty.
 
-In risky decisions, the probabilities are fixed by the experimenter, so choices directly reveal information about utilities without the confounding with subjective probabilities. This additional data source can "pin down" the utility function.
-
-::: {.callout-note}
 ::: {.callout-note}
 ## Preview of Model m_1
 Model m_1 extends m_0 by adding N risky choice problems where:
 
 - Alternatives are lotteries with experimenter-specified probabilities
 - The same utility function υ (and hence δ) governs both choice types
-- Risky choices provide direct information about utility curvature
+- Risky choices provide more direct information about utility structure
 
-This allows the δ parameters to be identified from risky choices, while uncertain choices identify β and α. See [Report 5](05_adding_risky_choices.qmd) for the full development.
+This provides an alternative route to improving δ recovery that may be more efficient than simply increasing M. See [Report 5](05_adding_risky_choices.qmd) for the full development and comparison.
 :::
 
 ## Conclusion
 
-Parameter recovery analysis for model m_0 reveals an important asymmetry:
+Parameter recovery analysis for model m_0 reveals differential recovery across parameters:
 
-1. **Well-identified parameters**: α (sensitivity) and β (feature weights) can be recovered with reasonable precision
-2. **Poorly identified parameters**: δ (utility increments) shows persistent wide uncertainty
-3. **Sample size doesn't help**: Doubling M from 25 to 50 improves α but not δ recovery
+1. **Well-recovered parameters**: α (sensitivity) and β (feature weights) can be recovered with good precision
+2. **Slower-learning parameters**: δ (utility increments) shows wider uncertainty, though it does respond to data
+3. **Sample size helps, but differentially**: Doubling M improves α more than δ
 
-This is not a failure of the model or estimation procedure—it reflects a fundamental identification challenge when utilities and subjective probabilities enter the likelihood only through their product (expected utilities).
+This pattern reflects the structure of the SEU model: utilities and subjective probabilities enter the likelihood through their product (expected utilities), making them harder to separate than parameters like α that more directly govern choice behavior.
 
-**The key insight**: To fully identify all parameters of the SEU model, we need data that separately constrains utilities and subjective probabilities. This motivates the extension to model m_1, which adds risky choice data where probabilities are known, allowing the utility function to be identified independently.
+**Two paths forward**:
+
+1. **More data**: Larger M (and perhaps R) may eventually yield precise δ estimates, though the rate of improvement appears slower than for other parameters
+2. **Different data**: Adding risky choices (model m_1) provides a complementary data source that may help constrain utilities more directly
+
+The choice between these approaches—or their combination—depends on practical considerations like study feasibility and the relative importance of precise utility estimation for the research question at hand.

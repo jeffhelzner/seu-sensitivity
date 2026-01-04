@@ -222,13 +222,13 @@ class ParameterRecovery:
             
             # Extract true parameter values
             true_params = {
-                "alpha": float(sim_samples["sim_alpha"]),
-                "beta": [[float(sim_samples[f"sim_beta[{k+1},{d+1}]"]) 
+                "alpha": float(sim_samples["alpha"]),
+                "beta": [[float(sim_samples[f"beta[{k+1},{d+1}]"]) 
                         for d in range(self.study_design.D)] 
                         for k in range(self.study_design.K)],
-                "delta": [float(sim_samples[f"sim_delta[{k+1}]"]) 
+                "delta": [float(sim_samples[f"delta[{k+1}]"]) 
                         for k in range(self.study_design.K-1)],
-                "upsilon": [float(sim_samples[f"sim_upsilon[{k+1}]"]) 
+                "upsilon": [float(sim_samples[f"upsilon[{k+1}]"]) 
                           for k in range(self.study_design.K)]
             }
             

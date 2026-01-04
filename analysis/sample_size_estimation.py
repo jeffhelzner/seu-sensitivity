@@ -176,11 +176,11 @@ class SampleSizeEstimator:
                 
                 # Extract true parameters
                 true_params = {
-                    "alpha": float(sim_samples["sim_alpha"]),
-                    "beta": [[float(sim_samples[f"sim_beta[{k+1},{d+1}]"]) 
+                    "alpha": float(sim_samples["alpha"]),
+                    "beta": [[float(sim_samples[f"beta[{k+1},{d+1}]"]) 
                             for d in range(self.D)] 
                             for k in range(self.K)],
-                    "delta": [float(sim_samples[f"sim_delta[{k+1}]"]) 
+                    "delta": [float(sim_samples[f"delta[{k+1}]"]) 
                             for k in range(self.K-1)]
                 }
                 all_true_params.append(true_params)

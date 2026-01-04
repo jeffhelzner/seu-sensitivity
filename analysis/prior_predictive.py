@@ -207,7 +207,7 @@ class PriorPredictiveAnalysis:
         os.makedirs(param_dir, exist_ok=True)
         
         # Extract parameters
-        alpha = self.samples['sim_alpha']
+        alpha = self.samples['alpha']
         
         # Plot alpha distribution
         plt.figure(figsize=(10, 6))
@@ -230,7 +230,7 @@ class PriorPredictiveAnalysis:
         for k in range(1, K+1):
             for d in range(1, D+1):
                 plt.subplot(K, D, idx)
-                beta_col = f'sim_beta[{k},{d}]'
+                beta_col = f'beta[{k},{d}]'
                 if beta_col in self.samples.columns:
                     plt.hist(self.samples[beta_col], bins=20)
                     plt.title(f'Beta[{k},{d}]')
@@ -240,7 +240,7 @@ class PriorPredictiveAnalysis:
         plt.close()
         
         # Extract and plot delta parameters
-        delta_cols = [col for col in self.samples.columns if 'sim_delta' in col]
+        delta_cols = [col for col in self.samples.columns if col.startswith('delta[')]
         if delta_cols:
             plt.figure(figsize=(12, 8))
             for i, col in enumerate(delta_cols):
@@ -252,7 +252,7 @@ class PriorPredictiveAnalysis:
             plt.close()
             
         # Plot utilities
-        upsilon_cols = [col for col in self.samples.columns if 'sim_upsilon' in col]
+        upsilon_cols = [col for col in self.samples.columns if col.startswith('upsilon[')]
         if upsilon_cols:
             plt.figure(figsize=(12, 8))
             for i, col in enumerate(upsilon_cols):
@@ -276,7 +276,7 @@ class PriorPredictiveAnalysis:
         
         # Add beta and delta summaries
         for col in self.samples.columns:
-            if 'sim_beta' in col or 'sim_delta' in col or 'sim_upsilon' in col:
+            if col.startswith('beta[') or col.startswith('delta[') or col.startswith('upsilon['):
                 param_summary[col] = {
                     'mean': float(np.mean(self.samples[col])),
                     'std': float(np.std(self.samples[col])),

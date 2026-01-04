@@ -197,7 +197,7 @@ The sensitivity parameter is sampled from a Lognormal(0, 1) prior in `m_0_sim.st
 #| fig-cap: "Prior distribution of the sensitivity parameter α sampled from m_0_sim.stan. The distribution has median ≈ 1 with substantial probability mass on both low sensitivity (random-like choice) and high sensitivity (near-optimal choice)."
 
 # Extract unique alpha values (one per parameter set)
-alpha_samples = samples.groupby('param_set')['sim_alpha'].first().values
+alpha_samples = samples.groupby('param_set')['alpha'].first().values
 
 fig, axes = plt.subplots(1, 2, figsize=(12, 4))
 
@@ -245,8 +245,8 @@ The lognormal prior covers a wide range of sensitivity values:
 #| fig-cap: "Prior distribution of utilities under Dirichlet(1,1) as sampled from m_0_sim.stan. Left: Distribution of the middle utility υ₂. Right: Distribution of utility increments δ."
 
 # Extract unique delta and upsilon values
-delta_cols = [col for col in samples.columns if 'sim_delta' in col]
-upsilon_cols = [col for col in samples.columns if 'sim_upsilon' in col]
+delta_cols = [col for col in samples.columns if col.startswith('delta[')]
+upsilon_cols = [col for col in samples.columns if col.startswith('upsilon[')]
 
 # Get one value per parameter set
 param_samples = samples.groupby('param_set').first()
@@ -254,8 +254,8 @@ param_samples = samples.groupby('param_set').first()
 fig, axes = plt.subplots(1, 2, figsize=(12, 4))
 
 # Middle utility distribution (upsilon[2])
-if 'sim_upsilon[2]' in param_samples.columns:
-    upsilon_2 = param_samples['sim_upsilon[2]'].values
+if 'upsilon[2]' in param_samples.columns:
+    upsilon_2 = param_samples['upsilon[2]'].values
     axes[0].hist(upsilon_2, bins=40, density=True, alpha=0.7, color='forestgreen', edgecolor='white')
     axes[0].axvline(x=0.5, color='red', linestyle='--', linewidth=2, label=f'Mean ≈ 0.5')
     axes[0].set_xlabel('Middle Utility (υ₂)')
@@ -294,7 +294,7 @@ The matrix $\boldsymbol{\beta} \in \mathbb{R}^{K \times D}$ maps alternative fea
 #| fig-cap: "Prior distribution of the feature-to-probability weights β sampled from m_0_sim.stan. Left: Distribution of all β coefficients. Right: Heatmap of median |β| values showing the structure of a typical draw from the prior."
 
 # Extract beta coefficients
-beta_cols = [col for col in samples.columns if 'sim_beta' in col]
+beta_cols = [col for col in samples.columns if col.startswith('beta[')]
 
 # Get unique values per parameter set
 param_samples = samples.groupby('param_set').first()
@@ -323,7 +323,7 @@ K, D = config['K'], config['D']
 beta_medians = np.zeros((K, D))
 for k in range(K):
     for d in range(D):
-        col = f'sim_beta[{k+1},{d+1}]'
+        col = f'beta[{k+1},{d+1}]'
         if col in param_samples.columns:
             beta_medians[k, d] = np.median(np.abs(param_samples[col].values))
 
@@ -355,44 +355,55 @@ $$
 \psi_{rk} = \frac{\exp(\boldsymbol{\beta}_k^\top \mathbf{x}_r)}{\sum_{k'=1}^K \exp(\boldsymbol{\beta}_{k'}^\top \mathbf{x}_r)}
 $$
 
-This is computed in `m_0_sim.stan` as `psi[i] = softmax(beta * x[i])`.
+We compute $\boldsymbol{\psi}$ for each of the $R$ distinct alternatives from the sampled $\boldsymbol{\beta}$ values.
 
 ```{python}
 #| label: fig-psi-prior
-#| fig-cap: "Prior distribution of subjective probabilities over consequences. Left: Distribution of all ψ values. Right: Ternary plot showing the distribution on the 3-simplex for a single alternative."
+#| fig-cap: "Prior distribution of subjective probabilities over consequences. Left: Distribution of all ψ values from prior samples. Right: Mean subjective probability for each distinct alternative and consequence, averaged over all prior draws."
 
-fig, axes = plt.subplots(1, 2, figsize=(12, 5))
-
-# Collect psi values - we need to compute them from beta and x
-# Since psi isn't directly stored in samples, we'll visualize what the prior implies
-
-# For visualization, we simulate some psi values directly
-# Using the beta samples and feature matrix
-np.random.seed(42)
-
-# Get a sample of beta matrices and compute psi for first few alternatives
-n_viz_samples = 500
-K, D = config['K'], config['D']
+# Compute psi from beta for the R distinct alternatives
+# (The psi in Stan's generated quantities is vectorized over problems, causing repetition)
+K = config['K']
 R = config['R']
+D = config['D']
 
-# Simulate beta matrices
-beta_samples_viz = np.random.normal(0, 1, size=(n_viz_samples, K, D))
-
-# Use the feature matrix from our study design
+# Feature matrix for distinct alternatives
 w_array = np.array(study.w)  # Shape: (R, D)
 
-# Compute psi for each alternative under each beta sample
-all_psi = []
-for beta in beta_samples_viz:
+# Get unique parameter sets
+param_sets = samples['param_set'].unique()
+n_param_samples = len(param_sets)
+
+# For each parameter sample, compute psi for all R distinct alternatives
+# Shape: (n_param_samples, R, K)
+psi_array = np.zeros((n_param_samples, R, K))
+
+for p_idx, param_set in enumerate(param_sets):
+    # Get one row from this param_set (parameters are same within a set)
+    row = samples[samples['param_set'] == param_set].iloc[0]
+    
+    # Extract beta matrix
+    beta = np.zeros((K, D))
+    for k in range(K):
+        for d in range(D):
+            col = f'beta[{k+1},{d+1}]'
+            if col in samples.columns:
+                beta[k, d] = row[col]
+    
+    # Compute psi for each distinct alternative
     for r in range(R):
         logits = beta @ w_array[r]  # K-dimensional
-        psi = np.exp(logits) / np.sum(np.exp(logits))  # softmax
-        all_psi.append(psi)
+        psi_array[p_idx, r] = np.exp(logits - np.max(logits))  # numerically stable softmax
+        psi_array[p_idx, r] /= psi_array[p_idx, r].sum()
 
-all_psi = np.array(all_psi)
+# Compute mean psi across samples for each (alternative, consequence)
+mean_psi = psi_array.mean(axis=0)  # Shape: (R, K)
+
+fig, axes = plt.subplots(1, 2, figsize=(14, 5))
 
 # Left: Distribution of all psi values
-axes[0].hist(all_psi.flatten(), bins=50, density=True, alpha=0.7, 
+all_psi_values = psi_array.flatten()
+axes[0].hist(all_psi_values, bins=50, density=True, alpha=0.7, 
              color='darkorange', edgecolor='white')
 axes[0].axvline(x=1/K, color='red', linestyle='--', linewidth=2, 
                 label=f'Uniform = {1/K:.2f}')
@@ -402,53 +413,28 @@ axes[0].set_title('Prior Distribution of Subjective Probabilities')
 axes[0].legend()
 axes[0].set_xlim(0, 1)
 
-# Right: Ternary plot for K=3 case (if applicable)
-if K == 3:
-    # Select probabilities for first alternative only (for clarity)
-    psi_alt1 = all_psi[::R]  # Every R-th row = first alternative
-    
-    # Create ternary coordinates
-    # Map (p1, p2, p3) to 2D using standard ternary transformation
-    sqrt3_2 = np.sqrt(3) / 2
-    x_tern = 0.5 * (2 * psi_alt1[:, 1] + psi_alt1[:, 2])
-    y_tern = sqrt3_2 * psi_alt1[:, 2]
-    
-    # Draw simplex boundary
-    axes[1].plot([0, 1, 0.5, 0], [0, 0, sqrt3_2, 0], 'k-', linewidth=2)
-    
-    # Plot points
-    axes[1].scatter(x_tern, y_tern, alpha=0.15, s=15, c='darkorange')
-    
-    # Mark center (uniform)
-    axes[1].scatter([0.5], [sqrt3_2/3], c='red', s=100, marker='*', 
-                    zorder=5, label='Uniform (1/3, 1/3, 1/3)')
-    
-    # Label vertices
-    axes[1].text(-0.05, -0.05, 'k=1', fontsize=11, ha='center')
-    axes[1].text(1.05, -0.05, 'k=2', fontsize=11, ha='center')
-    axes[1].text(0.5, sqrt3_2 + 0.05, 'k=3', fontsize=11, ha='center')
-    
-    axes[1].set_xlim(-0.1, 1.1)
-    axes[1].set_ylim(-0.1, sqrt3_2 + 0.15)
-    axes[1].set_aspect('equal')
-    axes[1].axis('off')
-    axes[1].set_title('ψ Distribution on 3-Simplex\n(Alternative 1)')
-    axes[1].legend(loc='lower right')
-else:
-    # For K != 3, show pairwise relationship
-    axes[1].scatter(all_psi[:, 0], all_psi[:, 1], alpha=0.1, s=10, c='darkorange')
-    axes[1].set_xlabel('ψ₁')
-    axes[1].set_ylabel('ψ₂')
-    axes[1].set_title('First Two Subjective Probabilities')
+# Right: Heatmap of mean psi for each distinct alternative and consequence
+im = axes[1].imshow(mean_psi.T, cmap='YlOrRd', aspect='auto', vmin=0, vmax=1)
+axes[1].set_xlabel('Distinct Alternative (r)')
+axes[1].set_ylabel('Consequence (k)')
+axes[1].set_title('Mean ψ by Alternative and Consequence')
+axes[1].set_yticks(range(K))
+axes[1].set_yticklabels([f'{k+1}' for k in range(K)])
+# Show fewer x-ticks for readability
+n_xticks = min(10, R)
+xtick_positions = np.linspace(0, R-1, n_xticks, dtype=int)
+axes[1].set_xticks(xtick_positions)
+axes[1].set_xticklabels([f'{x+1}' for x in xtick_positions])
+plt.colorbar(im, ax=axes[1], label='Mean ψ')
 
 plt.tight_layout()
 plt.show()
 
-print(f"\nSubjective probability summary:")
-print(f"  Mean ψ: {np.mean(all_psi):.3f} (theoretical uniform = {1/K:.3f})")
-print(f"  Std ψ: {np.std(all_psi):.3f}")
-print(f"  P(ψ < 0.1): {np.mean(all_psi < 0.1):.3f}")
-print(f"  P(ψ > 0.9): {np.mean(all_psi > 0.9):.3f}")
+print(f"\nSubjective probability summary (from {n_param_samples} prior parameter draws):")
+print(f"  Mean ψ: {np.mean(all_psi_values):.3f} (theoretical uniform = {1/K:.3f})")
+print(f"  Std ψ: {np.std(all_psi_values):.3f}")
+print(f"  P(ψ < 0.1): {np.mean(all_psi_values < 0.1):.3f}")
+print(f"  P(ψ > 0.9): {np.mean(all_psi_values > 0.9):.3f}")
 ```
 
 ::: {.callout-important}
@@ -464,44 +450,44 @@ This captures the idea that alternatives with different feature profiles may ind
 
 ```{python}
 #| label: fig-psi-across-alternatives
-#| fig-cap: "Variation in subjective probabilities across alternatives under a single parameter draw. Each row shows how the distribution ψ over K=3 consequences differs based on alternative features."
+#| fig-cap: "Heatmaps showing subjective probability distributions across the R distinct alternatives for six individual prior draws. Each heatmap shows how ψ varies across alternatives (columns) and consequences (rows) under a single parameter configuration."
+#| fig-height: 8
 
-# Show how psi varies across alternatives for a few beta samples
-fig, axes = plt.subplots(2, 5, figsize=(15, 6))
+# Show how psi varies across distinct alternatives for a few parameter draws
+# We already computed psi_array above with shape (n_param_samples, R, K)
+
+fig, axes = plt.subplots(2, 3, figsize=(14, 8))
 axes = axes.flatten()
 
-# Select 10 diverse parameter draws
+# Select 6 diverse parameter draws
 np.random.seed(123)
-sample_indices = np.random.choice(n_viz_samples, 10, replace=False)
+sample_indices = np.random.choice(n_param_samples, min(6, n_param_samples), replace=False)
 
 for idx, (ax, sample_idx) in enumerate(zip(axes, sample_indices)):
-    beta = beta_samples_viz[sample_idx]
+    # Get psi matrix for this parameter draw (already computed above)
+    psi_matrix = psi_array[sample_idx]  # Shape: (R, K)
     
-    # Compute psi for all R alternatives
-    psi_matrix = np.zeros((R, K))
-    for r in range(R):
-        logits = beta @ w_array[r]
-        psi_matrix[r] = np.exp(logits) / np.sum(np.exp(logits))
-    
-    # Stacked bar chart
-    bottom = np.zeros(R)
-    colors = plt.cm.Set2(np.linspace(0, 1, K))
-    for k in range(K):
-        ax.bar(range(R), psi_matrix[:, k], bottom=bottom, color=colors[k], 
-               label=f'k={k+1}' if idx == 0 else '', width=0.8)
-        bottom += psi_matrix[:, k]
-    
-    ax.set_ylim(0, 1)
-    ax.set_xlabel('Alternative')
-    ax.set_ylabel('ψ')
-    ax.set_title(f'Sample {idx+1}', fontsize=10)
-    ax.set_xticks([0, R//2, R-1])
-    ax.set_xticklabels(['1', f'{R//2+1}', f'{R}'])
+    # Heatmap
+    im = ax.imshow(psi_matrix.T, cmap='YlOrRd', aspect='auto', vmin=0, vmax=1)
+    ax.set_xlabel('Distinct Alternative (r)')
+    ax.set_ylabel('Consequence')
+    ax.set_title(f'Prior Draw {idx+1}', fontsize=11)
+    ax.set_yticks(range(K))
+    ax.set_yticklabels([f'k={k+1}' for k in range(K)])
+    # Show fewer x-ticks for readability
+    n_xticks = min(8, R)
+    xtick_positions = np.linspace(0, R-1, n_xticks, dtype=int)
+    ax.set_xticks(xtick_positions)
+    ax.set_xticklabels([f'{x+1}' for x in xtick_positions])
 
-axes[0].legend(title='Consequence', bbox_to_anchor=(0.5, 1.25), loc='upper left', ncol=K)
-plt.suptitle('Subjective Probabilities Across Alternatives (Sample Parameter Draws)', 
-             fontsize=13, y=1.02)
-plt.tight_layout()
+# Add a shared colorbar
+fig.subplots_adjust(right=0.88)
+cbar_ax = fig.add_axes([0.91, 0.15, 0.02, 0.7])
+fig.colorbar(im, cax=cbar_ax, label='ψ (subjective probability)')
+
+plt.suptitle('Subjective Probability Distributions Under Individual Prior Draws', 
+             fontsize=13, y=0.98)
+plt.tight_layout(rect=[0, 0, 0.88, 0.95])
 plt.show()
 ```
 
@@ -663,7 +649,7 @@ print(f"  Expected under random: {expected_random:.1f}")
 #| fig-cap: "Relationship between sensitivity α and the proportion of SEU maximizers selected. Higher α leads to more consistent SEU maximization, as predicted by the theoretical properties from Report 1."
 
 # Get alpha and total SEU max for each sample
-alpha_per_sample = samples['sim_alpha'].values
+alpha_per_sample = samples['alpha'].values
 seu_max_per_sample = total_seu_max / M  # Proportion
 
 fig, axes = plt.subplots(1, 2, figsize=(12, 5))

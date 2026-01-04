@@ -45,8 +45,10 @@ transformed data {
       }
     }
   }
-  
-  // Generate model parameters - now using lognormal for alpha
+}
+
+generated quantities {
+  // Generate model parameters
   real alpha = lognormal_rng(alpha_mean, alpha_sd);
   
   matrix[K,D] beta;
@@ -56,15 +58,8 @@ transformed data {
     }
   }
   
-  // Generate utility differences directly using dirichlet_rng for consistency with inference model
+  // Generate utility differences using Dirichlet prior with concentration = 5
   simplex[K-1] delta = dirichlet_rng(rep_vector(5.0, K-1));
-}
-
-generated quantities {
-  // Copy parameter values for extraction
-  real sim_alpha = alpha;
-  matrix[K,D] sim_beta = beta;
-  simplex[K-1] sim_delta = delta;
   
   // Subjective probabilities over consequences
   array[total_alts] vector[K] psi;
@@ -74,7 +69,6 @@ generated quantities {
   
   // Construct ordered utilities
   vector[K] upsilon = cumulative_sum(append_row(0, delta));
-  vector[K] sim_upsilon = upsilon; // Copy for extraction
   
   // Calculate expected utilities
   vector[total_alts] eta;

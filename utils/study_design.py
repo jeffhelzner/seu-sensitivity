@@ -401,6 +401,62 @@ class StudyDesign:
             plt.savefig(os.path.join(plots_dir, 'feature_space.png'))
             plt.close()
     
+    def extend(self, additional_M, design_name=None):
+        """
+        Create a new study design by extending this one with additional problems.
+        
+        The new design will have:
+        - The same alternatives (w) as this design
+        - The original M problems from this design
+        - additional_M new problems using the same alternatives
+        
+        This is useful for comparing recovery across sample sizes while holding
+        the alternatives fixed, ensuring any differences are due to sample size
+        rather than different feature configurations.
+        
+        Parameters:
+            additional_M (int): Number of additional decision problems to add
+            design_name (str): Name for the new design (defaults to appending "_extended")
+            
+        Returns:
+            StudyDesign: A new StudyDesign instance with extended problems
+        """
+        if not hasattr(self, 'w') or not hasattr(self, 'I'):
+            raise ValueError("Cannot extend a design that hasn't been generated")
+        
+        # Create new design with extended M
+        new_M = self.M + additional_M
+        new_design = StudyDesign(
+            M=new_M,
+            K=self.K,
+            D=self.D,
+            R=self.R,
+            min_alts_per_problem=self.min_alts,
+            max_alts_per_problem=self.max_alts,
+            feature_dist=self.feature_dist,
+            feature_params=self.feature_params,
+            design_name=design_name or f"{self.design_name}_extended"
+        )
+        
+        # Copy the same alternatives (features)
+        new_design.w = [np.array(w_vec) for w_vec in self.w]
+        
+        # Start with original indicator array and extend with new problems
+        I_extended = np.zeros((new_M, self.R), dtype=int)
+        I_extended[:self.M, :] = self.I  # Copy original problems
+        
+        # Generate additional problems using the same alternatives
+        for m in range(self.M, new_M):
+            n_alts = np.random.randint(self.min_alts, self.max_alts + 1)
+            alts_in_problem = np.random.choice(self.R, size=n_alts, replace=False)
+            for alt in alts_in_problem:
+                I_extended[m, alt] = 1
+        
+        new_design.I = I_extended
+        new_design.metadata = new_design._generate_metadata()
+        
+        return new_design
+    
     def analyze(self):
         """
         Print analysis of the study design.

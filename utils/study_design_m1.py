@@ -77,6 +77,58 @@ class StudyDesignM1(StudyDesign):
         self.N = N
         self.S = S
         self.risky_probs = risky_probs
+    
+    @classmethod
+    def from_base_study(cls, base_study, N, S, risky_probs="random", design_name=None):
+        """
+        Create an m_1 study design using an existing StudyDesign for the uncertain component.
+        
+        This ensures that the uncertain decision problems (features w and indicator I)
+        are identical to those in the base study, enabling valid comparisons between
+        m_0 and m_1 models. Only risky problems are newly generated.
+        
+        Parameters:
+            base_study (StudyDesign): An existing m_0 study design to use for uncertain problems
+            N (int): Number of risky decision problems to add
+            S (int): Number of distinct risky alternatives
+            risky_probs (str): How to generate risky probabilities ('uniform', 'fixed', 'random')
+            design_name (str): Name for the new design (defaults to base name + "_m1")
+            
+        Returns:
+            StudyDesignM1: A new instance with the same uncertain problems as base_study
+        """
+        if not hasattr(base_study, 'w') or not hasattr(base_study, 'I'):
+            raise ValueError("Base study must be generated before creating m_1 design from it")
+        
+        # Create instance with parameters matching the base study
+        design = cls(
+            M=base_study.M,
+            N=N,
+            K=base_study.K,
+            D=base_study.D,
+            R=base_study.R,
+            S=S,
+            min_alts_per_problem=base_study.min_alts,
+            max_alts_per_problem=base_study.max_alts,
+            risky_probs=risky_probs,
+            feature_dist=base_study.feature_dist,
+            feature_params=base_study.feature_params,
+            design_name=design_name or f"{base_study.design_name}_m1"
+        )
+        
+        # Copy the uncertain component from base study
+        design.w = [np.array(w_vec) for w_vec in base_study.w]
+        design.I = np.array(base_study.I)
+        
+        # Generate only the risky component
+        design.x = design._generate_risky_probabilities()
+        design.J = design._generate_risky_indicator_array()
+        
+        # Generate metadata
+        design.metadata = design._generate_metadata()
+        design.metadata.update(design._generate_risky_metadata())
+        
+        return design
         
     def generate(self):
         """

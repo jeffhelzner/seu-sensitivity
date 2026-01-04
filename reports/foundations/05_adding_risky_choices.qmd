@@ -33,9 +33,9 @@ np.random.seed(42)
 
 ## Introduction
 
-[Report 4](04_parameter_recovery.qmd) revealed a fundamental identification problem: while model m_0 can reliably recover the sensitivity parameter α and feature weights β, the utility increments δ remain poorly identified even as sample size increases. This is not a statistical limitation but a structural one—decisions under uncertainty alone cannot fully disentangle utilities from subjective probabilities.
+[Report 4](04_parameter_recovery.qmd) revealed differential parameter recovery in model m_0: while the sensitivity parameter α and feature weights β are recovered well, the utility increments δ show wider uncertainty and slower learning as sample size increases. This doesn't mean δ is uninformed by the data—the posteriors do concentrate relative to the prior—but the information accumulates more slowly than for other parameters.
 
-The solution, developed in this report, is to incorporate a second type of choice task: **risky decisions** where probabilities are known to the decision-maker. This approach has deep roots in the foundations of decision theory.
+One approach to improving δ recovery is simply to collect more data. However, decision theory suggests an alternative: incorporating **risky decisions** where probabilities are known to the decision-maker. This approach, grounded in the Anscombe-Aumann framework, provides a different type of information that may help constrain utility parameters more directly.
 
 ## Historical Background: Risk vs. Uncertainty
 
@@ -274,15 +274,18 @@ This preference *directly* constrains υ₂ (and hence δ₁) without any confou
 
 ## Study Design for m_1
 
-To demonstrate that adding risky choices resolves the δ identification problem, we'll use:
+To demonstrate that adding risky choices resolves the δ identification problem, we need a controlled comparison between m_0 and m_1. Crucially, the **uncertain decision problems must be identical** between the two models—any differences in recovery should be attributable solely to the addition of risky choices.
+
+We first create a base m_0 study design (matching Report 4's configuration), then use the `from_base_study()` method to create an m_1 design that inherits the same uncertain alternatives and problems:
 
 ```{python}
 #| label: m1-study-config
 #| echo: true
 
-# Study design for m_1 combining uncertain and risky problems
-config_m1 = {
-    # Uncertain problems (same as m_0)
+from utils.study_design import StudyDesign
+
+# Configuration for both models (uncertain component)
+config_base = {
     "M": 25,                    # Number of uncertain decision problems
     "K": 3,                     # Number of consequences
     "D": 5,                     # Feature dimensions
@@ -291,32 +294,46 @@ config_m1 = {
     "max_alts_per_problem": 5,
     "feature_dist": "normal",
     "feature_params": {"loc": 0, "scale": 1},
-    
-    # Risky problems (new)
+}
+
+# Risky problems configuration (added for m_1)
+config_risky = {
     "N": 25,                    # Number of risky decision problems
     "S": 15,                    # Distinct risky alternatives
 }
 
-print(f"Study Design for Model m_1:")
-print(f"\nUncertain Problems:")
-print(f"  M = {config_m1['M']} decision problems")
-print(f"  R = {config_m1['R']} distinct alternatives")
-print(f"  K = {config_m1['K']} consequences")
-print(f"\nRisky Problems:")
-print(f"  N = {config_m1['N']} decision problems")
-print(f"  S = {config_m1['S']} distinct lotteries")
-print(f"  Same K = {config_m1['K']} consequences")
+# Create the base m_0 study design
+study_base = StudyDesign(
+    M=config_base["M"],
+    K=config_base["K"],
+    D=config_base["D"],
+    R=config_base["R"],
+    min_alts_per_problem=config_base["min_alts_per_problem"],
+    max_alts_per_problem=config_base["max_alts_per_problem"],
+    feature_dist=config_base["feature_dist"],
+    feature_params=config_base["feature_params"],
+    design_name="m0_base_for_comparison"
+)
+study_base.generate()
+
+print(f"Base Study Design (for m_0 and m_1 uncertain component):")
+print(f"  M = {study_base.M} uncertain decision problems")
+print(f"  R = {study_base.R} distinct alternatives")
+print(f"  K = {study_base.K} consequences")
+print(f"\nRisky Problems (added for m_1):")
+print(f"  N = {config_risky['N']} risky decision problems")
+print(f"  S = {config_risky['S']} distinct lotteries")
 ```
 
 ## Parameter Recovery Comparison
 
-In [Report 4](04_parameter_recovery.qmd), we found that δ recovery was poor in model m_0, with credible intervals that remained wide even when we doubled the sample size from M=25 to M=50. We diagnosed this as a **structural identification problem**: decisions under uncertainty confound utilities and subjective probabilities.
+In [Report 4](04_parameter_recovery.qmd), we found that δ recovery was weaker than α and β recovery in model m_0, with credible intervals that narrowed more slowly as sample size increased. We hypothesized that adding risky choices might help constrain utility parameters more directly.
 
-Now we test whether adding risky choices resolves this issue. If our theoretical analysis is correct, the risky choices should "pin down" the utility function, allowing δ to be accurately recovered.
+Now we test this hypothesis. If the Anscombe-Aumann logic holds, risky choices should provide more direct information about the utility function, potentially improving δ recovery.
 
 ### Study Design for m_1
 
-We use the study design specified earlier, combining M=25 uncertain problems with N=25 risky problems. This gives us 50 total decision problems—matching the sample size used in the M=50 analysis of m_0 (Report 4):
+We create the m_1 study design using `from_base_study()`, which ensures that the uncertain component (alternatives and problems) is **identical** to the base m_0 study. Only the risky problems are newly generated. This gives us 50 total decision problems—matching the sample size used in the M=50 analysis of m_0 (Report 4):
 
 ```{python}
 #| label: setup-m1-recovery
@@ -326,22 +343,15 @@ from utils.study_design_m1 import StudyDesignM1
 from analysis.parameter_recovery import ParameterRecovery
 import tempfile
 
-# Create the m_1 study design
-study_m1 = StudyDesignM1(
-    M=config_m1["M"],           # 25 uncertain problems
-    N=config_m1["N"],           # 25 risky problems
-    K=config_m1["K"],           # 3 consequences
-    D=config_m1["D"],           # 5 feature dimensions
-    R=config_m1["R"],           # 15 uncertain alternatives
-    S=config_m1["S"],           # 8 risky alternatives
-    min_alts_per_problem=config_m1["min_alts_per_problem"],
-    max_alts_per_problem=config_m1["max_alts_per_problem"],
+# Create the m_1 study design FROM the base study
+# This ensures identical uncertain problems for valid comparison
+study_m1 = StudyDesignM1.from_base_study(
+    base_study=study_base,
+    N=config_risky["N"],        # 25 risky problems
+    S=config_risky["S"],        # 15 risky alternatives
     risky_probs="random",       # Random simplex probabilities (diverse lotteries)
-    feature_dist=config_m1["feature_dist"],
-    feature_params=config_m1["feature_params"],
     design_name="m1_parameter_recovery"
 )
-study_m1.generate()
 ```
 
 ```{python}
@@ -350,12 +360,12 @@ study_m1.generate()
 
 # Summarize the design
 print(f"m_1 Study Design Generated:")
-print(f"\n  Uncertain Problems:")
+print(f"\n  Uncertain Problems (inherited from base study):")
 print(f"    M = {study_m1.M} problems")
 print(f"    R = {study_m1.R} distinct alternatives")
 print(f"    Total uncertain choices: ~{np.sum(study_m1.I)}")
 
-print(f"\n  Risky Problems:")
+print(f"\n  Risky Problems (newly generated):")
 print(f"    N = {study_m1.N} problems")
 print(f"    S = {study_m1.S} distinct lotteries")
 print(f"    Total risky choices: ~{np.sum(study_m1.J)}")
@@ -418,8 +428,8 @@ alpha_rmse_m1 = np.sqrt(np.mean((alpha_mean_m1 - alpha_true_m1)**2))
 alpha_coverage_m1 = np.mean((alpha_true_m1 >= alpha_lower_m1) & (alpha_true_m1 <= alpha_upper_m1))
 alpha_ci_width_m1 = np.mean(alpha_upper_m1 - alpha_lower_m1)
 
-# Delta
-K_minus_1 = config_m1['K'] - 1
+# Delta (using config from base study)
+K_minus_1 = config_base['K'] - 1
 delta_stats_m1 = []
 for k in range(K_minus_1):
     param_name = f"delta[{k+1}]"
@@ -444,7 +454,7 @@ for k in range(K_minus_1):
 delta_df_m1 = pd.DataFrame(delta_stats_m1)
 
 # Beta (for comparison)
-K, D = config_m1['K'], config_m1['D']
+K, D = config_base['K'], config_base['D']
 beta_stats_m1 = []
 for k in range(K):
     for d in range(D):
@@ -511,25 +521,14 @@ plt.show()
 #| fig-cap: "Credible interval widths for δ parameters: m_0 (uncertain only) vs. m_1 (uncertain + risky). The dramatic narrowing in m_1 reflects successful identification."
 #| output: false
 
-from utils.study_design import StudyDesign
-
-# We need m_0 recovery results for comparison - run a quick recovery
-# (In practice, we'd load saved results; here we generate for comparison)
-study_m0_compare = StudyDesign(
-    M=25, K=3, D=5, R=15,
-    min_alts_per_problem=2,
-    max_alts_per_problem=5,
-    feature_dist="normal",
-    feature_params={"loc": 0, "scale": 1},
-    design_name="m0_for_comparison"
-)
-study_m0_compare.generate()
-
+# Run m_0 recovery on the SAME base study used for m_1's uncertain component
+# This ensures a valid comparison: identical uncertain problems, differing only
+# in whether risky choices are added
 output_dir_m0 = tempfile.mkdtemp(prefix="param_recovery_m0_compare_")
 recovery_m0_compare = ParameterRecovery(
     inference_model_path=None,  # Default m_0.stan
     sim_model_path=None,        # Default m_0_sim.stan
-    study_design=study_m0_compare,
+    study_design=study_base,    # Use the same base study as m_1 (M=25)
     output_dir=output_dir_m0,
     n_mcmc_samples=1000,
     n_mcmc_chains=4,
@@ -537,10 +536,29 @@ recovery_m0_compare = ParameterRecovery(
 )
 true_params_m0, posterior_summaries_m0 = recovery_m0_compare.run()
 
-# Compute m_0 delta metrics
+# Also run m_0 with M=50 to replicate the sample size comparison from Report 4
+# This uses the SAME alternatives as study_base, just with 25 additional problems
+study_m50 = study_base.extend(additional_M=25, design_name="m0_extended_m50")
+
+output_dir_m0_m50 = tempfile.mkdtemp(prefix="param_recovery_m0_m50_")
+recovery_m0_m50 = ParameterRecovery(
+    inference_model_path=None,
+    sim_model_path=None,
+    study_design=study_m50,
+    output_dir=output_dir_m0_m50,
+    n_mcmc_samples=1000,
+    n_mcmc_chains=4,
+    n_iterations=20
+)
+true_params_m0_m50, posterior_summaries_m0_m50 = recovery_m0_m50.run()
+
+# Compute m_0 delta metrics for both M=25 and M=50
 delta_stats_m0 = []
+delta_stats_m0_m50 = []
 for k in range(K_minus_1):
     param_name = f"delta[{k+1}]"
+    
+    # M=25
     delta_true = np.array([p['delta'][k] for p in true_params_m0])
     delta_mean = np.array([s.loc[param_name, 'Mean'] for s in posterior_summaries_m0])
     delta_lower = np.array([s.loc[param_name, '5%'] for s in posterior_summaries_m0])
@@ -552,78 +570,92 @@ for k in range(K_minus_1):
         'coverage': np.mean((delta_true >= delta_lower) & (delta_true <= delta_upper)),
         'ci_width': np.mean(delta_upper - delta_lower)
     })
+    
+    # M=50
+    delta_true_m50 = np.array([p['delta'][k] for p in true_params_m0_m50])
+    delta_mean_m50 = np.array([s.loc[param_name, 'Mean'] for s in posterior_summaries_m0_m50])
+    delta_lower_m50 = np.array([s.loc[param_name, '5%'] for s in posterior_summaries_m0_m50])
+    delta_upper_m50 = np.array([s.loc[param_name, '95%'] for s in posterior_summaries_m0_m50])
+    
+    delta_stats_m0_m50.append({
+        'parameter': f'δ_{k+1}',
+        'rmse': np.sqrt(np.mean((delta_mean_m50 - delta_true_m50)**2)),
+        'coverage': np.mean((delta_true_m50 >= delta_lower_m50) & (delta_true_m50 <= delta_upper_m50)),
+        'ci_width': np.mean(delta_upper_m50 - delta_lower_m50)
+    })
+
+# Also compute alpha metrics for M=50 comparison
+alpha_true_m0_m50 = np.array([p['alpha'] for p in true_params_m0_m50])
+alpha_mean_m0_m50 = np.array([s.loc['alpha', 'Mean'] for s in posterior_summaries_m0_m50])
+alpha_lower_m0_m50 = np.array([s.loc['alpha', '5%'] for s in posterior_summaries_m0_m50])
+alpha_upper_m0_m50 = np.array([s.loc['alpha', '95%'] for s in posterior_summaries_m0_m50])
+alpha_rmse_m0_m50 = np.sqrt(np.mean((alpha_mean_m0_m50 - alpha_true_m0_m50)**2))
+alpha_coverage_m0_m50 = np.mean((alpha_true_m0_m50 >= alpha_lower_m0_m50) & (alpha_true_m0_m50 <= alpha_upper_m0_m50))
+alpha_ci_width_m0_m50 = np.mean(alpha_upper_m0_m50 - alpha_lower_m0_m50)
 ```
 
 ```{python}
 #| label: fig-model-comparison-bars
-#| fig-cap: "Direct comparison of δ recovery metrics between m_0 and m_1. The improvement in all three metrics confirms that risky choices solve the identification problem."
+#| fig-cap: "Comparison of δ recovery across three conditions: m_0 with M=25, m_0 with M=50, and m_1 with M=25 uncertain + N=25 risky. Doubling sample size (M=50) provides minimal improvement, while adding risky choices (m_1) dramatically improves recovery."
 
-fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+fig, axes = plt.subplots(1, 3, figsize=(16, 5))
 
 params = ['δ₁', 'δ₂']
 x = np.arange(len(params))
-width = 0.35
+width = 0.25
 
 # RMSE comparison
 ax = axes[0]
 rmse_m0 = [delta_stats_m0[k]['rmse'] for k in range(K_minus_1)]
+rmse_m0_m50 = [delta_stats_m0_m50[k]['rmse'] for k in range(K_minus_1)]
 rmse_m1 = [delta_stats_m1[k]['rmse'] for k in range(K_minus_1)]
 
-bars1 = ax.bar(x - width/2, rmse_m0, width, label='m_0 (uncertain only)', color='steelblue', alpha=0.7)
-bars2 = ax.bar(x + width/2, rmse_m1, width, label='m_1 (uncertain + risky)', color='forestgreen', alpha=0.7)
+bars1 = ax.bar(x - width, rmse_m0, width, label='m_0 (M=25)', color='steelblue', alpha=0.7)
+bars2 = ax.bar(x, rmse_m0_m50, width, label='m_0 (M=50)', color='coral', alpha=0.7)
+bars3 = ax.bar(x + width, rmse_m1, width, label='m_1 (M=25+N=25)', color='forestgreen', alpha=0.7)
 ax.set_xlabel('Parameter', fontsize=12)
 ax.set_ylabel('RMSE', fontsize=12)
-ax.set_title('δ RMSE by Model', fontsize=12)
+ax.set_title('δ RMSE by Model/Sample Size', fontsize=12)
 ax.set_xticks(x)
 ax.set_xticklabels(params)
-ax.legend()
+ax.legend(loc='upper right')
 ax.grid(True, alpha=0.3, axis='y')
-
-# Add improvement percentages
-for i, (m0_val, m1_val) in enumerate(zip(rmse_m0, rmse_m1)):
-    improvement = (m0_val - m1_val) / m0_val * 100
-    ax.annotate(f'-{improvement:.0f}%', xy=(i + width/2, m1_val), 
-                xytext=(0, 5), textcoords='offset points',
-                ha='center', fontsize=10, color='darkgreen')
 
 # Coverage comparison
 ax = axes[1]
 cov_m0 = [delta_stats_m0[k]['coverage'] for k in range(K_minus_1)]
+cov_m0_m50 = [delta_stats_m0_m50[k]['coverage'] for k in range(K_minus_1)]
 cov_m1 = [delta_stats_m1[k]['coverage'] for k in range(K_minus_1)]
 
-bars1 = ax.bar(x - width/2, cov_m0, width, label='m_0', color='steelblue', alpha=0.7)
-bars2 = ax.bar(x + width/2, cov_m1, width, label='m_1', color='forestgreen', alpha=0.7)
+bars1 = ax.bar(x - width, cov_m0, width, label='m_0 (M=25)', color='steelblue', alpha=0.7)
+bars2 = ax.bar(x, cov_m0_m50, width, label='m_0 (M=50)', color='coral', alpha=0.7)
+bars3 = ax.bar(x + width, cov_m1, width, label='m_1 (M=25+N=25)', color='forestgreen', alpha=0.7)
 ax.axhline(y=0.90, color='red', linestyle='--', linewidth=2, label='Target (90%)')
 ax.set_xlabel('Parameter', fontsize=12)
 ax.set_ylabel('Coverage', fontsize=12)
-ax.set_title('δ 90% CI Coverage by Model', fontsize=12)
+ax.set_title('δ 90% CI Coverage by Model/Sample Size', fontsize=12)
 ax.set_xticks(x)
 ax.set_xticklabels(params)
 ax.set_ylim(0, 1.05)
-ax.legend()
+ax.legend(loc='lower right')
 ax.grid(True, alpha=0.3, axis='y')
 
 # CI Width comparison
 ax = axes[2]
 ci_m0 = [delta_stats_m0[k]['ci_width'] for k in range(K_minus_1)]
+ci_m0_m50 = [delta_stats_m0_m50[k]['ci_width'] for k in range(K_minus_1)]
 ci_m1 = [delta_stats_m1[k]['ci_width'] for k in range(K_minus_1)]
 
-bars1 = ax.bar(x - width/2, ci_m0, width, label='m_0', color='steelblue', alpha=0.7)
-bars2 = ax.bar(x + width/2, ci_m1, width, label='m_1', color='forestgreen', alpha=0.7)
+bars1 = ax.bar(x - width, ci_m0, width, label='m_0 (M=25)', color='steelblue', alpha=0.7)
+bars2 = ax.bar(x, ci_m0_m50, width, label='m_0 (M=50)', color='coral', alpha=0.7)
+bars3 = ax.bar(x + width, ci_m1, width, label='m_1 (M=25+N=25)', color='forestgreen', alpha=0.7)
 ax.set_xlabel('Parameter', fontsize=12)
 ax.set_ylabel('CI Width', fontsize=12)
-ax.set_title('δ 90% CI Width by Model', fontsize=12)
+ax.set_title('δ 90% CI Width by Model/Sample Size', fontsize=12)
 ax.set_xticks(x)
 ax.set_xticklabels(params)
-ax.legend()
+ax.legend(loc='upper right')
 ax.grid(True, alpha=0.3, axis='y')
-
-# Add reduction percentages
-for i, (m0_val, m1_val) in enumerate(zip(ci_m0, ci_m1)):
-    reduction = (m0_val - m1_val) / m0_val * 100
-    ax.annotate(f'-{reduction:.0f}%', xy=(i + width/2, m1_val),
-                xytext=(0, 5), textcoords='offset points',
-                ha='center', fontsize=10, color='darkgreen')
 
 plt.tight_layout()
 plt.show()
@@ -633,107 +665,119 @@ plt.show()
 
 ```{python}
 #| label: tbl-model-comparison
-#| tbl-cap: "Parameter recovery comparison between m_0 and m_1. Adding risky choices dramatically improves δ recovery while maintaining good recovery for other parameters."
+#| tbl-cap: "Parameter recovery comparison across three conditions. Doubling sample size (M=50) shows minimal improvement for δ, while adding risky choices (m_1) dramatically improves recovery."
 
-# Build comparison table
+# Build comparison table with all three conditions
 comparison_rows = []
 
-# Alpha
+# Compute alpha metrics for m_0 M=25
+alpha_true_m0 = np.array([p['alpha'] for p in true_params_m0])
+alpha_mean_m0 = np.array([s.loc['alpha', 'Mean'] for s in posterior_summaries_m0])
+alpha_lower_m0 = np.array([s.loc['alpha', '5%'] for s in posterior_summaries_m0])
+alpha_upper_m0 = np.array([s.loc['alpha', '95%'] for s in posterior_summaries_m0])
+alpha_rmse_m0 = np.sqrt(np.mean((alpha_mean_m0 - alpha_true_m0)**2))
+alpha_coverage_m0 = np.mean((alpha_true_m0 >= alpha_lower_m0) & (alpha_true_m0 <= alpha_upper_m0))
+alpha_ci_width_m0 = np.mean(alpha_upper_m0 - alpha_lower_m0)
+
+# Alpha row
 comparison_rows.append({
     'Parameter': 'α',
-    'm_0 RMSE': f'{np.sqrt(np.mean((np.array([s.loc["alpha", "Mean"] for s in posterior_summaries_m0]) - np.array([p["alpha"] for p in true_params_m0]))**2)):.4f}',
+    'm_0 (M=25) RMSE': f'{alpha_rmse_m0:.4f}',
+    'm_0 (M=50) RMSE': f'{alpha_rmse_m0_m50:.4f}',
     'm_1 RMSE': f'{alpha_rmse_m1:.4f}',
-    'm_0 Coverage': f'{np.mean((np.array([p["alpha"] for p in true_params_m0]) >= np.array([s.loc["alpha", "5%"] for s in posterior_summaries_m0])) & (np.array([p["alpha"] for p in true_params_m0]) <= np.array([s.loc["alpha", "95%"] for s in posterior_summaries_m0]))):.0%}',
+    'm_0 (M=25) Coverage': f'{alpha_coverage_m0:.0%}',
+    'm_0 (M=50) Coverage': f'{alpha_coverage_m0_m50:.0%}',
     'm_1 Coverage': f'{alpha_coverage_m1:.0%}',
-    'm_0 CI Width': f'{np.mean(np.array([s.loc["alpha", "95%"] for s in posterior_summaries_m0]) - np.array([s.loc["alpha", "5%"] for s in posterior_summaries_m0])):.3f}',
-    'm_1 CI Width': f'{alpha_ci_width_m1:.3f}'
 })
 
-# Delta
+# Delta rows
 for k in range(K_minus_1):
     comparison_rows.append({
         'Parameter': f'δ_{k+1}',
-        'm_0 RMSE': f'{delta_stats_m0[k]["rmse"]:.4f}',
+        'm_0 (M=25) RMSE': f'{delta_stats_m0[k]["rmse"]:.4f}',
+        'm_0 (M=50) RMSE': f'{delta_stats_m0_m50[k]["rmse"]:.4f}',
         'm_1 RMSE': f'{delta_stats_m1[k]["rmse"]:.4f}',
-        'm_0 Coverage': f'{delta_stats_m0[k]["coverage"]:.0%}',
+        'm_0 (M=25) Coverage': f'{delta_stats_m0[k]["coverage"]:.0%}',
+        'm_0 (M=50) Coverage': f'{delta_stats_m0_m50[k]["coverage"]:.0%}',
         'm_1 Coverage': f'{delta_stats_m1[k]["coverage"]:.0%}',
-        'm_0 CI Width': f'{delta_stats_m0[k]["ci_width"]:.3f}',
-        'm_1 CI Width': f'{delta_stats_m1[k]["ci_width"]:.3f}'
     })
-
-# Beta (aggregated)
-beta_rmse_m0_vals = []
-beta_cov_m0_vals = []
-beta_ci_m0_vals = []
-for k in range(K):
-    for d in range(D):
-        param_name = f"beta[{k+1},{d+1}]"
-        beta_true = np.array([p['beta'][k][d] for p in true_params_m0])
-        beta_mean = np.array([s.loc[param_name, 'Mean'] for s in posterior_summaries_m0])
-        beta_lower = np.array([s.loc[param_name, '5%'] for s in posterior_summaries_m0])
-        beta_upper = np.array([s.loc[param_name, '95%'] for s in posterior_summaries_m0])
-        beta_rmse_m0_vals.append(np.sqrt(np.mean((beta_mean - beta_true)**2)))
-        beta_cov_m0_vals.append(np.mean((beta_true >= beta_lower) & (beta_true <= beta_upper)))
-        beta_ci_m0_vals.append(np.mean(beta_upper - beta_lower))
-
-comparison_rows.append({
-    'Parameter': 'β (mean)',
-    'm_0 RMSE': f'{np.mean(beta_rmse_m0_vals):.4f}',
-    'm_1 RMSE': f'{beta_df_m1["rmse"].mean():.4f}',
-    'm_0 Coverage': f'{np.mean(beta_cov_m0_vals):.0%}',
-    'm_1 Coverage': f'{beta_df_m1["coverage"].mean():.0%}',
-    'm_0 CI Width': f'{np.mean(beta_ci_m0_vals):.3f}',
-    'm_1 CI Width': f'{beta_df_m1["ci_width"].mean():.3f}'
-})
 
 comparison_df = pd.DataFrame(comparison_rows)
 print(comparison_df.to_string(index=False))
 ```
 
+```{python}
+#| label: tbl-ci-widths
+#| tbl-cap: "90% credible interval widths across conditions. The m_1 model achieves substantially narrower intervals for δ parameters."
+
+# Build CI width comparison table
+ci_rows = []
+
+ci_rows.append({
+    'Parameter': 'α',
+    'm_0 (M=25)': f'{alpha_ci_width_m0:.3f}',
+    'm_0 (M=50)': f'{alpha_ci_width_m0_m50:.3f}',
+    'm_1 (M=25+N=25)': f'{alpha_ci_width_m1:.3f}'
+})
+
+for k in range(K_minus_1):
+    ci_rows.append({
+        'Parameter': f'δ_{k+1}',
+        'm_0 (M=25)': f'{delta_stats_m0[k]["ci_width"]:.3f}',
+        'm_0 (M=50)': f'{delta_stats_m0_m50[k]["ci_width"]:.3f}',
+        'm_1 (M=25+N=25)': f'{delta_stats_m1[k]["ci_width"]:.3f}'
+    })
+
+ci_df = pd.DataFrame(ci_rows)
+print(ci_df.to_string(index=False))
+```
+
 ::: {.callout-tip}
-## Key Result: δ Identification Substantially Improved
+## Key Result: Risky Choices Improve δ Recovery
 
-The parameter recovery comparison confirms our theoretical analysis:
+The three-way comparison shows that adding risky choices helps with δ recovery:
 
-1. **RMSE dramatically reduced**: δ estimation error decreases substantially in m_1
-2. **Coverage calibrated**: 90% CIs now achieve near-target coverage
-3. **Uncertainty quantified**: CI widths reflect achievable precision, not lack of identification
+1. **Doubling sample size (M=50) shows modest improvement**: The m_0 model with M=50 does improve over M=25, suggesting δ is informed by uncertain choice data—just slowly
+2. **Adding risky choices (m_1) shows stronger improvement**: With the same 25 uncertain problems plus 25 risky problems, δ recovery improves more substantially on several metrics
+3. **Neither approach is perfect**: All conditions show some remaining uncertainty in δ estimates
 
-The difference between m_0 and m_1 is not just quantitative—it's qualitative. Model m_0's wide intervals reflected *lack of identification*, while m_1's narrower intervals reflect genuine *statistical uncertainty* given sufficient data.
+The comparison suggests that risky choices provide a more efficient route to constraining utility parameters than simply adding more uncertain choice problems. However, m_0 should not be written off—it does learn about utilities, just more slowly.
 
 **Important caveat**: The degree of improvement depends on experimental design—specifically, the diversity of lotteries presented. Lotteries should span the consequence space to effectively constrain the utility function.
 :::
 
-### Why This Works
+### Why This Helps
 
-The key to understanding this improvement is the role of risky choices in the likelihood:
+The improvement from adding risky choices can be understood through the likelihood structure:
 
 **In m_0** (uncertain choices only):
 $$
 \log p(y | \theta) = \sum_{m=1}^M \log \chi_{m, y_m} \quad \text{where} \quad \chi \propto \exp(\alpha \cdot \boldsymbol{\psi}^\top \boldsymbol{\upsilon})
 $$
 
-Here, ψ (from β) and υ (from δ) only appear as a product—they cannot be separated.
+Here, ψ (from β) and υ (from δ) appear together in expected utilities. While not completely confounded, information about δ must be extracted indirectly.
 
 **In m_1** (uncertain + risky choices):
 $$
-\log p(y, z | \theta) = \underbrace{\sum_{m=1}^M \log \chi^{(u)}_{m, y_m}}_{\text{Identifies } \alpha, \beta \text{ (given } \delta\text{)}} + \underbrace{\sum_{n=1}^N \log \chi^{(r)}_{n, z_n}}_{\text{Identifies } \delta \text{ directly}}
+\log p(y, z | \theta) = \underbrace{\sum_{m=1}^M \log \chi^{(u)}_{m, y_m}}_{\text{Informs } \alpha, \beta, \delta} + \underbrace{\sum_{n=1}^N \log \chi^{(r)}_{n, z_n}}_{\text{More directly informs } \delta}
 $$
 
-The risky choice likelihood depends on δ through υ = cumsum(δ), but **not** on β. This breaks the confounding and allows each parameter to be identified from the appropriate data source.
+The risky choice likelihood depends on δ through υ = cumsum(δ), but **not** on β. This provides a more direct channel for learning about utilities, supplementing the indirect information from uncertain choices.
 
 ## Summary
 
 The extension from m_0 to m_1 follows a principled path grounded in decision theory:
 
-1. **The identification problem** (Report 4): Uncertain choices alone cannot separate utilities from beliefs
-2. **The historical solution**: Anscombe-Aumann's insight that combining risk and uncertainty enables identification
+1. **Differential recovery in m_0** (Report 4): Utility parameters show wider uncertainty than sensitivity parameters, though they do respond to data
+2. **The historical insight**: Anscombe-Aumann recognized that combining risk and uncertainty provides complementary information about preferences
 3. **The implementation**: Model m_1 adds risky choice problems with known probabilities
-4. **The result**: δ parameters become identifiable from risky choices, while β remains identified from uncertain choices
+4. **The result**: δ recovery improves, with risky choices providing a more direct route to constraining utilities
 
 ::: {.callout-tip}
 ## Key Insight
-By incorporating risky choices alongside uncertain choices, model m_1 achieves what m_0 could not: full identification of all model parameters. This is not a statistical trick but reflects the fundamental structure of expected utility theory—we need different types of evidence to pin down different aspects of preferences.
+Adding risky choices provides a more efficient way to learn about utility parameters than simply increasing the number of uncertain choice problems. This reflects the Anscombe-Aumann insight that different types of choice data provide complementary information about preferences.
+
+However, this should not be interpreted as m_0 being fundamentally broken—it does learn about utilities, just more slowly. The choice between models depends on practical considerations: the feasibility of including risky choice tasks, the importance of precise utility estimation for the research question, and the available sample size.
 :::
 
 ## References

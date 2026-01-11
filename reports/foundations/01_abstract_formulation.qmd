@@ -163,7 +163,7 @@ $$
 
 with equality only when $P(r) = 1$ for some $r \in \mathcal{R}^*$ (which occurs only as $\alpha \to \infty$).
 
-For any finite $\alpha$, we have $\mathbb{E}[V] < V^*$, so:
+For any finite $\alpha$, all alternatives receive positive probability under the softmax rule (since $\exp(x) > 0$ for all real $x$), ensuring that both optimal and suboptimal alternatives contribute to the expectation. Hence $\mathbb{E}[V] < V^*$ strictly, so:
 $$
 \frac{\partial P(r)}{\partial \alpha} = P(r) \cdot [V^* - \mathbb{E}[V]] > 0 \quad \blacksquare
 $$
@@ -564,13 +564,13 @@ $$
 
 ::: {.callout-note appearance="minimal"}
 ## Theorem 6 (Linear Convergence to Uniformity)
-For any alternative $r \in \mathcal{R}$:
+For any alternative $r \in \mathcal{R}$, let $\bar{V} = \frac{1}{|\mathcal{R}|}\sum_j V(j)$ denote the arithmetic mean of values. Then:
 
 $$
 P(r \mid \alpha, V) = \frac{1}{|\mathcal{R}|} + \alpha \cdot \left[V(r) - \bar{V}\right] \cdot \frac{1}{|\mathcal{R}|} + O(\alpha^2)
 $$
 
-where $\bar{V} = \frac{1}{|\mathcal{R}|}\sum_j V(j)$ is the mean value. Convergence to uniformity is first-order (linear) in $\alpha$.
+Convergence to uniformity is first-order (linear) in $\alpha$.
 :::
 
 ::: {.callout-tip collapse="true"}
@@ -625,7 +625,7 @@ This is not a model of rational agents in the classical sense. SEU maximization�
 
 ### What the Model Is Not
 
-**Not a cognitive process model.** We make no claim about how decision makers actually deliberate. The model is silent on whether agents compute probabilities, form expectations, or engage in any particular mental procedure. It specifies a distribution over choices, not a mechanism that generates them.
+**Not a cognitive process model.** We make no claim about how decision makers actually deliberate. The model is silent on whether agents compute probabilities, form expectations, or engage in any particular mental procedure. It specifies a distribution over choices, not a mechanism that generates them. Our concern is to investigate the extent to which a decision maker's behavior can be captured by viewing that behavior *as-if* it came from a decision maker who is committed to subjective expected utility maximization but has limited sensitivity to its implications.
 
 **Not bounded rationality.** Bounded rationality programs, in their various formulations [@simon1955; @gigerenzer1996], typically propose alternative decision procedures—heuristics, satisficing rules, or fast-and-frugal strategies—that agents use in place of optimization. Our model posits no such alternative procedures. Nor do we invoke notions of ecological rationality or fit between heuristics and environmental structure. The model simply describes a stochastic relationship between SEU values and choice probabilities.
 
@@ -635,17 +635,13 @@ A useful conceptual lens comes from Isaac Levi's distinction between **commitmen
 
 If we take SEU theory as specifying the decision maker's normative commitments, then $\alpha$ measures their **tendency to perform in accordance with those commitments**. This framing preserves SEU as normatively fundamental while allowing systematic departures in observed behavior.
 
-However, our framework differs from Levi's in important ways. Levi was not an "orthodox Bayesian"—he made important contributions to theories of indeterminate probability and to decision theories that relax the complete ordering assumption of SEU [@levi1980]. He also suggested that the commitment-performance gap could be reduced through tools (e.g., calculators reduce arithmetic errors).
+Our framework differs from Levi's in important ways:
 
-In our framework, by contrast, there is a residual stochasticity that persists even as $\alpha \to \infty$. The softmax rule assigns positive probability to all alternatives for any finite $\alpha$, and even in the limit, the model describes a *distribution* over choices anchored at log-odds of zero. Observable departures from SEU maximization can occur even for decision makers with arbitrarily high sensitivity. This places a constraint on how far the commitment-performance gap can be closed that Levi's framework does not obviously share. We borrow his conceptual vocabulary while operating in a rather different modeling tradition.
+- **Decision maker's vs. observer's perspective.** Levi's framework is primarily concerned with the decision maker's own deliberative standards—what an agent should believe and prefer from the first-person standpoint. Our framework, by contrast, adopts the observer's perspective: we model choice behavior as it appears to an external analyst who observes decisions and infers parameters.
 
-### The "As-If" Character of the Model
+- **Probabilistic vs. algebraic theories.** Following Luce's [@luce1959] distinction, our framework is a *probabilistic* theory of choice—it specifies a probability distribution over choices given the decision problem. Levi's framework is more aligned with *algebraic* theories that characterize rational choice through axioms on preference orderings rather than stochastic choice rules.
 
-We emphasize the model's status as an **as-if** description of choice behavior. The generative process specified—computing expected utilities, then selecting via softmax—need not correspond to any actual cognitive procedure. What matters is that the *distribution over choices* implied by the model matches empirical choice frequencies.
-
-This as-if stance permits agnosticism about cognitive mechanisms while enabling precise quantitative predictions. The sensitivity parameter $\alpha$ is estimated from choice data, not introspected or measured via reaction times.
-
-However, we do not take a purely instrumentalist stance focused only on prediction. The goal of our framework is interpretation: by fitting the model and recovering a posterior distribution over $\alpha$, we aim to characterize the decision maker's sensitivity to SEU differences in a theoretically meaningful way.
+- **SEU as the normative standard.** Levi famously rejected subjective expected utility theory as the standard of rational choice, instead advocating for generalizations that accommodate indeterminate probabilities and utilities [@levi1980]. Our framework, by contrast, takes SEU maximization as the normative standard and models departures from it through the sensitivity parameter $\alpha$.
 
 ## Summary
 

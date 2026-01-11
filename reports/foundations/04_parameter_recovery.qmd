@@ -35,7 +35,7 @@ np.random.seed(42)
 
 ## Introduction
 
-Having examined the prior predictive distribution ([Report 3](03_prior_analysis.qmd)), we now ask: **can we recover the true parameters when we know them?** This is the fundamental question of parameter recovery analysis.
+Having examined the prior predictive distribution ([Report 3](03_prior_analysis.qmd)), we now ask: **can we recover the true parameters when we simulate data from our model with known parameters?** This is the fundamental question of parameter recovery analysis.
 
 Parameter recovery is a critical validation step for any Bayesian model:
 
@@ -46,7 +46,7 @@ Parameter recovery is a critical validation step for any Bayesian model:
 
 ::: {.callout-warning}
 ## Preview: A Key Finding
-This report reveals an asymmetry in parameter recovery: while α and β are well-identified, the utility increments δ show persistently wide credible intervals that do not narrow with more data. This is not a statistical limitation but a **structural identification problem**—one that will motivate the extension to model m_1 in [Report 5](05_adding_risky_choices.qmd).
+This report reveals an asymmetry in parameter recovery: while α (sensitivity) is well-identified, the pair (β, δ) that determines the expected utility function shows weaker identification—posteriors concentrate more slowly relative to α. As shown formally in [Report 5](05_adding_risky_choices.qmd), this reflects a **structural identification challenge** where β and δ interact multiplicatively in the expected utility, causing uncertainty in one to propagate to the other. Importantly, this does not prevent good recovery of α, which remains our primary parameter of interest.
 :::
 
 ::: {.callout-note}
@@ -150,7 +150,7 @@ recovery = ParameterRecovery(
     output_dir=output_dir,
     n_mcmc_samples=1000,        # Samples per chain
     n_mcmc_chains=4,            # Number of chains
-    n_iterations=20             # Number of simulation-recovery iterations
+    n_iterations=50             # Number of simulation-recovery iterations
 )
 
 # Run the analysis
@@ -486,89 +486,6 @@ display_df['CI Width'] = display_df['CI Width'].apply(lambda x: f'{x:.3f}')
 print(display_df.to_string(index=False))
 ```
 
-## Diagnostics
-
-### Recovery by True Parameter Value
-
-An important diagnostic is whether recovery quality depends on the true parameter value. Poor recovery in certain regions might indicate practical identifiability issues.
-
-```{python}
-#| label: fig-alpha-by-true-value
-#| fig-cap: "α recovery diagnostics by true parameter value. Left: Absolute error vs. true value. Right: CI width vs. true value."
-
-fig, axes = plt.subplots(1, 2, figsize=(12, 5))
-
-# Absolute error vs true value
-ax = axes[0]
-abs_error = np.abs(alpha_mean - alpha_true)
-ax.scatter(alpha_true, abs_error, alpha=0.7, s=60, c='steelblue')
-ax.set_xlabel('True α', fontsize=12)
-ax.set_ylabel('Absolute Error', fontsize=12)
-ax.set_title('α: Estimation Error vs. True Value', fontsize=12)
-ax.axhline(y=alpha_rmse, color='red', linestyle='--', label=f'RMSE = {alpha_rmse:.3f}')
-ax.legend()
-ax.grid(True, alpha=0.3)
-
-# CI width vs true value
-ax = axes[1]
-ci_widths = alpha_upper - alpha_lower
-ax.scatter(alpha_true, ci_widths, alpha=0.7, s=60, c='steelblue')
-ax.set_xlabel('True α', fontsize=12)
-ax.set_ylabel('90% CI Width', fontsize=12)
-ax.set_title('α: Uncertainty vs. True Value', fontsize=12)
-ax.axhline(y=alpha_ci_width, color='red', linestyle='--', label=f'Mean = {alpha_ci_width:.3f}')
-ax.legend()
-ax.grid(True, alpha=0.3)
-
-plt.tight_layout()
-plt.show()
-```
-
-### Correlation Structure
-
-```{python}
-#| label: fig-posterior-correlations
-#| fig-cap: "Example posterior correlations from one recovery iteration. High correlations between parameters can indicate identification challenges."
-
-# Get posterior samples from first iteration
-# We need to reload to get full posterior samples
-from cmdstanpy import CmdStanModel
-
-# For this visualization, we'll compute correlations from the summary statistics
-# showing the relationship between different parameter estimates across iterations
-
-fig, axes = plt.subplots(1, 2, figsize=(12, 5))
-
-# Alpha vs mean beta
-ax = axes[0]
-mean_beta_per_iter = [np.mean([s.loc[f'beta[{k+1},{d+1}]', 'Mean'] 
-                               for k in range(K) for d in range(D)]) 
-                      for s in posterior_summaries]
-ax.scatter(alpha_mean, mean_beta_per_iter, alpha=0.7, s=60, c='steelblue')
-ax.set_xlabel('Estimated α', fontsize=12)
-ax.set_ylabel('Mean Estimated β', fontsize=12)
-ax.set_title('α vs. β Estimates Across Iterations', fontsize=12)
-corr_ab = np.corrcoef(alpha_mean, mean_beta_per_iter)[0, 1]
-ax.text(0.05, 0.95, f'r = {corr_ab:.3f}', transform=ax.transAxes, fontsize=11,
-        verticalalignment='top', bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
-ax.grid(True, alpha=0.3)
-
-# Alpha vs delta
-ax = axes[1]
-delta_1_mean = [s.loc['delta[1]', 'Mean'] for s in posterior_summaries]
-ax.scatter(alpha_mean, delta_1_mean, alpha=0.7, s=60, c='forestgreen')
-ax.set_xlabel('Estimated α', fontsize=12)
-ax.set_ylabel('Estimated δ₁', fontsize=12)
-ax.set_title('α vs. δ₁ Estimates Across Iterations', fontsize=12)
-corr_ad = np.corrcoef(alpha_mean, delta_1_mean)[0, 1]
-ax.text(0.05, 0.95, f'r = {corr_ad:.3f}', transform=ax.transAxes, fontsize=11,
-        verticalalignment='top', bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
-ax.grid(True, alpha=0.3)
-
-plt.tight_layout()
-plt.show()
-```
-
 ## Discussion
 
 ### Differential Recovery Across Parameters {#sec-utility-identification}
@@ -578,31 +495,31 @@ plt.show()
 The results above reveal an asymmetry in parameter recovery:
 
 - **α (sensitivity)** is recovered well, with posterior means clustering tightly around true values
-- **β (feature weights)** shows good recovery, with high correlation between true and estimated values  
-- **δ (utility increments)** shows weaker recovery, with wider credible intervals and lower precision
+- **β (feature weights)** and **δ (utility increments)** show weaker recovery, with wider credible intervals and lower precision compared to α
 
-This pattern suggests that the utility parameters are harder to learn from decisions under uncertainty, though they do respond to the data.
+This pattern reflects the identification structure analyzed formally in [Report 5](05_adding_risky_choices.qmd): while α is globally identified, β and δ are only **weakly identified** through their composite mapping to expected utilities. Since expected utility depends on the product of subjective probabilities (from β) and utilities (from δ), uncertainty in one parameter propagates to the other. The posteriors do concentrate relative to the prior—the data is informative—but at a slower rate than for α.
+
+**Importantly for applications focused on estimating sensitivity (α):** The weaker identification of β and δ does not substantially impair α recovery. As the figures above show, α is well-recovered even when β and δ remain uncertain. If the primary research question concerns sensitivity to expected utility differences rather than the decomposition of expected utility into beliefs and values, the identification challenges for (β, δ) may be of secondary concern.
 :::
 
-To understand why δ is harder to recover, consider the structure of the model. In decisions under uncertainty, choices depend on **expected utilities**:
+To understand why β and δ are harder to recover than α, consider the structure of the model. In decisions under uncertainty, choices depend on **expected utilities**:
 
 $$
 \eta_r = \sum_{k=1}^K \psi_{rk} \upsilon_k
 $$
 
-where $\boldsymbol{\psi}_r$ are subjective probabilities (determined by β) and $\boldsymbol{\upsilon}$ are utilities (determined by δ). The key insight is that we only observe *rankings* of expected utilities through choices—not the utilities themselves.
+where $\boldsymbol{\psi}_r$ are subjective probabilities (determined by β) and $\boldsymbol{\upsilon}$ are utilities (determined by δ). The key insight is that we only observe *rankings* of expected utilities through choices—not the utilities themselves, and not the separate contributions of beliefs and values.
 
-Different utility vectors can produce similar expected utility rankings when combined with appropriately adjusted subjective probabilities. This makes δ harder to pin down precisely:
+This creates a multiplicative coupling between β and δ: different (β, δ) pairs can produce similar expected utility functions, making both parameters harder to pin down precisely:
 
-- β and α affect how *sensitively* choices respond to expected utility differences
-- δ affects the *scale* of those differences
-- The data provides weaker constraints on δ than on the other parameters
+- **α** directly governs how *sensitively* choices respond to expected utility differences—it is well-identified because choice probabilities depend monotonically on α for any fixed expected utility difference
+- **β and δ** jointly determine expected utilities through their product; uncertainty in one propagates to the other
 
-Note that this does not mean δ is completely uninformed by the data—the posteriors do concentrate relative to the prior—but the information accumulates more slowly than for α and β.
+Note that this does not mean β and δ are completely uninformed by the data—the posteriors do concentrate relative to the prior, as the figures above show—but information accumulates more slowly than for α.
 
 ### Does Increasing Sample Size Help?
 
-A natural question is whether the weaker δ recovery is simply a matter of insufficient data. The study design with M=25 decision problems might not provide enough information. Let's test this by doubling the sample size to M=50.
+A natural question is whether the weaker (β, δ) recovery is simply a matter of insufficient data. The study design with M=25 decision problems might not provide enough information. Let's test this by doubling the sample size to M=50.
 
 To ensure a valid comparison, we use the `extend()` method to create the larger design from the original M=25 design. This keeps the same alternatives (features) and original problems, adding 25 new problems that use those same alternatives. Any differences in recovery can then be attributed to sample size rather than different feature configurations.
 
@@ -635,7 +552,7 @@ recovery_m50 = ParameterRecovery(
     output_dir=output_dir_m50,
     n_mcmc_samples=1000,
     n_mcmc_chains=4,
-    n_iterations=20
+    n_iterations=50
 )
 
 true_params_m50, posterior_summaries_m50 = recovery_m50.run()
@@ -678,7 +595,7 @@ delta_df_m50 = pd.DataFrame(delta_stats_m50)
 
 ```{python}
 #| label: fig-sample-size-comparison
-#| fig-cap: "Comparison of parameter recovery between M=25 and M=50. Doubling the number of decision problems improves α recovery but has minimal effect on δ recovery."
+#| fig-cap: "Comparison of parameter recovery between M=25 and M=50. Doubling the number of decision problems improves α recovery but has a more modest effect on (β, δ) recovery."
 
 fig, axes = plt.subplots(1, 3, figsize=(15, 5))
 
@@ -810,7 +727,7 @@ recovery_m50_new_alts = ParameterRecovery(
     output_dir=output_dir_m50_new_alts,
     n_mcmc_samples=1000,
     n_mcmc_chains=4,
-    n_iterations=20
+    n_iterations=50
 )
 
 true_params_m50_new_alts, posterior_summaries_m50_new_alts = recovery_m50_new_alts.run()
@@ -852,7 +769,7 @@ delta_df_m50_new = pd.DataFrame(delta_stats_m50_new)
 
 ```{python}
 #| label: fig-three-way-comparison
-#| fig-cap: "Three-way comparison of δ recovery: M=25 (base), M=50 (same alternatives), and M=50 (new alternatives). Adding new alternatives may provide different information than simply adding more problems over existing alternatives."
+#| fig-cap: "Three-way comparison of (β, δ) recovery: M=25 (base), M=50 (same alternatives), and M=50 (new alternatives). Adding new alternatives may provide different information than simply adding more problems over existing alternatives."
 
 fig, axes = plt.subplots(1, 3, figsize=(16, 5))
 
@@ -921,56 +838,60 @@ plt.show()
 #| label: tbl-three-way-comparison
 #| echo: false
 
-# Create three-way comparison table
+# Create three-way comparison table with better formatting
+from tabulate import tabulate
+
 three_way_data = []
 
 # Alpha
-three_way_data.append({
-    'Parameter': 'α',
-    'M=25 RMSE': f'{alpha_rmse:.4f}',
-    'M=50 (same) RMSE': f'{alpha_rmse_m50:.4f}',
-    'M=50 (new) RMSE': f'{alpha_rmse_m50_new:.4f}',
-    'M=25 CI': f'{alpha_ci_width:.3f}',
-    'M=50 (same) CI': f'{alpha_ci_width_m50:.3f}',
-    'M=50 (new) CI': f'{alpha_ci_width_m50_new:.3f}'
-})
+three_way_data.append([
+    'α',
+    f'{alpha_rmse:.4f}',
+    f'{alpha_rmse_m50:.4f}',
+    f'{alpha_rmse_m50_new:.4f}',
+    f'{alpha_ci_width:.3f}',
+    f'{alpha_ci_width_m50:.3f}',
+    f'{alpha_ci_width_m50_new:.3f}'
+])
 
 # Delta
 for i in range(K_minus_1):
-    three_way_data.append({
-        'Parameter': f'δ_{i+1}',
-        'M=25 RMSE': f'{delta_df.iloc[i]["rmse"]:.4f}',
-        'M=50 (same) RMSE': f'{delta_df_m50.iloc[i]["rmse"]:.4f}',
-        'M=50 (new) RMSE': f'{delta_stats_m50_new[i]["rmse"]:.4f}',
-        'M=25 CI': f'{delta_df.iloc[i]["ci_width"]:.3f}',
-        'M=50 (same) CI': f'{delta_df_m50.iloc[i]["ci_width"]:.3f}',
-        'M=50 (new) CI': f'{delta_stats_m50_new[i]["ci_width"]:.3f}'
-    })
+    three_way_data.append([
+        f'δ_{i+1}',
+        f'{delta_df.iloc[i]["rmse"]:.4f}',
+        f'{delta_df_m50.iloc[i]["rmse"]:.4f}',
+        f'{delta_stats_m50_new[i]["rmse"]:.4f}',
+        f'{delta_df.iloc[i]["ci_width"]:.3f}',
+        f'{delta_df_m50.iloc[i]["ci_width"]:.3f}',
+        f'{delta_stats_m50_new[i]["ci_width"]:.3f}'
+    ])
 
-three_way_df = pd.DataFrame(three_way_data)
+headers = ['Param', 'RMSE\nM=25', 'RMSE\nM=50 (same)', 'RMSE\nM=50 (new)', 
+           'CI Width\nM=25', 'CI Width\nM=50 (same)', 'CI Width\nM=50 (new)']
+
 print("Three-Way Extension Comparison:")
-print(three_way_df.to_string(index=False))
+print(tabulate(three_way_data, headers=headers, tablefmt='simple', stralign='right'))
 ```
 
 ### Interpretation: Sample Size and Alternative Effects
 
-The three-way comparison reveals important patterns about what helps δ recovery:
+The three-way comparison reveals important patterns about what helps (β, δ) recovery:
 
 ::: {.callout-note}
 ## Extension Type Matters
 
 Comparing the three conditions:
 
-1. **M=25 (base)**: Baseline recovery with modest δ precision
+1. **M=25 (base)**: Baseline recovery with modest (β, δ) precision
 2. **M=50 (same alternatives)**: Adding 25 problems over the same R=15 alternatives
 3. **M=50 (new alternatives)**: Adding 25 problems using 15 **new** alternatives (R increases to 30)
 
 Key findings:
 - **α recovery** improves with more data regardless of extension type
-- **δ recovery** may benefit differently from new alternatives vs. more problems over existing alternatives
+- **(β, δ) recovery** may benefit differently from new alternatives vs. more problems over existing alternatives
 - Adding new feature vectors expands the feature space, potentially providing different information about how features map to subjective probabilities
 
-The comparison between conditions 2 and 3 is particularly important for understanding what helps δ recovery. If new alternatives (condition 3) outperform same alternatives (condition 2), it suggests that expanding the feature space provides qualitatively different information.
+The comparison between conditions 2 and 3 is particularly important for understanding what helps (β, δ) recovery. If new alternatives (condition 3) outperform same alternatives (condition 2), it suggests that expanding the feature space provides qualitatively different information.
 :::
 
 This three-way comparison sets up a crucial comparison for [Report 5](05_adding_risky_choices.qmd), where we add risky alternatives (lotteries with known probabilities) instead of additional uncertain alternatives. By comparing:
@@ -980,7 +901,7 @@ This three-way comparison sets up a crucial comparison for [Report 5](05_adding_
 
 ...we can isolate whether improvements come from the *type* of data (risk vs. uncertainty) or simply from adding more diverse choice problems.
 
-The asymmetry in learning rates for δ likely reflects the model structure: in decisions under uncertainty, utilities and subjective probabilities enter the likelihood through their product (expected utilities). This creates a partial confounding that makes δ harder to pin down than parameters like α that more directly govern choice sensitivity.
+The asymmetry in learning rates for (β, δ) versus α reflects the model structure: in decisions under uncertainty, utilities and subjective probabilities enter the likelihood through their product (expected utilities). This creates a multiplicative coupling that makes (β, δ) harder to pin down than α, which more directly governs choice sensitivity.
 
 ### Study Design Parameters in m_0
 
@@ -999,7 +920,7 @@ We might consider varying other parameters:
 - **Increasing R** (more alternatives): Provides more information about β, and may indirectly help δ through better-constrained expected utilities
 - **Increasing D** (more features): Similar to increasing R—primarily helps with β
 
-The effectiveness of these changes for δ recovery is an empirical question worth exploring in future work.
+The effectiveness of these changes for (β, δ) recovery is an empirical question worth exploring in future work.
 
 ### An Alternative Approach: Adding Risky Choice Data
 
@@ -1015,22 +936,27 @@ Model m_1 extends m_0 by adding N risky choice problems where:
 - The same utility function υ (and hence δ) governs both choice types
 - Risky choices provide more direct information about utility structure
 
-This provides an alternative route to improving δ recovery that may be more efficient than simply increasing M. See [Report 5](05_adding_risky_choices.qmd) for the full development and comparison.
+This provides an alternative route to improving (β, δ) recovery that may be more efficient than simply increasing M. See [Report 5](05_adding_risky_choices.qmd) for the full development and comparison.
 :::
 
 ## Conclusion
 
 Parameter recovery analysis for model m_0 reveals differential recovery across parameters:
 
-1. **Well-recovered parameters**: α (sensitivity) and β (feature weights) can be recovered with good precision
-2. **Slower-learning parameters**: δ (utility increments) shows wider uncertainty, though it does respond to data
-3. **Sample size helps, but differentially**: Doubling M improves α more than δ
+1. **Well-recovered parameter**: α (sensitivity) can be recovered with good precision
+2. **Slower-learning parameters**: β (feature weights) and δ (utility increments) show wider uncertainty, though they do respond to data—posteriors concentrate relative to priors, but more slowly than for α
+3. **Sample size helps, but differentially**: Doubling M improves α recovery more than (β, δ) recovery
 
-This pattern reflects the structure of the SEU model: utilities and subjective probabilities enter the likelihood through their product (expected utilities), making them harder to separate than parameters like α that more directly govern choice behavior.
+This pattern reflects the identification structure of the SEU model analyzed formally in [Report 5](05_adding_risky_choices.qmd): while α is globally identified, β and δ interact multiplicatively in the expected utility, causing uncertainty in one to propagate to the other.
 
-**Two paths forward**:
+**Implications for applications:**
 
-1. **More data**: Larger M (and perhaps R) may eventually yield precise δ estimates, though the rate of improvement appears slower than for other parameters
-2. **Different data**: Adding risky choices (model m_1) provides a complementary data source that may help constrain utilities more directly
+- If the primary research question concerns sensitivity (α)—how strongly choices respond to expected utility differences—model m_0 performs well even with modest sample sizes
+- If precise decomposition of expected utility into beliefs (β) and values (δ) is needed, either larger samples or the addition of risky choice data (model m_1) will be required
+
+**Two paths forward** for improving (β, δ) recovery:
+
+1. **More data**: Larger M (and perhaps R) may eventually yield precise (β, δ) estimates, though the rate of improvement is slower than for α
+2. **Different data**: Adding risky choices (model m_1) provides a complementary data source where probabilities are known, breaking the multiplicative coupling and constraining utilities more directly
 
 The choice between these approaches—or their combination—depends on practical considerations like study feasibility and the relative importance of precise utility estimation for the research question at hand.

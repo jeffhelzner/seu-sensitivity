@@ -357,32 +357,6 @@ For $K=3$ consequences, this means:
 - The middle utility $\upsilon_2$ has prior mean 0.5 and prior standard deviation $\approx 0.29$
 - The utilities are uniformly distributed subject to the ordering constraint
 
-```{python}
-#| label: fig-delta-prior
-#| fig-cap: "Prior distribution of the middle utility υ₂ under Dirichlet(1,1). The distribution is symmetric around 0.5 with substantial spread."
-
-np.random.seed(123)
-
-# Sample from Dirichlet(1,1) prior
-n_samples = 10000
-deltas = np.random.dirichlet([1, 1], size=n_samples)
-upsilon_2 = deltas[:, 0]  # Middle utility = first increment
-
-fig, ax = plt.subplots(figsize=(8, 4))
-ax.hist(upsilon_2, bins=50, density=True, alpha=0.7, color='steelblue', edgecolor='white')
-ax.axvline(x=0.5, color='red', linestyle='--', linewidth=2, label=f'Mean = {upsilon_2.mean():.3f}')
-ax.axvline(x=upsilon_2.mean() - upsilon_2.std(), color='orange', linestyle=':', linewidth=2)
-ax.axvline(x=upsilon_2.mean() + upsilon_2.std(), color='orange', linestyle=':', linewidth=2, 
-           label=f'±1 SD (SD = {upsilon_2.std():.3f})')
-ax.set_xlabel('Middle Utility υ₂')
-ax.set_ylabel('Density')
-ax.set_title('Prior Distribution of υ₂ under Dirichlet(1,1)')
-ax.legend()
-ax.set_xlim(0, 1)
-plt.tight_layout()
-plt.show()
-```
-
 ::: {.callout-note}
 ## On the Choice of Utility Prior
 The uniform Dirichlet prior is relatively uninformative—it expresses no preference for how utilities should be spaced. In some applications, a more informative prior might be appropriate:
@@ -467,43 +441,7 @@ model {
 
 ### Prior on $\alpha$: Lognormal(0, 1)
 
-The lognormal prior ensures $\alpha > 0$ and places substantial mass on moderate sensitivity values:
-
-```{python}
-#| label: fig-alpha-prior
-#| fig-cap: "Prior distribution of α under Lognormal(0, 1). The distribution has median 1, with long right tail allowing for high sensitivity."
-
-np.random.seed(456)
-
-alpha_samples = np.random.lognormal(0, 1, size=10000)
-
-fig, ax = plt.subplots(figsize=(8, 4))
-
-# Truncate for visualization
-alpha_plot = alpha_samples[alpha_samples < 15]
-ax.hist(alpha_plot, bins=50, density=True, alpha=0.7, color='steelblue', edgecolor='white')
-
-# Add quantile lines
-quantiles = [0.25, 0.5, 0.75, 0.95]
-for q in quantiles:
-    val = np.quantile(alpha_samples, q)
-    ax.axvline(x=val, color='red' if q == 0.5 else 'orange', 
-               linestyle='--' if q == 0.5 else ':', linewidth=2)
-
-ax.set_xlabel('Sensitivity (α)')
-ax.set_ylabel('Density')
-ax.set_title('Prior Distribution of α ~ Lognormal(0, 1)')
-
-# Add legend with quantile values
-legend_text = '\n'.join([f'{int(q*100)}%: α = {np.quantile(alpha_samples, q):.2f}' for q in quantiles])
-ax.text(0.95, 0.95, legend_text, transform=ax.transAxes, fontsize=10,
-        verticalalignment='top', horizontalalignment='right',
-        bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
-
-ax.set_xlim(0, 15)
-plt.tight_layout()
-plt.show()
-```
+The lognormal prior ensures $\alpha > 0$ and places substantial mass on moderate sensitivity values.
 
 Key properties of Lognormal(0, 1):
 

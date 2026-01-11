@@ -392,7 +392,7 @@ recovery_m1 = ParameterRecovery(
     output_dir=output_dir_m1,
     n_mcmc_samples=1000,
     n_mcmc_chains=4,
-    n_iterations=20
+    n_iterations=50
 )
 
 true_params_m1, posterior_summaries_m1 = recovery_m1.run()
@@ -532,7 +532,7 @@ recovery_m0_compare = ParameterRecovery(
     output_dir=output_dir_m0,
     n_mcmc_samples=1000,
     n_mcmc_chains=4,
-    n_iterations=20
+    n_iterations=50
 )
 true_params_m0, posterior_summaries_m0 = recovery_m0_compare.run()
 
@@ -548,7 +548,7 @@ recovery_m0_m50 = ParameterRecovery(
     output_dir=output_dir_m0_m50,
     n_mcmc_samples=1000,
     n_mcmc_chains=4,
-    n_iterations=20
+    n_iterations=50
 )
 true_params_m0_m50, posterior_summaries_m0_m50 = recovery_m0_m50.run()
 
@@ -569,7 +569,7 @@ recovery_m0_m50_new = ParameterRecovery(
     output_dir=output_dir_m0_m50_new,
     n_mcmc_samples=1000,
     n_mcmc_chains=4,
-    n_iterations=20
+    n_iterations=50
 )
 true_params_m0_m50_new, posterior_summaries_m0_m50_new = recovery_m0_m50_new.run()
 
@@ -837,5 +837,207 @@ If m_1 outperforms the expanded m_0, it validates the Anscombe-Aumann insight: r
 
 The choice between approaches depends on practical considerations: the feasibility of including risky choice tasks, the importance of precise utility estimation, and whether the research question requires separating utilities from beliefs.
 :::
+
+## Formal Identification Analysis
+
+The empirical results above demonstrate that m_1 achieves better parameter recovery than m_0, particularly for the utility parameters δ. In this section, we provide a formal analysis of why this occurs by establishing identification results for both models.
+
+### Notation and Setup
+
+Let the full parameter vector be $\theta = (\alpha, \beta, \delta)$ where:
+
+- $\alpha > 0$ is the sensitivity parameter
+- $\beta \in \mathbb{R}^{K \times D}$ is the feature-to-probability mapping matrix
+- $\delta \in \Delta^{K-2}$ is the utility increment simplex, i.e., $\delta = (\delta_1, \ldots, \delta_{K-1})$ with $\delta_k > 0$ and $\sum_{k=1}^{K-1} \delta_k = 1$
+
+The utility vector $\upsilon \in \mathbb{R}^K$ is constructed as:
+$$
+\upsilon_1 = 0, \quad \upsilon_k = \sum_{j=1}^{k-1} \delta_j \text{ for } k = 2, \ldots, K
+$$
+
+This ensures $\upsilon$ is ordered with $0 = \upsilon_1 < \upsilon_2 < \cdots < \upsilon_K = 1$.
+
+For an uncertain alternative with feature vector $\mathbf{w} \in \mathbb{R}^D$, the subjective probability vector is:
+$$
+\psi_k(\beta, \mathbf{w}) = \frac{\exp(\boldsymbol{\beta}_k^\top \mathbf{w})}{\sum_{j=1}^K \exp(\boldsymbol{\beta}_j^\top \mathbf{w})}
+$$
+
+For a risky alternative with probability vector $\boldsymbol{\pi} \in \Delta^{K-1}$, the probabilities are simply $\boldsymbol{\pi}$ (given as data).
+
+Expected utilities are:
+$$
+\eta^{(u)}(\theta, \mathbf{w}) = \boldsymbol{\psi}(\beta, \mathbf{w})^\top \boldsymbol{\upsilon}(\delta), \quad \eta^{(r)}(\delta, \boldsymbol{\pi}) = \boldsymbol{\pi}^\top \boldsymbol{\upsilon}(\delta)
+$$
+
+Choice probabilities in a problem with alternatives yielding expected utilities $\eta_1, \ldots, \eta_n$ are:
+$$
+\chi_i(\alpha, \eta) = \frac{\exp(\alpha \cdot \eta_i)}{\sum_{j=1}^n \exp(\alpha \cdot \eta_j)}
+$$
+
+### Definition of Identifiability
+
+::: {.callout-note}
+## Global Identifiability
+Parameters $\theta$ are **globally identifiable** from a class of decision problems $\mathcal{P}$ if for any $\theta \neq \theta'$, there exists at least one problem $P \in \mathcal{P}$ such that the induced choice probability distributions differ:
+$$
+\chi^P(\theta) \neq \chi^P(\theta')
+$$
+:::
+
+This definition captures whether, in principle, sufficiently rich data can distinguish any two parameter configurations. It is a necessary condition for consistent estimation.
+
+### Identification in Model m_1
+
+We first establish that m_1 achieves global identification under mild conditions.
+
+::: {.callout-important}
+## Theorem (Global Identifiability of m_1)
+Consider model m_1 with $K \geq 2$ consequences and $D \geq 1$ feature dimensions. Let the class of decision problems include:
+
+1. **Risky problems** with probability vectors from a set $\mathcal{X} \subseteq \Delta^{K-1}$ that contains $K$ affinely independent probability vectors
+2. **Uncertain problems** with feature vectors from a set $\mathcal{W} \subseteq \mathbb{R}^D$ that spans $\mathbb{R}^D$
+
+Then for any $\theta = (\alpha, \beta, \delta) \neq \theta' = (\alpha', \beta', \delta')$ with $\alpha, \alpha' > 0$, there exists a **binary choice problem** (with exactly two alternatives) where the choice probabilities under $\theta$ and $\theta'$ differ.
+:::
+
+Before proving the theorem, we establish a key lemma.
+
+::: {.callout-note}
+## Lemma (Affine Independence Implies Linear Independence for Probability Vectors)
+Let $\boldsymbol{\pi}^{(1)}, \ldots, \boldsymbol{\pi}^{(K)} \in \Delta^{K-1}$ be $K$ affinely independent probability vectors. Then they are linearly independent in $\mathbb{R}^K$.
+:::
+
+**Proof of Lemma.** Recall that vectors $\boldsymbol{\pi}^{(1)}, \ldots, \boldsymbol{\pi}^{(K)}$ are **affinely dependent** if there exist scalars $c_1, \ldots, c_K$, *not all zero*, such that $\sum_s c_s = 0$ and $\sum_s c_s \boldsymbol{\pi}^{(s)} = \mathbf{0}$. Equivalently, they are affinely independent if no such non-trivial relation exists.
+
+Now suppose $\sum_{s=1}^K c_s \boldsymbol{\pi}^{(s)} = \mathbf{0}$ for some scalars $c_1, \ldots, c_K$ (a linear dependence relation). Taking the inner product with $\mathbf{1} = (1, \ldots, 1)^\top$ and using the fact that $\mathbf{1}^\top \boldsymbol{\pi}^{(s)} = 1$ for all probability vectors, we obtain:
+$$
+0 = \mathbf{1}^\top \mathbf{0} = \mathbf{1}^\top \left( \sum_{s=1}^K c_s \boldsymbol{\pi}^{(s)} \right) = \sum_{s=1}^K c_s (\mathbf{1}^\top \boldsymbol{\pi}^{(s)}) = \sum_{s=1}^K c_s
+$$
+
+Thus any linear dependence among probability vectors automatically satisfies $\sum_s c_s = 0$. This means any linear dependence would also constitute an affine dependence. Since our vectors are affinely independent by assumption, no non-trivial linear dependence can exist. Therefore $c_s = 0$ for all $s$, establishing linear independence. $\square$
+
+**Proof of Theorem.** We proceed by cases, showing that any difference in parameters can be detected by a binary choice problem.
+
+*Case 1: $\delta \neq \delta'$ (utilities differ).*
+
+By assumption, $\mathcal{X}$ contains $K$ affinely independent probability vectors $\boldsymbol{\pi}^{(1)}, \ldots, \boldsymbol{\pi}^{(K)}$. By the Lemma, these are linearly independent in $\mathbb{R}^K$.
+
+Let $\Pi$ be the $K \times K$ matrix with rows $(\boldsymbol{\pi}^{(s)})^\top$. Since these rows are linearly independent, $\Pi$ is invertible. Consider the expected utilities under both parameter configurations:
+$$
+\eta^{(r)}_s = (\boldsymbol{\pi}^{(s)})^\top \boldsymbol{\upsilon}(\delta), \quad (\eta')^{(r)}_s = (\boldsymbol{\pi}^{(s)})^\top \boldsymbol{\upsilon}(\delta')
+$$
+
+In vector form: $\boldsymbol{\eta} = \Pi \boldsymbol{\upsilon}(\delta)$ and $\boldsymbol{\eta}' = \Pi \boldsymbol{\upsilon}(\delta')$. Since $\Pi$ is invertible:
+$$
+\boldsymbol{\eta} = \boldsymbol{\eta}' \iff \boldsymbol{\upsilon}(\delta) = \boldsymbol{\upsilon}(\delta')
+$$
+
+Now, $\delta \neq \delta'$ implies $\boldsymbol{\upsilon}(\delta) \neq \boldsymbol{\upsilon}(\delta')$ because the map $\delta \mapsto \boldsymbol{\upsilon}(\delta) = \text{cumsum}([0, \delta])$ is injective on $\Delta^{K-2}$. Therefore, $\boldsymbol{\eta} \neq \boldsymbol{\eta}'$, meaning at least one pair of expected utilities differs: $\eta^{(r)}_s \neq (\eta')^{(r)}_s$ for some $s$.
+
+Construct a risky choice problem with alternatives $\boldsymbol{\pi}^{(s)}$ and $\boldsymbol{\pi}^{(t)}$ where the expected utility differences satisfy:
+$$
+\eta^{(r)}_s - \eta^{(r)}_t \neq (\eta')^{(r)}_s - (\eta')^{(r)}_t
+$$
+(This is achievable since $\boldsymbol{\eta} \neq \boldsymbol{\eta}'$.) The choice probability is:
+$$
+\chi_1 = \frac{\exp(\alpha \cdot \eta^{(r)}_s)}{\exp(\alpha \cdot \eta^{(r)}_s) + \exp(\alpha \cdot \eta^{(r)}_t)} = \sigma\bigl(\alpha(\eta^{(r)}_s - \eta^{(r)}_t)\bigr)
+$$
+where $\sigma$ is the logistic function. Since $\sigma$ is strictly monotonic and the utility differences differ, we have $\chi_1(\theta) \neq \chi_1(\theta')$ (regardless of whether $\alpha = \alpha'$ or not).
+
+*Case 2: $\delta = \delta'$ but $\alpha \neq \alpha'$.*
+
+Consider any risky choice problem with two alternatives having distinct expected utilities $\eta_1 \neq \eta_2$. The choice probability for alternative 1 is:
+$$
+\chi_1 = \sigma\bigl(\alpha(\eta_1 - \eta_2)\bigr)
+$$
+
+This is a strictly monotonic function of $\alpha$ when $\eta_1 \neq \eta_2$, so $\chi_1(\alpha) \neq \chi_1(\alpha')$.
+
+*Case 3: $\delta = \delta'$, $\alpha = \alpha'$, but $\beta \neq \beta'$.*
+
+Since $\beta \neq \beta'$ as $K \times D$ matrices, there exist indices $(k, d)$ such that $\beta_{kd} \neq \beta'_{kd}$. Since $\mathcal{W}$ spans $\mathbb{R}^D$, we can find $\mathbf{w} \in \mathcal{W}$ such that the difference $(\beta - \beta')\mathbf{w}$ is not a constant vector (i.e., not a scalar multiple of $\mathbf{1}$).
+
+Consider the subjective probability vectors $\boldsymbol{\psi}(\beta, \mathbf{w}) = \text{softmax}(\beta \mathbf{w})$ and $\boldsymbol{\psi}(\beta', \mathbf{w}) = \text{softmax}(\beta' \mathbf{w})$. The softmax function has the property that $\text{softmax}(\mathbf{v}) = \text{softmax}(\mathbf{v}')$ if and only if $\mathbf{v} - \mathbf{v}' = c \cdot \mathbf{1}$ for some scalar $c$. Since $\beta \mathbf{w} - \beta' \mathbf{w}$ is not a constant vector, we have $\boldsymbol{\psi}(\beta, \mathbf{w}) \neq \boldsymbol{\psi}(\beta', \mathbf{w})$.
+
+Since $\delta = \delta'$ implies $\boldsymbol{\upsilon}(\delta) = \boldsymbol{\upsilon}(\delta')$, and $\boldsymbol{\psi} \neq \boldsymbol{\psi}'$, the expected utilities differ:
+$$
+\eta^{(u)}(\mathbf{w}) = \boldsymbol{\psi}^\top \boldsymbol{\upsilon} \neq (\boldsymbol{\psi}')^\top \boldsymbol{\upsilon} = (\eta')^{(u)}(\mathbf{w})
+$$
+(The equality would require $\boldsymbol{\psi} - \boldsymbol{\psi}'$ to be orthogonal to $\boldsymbol{\upsilon}$, which fails except on a set of measure zero since $\boldsymbol{\upsilon}$ has distinct ordered components.)
+
+Constructing an uncertain choice problem with this alternative yields different choice probabilities.
+
+**Combining the cases:** For any $\theta \neq \theta'$, at least one of the three cases applies, guaranteeing the existence of a distinguishing decision problem. $\square$
+
+### Non-Identifiability in Model m_0
+
+In contrast, model m_0 faces a more challenging identification situation because the risky choice channel is absent.
+
+::: {.callout-warning}
+## Proposition (Identification Structure of m_0)
+In model m_0 (uncertain choices only):
+
+1. The sensitivity parameter $\alpha$ is globally identified.
+2. The expected utility function $\eta^{(u)}: \mathbb{R}^D \to [0,1]$ is globally identified.
+3. The individual components $\beta$ and $\delta$ are **weakly identified** through the composite mapping $(\beta, \delta) \mapsto \eta^{(u)}(\cdot)$. While generic point identification holds (distinct $(\beta, \delta)$ pairs produce distinct expected utility functions except on a set of measure zero), information about these parameters accumulates more slowly from data compared to m_1, resulting in wider posterior credible intervals.
+:::
+
+**Proof.** We establish each claim.
+
+*Claim 1 ($\alpha$ is identified):* Consider any two uncertain alternatives with features $\mathbf{w}_1, \mathbf{w}_2$ yielding distinct expected utilities $\eta_1 \neq \eta_2$ (such alternatives exist generically). The choice probability is $\chi_1 = \sigma(\alpha(\eta_1 - \eta_2))$ where $\sigma$ is the logistic function. Since $\sigma$ is strictly monotonic and $(\eta_1 - \eta_2) \neq 0$, different values of $\alpha$ yield different choice probabilities.
+
+*Claim 2 ($\eta^{(u)}(\cdot)$ is identified):* Suppose two parameter configurations $(\alpha, \beta, \delta)$ and $(\alpha', \beta', \delta')$ yield the same expected utility function: $\eta^{(u)}(\mathbf{w}; \beta, \delta) = \eta^{(u)}(\mathbf{w}; \beta', \delta')$ for all $\mathbf{w}$. Then for any uncertain choice problem with alternatives having features $\mathbf{w}_1, \ldots, \mathbf{w}_n$, the expected utilities are identical, and hence (given $\alpha = \alpha'$ from Claim 1) the choice probabilities are identical. Conversely, if $\eta^{(u)}(\mathbf{w}; \beta, \delta) \neq \eta^{(u)}(\mathbf{w}; \beta', \delta')$ for some $\mathbf{w}$, we can construct a binary choice problem distinguishing the two configurations (by the same argument as in the m_1 proof).
+
+*Claim 3 (weak identification of components):* We analyze the information structure for identifying $\beta$ and $\delta$ separately. Consider $K = 3$ with utility vector $\boldsymbol{\upsilon} = (0, \delta_1, 1)$. The expected utility is:
+$$
+\eta^{(u)}(\mathbf{w}) = \psi_2(\beta, \mathbf{w}) \cdot \delta_1 + \psi_3(\beta, \mathbf{w})
+$$
+where $\psi_2 + \psi_3 = 1 - \psi_1$. The softmax probabilities $\psi_k$ depend on $\beta$ only through the differences $\boldsymbol{\beta}_k - \boldsymbol{\beta}_1$ (the softmax is invariant to adding a constant to all logits). Thus $\beta$ has a $(K-1) \times D = 2D$ dimensional "effective" parameter space for determining $\psi$.
+
+The expected utility function $\eta^{(u)}: \mathbb{R}^D \to [0,1]$ is determined by how $\psi_2$ and $\psi_3$ vary with $\mathbf{w}$, weighted by $\delta_1$ and $1$ respectively. The question is whether distinct $(\beta, \delta)$ pairs can produce identical $\eta^{(u)}(\cdot)$ functions.
+
+**Generic point identification holds:** For the equality $\psi_2(\beta, \mathbf{w}) \cdot \delta_1 + \psi_3(\beta, \mathbf{w}) = \psi_2(\beta', \mathbf{w}) \cdot \delta'_1 + \psi_3(\beta', \mathbf{w})$ to hold for all $\mathbf{w} \in \mathbb{R}^D$, we would need a precise functional relationship between $(\beta, \delta)$ and $(\beta', \delta')$ that holds across the entire feature space. This occurs only on a set of measure zero in the parameter space.
+
+**Weak identification in practice:** While generic point identification holds, the *rate* at which information accumulates about $\beta$ and $\delta$ separately is slower than in m_1. In m_0, all information about $\delta$ must be extracted through uncertain choices where $\beta$ and $\delta$ interact multiplicatively in the expected utility. This interaction means that uncertainty about $\beta$ propagates to uncertainty about $\delta$ and vice versa, resulting in slower posterior concentration. $\square$
+
+**Discussion.** The proposition clarifies what m_0 can and cannot identify:
+
+- **What is strongly identified:** The sensitivity $\alpha$ and the expected utility function $\eta^{(u)}(\cdot)$ are fully determined by choice data. This means m_0 can predict choice behavior for any new uncertain alternative, given its features.
+
+- **What is weakly identified:** The decomposition of $\eta^{(u)}$ into beliefs ($\psi$, via $\beta$) and utilities ($\upsilon$, via $\delta$) faces a more challenging inference problem. While distinct $(\beta, \delta)$ pairs generically produce distinct expected utility functions (point identification), the information geometry is unfavorable: $\beta$ and $\delta$ interact multiplicatively in the expected utility, so uncertainty in one parameter propagates to the other. In m_1, risky choices directly constrain $\delta$ through the likelihood term $\sum_n \log \chi^{(r)}_{n, z_n}$, which depends on $\delta$ but not $\beta$. This separation breaks the multiplicative coupling and allows faster learning.
+
+- **Practical consequence:** The weak identification of $\delta$ in m_0 manifests as slower posterior concentration—wider credible intervals that shrink more slowly with sample size compared to m_1. This matches our empirical parameter recovery findings. Note that this is a *rate* phenomenon, not a fundamental non-identification: with sufficient data, m_0 posteriors do concentrate on the true values.
+
+### Implications for Experimental Design
+
+The identification results have direct implications for experimental design:
+
+| Design Choice | Effect on Identification |
+|---------------|-------------------------|
+| Include risky choices with diverse lotteries | Enables direct identification of $\delta$ (and hence $\upsilon$) |
+| Use spanning set of probability vectors | Ensures full utility function is identified, not just projections |
+| Use spanning set of feature vectors | Ensures full $\beta$ matrix is identified |
+| Include both simple (degenerate) and mixed lotteries | Provides both "anchoring" and "interpolation" information about utilities |
+
+::: {.callout-note}
+## Practical Guidance
+For m_1, the spanning conditions are easily satisfied:
+
+1. **Risky alternatives:** Include the $K$ "corner" lotteries $\mathbf{e}_1, \ldots, \mathbf{e}_K$ (certain outcomes) plus several interior lotteries. The corners alone provide $K$ linearly independent vectors.
+
+2. **Uncertain alternatives:** Use feature vectors that vary across all $D$ dimensions. Random draws from a continuous distribution (as in our study design) satisfy this almost surely.
+
+The key practical constraint is whether risky choice tasks are feasible and meaningful in the application domain.
+:::
+
+### Remarks on the Identification Results
+
+The identification analysis clarifies why m_1 achieves better parameter recovery than m_0:
+
+1. **Separation of constraints:** In m_1, risky choices provide constraints on $(\alpha, \delta)$ that are *independent* of $\beta$. This separation means that information about utilities accumulates directly from risky choice data, without needing to simultaneously infer the belief-formation process.
+
+2. **The role of known probabilities:** The key advantage of risky alternatives is not merely that they add more data, but that their probability vectors are *given* rather than *inferred*. This eliminates one layer of the inference problem.
+
+3. **Connection to classical results:** Our identification result for m_1 is related to—but distinct from—the Anscombe-Aumann representation theorem. That theorem establishes *when* preferences can be represented by subjective expected utility; our result establishes *when* the parameters of a specific SEU model can be recovered from choice data. The underlying intuition is similar: mixing objective and subjective probabilities provides complementary information.
 
 ## References

@@ -1,9 +1,22 @@
 {
-  "inference_model_path": "models/m_1.stan",
-  "sim_model_path": "models/m_1_sim.stan",
-  "study_design_path": "results/prior_predictive/example_prior_analysis/study_design.json",
-  "output_dir": "results/parameter_recovery/example_recovery_2",
+  "inference_model_path": "models/m_0.stan",
+  "sim_model_path": "models/m_0_sim.stan",
+  "study_design_path": null,
+  "output_dir": "results/parameter_recovery/m0_recovery",
   "n_mcmc_samples": 2000,
   "n_mcmc_chains": 4,
-  "n_iterations": 20
+  "n_iterations": 50,
+  "study_design_config": {
+    "M": 25,
+    "K": 3,
+    "D": 5,
+    "R": 15,
+    "min_alts_per_problem": 2,
+    "max_alts_per_problem": 5,
+    "feature_dist": "normal",
+    "feature_params": {
+      "loc": 0,
+      "scale": 1
+    }
+  }
 }

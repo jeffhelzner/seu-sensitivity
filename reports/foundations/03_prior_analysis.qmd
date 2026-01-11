@@ -291,7 +291,7 @@ The matrix $\boldsymbol{\beta} \in \mathbb{R}^{K \times D}$ maps alternative fea
 
 ```{python}
 #| label: fig-beta-prior
-#| fig-cap: "Prior distribution of the feature-to-probability weights β sampled from m_0_sim.stan. Left: Distribution of all β coefficients. Right: Heatmap of median |β| values showing the structure of a typical draw from the prior."
+#| fig-cap: "Prior distribution of the feature-to-probability weights β sampled from m_0_sim.stan. Left: Distribution of all β coefficients. Right: Heatmap of median β values by position."
 
 # Extract beta coefficients
 beta_cols = [col for col in samples.columns if col.startswith('beta[')]
@@ -318,24 +318,24 @@ axes[0].set_ylabel('Density')
 axes[0].set_title('Prior Distribution of β Coefficients')
 axes[0].legend()
 
-# Heatmap of absolute beta magnitudes (median across samples)
+# Heatmap of median beta values (not absolute value)
 K, D = config['K'], config['D']
 beta_medians = np.zeros((K, D))
 for k in range(K):
     for d in range(D):
         col = f'beta[{k+1},{d+1}]'
         if col in param_samples.columns:
-            beta_medians[k, d] = np.median(np.abs(param_samples[col].values))
+            beta_medians[k, d] = np.median(param_samples[col].values)
 
-im = axes[1].imshow(beta_medians, cmap='Purples', aspect='auto')
+im = axes[1].imshow(beta_medians, cmap='RdBu_r', aspect='auto', vmin=-1, vmax=1)
 axes[1].set_xlabel('Feature Dimension (d)')
 axes[1].set_ylabel('Consequence (k)')
-axes[1].set_title('Median |β| by Position')
+axes[1].set_title('Median β by Position')
 axes[1].set_xticks(range(D))
 axes[1].set_xticklabels([f'{d+1}' for d in range(D)])
 axes[1].set_yticks(range(K))
 axes[1].set_yticklabels([f'{k+1}' for k in range(K)])
-plt.colorbar(im, ax=axes[1], label='Median |β|')
+plt.colorbar(im, ax=axes[1], label='Median β')
 
 plt.tight_layout()
 plt.show()
@@ -359,7 +359,7 @@ We compute $\boldsymbol{\psi}$ for each of the $R$ distinct alternatives from th
 
 ```{python}
 #| label: fig-psi-prior
-#| fig-cap: "Prior distribution of subjective probabilities over consequences. Left: Distribution of all ψ values from prior samples. Right: Mean subjective probability for each distinct alternative and consequence, averaged over all prior draws."
+#| fig-cap: "Mean subjective probability for each distinct alternative and consequence, averaged over all prior draws."
 
 # Compute psi from beta for the R distinct alternatives
 # (The psi in Stan's generated quantities is vectorized over problems, causing repetition)
@@ -398,34 +398,22 @@ for p_idx, param_set in enumerate(param_sets):
 
 # Compute mean psi across samples for each (alternative, consequence)
 mean_psi = psi_array.mean(axis=0)  # Shape: (R, K)
-
-fig, axes = plt.subplots(1, 2, figsize=(14, 5))
-
-# Left: Distribution of all psi values
 all_psi_values = psi_array.flatten()
-axes[0].hist(all_psi_values, bins=50, density=True, alpha=0.7, 
-             color='darkorange', edgecolor='white')
-axes[0].axvline(x=1/K, color='red', linestyle='--', linewidth=2, 
-                label=f'Uniform = {1/K:.2f}')
-axes[0].set_xlabel('ψ (subjective probability)')
-axes[0].set_ylabel('Density')
-axes[0].set_title('Prior Distribution of Subjective Probabilities')
-axes[0].legend()
-axes[0].set_xlim(0, 1)
 
-# Right: Heatmap of mean psi for each distinct alternative and consequence
-im = axes[1].imshow(mean_psi.T, cmap='YlOrRd', aspect='auto', vmin=0, vmax=1)
-axes[1].set_xlabel('Distinct Alternative (r)')
-axes[1].set_ylabel('Consequence (k)')
-axes[1].set_title('Mean ψ by Alternative and Consequence')
-axes[1].set_yticks(range(K))
-axes[1].set_yticklabels([f'{k+1}' for k in range(K)])
-# Show fewer x-ticks for readability
-n_xticks = min(10, R)
-xtick_positions = np.linspace(0, R-1, n_xticks, dtype=int)
-axes[1].set_xticks(xtick_positions)
-axes[1].set_xticklabels([f'{x+1}' for x in xtick_positions])
-plt.colorbar(im, ax=axes[1], label='Mean ψ')
+fig, ax = plt.subplots(figsize=(10, 4))
+
+# Heatmap of mean psi for each distinct alternative and consequence
+im = ax.imshow(mean_psi.T, cmap='YlOrRd', aspect='auto', vmin=0, vmax=1)
+ax.set_xlabel('Distinct Alternative (r)')
+ax.set_ylabel('Consequence (k)')
+ax.set_title('Mean ψ by Alternative and Consequence')
+ax.set_yticks(range(K))
+ax.set_yticklabels([f'{k+1}' for k in range(K)])
+# Use odd numbers for x-axis labels (1, 3, 5, 7, ...)
+xtick_positions = list(range(0, R, 2))  # 0, 2, 4, 6, ... (indices)
+ax.set_xticks(xtick_positions)
+ax.set_xticklabels([f'{x+1}' for x in xtick_positions])  # 1, 3, 5, 7, ... (labels)
+plt.colorbar(im, ax=ax, label='Mean ψ')
 
 plt.tight_layout()
 plt.show()
@@ -690,61 +678,6 @@ plt.show()
 ```
 
 This plot empirically confirms **Property 1 (Monotonicity)** from Report 1: as $\alpha$ increases, the probability of selecting SEU-maximizing alternatives increases.
-
-## Choice Probability Analysis
-
-```{python}
-#| label: fig-choice-prob-distribution
-#| fig-cap: "Distribution of choice probabilities under the prior. Left: Distribution of the maximum choice probability in each problem (how 'decisive' choices are). Right: Histogram of all non-zero choice probabilities."
-
-# Extract choice probability columns
-chi_cols = [col for col in samples.columns if 'choice_probabilities' in col]
-
-# Compute max choice prob for each problem
-max_probs = []
-all_probs = []
-
-for col in chi_cols:
-    probs = samples[col].values
-    # Filter out padding zeros
-    valid_probs = probs[probs > 1e-10]
-    all_probs.extend(valid_probs)
-
-# For max probs, group by problem
-for m in range(M):
-    problem_cols = [col for col in chi_cols if f'choice_probabilities[{m+1},' in col]
-    if problem_cols:
-        problem_probs = np.column_stack([samples[col].values for col in problem_cols])
-        # Max across alternatives for each sample
-        max_per_sample = np.max(problem_probs, axis=1)
-        max_probs.extend(max_per_sample)
-
-fig, axes = plt.subplots(1, 2, figsize=(12, 5))
-
-# Max probability distribution
-if max_probs:
-    axes[0].hist(max_probs, bins=50, density=True, alpha=0.7, 
-                 color='steelblue', edgecolor='white')
-    axes[0].set_xlabel('Maximum Choice Probability')
-    axes[0].set_ylabel('Density')
-    axes[0].set_title('Distribution of Max Choice Probability per Problem')
-    axes[0].set_xlim(0, 1)
-
-# All choice probabilities
-if all_probs:
-    axes[1].hist(all_probs, bins=50, density=True, alpha=0.7, 
-                 color='coral', edgecolor='white')
-    axes[1].set_xlabel('Choice Probability')
-    axes[1].set_ylabel('Density')
-    axes[1].set_title('Distribution of All Choice Probabilities')
-    axes[1].set_xlim(0, 1)
-
-plt.tight_layout()
-plt.show()
-
-if max_probs:
-    print(f"Max choice probability: mean = {np.mean(max_probs):.2f}, std = {np.std(max_probs):.2f}")
-```
 
 ## Prior Predictive Checks: Are the Priors Reasonable?
 

@@ -1,0 +1,106 @@
+# Prompt Variants for Prompt Framing Study
+# 
+# These variants represent increasing levels of rationality emphasis:
+# Level 0 (minimal): Just pick one, no outcome structure
+# Level 1 (baseline): Standard framing with K=3 outcome structure
+# Level 2 (enhanced): Explicit utility values and rationality language
+# Level 3 (maximal): Full decision-theoretic framing with explicit EU maximization
+
+variants:
+  - name: "minimal"
+    level: 0
+    description: "Minimal framing - just pick one, no outcome structure"
+    template: |
+      You are reviewing flagged insurance claims. Choose one to send for investigation.
+      
+      {claims_list}
+      
+      Which claim do you choose? Respond with only the claim number (e.g., "Claim 1").
+    
+    embedding_template: |
+      You are reviewing flagged insurance claims. Choose one to send for investigation.
+      
+      Claim to evaluate: {claim}
+
+  - name: "baseline"
+    level: 1
+    description: "Standard framing with K=3 outcome structure"
+    template: |
+      You are a claims adjuster working for a large insurance company. The claims 
+      described below have been flagged as potentially suspicious. You are to choose 
+      one of the claims to send to a human investigator for further review.
+      
+      Your decision will be reviewed by two expert judges:
+      - Best outcome: Both judges agree your selection warrants investigation
+      - Middle outcome: One judge supports your decision, one doesn't  
+      - Worst outcome: Neither judge agrees with your decision
+      
+      {claims_list}
+      
+      Which claim do you choose to send to the human investigator for further review? 
+      Please respond with only the claim number (e.g., "Claim 1").
+    
+    embedding_template: |
+      You are a claims adjuster working for a large insurance company. A claim has been 
+      flagged as potentially suspicious. Your decision to investigate will be reviewed 
+      by two expert judges who will evaluate whether the claim warrants investigation.
+      
+      Claim to evaluate: {claim}
+
+  - name: "enhanced"
+    level: 2
+    description: "Explicit utility values and rationality language"
+    template: |
+      You are a claims adjuster working for a large insurance company. The claims 
+      described below have been flagged as potentially suspicious. You are to choose 
+      one of the claims to send to a human investigator for further review.
+      
+      Your decision will be reviewed by two expert judges. The possible outcomes are:
+      - Best outcome (utility = 1.0): Both judges agree your selection warrants investigation
+      - Middle outcome (utility = 0.5): One judge supports your decision, one doesn't
+      - Worst outcome (utility = 0.0): Neither judge agrees with your decision
+      
+      Make your choice to maximize the expected quality of the outcome.
+      
+      {claims_list}
+      
+      Which claim do you choose? Respond with only the claim number (e.g., "Claim 1").
+    
+    embedding_template: |
+      You are a claims adjuster making a rational decision about which claims warrant 
+      investigation. Your choice will be evaluated by two expert judges, with outcomes 
+      ranging from utility 0.0 (neither agrees) to utility 1.0 (both agree).
+      
+      Claim to evaluate: {claim}
+
+  - name: "maximal"
+    level: 3
+    description: "Full decision-theoretic framing with explicit EU maximization"
+    template: |
+      You are a rational decision-making agent optimizing claim investigation decisions.
+      
+      DECISION FRAMEWORK:
+      You must select one claim to investigate. Two independent expert judges will 
+      evaluate your selection. Each judge independently decides whether your choice 
+      was correct (probability p_i for judge i).
+      
+      PAYOFF STRUCTURE:
+      - Both judges agree (correct): Utility = 1.0
+      - One judge agrees: Utility = 0.5  
+      - Neither agrees: Utility = 0.0
+      
+      OBJECTIVE: Maximize expected utility E[U] = p_1*p_2*1.0 + (p_1*(1-p_2) + (1-p_1)*p_2)*0.5
+      
+      Analyze each claim's likelihood of being judged investigation-worthy, then select 
+      the EU-maximizing option.
+      
+      {claims_list}
+      
+      Which claim do you choose? Respond with only the claim number (e.g., "Claim 1").
+    
+    embedding_template: |
+      You are a rational decision-making agent evaluating insurance claims. Your task 
+      is to maximize expected utility where utility depends on whether expert judges 
+      agree that a claim warrants investigation.
+      
+      Claim to evaluate: {claim}

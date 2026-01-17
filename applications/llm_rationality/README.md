@@ -1,5 +1,7 @@
 # LLM Rationality Benchmark
 
+> ⚠️ **Deprecation Notice**: This module is being superseded by [`prompt_framing_study`](../prompt_framing_study/README.md), which offers improved methodology including contextualized embeddings and systematic prompt variant analysis. New projects should use the newer module.
+
 This application assesses the "rationality" of Large Language Models (LLMs) by measuring how consistently they maximize expected utility when making decisions across text-based problems.
 
 ## Overview

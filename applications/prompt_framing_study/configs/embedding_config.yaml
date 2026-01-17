@@ -1,0 +1,60 @@
+# Embedding Configuration for Robustness Analysis
+# 
+# This file defines embedding models and dimension reduction settings
+# for analyzing robustness of alpha estimates.
+
+# Available embedding models
+embedding_models:
+  - name: "text-embedding-3-small"
+    dimensions: 1536
+    description: "OpenAI's small embedding model - fast and cheap"
+    cost_per_million_tokens: 0.02
+  
+  - name: "text-embedding-3-large"
+    dimensions: 3072
+    description: "OpenAI's large embedding model - higher quality"
+    cost_per_million_tokens: 0.13
+  
+  - name: "text-embedding-ada-002"
+    dimensions: 1536
+    description: "Legacy OpenAI embedding model"
+    cost_per_million_tokens: 0.10
+
+# Dimension reduction configurations
+dimension_reductions:
+  - target_dim: 16
+    method: "pca"
+    description: "Aggressive reduction for small datasets"
+  
+  - target_dim: 32
+    method: "pca"
+    description: "Default reduction - good balance"
+  
+  - target_dim: 64
+    method: "pca"
+    description: "Moderate reduction"
+  
+  - target_dim: 128
+    method: "pca"
+    description: "Light reduction - preserves more variance"
+  
+  - target_dim: 32
+    method: "random"
+    description: "Random projection baseline"
+
+# Default configuration
+default:
+  embedding_model: "text-embedding-3-small"
+  target_dim: 32
+  method: "pca"
+
+# Robustness analysis settings
+robustness:
+  # Test these dimensions in sensitivity analysis
+  test_dimensions: [16, 32, 64, 128]
+  
+  # Test these models (requires additional API calls)
+  test_models: ["text-embedding-3-small", "text-embedding-3-large"]
+  
+  # Methods to compare
+  test_methods: ["pca", "random"]

@@ -1,0 +1,37 @@
+# Study Configuration for Prompt Framing Study
+# This file defines the main parameters for running the study
+
+# Problem generation
+num_problems: 100          # Number of decision problems to generate
+K: 3                       # Number of consequences (both agree / one agrees / neither)
+min_alternatives: 2        # Minimum claims per problem
+max_alternatives: 4        # Maximum claims per problem
+seed: 42                   # Random seed for reproducibility
+
+# Embedding configuration
+embedding_model: "text-embedding-3-small"  # OpenAI embedding model
+target_dim: 32                              # PCA target dimensions
+
+# LLM choice collection
+llm_model: "gpt-4"         # Model for choice generation
+provider: "openai"         # LLM provider ("openai" or "anthropic")
+temperature: 0.7           # Sampling temperature (>0 for variability)
+num_repetitions: 1         # Times to present each problem
+
+# File paths (relative to module directory)
+claims_file: "data/claims.json"
+prompt_variants_path: "configs/prompt_variants.yaml"
+
+# Model fitting (optional - can be done separately)
+fit_models: false          # Whether to fit Stan models in pipeline
+stan_model: "m_0"          # Which model to fit
+
+# Output
+save_raw_embeddings: true  # Save full-dimension embeddings
+save_reduced_embeddings: true
+save_raw_responses: true   # Save full LLM responses
+
+# Advanced options
+batch_size: 10             # API call batch size
+max_retries: 3             # API retry attempts
+retry_delay: 2.0           # Seconds between retries

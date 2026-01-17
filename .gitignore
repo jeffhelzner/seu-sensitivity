@@ -99,3 +99,7 @@ reports/**/.jupyter_cache/
 # Reports legacy data (keep source .qmd files)
 reports/*.csv 
 reports/*.json  
+
+# Local
+prompts/
+articles/

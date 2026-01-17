@@ -58,12 +58,8 @@ seu-sensitivity/
 │   ├── sbc.py              # Simulation-based calibration
 │   └── sample_size_estimation.py
 ├── applications/            # Applied research projects
-│   └── llm_rationality/    # LLM rationality benchmarking
-│       ├── claim_design.py
-│       ├── claim_embedding.py
-│       ├── llm_client.py
-│       ├── run_benchmark.py
-│       └── README.md
+│   ├── llm_rationality/    # LLM rationality benchmarking (legacy)
+│   └── prompt_framing_study/ # Prompt framing effects on rationality
 ├── configs/                 # Configuration files for studies
 ├── results/                 # Generated results and outputs
 ├── environment.yml          # Conda environment specification
@@ -177,16 +173,13 @@ See [models/README_m1.md](models/README_m1.md) for detailed m_1 documentation.
 ### 4. Benchmark LLM Rationality
 
 ```bash
-cd applications/llm_rationality
+cd applications/prompt_framing_study
 
-# Generate decision problems
-python generate_property_problems.py
-
-# Run benchmark
-python run_benchmark.py
+# Run the full study pipeline
+python -m prompt_framing_study.study_runner
 ```
 
-See [applications/llm_rationality/README.md](applications/llm_rationality/README.md) for detailed LLM benchmarking workflow.
+See [applications/prompt_framing_study/README.md](applications/prompt_framing_study/README.md) for detailed workflow on investigating how prompt framing affects LLM rationality.
 
 ## Theoretical Background
 
@@ -262,25 +255,24 @@ See [utils/README.md](utils/README.md) for complete documentation.
 
 ## Applications
 
-### LLM Rationality Benchmarking
+### Prompt Framing Study
 
-Assess how "rational" Large Language Models are by measuring their sensitivity to expected utility maximization in text-based decision problems.
+Investigate how prompt framing (rationality emphasis) affects an LLM's sensitivity to expected utility maximization.
 
-**Workflow:**
-1. Create base claim descriptions
-2. Generate decision problems
-3. Collect LLM choices
-4. Generate embeddings for alternatives
-5. Fit m_0 model to estimate rationality parameters
-6. Compare across models
+**Research Question**: Does explicitly framing a decision problem in terms of utility maximization change how "rational" an LLM appears to be?
 
-**Example Results:**
-```
-GPT-4:         α = 2.8 (highly sensitive to SEU)
-GPT-3.5-Turbo: α = 1.5 (moderately sensitive)
-```
+**Key Features:**
+- Contextualized embeddings that capture prompt-specific claim perception
+- Multiple prompt variants from minimal to maximal rationality emphasis
+- Robustness analysis across embedding models and dimensions
 
-See [applications/llm_rationality/README.md](applications/llm_rationality/README.md) for complete workflow.
+See [applications/prompt_framing_study/README.md](applications/prompt_framing_study/README.md) for complete workflow.
+
+### Legacy: LLM Rationality Benchmarking (Deprecated)
+
+The original `llm_rationality` module provides basic LLM benchmarking capabilities. This module is being superseded by `prompt_framing_study` which offers improved methodology.
+
+See [applications/llm_rationality/README.md](applications/llm_rationality/README.md) for legacy documentation.
 
 ## Configuration Files
 

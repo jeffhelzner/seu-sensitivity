@@ -32,6 +32,8 @@ website:
             href: applications/prompt_framing_study/01_background.qmd
           - text: "2. Pilot Study 1"
             href: applications/prompt_framing_study/02_pilot_study_1.qmd
+      - text: "Blog"
+        href: blog/index.qmd
     right:
       - icon: github
         href: https://github.com/jeffhelzner/seu-sensitivity

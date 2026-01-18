@@ -181,6 +181,174 @@ def cmd_resume(args):
     print(f"\nStudy resumed and complete! Results in: {results.get('results_dir')}")
 
 
+def cmd_fit(args):
+    """Fit Stan models to collected data."""
+    import json
+    import numpy as np
+    
+    results_dir = Path(args.results_dir)
+    
+    # Load metadata to get variant names
+    metadata_path = results_dir / "run_metadata.json"
+    if not metadata_path.exists():
+        print(f"Error: No metadata found at {metadata_path}")
+        sys.exit(1)
+    
+    with open(metadata_path, 'r') as f:
+        metadata = json.load(f)
+    
+    variants = metadata.get("variants", [])
+    if not variants:
+        print("Error: No variants found in metadata")
+        sys.exit(1)
+    
+    try:
+        import cmdstanpy
+    except ImportError:
+        print("Error: cmdstanpy not installed. Install with: pip install cmdstanpy")
+        sys.exit(1)
+    
+    # Find the model file
+    model_name = args.model
+    model_path = Path(__file__).parent.parent.parent / "models" / f"{model_name}.stan"
+    if not model_path.exists():
+        print(f"Error: Model file not found: {model_path}")
+        sys.exit(1)
+    
+    print(f"Compiling model: {model_path}")
+    model = cmdstanpy.CmdStanModel(stan_file=str(model_path))
+    
+    fit_results = {}
+    
+    for variant in variants:
+        stan_data_path = results_dir / f"stan_data_{variant}.json"
+        if not stan_data_path.exists():
+            print(f"Warning: Stan data not found for {variant}, skipping")
+            continue
+        
+        print(f"\nFitting model for variant: {variant}")
+        
+        with open(stan_data_path, 'r') as f:
+            stan_data = json.load(f)
+        
+        try:
+            fit = model.sample(
+                data=stan_data,
+                chains=args.chains,
+                parallel_chains=args.chains,
+                iter_warmup=args.warmup,
+                iter_sampling=args.samples,
+                seed=args.seed
+            )
+            
+            # Extract alpha posterior
+            alpha_samples = fit.stan_variable("alpha")
+            
+            fit_results[variant] = {
+                "alpha_mean": float(np.mean(alpha_samples)),
+                "alpha_std": float(np.std(alpha_samples)),
+                "alpha_median": float(np.median(alpha_samples)),
+                "alpha_q05": float(np.percentile(alpha_samples, 5)),
+                "alpha_q95": float(np.percentile(alpha_samples, 95)),
+            }
+            
+            print(f"  α = {fit_results[variant]['alpha_mean']:.3f} "
+                  f"(95% CI: [{fit_results[variant]['alpha_q05']:.3f}, "
+                  f"{fit_results[variant]['alpha_q95']:.3f}])")
+            
+            # Save samples
+            fit.save_csvfiles(str(results_dir / f"samples_{variant}"))
+            
+        except Exception as e:
+            print(f"  Error fitting model: {e}")
+            fit_results[variant] = {"error": str(e)}
+    
+    # Update metadata with fit results
+    metadata["model_fits"] = fit_results
+    with open(metadata_path, 'w') as f:
+        json.dump(metadata, f, indent=2)
+    
+    print(f"\nModel fitting complete! Results saved to {metadata_path}")
+    
+    # Print summary table
+    print("\n" + "="*60)
+    print("ALPHA ESTIMATES BY PROMPT VARIANT")
+    print("="*60)
+    print(f"{'Variant':<12} {'Mean α':>10} {'Std':>8} {'95% CI':>20}")
+    print("-"*60)
+    for variant in variants:
+        if variant in fit_results and "error" not in fit_results[variant]:
+            r = fit_results[variant]
+            ci = f"[{r['alpha_q05']:.2f}, {r['alpha_q95']:.2f}]"
+            print(f"{variant:<12} {r['alpha_mean']:>10.3f} {r['alpha_std']:>8.3f} {ci:>20}")
+    print("="*60)
+
+
+def cmd_robustness(args):
+    """Run robustness analysis on collected data."""
+    from .robustness_analysis import RobustnessAnalyzer
+    from .contextualized_embedding import ContextualizedEmbeddingManager
+    import json
+    
+    results_dir = Path(args.results_dir)
+    
+    # Load embeddings
+    embeddings_path = results_dir / "raw_embeddings.npz"
+    if not embeddings_path.exists():
+        print(f"Error: No embeddings found at {embeddings_path}")
+        sys.exit(1)
+    
+    print("Loading embeddings...")
+    embeddings = ContextualizedEmbeddingManager.load_embeddings(str(embeddings_path))
+    
+    # Load metadata
+    metadata_path = results_dir / "run_metadata.json"
+    with open(metadata_path, 'r') as f:
+        metadata = json.load(f)
+    
+    analyzer = RobustnessAnalyzer(
+        results_dir=str(results_dir),
+        target_dims=args.dims or [16, 32, 64, 128]
+    )
+    
+    print("\nAnalyzing PCA dimension sensitivity...")
+    pca_results = analyzer.analyze_pca_sensitivity(
+        embeddings=embeddings,
+        claims=[],  # Not needed for basic analysis
+        problems=[],
+        choices={},
+        fit_model=False
+    )
+    
+    print("\nAnalyzing reduction method sensitivity...")
+    reduction_results = analyzer.analyze_reduction_method_sensitivity(
+        embeddings=embeddings,
+        target_dim=metadata.get("config", {}).get("target_dim", 32)
+    )
+    
+    # Save robustness results
+    robustness_output = results_dir / "robustness_analysis.json"
+    with open(robustness_output, 'w') as f:
+        json.dump({
+            "pca_sensitivity": pca_results,
+            "reduction_method_sensitivity": reduction_results
+        }, f, indent=2)
+    
+    print(f"\nRobustness analysis complete! Results saved to {robustness_output}")
+    
+    # Print summary
+    print("\n" + "="*60)
+    print("PCA DIMENSION SENSITIVITY")
+    print("="*60)
+    for dim_key, dim_results in pca_results.get("analysis", {}).items():
+        dim = dim_key.replace("dim_", "")
+        print(f"\nTarget dimension: {dim}")
+        for variant, stats in dim_results.items():
+            exp_var = stats.get("explained_variance")
+            if exp_var:
+                print(f"  {variant}: {exp_var*100:.1f}% variance explained")
+
+
 def main():
     parser = argparse.ArgumentParser(
         prog="prompt_framing_study",
@@ -270,6 +438,58 @@ def main():
         help="Path to results directory with checkpoint"
     )
     resume_parser.set_defaults(func=cmd_resume)
+    
+    # Fit command (post-hoc model fitting)
+    fit_parser = subparsers.add_parser("fit", help="Fit Stan models to collected data")
+    fit_parser.add_argument(
+        "results_dir",
+        help="Path to results directory"
+    )
+    fit_parser.add_argument(
+        "--model",
+        default="m_0",
+        choices=["m_0", "m_1"],
+        help="Stan model to fit"
+    )
+    fit_parser.add_argument(
+        "--chains",
+        type=int,
+        default=4,
+        help="Number of MCMC chains"
+    )
+    fit_parser.add_argument(
+        "--warmup",
+        type=int,
+        default=1000,
+        help="Warmup iterations per chain"
+    )
+    fit_parser.add_argument(
+        "--samples",
+        type=int,
+        default=1000,
+        help="Sampling iterations per chain"
+    )
+    fit_parser.add_argument(
+        "--seed",
+        type=int,
+        default=42,
+        help="Random seed"
+    )
+    fit_parser.set_defaults(func=cmd_fit)
+    
+    # Robustness command
+    robust_parser = subparsers.add_parser("robustness", help="Run robustness analysis")
+    robust_parser.add_argument(
+        "results_dir",
+        help="Path to results directory"
+    )
+    robust_parser.add_argument(
+        "--dims",
+        type=int,
+        nargs="+",
+        help="PCA dimensions to test (default: 16 32 64 128)"
+    )
+    robust_parser.set_defaults(func=cmd_robustness)
     
     args = parser.parse_args()
     setup_logging(args.verbose)

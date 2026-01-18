@@ -1,0 +1,189 @@
+---
+title: "Prompt Framing and LLM Rationality"
+subtitle: "Application Report 1: Background and Motivation"
+description: |
+  Investigating whether explicit rationality cues in prompts affect LLM sensitivity 
+  to subjective expected utility maximization, using contextualized embeddings to 
+  capture how framing shapes internal representations.
+categories: [applications, llm, prompt-framing]
+---
+
+```{python}
+#| label: setup
+#| include: false
+
+import sys
+import os
+
+# Add parent directories to path
+sys.path.insert(0, os.path.join(os.getcwd(), '..', '..'))
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.getcwd())))
+sys.path.insert(0, project_root)
+
+import numpy as np
+import matplotlib.pyplot as plt
+import warnings
+warnings.filterwarnings('ignore')
+```
+
+## Introduction
+
+This report series applies the SEU sensitivity framework developed in the [Foundations](../../foundations/01_abstract_formulation.qmd) reports to a novel research question: **Does prompting an LLM with explicit rationality cues change its decision-making behavior?**
+
+Large Language Models (LLMs) have demonstrated impressive capabilities across a wide range of tasks, but their decision-making behavior remains poorly understood. When faced with choices involving uncertain outcomes, do LLMs behave rationally in the sense of maximizing expected utility? And crucially, can we *induce* more rational behavior through careful prompt engineering?
+
+::: {.callout-note}
+## Core Research Question
+When prompted with explicit rationality cues (e.g., "maximize expected utility"), do LLMs exhibit higher sensitivity (α) to SEU-optimal choices compared to minimal prompts?
+:::
+
+## Theoretical Framework
+
+### The SEU Sensitivity Model
+
+Our foundational model (m_0) characterizes a decision maker's choice behavior through a softmax rule:
+
+$$
+P(\text{choose } r \mid \alpha, \boldsymbol{\eta}) = \frac{\exp(\alpha \cdot \eta_r)}{\sum_{j} \exp(\alpha \cdot \eta_j)}
+$$
+
+where:
+
+- $\eta_r$ is the expected utility of alternative $r$
+- $\alpha \geq 0$ is the **sensitivity parameter**
+
+The sensitivity parameter α has a clear interpretation:
+
+| α Value | Interpretation |
+|---------|----------------|
+| α = 0 | Random choice (uniform distribution) |
+| α = 1 | Moderate sensitivity to utility differences |
+| α → ∞ | Deterministic utility maximization |
+
+By fitting this model to LLM choice data under different prompt conditions, we can quantify whether rationality framing affects the sensitivity parameter.
+
+### Prompt Framing Hypothesis
+
+Our hypothesis is that prompt framing affects α through two potential mechanisms:
+
+1. **Attention mechanism**: Explicit rationality cues may focus the model's attention on decision-relevant features
+2. **Representation shift**: The same alternatives may be *represented differently* when embedded in rationality-framed contexts
+
+To capture the second mechanism, we introduce **contextualized embeddings**: rather than embedding claims in isolation, we embed them within the full prompt context. This allows the same claim to have different representations under different framings.
+
+## Experimental Design
+
+### Prompt Variants
+
+We designed four prompt variants with increasing levels of rationality emphasis:
+
+```{python}
+#| label: fig-prompt-variants
+#| fig-cap: "Four levels of rationality emphasis in prompt framing, from minimal task description to explicit decision-theoretic reasoning."
+#| echo: false
+
+variants = [
+    {
+        "name": "Minimal",
+        "level": 0,
+        "description": "Simple task instruction with no outcome structure or rationality cues",
+        "key_feature": "Just pick one"
+    },
+    {
+        "name": "Baseline", 
+        "level": 1,
+        "description": "Standard framing with K=3 outcome structure (both agree, one agrees, neither)",
+        "key_feature": "Outcome structure present"
+    },
+    {
+        "name": "Enhanced",
+        "level": 2,
+        "description": "Explicit utility values (0.0, 0.5, 1.0) and rationality language",
+        "key_feature": "Utility values stated"
+    },
+    {
+        "name": "Maximal",
+        "level": 3,
+        "description": "Full decision-theoretic framework with explicit EU maximization objective",
+        "key_feature": "EU formula provided"
+    }
+]
+
+fig, ax = plt.subplots(figsize=(10, 5))
+
+# Create a visual representation
+colors = ["#E69F00", "#56B4E9", "#009E73", "#CC79A7"]
+y_positions = [3, 2, 1, 0]
+
+for i, (v, y, c) in enumerate(zip(variants, y_positions, colors)):
+    ax.barh(y, v["level"] + 1, color=c, alpha=0.7, height=0.6)
+    ax.text(v["level"] + 1.1, y, f"{v['name']}: {v['key_feature']}", 
+            va='center', fontsize=11)
+
+ax.set_yticks(y_positions)
+ax.set_yticklabels([f"Level {v['level']}" for v in variants])
+ax.set_xlabel("Rationality Emphasis →", fontsize=12)
+ax.set_title("Prompt Framing Variants", fontsize=14, fontweight='bold')
+ax.set_xlim(0, 6)
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+
+plt.tight_layout()
+plt.show()
+```
+
+### Domain: Insurance Claims Triage
+
+We use insurance claims triage as our decision domain:
+
+- **Task**: Select which flagged claim to send for human investigation
+- **Alternatives**: 2-4 claims per decision problem
+- **Outcomes (K=3)**:
+  - Both expert judges agree the selection warrants investigation (utility = 1.0)
+  - One judge agrees, one disagrees (utility = 0.5)
+  - Neither judge agrees (utility = 0.0)
+
+This domain was chosen because:
+
+1. It involves genuine uncertainty about outcomes
+2. The claims vary in "suspiciousness" (providing natural variation in expected utility)
+3. The task is interpretable to LLMs trained on diverse text
+
+### Contextualized Embeddings
+
+A key methodological innovation is our use of **contextualized embeddings**. Rather than computing a single embedding for each claim, we compute embeddings within the context of each prompt variant:
+
+```
+Embedding(claim | minimal_prompt) ≠ Embedding(claim | maximal_prompt)
+```
+
+This captures the hypothesis that the same claim is *represented differently* when framed with explicit rationality cues. The embedding serves as the feature vector (ψ) in our SEU model.
+
+## Study Overview
+
+The study pipeline consists of:
+
+1. **Problem Generation**: Create decision problems by sampling claims
+2. **Embedding Generation**: Compute contextualized embeddings for all variant-claim pairs
+3. **Choice Collection**: Present problems to LLM under each framing, collect choices
+4. **Model Fitting**: Fit m_0 model separately for each variant
+5. **Analysis**: Compare α estimates across variants
+
+::: {.callout-tip}
+## Key Insight
+If prompt framing affects rationality, we expect:
+
+- **Higher α** for maximal/enhanced prompts (more sensitivity to EU-optimal choices)
+- **Lower α** for minimal prompts (choices less tied to EU ranking)
+
+A null result (similar α across variants) would suggest LLM decision-making is relatively robust to framing.
+:::
+
+## What's Next
+
+In [Report 2: Pilot Study](02_pilot_study_1.qmd), we present results from our first pilot study, including:
+
+- Cost estimation and API usage
+- Model fitting results for each variant
+- Discovery of methodological challenges (position bias)
+- Lessons learned for study design refinement

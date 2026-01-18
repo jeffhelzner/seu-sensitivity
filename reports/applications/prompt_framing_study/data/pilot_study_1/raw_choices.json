@@ -1,0 +1,4482 @@
+{
+  "minimal": {
+    "variant": "minimal",
+    "variant_level": 0,
+    "llm_model": "gpt-4",
+    "provider": "openai",
+    "temperature": 0.7,
+    "num_problems": 100,
+    "num_repetitions": 1,
+    "choices": [
+      {
+        "problem_id": "P0001",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0002",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0003",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0004",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0005",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0006",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0007",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0008",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0009",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0010",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0011",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0012",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0013",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0014",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0015",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0016",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0017",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0018",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0019",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0020",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0021",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0022",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0023",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0024",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0025",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0026",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0027",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0028",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0029",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0030",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0031",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0032",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0033",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0034",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0035",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0036",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0037",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0038",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0039",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0040",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0041",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0042",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0043",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0044",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0045",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0046",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0047",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0048",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0049",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0050",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0051",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0052",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0053",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0054",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0055",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0056",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0057",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0058",
+        "choice": 3,
+        "choice_1indexed": 4,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0059",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0060",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0061",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0062",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0063",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0064",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0065",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0066",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0067",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0068",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0069",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0070",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0071",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0072",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0073",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0074",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0075",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0076",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0077",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0078",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0079",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0080",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0081",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0082",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0083",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0084",
+        "choice": 3,
+        "choice_1indexed": 4,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0085",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0086",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0087",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0088",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0089",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0090",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0091",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0092",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0093",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0094",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0095",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0096",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0097",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0098",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0099",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0100",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 3
+      }
+    ],
+    "responses": [
+      {
+        "problem_id": "P0001",
+        "prompt_length": 1323,
+        "success": true
+      },
+      {
+        "problem_id": "P0002",
+        "prompt_length": 729,
+        "success": true
+      },
+      {
+        "problem_id": "P0003",
+        "prompt_length": 1404,
+        "success": true
+      },
+      {
+        "problem_id": "P0004",
+        "prompt_length": 779,
+        "success": true
+      },
+      {
+        "problem_id": "P0005",
+        "prompt_length": 779,
+        "success": true
+      },
+      {
+        "problem_id": "P0006",
+        "prompt_length": 1420,
+        "success": true
+      },
+      {
+        "problem_id": "P0007",
+        "prompt_length": 1045,
+        "success": true
+      },
+      {
+        "problem_id": "P0008",
+        "prompt_length": 786,
+        "success": true
+      },
+      {
+        "problem_id": "P0009",
+        "prompt_length": 1088,
+        "success": true
+      },
+      {
+        "problem_id": "P0010",
+        "prompt_length": 763,
+        "success": true
+      },
+      {
+        "problem_id": "P0011",
+        "prompt_length": 811,
+        "success": true
+      },
+      {
+        "problem_id": "P0012",
+        "prompt_length": 1357,
+        "success": true
+      },
+      {
+        "problem_id": "P0013",
+        "prompt_length": 1114,
+        "success": true
+      },
+      {
+        "problem_id": "P0014",
+        "prompt_length": 1426,
+        "success": true
+      },
+      {
+        "problem_id": "P0015",
+        "prompt_length": 783,
+        "success": true
+      },
+      {
+        "problem_id": "P0016",
+        "prompt_length": 723,
+        "success": true
+      },
+      {
+        "problem_id": "P0017",
+        "prompt_length": 1075,
+        "success": true
+      },
+      {
+        "problem_id": "P0018",
+        "prompt_length": 811,
+        "success": true
+      },
+      {
+        "problem_id": "P0019",
+        "prompt_length": 735,
+        "success": true
+      },
+      {
+        "problem_id": "P0020",
+        "prompt_length": 1418,
+        "success": true
+      },
+      {
+        "problem_id": "P0021",
+        "prompt_length": 1094,
+        "success": true
+      },
+      {
+        "problem_id": "P0022",
+        "prompt_length": 782,
+        "success": true
+      },
+      {
+        "problem_id": "P0023",
+        "prompt_length": 782,
+        "success": true
+      },
+      {
+        "problem_id": "P0024",
+        "prompt_length": 1066,
+        "success": true
+      },
+      {
+        "problem_id": "P0025",
+        "prompt_length": 1394,
+        "success": true
+      },
+      {
+        "problem_id": "P0026",
+        "prompt_length": 1335,
+        "success": true
+      },
+      {
+        "problem_id": "P0027",
+        "prompt_length": 831,
+        "success": true
+      },
+      {
+        "problem_id": "P0028",
+        "prompt_length": 1076,
+        "success": true
+      },
+      {
+        "problem_id": "P0029",
+        "prompt_length": 1034,
+        "success": true
+      },
+      {
+        "problem_id": "P0030",
+        "prompt_length": 1038,
+        "success": true
+      },
+      {
+        "problem_id": "P0031",
+        "prompt_length": 786,
+        "success": true
+      },
+      {
+        "problem_id": "P0032",
+        "prompt_length": 1360,
+        "success": true
+      },
+      {
+        "problem_id": "P0033",
+        "prompt_length": 1370,
+        "success": true
+      },
+      {
+        "problem_id": "P0034",
+        "prompt_length": 1363,
+        "success": true
+      },
+      {
+        "problem_id": "P0035",
+        "prompt_length": 1102,
+        "success": true
+      },
+      {
+        "problem_id": "P0036",
+        "prompt_length": 753,
+        "success": true
+      },
+      {
+        "problem_id": "P0037",
+        "prompt_length": 744,
+        "success": true
+      },
+      {
+        "problem_id": "P0038",
+        "prompt_length": 1422,
+        "success": true
+      },
+      {
+        "problem_id": "P0039",
+        "prompt_length": 1100,
+        "success": true
+      },
+      {
+        "problem_id": "P0040",
+        "prompt_length": 809,
+        "success": true
+      },
+      {
+        "problem_id": "P0041",
+        "prompt_length": 1063,
+        "success": true
+      },
+      {
+        "problem_id": "P0042",
+        "prompt_length": 1096,
+        "success": true
+      },
+      {
+        "problem_id": "P0043",
+        "prompt_length": 1346,
+        "success": true
+      },
+      {
+        "problem_id": "P0044",
+        "prompt_length": 1374,
+        "success": true
+      },
+      {
+        "problem_id": "P0045",
+        "prompt_length": 1113,
+        "success": true
+      },
+      {
+        "problem_id": "P0046",
+        "prompt_length": 1456,
+        "success": true
+      },
+      {
+        "problem_id": "P0047",
+        "prompt_length": 1060,
+        "success": true
+      },
+      {
+        "problem_id": "P0048",
+        "prompt_length": 729,
+        "success": true
+      },
+      {
+        "problem_id": "P0049",
+        "prompt_length": 1086,
+        "success": true
+      },
+      {
+        "problem_id": "P0050",
+        "prompt_length": 726,
+        "success": true
+      },
+      {
+        "problem_id": "P0051",
+        "prompt_length": 760,
+        "success": true
+      },
+      {
+        "problem_id": "P0052",
+        "prompt_length": 760,
+        "success": true
+      },
+      {
+        "problem_id": "P0053",
+        "prompt_length": 1031,
+        "success": true
+      },
+      {
+        "problem_id": "P0054",
+        "prompt_length": 1101,
+        "success": true
+      },
+      {
+        "problem_id": "P0055",
+        "prompt_length": 784,
+        "success": true
+      },
+      {
+        "problem_id": "P0056",
+        "prompt_length": 1039,
+        "success": true
+      },
+      {
+        "problem_id": "P0057",
+        "prompt_length": 781,
+        "success": true
+      },
+      {
+        "problem_id": "P0058",
+        "prompt_length": 1455,
+        "success": true
+      },
+      {
+        "problem_id": "P0059",
+        "prompt_length": 1093,
+        "success": true
+      },
+      {
+        "problem_id": "P0060",
+        "prompt_length": 1029,
+        "success": true
+      },
+      {
+        "problem_id": "P0061",
+        "prompt_length": 823,
+        "success": true
+      },
+      {
+        "problem_id": "P0062",
+        "prompt_length": 1073,
+        "success": true
+      },
+      {
+        "problem_id": "P0063",
+        "prompt_length": 1045,
+        "success": true
+      },
+      {
+        "problem_id": "P0064",
+        "prompt_length": 1082,
+        "success": true
+      },
+      {
+        "problem_id": "P0065",
+        "prompt_length": 1370,
+        "success": true
+      },
+      {
+        "problem_id": "P0066",
+        "prompt_length": 758,
+        "success": true
+      },
+      {
+        "problem_id": "P0067",
+        "prompt_length": 1122,
+        "success": true
+      },
+      {
+        "problem_id": "P0068",
+        "prompt_length": 792,
+        "success": true
+      },
+      {
+        "problem_id": "P0069",
+        "prompt_length": 1105,
+        "success": true
+      },
+      {
+        "problem_id": "P0070",
+        "prompt_length": 1057,
+        "success": true
+      },
+      {
+        "problem_id": "P0071",
+        "prompt_length": 833,
+        "success": true
+      },
+      {
+        "problem_id": "P0072",
+        "prompt_length": 773,
+        "success": true
+      },
+      {
+        "problem_id": "P0073",
+        "prompt_length": 782,
+        "success": true
+      },
+      {
+        "problem_id": "P0074",
+        "prompt_length": 723,
+        "success": true
+      },
+      {
+        "problem_id": "P0075",
+        "prompt_length": 1423,
+        "success": true
+      },
+      {
+        "problem_id": "P0076",
+        "prompt_length": 754,
+        "success": true
+      },
+      {
+        "problem_id": "P0077",
+        "prompt_length": 1322,
+        "success": true
+      },
+      {
+        "problem_id": "P0078",
+        "prompt_length": 1322,
+        "success": true
+      },
+      {
+        "problem_id": "P0079",
+        "prompt_length": 1086,
+        "success": true
+      },
+      {
+        "problem_id": "P0080",
+        "prompt_length": 1088,
+        "success": true
+      },
+      {
+        "problem_id": "P0081",
+        "prompt_length": 766,
+        "success": true
+      },
+      {
+        "problem_id": "P0082",
+        "prompt_length": 818,
+        "success": true
+      },
+      {
+        "problem_id": "P0083",
+        "prompt_length": 1077,
+        "success": true
+      },
+      {
+        "problem_id": "P0084",
+        "prompt_length": 1338,
+        "success": true
+      },
+      {
+        "problem_id": "P0085",
+        "prompt_length": 1330,
+        "success": true
+      },
+      {
+        "problem_id": "P0086",
+        "prompt_length": 810,
+        "success": true
+      },
+      {
+        "problem_id": "P0087",
+        "prompt_length": 808,
+        "success": true
+      },
+      {
+        "problem_id": "P0088",
+        "prompt_length": 1456,
+        "success": true
+      },
+      {
+        "problem_id": "P0089",
+        "prompt_length": 1355,
+        "success": true
+      },
+      {
+        "problem_id": "P0090",
+        "prompt_length": 779,
+        "success": true
+      },
+      {
+        "problem_id": "P0091",
+        "prompt_length": 1139,
+        "success": true
+      },
+      {
+        "problem_id": "P0092",
+        "prompt_length": 753,
+        "success": true
+      },
+      {
+        "problem_id": "P0093",
+        "prompt_length": 1047,
+        "success": true
+      },
+      {
+        "problem_id": "P0094",
+        "prompt_length": 1392,
+        "success": true
+      },
+      {
+        "problem_id": "P0095",
+        "prompt_length": 1044,
+        "success": true
+      },
+      {
+        "problem_id": "P0096",
+        "prompt_length": 1437,
+        "success": true
+      },
+      {
+        "problem_id": "P0097",
+        "prompt_length": 735,
+        "success": true
+      },
+      {
+        "problem_id": "P0098",
+        "prompt_length": 1399,
+        "success": true
+      },
+      {
+        "problem_id": "P0099",
+        "prompt_length": 1101,
+        "success": true
+      },
+      {
+        "problem_id": "P0100",
+        "prompt_length": 1115,
+        "success": true
+      }
+    ],
+    "usage": {
+      "model": "gpt-4",
+      "total_input_tokens": 21420,
+      "total_output_tokens": 300,
+      "estimated_cost_usd": 0.6606000000000001
+    },
+    "timestamp": "2026-01-17T18:41:43.363911"
+  },
+  "baseline": {
+    "variant": "baseline",
+    "variant_level": 1,
+    "llm_model": "gpt-4",
+    "provider": "openai",
+    "temperature": 0.7,
+    "num_problems": 100,
+    "num_repetitions": 1,
+    "choices": [
+      {
+        "problem_id": "P0001",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0002",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0003",
+        "choice": 3,
+        "choice_1indexed": 4,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0004",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0005",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0006",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0007",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0008",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0009",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0010",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0011",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0012",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0013",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0014",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0015",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0016",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0017",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0018",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0019",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0020",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0021",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0022",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0023",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0024",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0025",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0026",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0027",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0028",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0029",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0030",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0031",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0032",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0033",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0034",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0035",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0036",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0037",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0038",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0039",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0040",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0041",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0042",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0043",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0044",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0045",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0046",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0047",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0048",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0049",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0050",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0051",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0052",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0053",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0054",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0055",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0056",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0057",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0058",
+        "choice": 3,
+        "choice_1indexed": 4,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0059",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0060",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0061",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0062",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0063",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0064",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0065",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0066",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0067",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0068",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0069",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0070",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0071",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0072",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0073",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0074",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0075",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0076",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0077",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0078",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0079",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0080",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0081",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0082",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0083",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0084",
+        "choice": 3,
+        "choice_1indexed": 4,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0085",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0086",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0087",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0088",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0089",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0090",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0091",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0092",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0093",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0094",
+        "choice": 3,
+        "choice_1indexed": 4,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0095",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0096",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0097",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0098",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0099",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0100",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 3
+      }
+    ],
+    "responses": [
+      {
+        "problem_id": "P0001",
+        "prompt_length": 1778,
+        "success": true
+      },
+      {
+        "problem_id": "P0002",
+        "prompt_length": 1184,
+        "success": true
+      },
+      {
+        "problem_id": "P0003",
+        "prompt_length": 1859,
+        "success": true
+      },
+      {
+        "problem_id": "P0004",
+        "prompt_length": 1234,
+        "success": true
+      },
+      {
+        "problem_id": "P0005",
+        "prompt_length": 1234,
+        "success": true
+      },
+      {
+        "problem_id": "P0006",
+        "prompt_length": 1875,
+        "success": true
+      },
+      {
+        "problem_id": "P0007",
+        "prompt_length": 1500,
+        "success": true
+      },
+      {
+        "problem_id": "P0008",
+        "prompt_length": 1241,
+        "success": true
+      },
+      {
+        "problem_id": "P0009",
+        "prompt_length": 1543,
+        "success": true
+      },
+      {
+        "problem_id": "P0010",
+        "prompt_length": 1218,
+        "success": true
+      },
+      {
+        "problem_id": "P0011",
+        "prompt_length": 1266,
+        "success": true
+      },
+      {
+        "problem_id": "P0012",
+        "prompt_length": 1812,
+        "success": true
+      },
+      {
+        "problem_id": "P0013",
+        "prompt_length": 1569,
+        "success": true
+      },
+      {
+        "problem_id": "P0014",
+        "prompt_length": 1881,
+        "success": true
+      },
+      {
+        "problem_id": "P0015",
+        "prompt_length": 1238,
+        "success": true
+      },
+      {
+        "problem_id": "P0016",
+        "prompt_length": 1178,
+        "success": true
+      },
+      {
+        "problem_id": "P0017",
+        "prompt_length": 1530,
+        "success": true
+      },
+      {
+        "problem_id": "P0018",
+        "prompt_length": 1266,
+        "success": true
+      },
+      {
+        "problem_id": "P0019",
+        "prompt_length": 1190,
+        "success": true
+      },
+      {
+        "problem_id": "P0020",
+        "prompt_length": 1873,
+        "success": true
+      },
+      {
+        "problem_id": "P0021",
+        "prompt_length": 1549,
+        "success": true
+      },
+      {
+        "problem_id": "P0022",
+        "prompt_length": 1237,
+        "success": true
+      },
+      {
+        "problem_id": "P0023",
+        "prompt_length": 1237,
+        "success": true
+      },
+      {
+        "problem_id": "P0024",
+        "prompt_length": 1521,
+        "success": true
+      },
+      {
+        "problem_id": "P0025",
+        "prompt_length": 1849,
+        "success": true
+      },
+      {
+        "problem_id": "P0026",
+        "prompt_length": 1790,
+        "success": true
+      },
+      {
+        "problem_id": "P0027",
+        "prompt_length": 1286,
+        "success": true
+      },
+      {
+        "problem_id": "P0028",
+        "prompt_length": 1531,
+        "success": true
+      },
+      {
+        "problem_id": "P0029",
+        "prompt_length": 1489,
+        "success": true
+      },
+      {
+        "problem_id": "P0030",
+        "prompt_length": 1493,
+        "success": true
+      },
+      {
+        "problem_id": "P0031",
+        "prompt_length": 1241,
+        "success": true
+      },
+      {
+        "problem_id": "P0032",
+        "prompt_length": 1815,
+        "success": true
+      },
+      {
+        "problem_id": "P0033",
+        "prompt_length": 1825,
+        "success": true
+      },
+      {
+        "problem_id": "P0034",
+        "prompt_length": 1818,
+        "success": true
+      },
+      {
+        "problem_id": "P0035",
+        "prompt_length": 1557,
+        "success": true
+      },
+      {
+        "problem_id": "P0036",
+        "prompt_length": 1208,
+        "success": true
+      },
+      {
+        "problem_id": "P0037",
+        "prompt_length": 1199,
+        "success": true
+      },
+      {
+        "problem_id": "P0038",
+        "prompt_length": 1877,
+        "success": true
+      },
+      {
+        "problem_id": "P0039",
+        "prompt_length": 1555,
+        "success": true
+      },
+      {
+        "problem_id": "P0040",
+        "prompt_length": 1264,
+        "success": true
+      },
+      {
+        "problem_id": "P0041",
+        "prompt_length": 1518,
+        "success": true
+      },
+      {
+        "problem_id": "P0042",
+        "prompt_length": 1551,
+        "success": true
+      },
+      {
+        "problem_id": "P0043",
+        "prompt_length": 1801,
+        "success": true
+      },
+      {
+        "problem_id": "P0044",
+        "prompt_length": 1829,
+        "success": true
+      },
+      {
+        "problem_id": "P0045",
+        "prompt_length": 1568,
+        "success": true
+      },
+      {
+        "problem_id": "P0046",
+        "prompt_length": 1911,
+        "success": true
+      },
+      {
+        "problem_id": "P0047",
+        "prompt_length": 1515,
+        "success": true
+      },
+      {
+        "problem_id": "P0048",
+        "prompt_length": 1184,
+        "success": true
+      },
+      {
+        "problem_id": "P0049",
+        "prompt_length": 1541,
+        "success": true
+      },
+      {
+        "problem_id": "P0050",
+        "prompt_length": 1181,
+        "success": true
+      },
+      {
+        "problem_id": "P0051",
+        "prompt_length": 1215,
+        "success": true
+      },
+      {
+        "problem_id": "P0052",
+        "prompt_length": 1215,
+        "success": true
+      },
+      {
+        "problem_id": "P0053",
+        "prompt_length": 1486,
+        "success": true
+      },
+      {
+        "problem_id": "P0054",
+        "prompt_length": 1556,
+        "success": true
+      },
+      {
+        "problem_id": "P0055",
+        "prompt_length": 1239,
+        "success": true
+      },
+      {
+        "problem_id": "P0056",
+        "prompt_length": 1494,
+        "success": true
+      },
+      {
+        "problem_id": "P0057",
+        "prompt_length": 1236,
+        "success": true
+      },
+      {
+        "problem_id": "P0058",
+        "prompt_length": 1910,
+        "success": true
+      },
+      {
+        "problem_id": "P0059",
+        "prompt_length": 1548,
+        "success": true
+      },
+      {
+        "problem_id": "P0060",
+        "prompt_length": 1484,
+        "success": true
+      },
+      {
+        "problem_id": "P0061",
+        "prompt_length": 1278,
+        "success": true
+      },
+      {
+        "problem_id": "P0062",
+        "prompt_length": 1528,
+        "success": true
+      },
+      {
+        "problem_id": "P0063",
+        "prompt_length": 1500,
+        "success": true
+      },
+      {
+        "problem_id": "P0064",
+        "prompt_length": 1537,
+        "success": true
+      },
+      {
+        "problem_id": "P0065",
+        "prompt_length": 1825,
+        "success": true
+      },
+      {
+        "problem_id": "P0066",
+        "prompt_length": 1213,
+        "success": true
+      },
+      {
+        "problem_id": "P0067",
+        "prompt_length": 1577,
+        "success": true
+      },
+      {
+        "problem_id": "P0068",
+        "prompt_length": 1247,
+        "success": true
+      },
+      {
+        "problem_id": "P0069",
+        "prompt_length": 1560,
+        "success": true
+      },
+      {
+        "problem_id": "P0070",
+        "prompt_length": 1512,
+        "success": true
+      },
+      {
+        "problem_id": "P0071",
+        "prompt_length": 1288,
+        "success": true
+      },
+      {
+        "problem_id": "P0072",
+        "prompt_length": 1228,
+        "success": true
+      },
+      {
+        "problem_id": "P0073",
+        "prompt_length": 1237,
+        "success": true
+      },
+      {
+        "problem_id": "P0074",
+        "prompt_length": 1178,
+        "success": true
+      },
+      {
+        "problem_id": "P0075",
+        "prompt_length": 1878,
+        "success": true
+      },
+      {
+        "problem_id": "P0076",
+        "prompt_length": 1209,
+        "success": true
+      },
+      {
+        "problem_id": "P0077",
+        "prompt_length": 1777,
+        "success": true
+      },
+      {
+        "problem_id": "P0078",
+        "prompt_length": 1777,
+        "success": true
+      },
+      {
+        "problem_id": "P0079",
+        "prompt_length": 1541,
+        "success": true
+      },
+      {
+        "problem_id": "P0080",
+        "prompt_length": 1543,
+        "success": true
+      },
+      {
+        "problem_id": "P0081",
+        "prompt_length": 1221,
+        "success": true
+      },
+      {
+        "problem_id": "P0082",
+        "prompt_length": 1273,
+        "success": true
+      },
+      {
+        "problem_id": "P0083",
+        "prompt_length": 1532,
+        "success": true
+      },
+      {
+        "problem_id": "P0084",
+        "prompt_length": 1793,
+        "success": true
+      },
+      {
+        "problem_id": "P0085",
+        "prompt_length": 1785,
+        "success": true
+      },
+      {
+        "problem_id": "P0086",
+        "prompt_length": 1265,
+        "success": true
+      },
+      {
+        "problem_id": "P0087",
+        "prompt_length": 1263,
+        "success": true
+      },
+      {
+        "problem_id": "P0088",
+        "prompt_length": 1911,
+        "success": true
+      },
+      {
+        "problem_id": "P0089",
+        "prompt_length": 1810,
+        "success": true
+      },
+      {
+        "problem_id": "P0090",
+        "prompt_length": 1234,
+        "success": true
+      },
+      {
+        "problem_id": "P0091",
+        "prompt_length": 1594,
+        "success": true
+      },
+      {
+        "problem_id": "P0092",
+        "prompt_length": 1208,
+        "success": true
+      },
+      {
+        "problem_id": "P0093",
+        "prompt_length": 1502,
+        "success": true
+      },
+      {
+        "problem_id": "P0094",
+        "prompt_length": 1847,
+        "success": true
+      },
+      {
+        "problem_id": "P0095",
+        "prompt_length": 1499,
+        "success": true
+      },
+      {
+        "problem_id": "P0096",
+        "prompt_length": 1892,
+        "success": true
+      },
+      {
+        "problem_id": "P0097",
+        "prompt_length": 1190,
+        "success": true
+      },
+      {
+        "problem_id": "P0098",
+        "prompt_length": 1854,
+        "success": true
+      },
+      {
+        "problem_id": "P0099",
+        "prompt_length": 1556,
+        "success": true
+      },
+      {
+        "problem_id": "P0100",
+        "prompt_length": 1570,
+        "success": true
+      }
+    ],
+    "usage": {
+      "model": "gpt-4",
+      "total_input_tokens": 51740,
+      "total_output_tokens": 600,
+      "estimated_cost_usd": 1.5882
+    },
+    "timestamp": "2026-01-17T18:44:42.144333"
+  },
+  "enhanced": {
+    "variant": "enhanced",
+    "variant_level": 2,
+    "llm_model": "gpt-4",
+    "provider": "openai",
+    "temperature": 0.7,
+    "num_problems": 100,
+    "num_repetitions": 1,
+    "choices": [
+      {
+        "problem_id": "P0001",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0002",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0003",
+        "choice": 3,
+        "choice_1indexed": 4,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0004",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0005",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0006",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0007",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0008",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0009",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0010",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0011",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0012",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0013",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0014",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0015",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0016",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0017",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0018",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0019",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0020",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0021",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0022",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0023",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0024",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0025",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0026",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0027",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0028",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0029",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0030",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0031",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0032",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0033",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0034",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0035",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0036",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0037",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0038",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0039",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0040",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0041",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0042",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0043",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0044",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0045",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0046",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0047",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0048",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0049",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0050",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0051",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0052",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0053",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0054",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0055",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0056",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0057",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0058",
+        "choice": 3,
+        "choice_1indexed": 4,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0059",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0060",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0061",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0062",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0063",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0064",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0065",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0066",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0067",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0068",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0069",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0070",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0071",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0072",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0073",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0074",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0075",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0076",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0077",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0078",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0079",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0080",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0081",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0082",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0083",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0084",
+        "choice": 3,
+        "choice_1indexed": 4,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0085",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0086",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0087",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0088",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0089",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0090",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0091",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0092",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0093",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0094",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0095",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0096",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0097",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0098",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0099",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0100",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 3
+      }
+    ],
+    "responses": [
+      {
+        "problem_id": "P0001",
+        "prompt_length": 1857,
+        "success": true
+      },
+      {
+        "problem_id": "P0002",
+        "prompt_length": 1263,
+        "success": true
+      },
+      {
+        "problem_id": "P0003",
+        "prompt_length": 1938,
+        "success": true
+      },
+      {
+        "problem_id": "P0004",
+        "prompt_length": 1313,
+        "success": true
+      },
+      {
+        "problem_id": "P0005",
+        "prompt_length": 1313,
+        "success": true
+      },
+      {
+        "problem_id": "P0006",
+        "prompt_length": 1954,
+        "success": true
+      },
+      {
+        "problem_id": "P0007",
+        "prompt_length": 1579,
+        "success": true
+      },
+      {
+        "problem_id": "P0008",
+        "prompt_length": 1320,
+        "success": true
+      },
+      {
+        "problem_id": "P0009",
+        "prompt_length": 1622,
+        "success": true
+      },
+      {
+        "problem_id": "P0010",
+        "prompt_length": 1297,
+        "success": true
+      },
+      {
+        "problem_id": "P0011",
+        "prompt_length": 1345,
+        "success": true
+      },
+      {
+        "problem_id": "P0012",
+        "prompt_length": 1891,
+        "success": true
+      },
+      {
+        "problem_id": "P0013",
+        "prompt_length": 1648,
+        "success": true
+      },
+      {
+        "problem_id": "P0014",
+        "prompt_length": 1960,
+        "success": true
+      },
+      {
+        "problem_id": "P0015",
+        "prompt_length": 1317,
+        "success": true
+      },
+      {
+        "problem_id": "P0016",
+        "prompt_length": 1257,
+        "success": true
+      },
+      {
+        "problem_id": "P0017",
+        "prompt_length": 1609,
+        "success": true
+      },
+      {
+        "problem_id": "P0018",
+        "prompt_length": 1345,
+        "success": true
+      },
+      {
+        "problem_id": "P0019",
+        "prompt_length": 1269,
+        "success": true
+      },
+      {
+        "problem_id": "P0020",
+        "prompt_length": 1952,
+        "success": true
+      },
+      {
+        "problem_id": "P0021",
+        "prompt_length": 1628,
+        "success": true
+      },
+      {
+        "problem_id": "P0022",
+        "prompt_length": 1316,
+        "success": true
+      },
+      {
+        "problem_id": "P0023",
+        "prompt_length": 1316,
+        "success": true
+      },
+      {
+        "problem_id": "P0024",
+        "prompt_length": 1600,
+        "success": true
+      },
+      {
+        "problem_id": "P0025",
+        "prompt_length": 1928,
+        "success": true
+      },
+      {
+        "problem_id": "P0026",
+        "prompt_length": 1869,
+        "success": true
+      },
+      {
+        "problem_id": "P0027",
+        "prompt_length": 1365,
+        "success": true
+      },
+      {
+        "problem_id": "P0028",
+        "prompt_length": 1610,
+        "success": true
+      },
+      {
+        "problem_id": "P0029",
+        "prompt_length": 1568,
+        "success": true
+      },
+      {
+        "problem_id": "P0030",
+        "prompt_length": 1572,
+        "success": true
+      },
+      {
+        "problem_id": "P0031",
+        "prompt_length": 1320,
+        "success": true
+      },
+      {
+        "problem_id": "P0032",
+        "prompt_length": 1894,
+        "success": true
+      },
+      {
+        "problem_id": "P0033",
+        "prompt_length": 1904,
+        "success": true
+      },
+      {
+        "problem_id": "P0034",
+        "prompt_length": 1897,
+        "success": true
+      },
+      {
+        "problem_id": "P0035",
+        "prompt_length": 1636,
+        "success": true
+      },
+      {
+        "problem_id": "P0036",
+        "prompt_length": 1287,
+        "success": true
+      },
+      {
+        "problem_id": "P0037",
+        "prompt_length": 1278,
+        "success": true
+      },
+      {
+        "problem_id": "P0038",
+        "prompt_length": 1956,
+        "success": true
+      },
+      {
+        "problem_id": "P0039",
+        "prompt_length": 1634,
+        "success": true
+      },
+      {
+        "problem_id": "P0040",
+        "prompt_length": 1343,
+        "success": true
+      },
+      {
+        "problem_id": "P0041",
+        "prompt_length": 1597,
+        "success": true
+      },
+      {
+        "problem_id": "P0042",
+        "prompt_length": 1630,
+        "success": true
+      },
+      {
+        "problem_id": "P0043",
+        "prompt_length": 1880,
+        "success": true
+      },
+      {
+        "problem_id": "P0044",
+        "prompt_length": 1908,
+        "success": true
+      },
+      {
+        "problem_id": "P0045",
+        "prompt_length": 1647,
+        "success": true
+      },
+      {
+        "problem_id": "P0046",
+        "prompt_length": 1990,
+        "success": true
+      },
+      {
+        "problem_id": "P0047",
+        "prompt_length": 1594,
+        "success": true
+      },
+      {
+        "problem_id": "P0048",
+        "prompt_length": 1263,
+        "success": true
+      },
+      {
+        "problem_id": "P0049",
+        "prompt_length": 1620,
+        "success": true
+      },
+      {
+        "problem_id": "P0050",
+        "prompt_length": 1260,
+        "success": true
+      },
+      {
+        "problem_id": "P0051",
+        "prompt_length": 1294,
+        "success": true
+      },
+      {
+        "problem_id": "P0052",
+        "prompt_length": 1294,
+        "success": true
+      },
+      {
+        "problem_id": "P0053",
+        "prompt_length": 1565,
+        "success": true
+      },
+      {
+        "problem_id": "P0054",
+        "prompt_length": 1635,
+        "success": true
+      },
+      {
+        "problem_id": "P0055",
+        "prompt_length": 1318,
+        "success": true
+      },
+      {
+        "problem_id": "P0056",
+        "prompt_length": 1573,
+        "success": true
+      },
+      {
+        "problem_id": "P0057",
+        "prompt_length": 1315,
+        "success": true
+      },
+      {
+        "problem_id": "P0058",
+        "prompt_length": 1989,
+        "success": true
+      },
+      {
+        "problem_id": "P0059",
+        "prompt_length": 1627,
+        "success": true
+      },
+      {
+        "problem_id": "P0060",
+        "prompt_length": 1563,
+        "success": true
+      },
+      {
+        "problem_id": "P0061",
+        "prompt_length": 1357,
+        "success": true
+      },
+      {
+        "problem_id": "P0062",
+        "prompt_length": 1607,
+        "success": true
+      },
+      {
+        "problem_id": "P0063",
+        "prompt_length": 1579,
+        "success": true
+      },
+      {
+        "problem_id": "P0064",
+        "prompt_length": 1616,
+        "success": true
+      },
+      {
+        "problem_id": "P0065",
+        "prompt_length": 1904,
+        "success": true
+      },
+      {
+        "problem_id": "P0066",
+        "prompt_length": 1292,
+        "success": true
+      },
+      {
+        "problem_id": "P0067",
+        "prompt_length": 1656,
+        "success": true
+      },
+      {
+        "problem_id": "P0068",
+        "prompt_length": 1326,
+        "success": true
+      },
+      {
+        "problem_id": "P0069",
+        "prompt_length": 1639,
+        "success": true
+      },
+      {
+        "problem_id": "P0070",
+        "prompt_length": 1591,
+        "success": true
+      },
+      {
+        "problem_id": "P0071",
+        "prompt_length": 1367,
+        "success": true
+      },
+      {
+        "problem_id": "P0072",
+        "prompt_length": 1307,
+        "success": true
+      },
+      {
+        "problem_id": "P0073",
+        "prompt_length": 1316,
+        "success": true
+      },
+      {
+        "problem_id": "P0074",
+        "prompt_length": 1257,
+        "success": true
+      },
+      {
+        "problem_id": "P0075",
+        "prompt_length": 1957,
+        "success": true
+      },
+      {
+        "problem_id": "P0076",
+        "prompt_length": 1288,
+        "success": true
+      },
+      {
+        "problem_id": "P0077",
+        "prompt_length": 1856,
+        "success": true
+      },
+      {
+        "problem_id": "P0078",
+        "prompt_length": 1856,
+        "success": true
+      },
+      {
+        "problem_id": "P0079",
+        "prompt_length": 1620,
+        "success": true
+      },
+      {
+        "problem_id": "P0080",
+        "prompt_length": 1622,
+        "success": true
+      },
+      {
+        "problem_id": "P0081",
+        "prompt_length": 1300,
+        "success": true
+      },
+      {
+        "problem_id": "P0082",
+        "prompt_length": 1352,
+        "success": true
+      },
+      {
+        "problem_id": "P0083",
+        "prompt_length": 1611,
+        "success": true
+      },
+      {
+        "problem_id": "P0084",
+        "prompt_length": 1872,
+        "success": true
+      },
+      {
+        "problem_id": "P0085",
+        "prompt_length": 1864,
+        "success": true
+      },
+      {
+        "problem_id": "P0086",
+        "prompt_length": 1344,
+        "success": true
+      },
+      {
+        "problem_id": "P0087",
+        "prompt_length": 1342,
+        "success": true
+      },
+      {
+        "problem_id": "P0088",
+        "prompt_length": 1990,
+        "success": true
+      },
+      {
+        "problem_id": "P0089",
+        "prompt_length": 1889,
+        "success": true
+      },
+      {
+        "problem_id": "P0090",
+        "prompt_length": 1313,
+        "success": true
+      },
+      {
+        "problem_id": "P0091",
+        "prompt_length": 1673,
+        "success": true
+      },
+      {
+        "problem_id": "P0092",
+        "prompt_length": 1287,
+        "success": true
+      },
+      {
+        "problem_id": "P0093",
+        "prompt_length": 1581,
+        "success": true
+      },
+      {
+        "problem_id": "P0094",
+        "prompt_length": 1926,
+        "success": true
+      },
+      {
+        "problem_id": "P0095",
+        "prompt_length": 1578,
+        "success": true
+      },
+      {
+        "problem_id": "P0096",
+        "prompt_length": 1971,
+        "success": true
+      },
+      {
+        "problem_id": "P0097",
+        "prompt_length": 1269,
+        "success": true
+      },
+      {
+        "problem_id": "P0098",
+        "prompt_length": 1933,
+        "success": true
+      },
+      {
+        "problem_id": "P0099",
+        "prompt_length": 1635,
+        "success": true
+      },
+      {
+        "problem_id": "P0100",
+        "prompt_length": 1649,
+        "success": true
+      }
+    ],
+    "usage": {
+      "model": "gpt-4",
+      "total_input_tokens": 84760,
+      "total_output_tokens": 900,
+      "estimated_cost_usd": 2.5968
+    },
+    "timestamp": "2026-01-17T18:48:01.000303"
+  },
+  "maximal": {
+    "variant": "maximal",
+    "variant_level": 3,
+    "llm_model": "gpt-4",
+    "provider": "openai",
+    "temperature": 0.7,
+    "num_problems": 100,
+    "num_repetitions": 1,
+    "choices": [
+      {
+        "problem_id": "P0001",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0002",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0003",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0004",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0005",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0006",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0007",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0008",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0009",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0010",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0011",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0012",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0013",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0014",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0015",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0016",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0017",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0018",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0019",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0020",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0021",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0022",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0023",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0024",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0025",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0026",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0027",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0028",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0029",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0030",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0031",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0032",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0033",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0034",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0035",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0036",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0037",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0038",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0039",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0040",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0041",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0042",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0043",
+        "choice": 3,
+        "choice_1indexed": 4,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0044",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0045",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0046",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0047",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0048",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0049",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0050",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0051",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0052",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0053",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0054",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0055",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0056",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0057",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0058",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0059",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0060",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0061",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0062",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0063",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0064",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0065",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0066",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0067",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0068",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0069",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0070",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0071",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0072",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0073",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0074",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0075",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0076",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0077",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0078",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0079",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0080",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0081",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0082",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0083",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0084",
+        "choice": 3,
+        "choice_1indexed": 4,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0085",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0086",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0087",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0088",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0089",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0090",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0091",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0092",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0093",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0094",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0095",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0096",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0097",
+        "choice": 0,
+        "choice_1indexed": 1,
+        "num_alternatives": 2
+      },
+      {
+        "problem_id": "P0098",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 4
+      },
+      {
+        "problem_id": "P0099",
+        "choice": 1,
+        "choice_1indexed": 2,
+        "num_alternatives": 3
+      },
+      {
+        "problem_id": "P0100",
+        "choice": 2,
+        "choice_1indexed": 3,
+        "num_alternatives": 3
+      }
+    ],
+    "responses": [
+      {
+        "problem_id": "P0001",
+        "prompt_length": 1878,
+        "success": true
+      },
+      {
+        "problem_id": "P0002",
+        "prompt_length": 1284,
+        "success": true
+      },
+      {
+        "problem_id": "P0003",
+        "prompt_length": 1959,
+        "success": true
+      },
+      {
+        "problem_id": "P0004",
+        "prompt_length": 1334,
+        "success": true
+      },
+      {
+        "problem_id": "P0005",
+        "prompt_length": 1334,
+        "success": true
+      },
+      {
+        "problem_id": "P0006",
+        "prompt_length": 1975,
+        "success": true
+      },
+      {
+        "problem_id": "P0007",
+        "prompt_length": 1600,
+        "success": true
+      },
+      {
+        "problem_id": "P0008",
+        "prompt_length": 1341,
+        "success": true
+      },
+      {
+        "problem_id": "P0009",
+        "prompt_length": 1643,
+        "success": true
+      },
+      {
+        "problem_id": "P0010",
+        "prompt_length": 1318,
+        "success": true
+      },
+      {
+        "problem_id": "P0011",
+        "prompt_length": 1366,
+        "success": true
+      },
+      {
+        "problem_id": "P0012",
+        "prompt_length": 1912,
+        "success": true
+      },
+      {
+        "problem_id": "P0013",
+        "prompt_length": 1669,
+        "success": true
+      },
+      {
+        "problem_id": "P0014",
+        "prompt_length": 1981,
+        "success": true
+      },
+      {
+        "problem_id": "P0015",
+        "prompt_length": 1338,
+        "success": true
+      },
+      {
+        "problem_id": "P0016",
+        "prompt_length": 1278,
+        "success": true
+      },
+      {
+        "problem_id": "P0017",
+        "prompt_length": 1630,
+        "success": true
+      },
+      {
+        "problem_id": "P0018",
+        "prompt_length": 1366,
+        "success": true
+      },
+      {
+        "problem_id": "P0019",
+        "prompt_length": 1290,
+        "success": true
+      },
+      {
+        "problem_id": "P0020",
+        "prompt_length": 1973,
+        "success": true
+      },
+      {
+        "problem_id": "P0021",
+        "prompt_length": 1649,
+        "success": true
+      },
+      {
+        "problem_id": "P0022",
+        "prompt_length": 1337,
+        "success": true
+      },
+      {
+        "problem_id": "P0023",
+        "prompt_length": 1337,
+        "success": true
+      },
+      {
+        "problem_id": "P0024",
+        "prompt_length": 1621,
+        "success": true
+      },
+      {
+        "problem_id": "P0025",
+        "prompt_length": 1949,
+        "success": true
+      },
+      {
+        "problem_id": "P0026",
+        "prompt_length": 1890,
+        "success": true
+      },
+      {
+        "problem_id": "P0027",
+        "prompt_length": 1386,
+        "success": true
+      },
+      {
+        "problem_id": "P0028",
+        "prompt_length": 1631,
+        "success": true
+      },
+      {
+        "problem_id": "P0029",
+        "prompt_length": 1589,
+        "success": true
+      },
+      {
+        "problem_id": "P0030",
+        "prompt_length": 1593,
+        "success": true
+      },
+      {
+        "problem_id": "P0031",
+        "prompt_length": 1341,
+        "success": true
+      },
+      {
+        "problem_id": "P0032",
+        "prompt_length": 1915,
+        "success": true
+      },
+      {
+        "problem_id": "P0033",
+        "prompt_length": 1925,
+        "success": true
+      },
+      {
+        "problem_id": "P0034",
+        "prompt_length": 1918,
+        "success": true
+      },
+      {
+        "problem_id": "P0035",
+        "prompt_length": 1657,
+        "success": true
+      },
+      {
+        "problem_id": "P0036",
+        "prompt_length": 1308,
+        "success": true
+      },
+      {
+        "problem_id": "P0037",
+        "prompt_length": 1299,
+        "success": true
+      },
+      {
+        "problem_id": "P0038",
+        "prompt_length": 1977,
+        "success": true
+      },
+      {
+        "problem_id": "P0039",
+        "prompt_length": 1655,
+        "success": true
+      },
+      {
+        "problem_id": "P0040",
+        "prompt_length": 1364,
+        "success": true
+      },
+      {
+        "problem_id": "P0041",
+        "prompt_length": 1618,
+        "success": true
+      },
+      {
+        "problem_id": "P0042",
+        "prompt_length": 1651,
+        "success": true
+      },
+      {
+        "problem_id": "P0043",
+        "prompt_length": 1901,
+        "success": true
+      },
+      {
+        "problem_id": "P0044",
+        "prompt_length": 1929,
+        "success": true
+      },
+      {
+        "problem_id": "P0045",
+        "prompt_length": 1668,
+        "success": true
+      },
+      {
+        "problem_id": "P0046",
+        "prompt_length": 2011,
+        "success": true
+      },
+      {
+        "problem_id": "P0047",
+        "prompt_length": 1615,
+        "success": true
+      },
+      {
+        "problem_id": "P0048",
+        "prompt_length": 1284,
+        "success": true
+      },
+      {
+        "problem_id": "P0049",
+        "prompt_length": 1641,
+        "success": true
+      },
+      {
+        "problem_id": "P0050",
+        "prompt_length": 1281,
+        "success": true
+      },
+      {
+        "problem_id": "P0051",
+        "prompt_length": 1315,
+        "success": true
+      },
+      {
+        "problem_id": "P0052",
+        "prompt_length": 1315,
+        "success": true
+      },
+      {
+        "problem_id": "P0053",
+        "prompt_length": 1586,
+        "success": true
+      },
+      {
+        "problem_id": "P0054",
+        "prompt_length": 1656,
+        "success": true
+      },
+      {
+        "problem_id": "P0055",
+        "prompt_length": 1339,
+        "success": true
+      },
+      {
+        "problem_id": "P0056",
+        "prompt_length": 1594,
+        "success": true
+      },
+      {
+        "problem_id": "P0057",
+        "prompt_length": 1336,
+        "success": true
+      },
+      {
+        "problem_id": "P0058",
+        "prompt_length": 2010,
+        "success": true
+      },
+      {
+        "problem_id": "P0059",
+        "prompt_length": 1648,
+        "success": true
+      },
+      {
+        "problem_id": "P0060",
+        "prompt_length": 1584,
+        "success": true
+      },
+      {
+        "problem_id": "P0061",
+        "prompt_length": 1378,
+        "success": true
+      },
+      {
+        "problem_id": "P0062",
+        "prompt_length": 1628,
+        "success": true
+      },
+      {
+        "problem_id": "P0063",
+        "prompt_length": 1600,
+        "success": true
+      },
+      {
+        "problem_id": "P0064",
+        "prompt_length": 1637,
+        "success": true
+      },
+      {
+        "problem_id": "P0065",
+        "prompt_length": 1925,
+        "success": true
+      },
+      {
+        "problem_id": "P0066",
+        "prompt_length": 1313,
+        "success": true
+      },
+      {
+        "problem_id": "P0067",
+        "prompt_length": 1677,
+        "success": true
+      },
+      {
+        "problem_id": "P0068",
+        "prompt_length": 1347,
+        "success": true
+      },
+      {
+        "problem_id": "P0069",
+        "prompt_length": 1660,
+        "success": true
+      },
+      {
+        "problem_id": "P0070",
+        "prompt_length": 1612,
+        "success": true
+      },
+      {
+        "problem_id": "P0071",
+        "prompt_length": 1388,
+        "success": true
+      },
+      {
+        "problem_id": "P0072",
+        "prompt_length": 1328,
+        "success": true
+      },
+      {
+        "problem_id": "P0073",
+        "prompt_length": 1337,
+        "success": true
+      },
+      {
+        "problem_id": "P0074",
+        "prompt_length": 1278,
+        "success": true
+      },
+      {
+        "problem_id": "P0075",
+        "prompt_length": 1978,
+        "success": true
+      },
+      {
+        "problem_id": "P0076",
+        "prompt_length": 1309,
+        "success": true
+      },
+      {
+        "problem_id": "P0077",
+        "prompt_length": 1877,
+        "success": true
+      },
+      {
+        "problem_id": "P0078",
+        "prompt_length": 1877,
+        "success": true
+      },
+      {
+        "problem_id": "P0079",
+        "prompt_length": 1641,
+        "success": true
+      },
+      {
+        "problem_id": "P0080",
+        "prompt_length": 1643,
+        "success": true
+      },
+      {
+        "problem_id": "P0081",
+        "prompt_length": 1321,
+        "success": true
+      },
+      {
+        "problem_id": "P0082",
+        "prompt_length": 1373,
+        "success": true
+      },
+      {
+        "problem_id": "P0083",
+        "prompt_length": 1632,
+        "success": true
+      },
+      {
+        "problem_id": "P0084",
+        "prompt_length": 1893,
+        "success": true
+      },
+      {
+        "problem_id": "P0085",
+        "prompt_length": 1885,
+        "success": true
+      },
+      {
+        "problem_id": "P0086",
+        "prompt_length": 1365,
+        "success": true
+      },
+      {
+        "problem_id": "P0087",
+        "prompt_length": 1363,
+        "success": true
+      },
+      {
+        "problem_id": "P0088",
+        "prompt_length": 2011,
+        "success": true
+      },
+      {
+        "problem_id": "P0089",
+        "prompt_length": 1910,
+        "success": true
+      },
+      {
+        "problem_id": "P0090",
+        "prompt_length": 1334,
+        "success": true
+      },
+      {
+        "problem_id": "P0091",
+        "prompt_length": 1694,
+        "success": true
+      },
+      {
+        "problem_id": "P0092",
+        "prompt_length": 1308,
+        "success": true
+      },
+      {
+        "problem_id": "P0093",
+        "prompt_length": 1602,
+        "success": true
+      },
+      {
+        "problem_id": "P0094",
+        "prompt_length": 1947,
+        "success": true
+      },
+      {
+        "problem_id": "P0095",
+        "prompt_length": 1599,
+        "success": true
+      },
+      {
+        "problem_id": "P0096",
+        "prompt_length": 1992,
+        "success": true
+      },
+      {
+        "problem_id": "P0097",
+        "prompt_length": 1290,
+        "success": true
+      },
+      {
+        "problem_id": "P0098",
+        "prompt_length": 1954,
+        "success": true
+      },
+      {
+        "problem_id": "P0099",
+        "prompt_length": 1656,
+        "success": true
+      },
+      {
+        "problem_id": "P0100",
+        "prompt_length": 1670,
+        "success": true
+      }
+    ],
+    "usage": {
+      "model": "gpt-4",
+      "total_input_tokens": 121180,
+      "total_output_tokens": 2843,
+      "estimated_cost_usd": 3.80598
+    },
+    "timestamp": "2026-01-17T18:51:52.332212"
+  }
+}

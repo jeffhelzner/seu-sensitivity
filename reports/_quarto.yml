@@ -26,8 +26,12 @@ website:
             href: foundations/06_sbc_validation.qmd
       - text: "Applications"
         menu:
-          - text: "LLM Rationality"
-            href: applications/llm_rationality/index.qmd
+          - text: "---"
+          - text: "Prompt Framing Study"
+          - text: "1. Background"
+            href: applications/prompt_framing_study/01_background.qmd
+          - text: "2. Pilot Study 1"
+            href: applications/prompt_framing_study/02_pilot_study_1.qmd
     right:
       - icon: github
         href: https://github.com/jeffhelzner/seu-sensitivity

@@ -1,0 +1,247 @@
+{
+  "pca_sensitivity": {
+    "target_dims": [
+      16,
+      32,
+      64,
+      128
+    ],
+    "variants": [
+      "minimal",
+      "baseline",
+      "enhanced",
+      "maximal"
+    ],
+    "analysis": {
+      "dim_16": {
+        "minimal": {
+          "target_dim": 16,
+          "actual_dim": 16,
+          "explained_variance": 0.9343237544657637,
+          "embedding_stats": {
+            "mean_norm": 0.5610271518344401,
+            "std_norm": 0.05311174395193534,
+            "mean_pairwise_dist": 0.8125211556049521
+          }
+        },
+        "baseline": {
+          "target_dim": 16,
+          "actual_dim": 16,
+          "explained_variance": 0.9381825328076614,
+          "embedding_stats": {
+            "mean_norm": 0.4708631359712746,
+            "std_norm": 0.042320295978564466,
+            "mean_pairwise_dist": 0.681793827958335
+          }
+        },
+        "enhanced": {
+          "target_dim": 16,
+          "actual_dim": 16,
+          "explained_variance": 0.9422670725850021,
+          "embedding_stats": {
+            "mean_norm": 0.4210530731001353,
+            "std_norm": 0.03932112794607633,
+            "mean_pairwise_dist": 0.6094569205219912
+          }
+        },
+        "maximal": {
+          "target_dim": 16,
+          "actual_dim": 16,
+          "explained_variance": 0.9406816773154352,
+          "embedding_stats": {
+            "mean_norm": 0.41707243745173156,
+            "std_norm": 0.037689195373993865,
+            "mean_pairwise_dist": 0.6038508195861779
+          }
+        }
+      },
+      "dim_32": {
+        "minimal": {
+          "target_dim": 32,
+          "actual_dim": 20,
+          "explained_variance": 0.9999999999999999,
+          "embedding_stats": {
+            "mean_norm": 0.5817974704153606,
+            "std_norm": 0.03751103746729682,
+            "mean_pairwise_dist": 0.843222750665099
+          }
+        },
+        "baseline": {
+          "target_dim": 32,
+          "actual_dim": 20,
+          "explained_variance": 1.0000000000000002,
+          "embedding_stats": {
+            "mean_norm": 0.4869984162442599,
+            "std_norm": 0.03259462913379326,
+            "mean_pairwise_dist": 0.7057587186432172
+          }
+        },
+        "enhanced": {
+          "target_dim": 32,
+          "actual_dim": 20,
+          "explained_variance": 0.9999999999999999,
+          "embedding_stats": {
+            "mean_norm": 0.4345069918837593,
+            "std_norm": 0.03150531527412524,
+            "mean_pairwise_dist": 0.6295267246122492
+          }
+        },
+        "maximal": {
+          "target_dim": 32,
+          "actual_dim": 20,
+          "explained_variance": 1.0,
+          "embedding_stats": {
+            "mean_norm": 0.43056252872545037,
+            "std_norm": 0.03231763503935732,
+            "mean_pairwise_dist": 0.6240437792205251
+          }
+        }
+      },
+      "dim_64": {
+        "minimal": {
+          "target_dim": 64,
+          "actual_dim": 20,
+          "explained_variance": 0.9999999999999999,
+          "embedding_stats": {
+            "mean_norm": 0.5817974704153606,
+            "std_norm": 0.03751103746729682,
+            "mean_pairwise_dist": 0.843222750665099
+          }
+        },
+        "baseline": {
+          "target_dim": 64,
+          "actual_dim": 20,
+          "explained_variance": 1.0000000000000002,
+          "embedding_stats": {
+            "mean_norm": 0.4869984162442599,
+            "std_norm": 0.03259462913379326,
+            "mean_pairwise_dist": 0.7057587186432172
+          }
+        },
+        "enhanced": {
+          "target_dim": 64,
+          "actual_dim": 20,
+          "explained_variance": 0.9999999999999999,
+          "embedding_stats": {
+            "mean_norm": 0.4345069918837593,
+            "std_norm": 0.03150531527412524,
+            "mean_pairwise_dist": 0.6295267246122492
+          }
+        },
+        "maximal": {
+          "target_dim": 64,
+          "actual_dim": 20,
+          "explained_variance": 1.0,
+          "embedding_stats": {
+            "mean_norm": 0.43056252872545037,
+            "std_norm": 0.03231763503935732,
+            "mean_pairwise_dist": 0.6240437792205251
+          }
+        }
+      },
+      "dim_128": {
+        "minimal": {
+          "target_dim": 128,
+          "actual_dim": 20,
+          "explained_variance": 0.9999999999999999,
+          "embedding_stats": {
+            "mean_norm": 0.5817974704153606,
+            "std_norm": 0.03751103746729682,
+            "mean_pairwise_dist": 0.843222750665099
+          }
+        },
+        "baseline": {
+          "target_dim": 128,
+          "actual_dim": 20,
+          "explained_variance": 1.0000000000000002,
+          "embedding_stats": {
+            "mean_norm": 0.4869984162442599,
+            "std_norm": 0.03259462913379326,
+            "mean_pairwise_dist": 0.7057587186432172
+          }
+        },
+        "enhanced": {
+          "target_dim": 128,
+          "actual_dim": 20,
+          "explained_variance": 0.9999999999999999,
+          "embedding_stats": {
+            "mean_norm": 0.4345069918837593,
+            "std_norm": 0.03150531527412524,
+            "mean_pairwise_dist": 0.6295267246122492
+          }
+        },
+        "maximal": {
+          "target_dim": 128,
+          "actual_dim": 20,
+          "explained_variance": 1.0,
+          "embedding_stats": {
+            "mean_norm": 0.43056252872545037,
+            "std_norm": 0.03231763503935732,
+            "mean_pairwise_dist": 0.6240437792205251
+          }
+        }
+      }
+    }
+  },
+  "reduction_method_sensitivity": {
+    "methods": [
+      "pca",
+      "random"
+    ],
+    "target_dim": 32,
+    "comparisons": {
+      "minimal": {
+        "stats_by_method": {
+          "pca": {
+            "mean_norm": 0.5817974704153606,
+            "mean_pairwise_dist": 0.843222750665099
+          },
+          "random": {
+            "mean_norm": 0.1275728775076326,
+            "mean_pairwise_dist": 0.11780862602927941
+          }
+        },
+        "structure_similarity": null
+      },
+      "baseline": {
+        "stats_by_method": {
+          "pca": {
+            "mean_norm": 0.4869984162442599,
+            "mean_pairwise_dist": 0.7057587186432172
+          },
+          "random": {
+            "mean_norm": 0.13128410928619252,
+            "mean_pairwise_dist": 0.09893383152878832
+          }
+        },
+        "structure_similarity": null
+      },
+      "enhanced": {
+        "stats_by_method": {
+          "pca": {
+            "mean_norm": 0.4345069918837593,
+            "mean_pairwise_dist": 0.6295267246122492
+          },
+          "random": {
+            "mean_norm": 0.13994038405163772,
+            "mean_pairwise_dist": 0.08830812219711782
+          }
+        },
+        "structure_similarity": null
+      },
+      "maximal": {
+        "stats_by_method": {
+          "pca": {
+            "mean_norm": 0.43056252872545037,
+            "mean_pairwise_dist": 0.6240437792205251
+          },
+          "random": {
+            "mean_norm": 0.13444502427504285,
+            "mean_pairwise_dist": 0.0887010306554831
+          }
+        },
+        "structure_similarity": null
+      }
+    }
+  }
+}

@@ -1,0 +1,90 @@
+{
+  "config": {
+    "num_problems": 100,
+    "K": 3,
+    "min_alternatives": 2,
+    "max_alternatives": 4,
+    "seed": 42,
+    "embedding_model": "text-embedding-3-small",
+    "target_dim": 32,
+    "llm_model": "gpt-4",
+    "provider": "openai",
+    "temperature": 0.7,
+    "num_repetitions": 1,
+    "claims_file": "data/claims.json",
+    "prompt_variants_path": "configs/prompt_variants.yaml",
+    "fit_models": false,
+    "stan_model": "m_0",
+    "save_raw_embeddings": true,
+    "save_reduced_embeddings": true,
+    "save_raw_responses": true,
+    "batch_size": 10,
+    "max_retries": 3,
+    "retry_delay": 2.0
+  },
+  "timestamp": "2026-01-17T18:40:05.436109",
+  "results_dir": "/Users/jeffhelzner/seu-sensitivity/applications/prompt_framing_study/results/run_20260117_184005",
+  "cost_estimate": {
+    "embedding_costs": {
+      "num_embeddings": 80,
+      "estimated_tokens": 28000,
+      "estimated_cost_usd": 0.0005600000000000001,
+      "model": "text-embedding-3-small"
+    },
+    "choice_collection_costs": {
+      "num_api_calls": 400,
+      "estimated_input_tokens": 260000,
+      "estimated_output_tokens": 4000,
+      "estimated_cost_usd": 8.040000000000001,
+      "model": "gpt-4",
+      "provider": "openai"
+    },
+    "total_estimated_cost_usd": 8.040560000000001,
+    "summary": "Estimated total: $8.04 USD"
+  },
+  "num_claims": 20,
+  "num_problems": 100,
+  "variants": [
+    "minimal",
+    "baseline",
+    "enhanced",
+    "maximal"
+  ],
+  "num_variants": 4,
+  "stan_data_files": [
+    "/Users/jeffhelzner/seu-sensitivity/applications/prompt_framing_study/results/run_20260117_184005/stan_data_minimal.json",
+    "/Users/jeffhelzner/seu-sensitivity/applications/prompt_framing_study/results/run_20260117_184005/stan_data_baseline.json",
+    "/Users/jeffhelzner/seu-sensitivity/applications/prompt_framing_study/results/run_20260117_184005/stan_data_enhanced.json",
+    "/Users/jeffhelzner/seu-sensitivity/applications/prompt_framing_study/results/run_20260117_184005/stan_data_maximal.json"
+  ],
+  "model_fits": {
+    "minimal": {
+      "alpha_mean": 1.3625299171525,
+      "alpha_std": 1.0752048716826097,
+      "alpha_median": 1.06988525,
+      "alpha_q05": 0.20857428800000002,
+      "alpha_q95": 3.4052096199999964
+    },
+    "baseline": {
+      "alpha_mean": 0.9157124787052501,
+      "alpha_std": 0.7043266973175873,
+      "alpha_median": 0.7274282,
+      "alpha_q05": 0.16349627750000004,
+      "alpha_q95": 2.291161745
+    },
+    "enhanced": {
+      "alpha_mean": 1.12507118815475,
+      "alpha_std": 0.9331163077894022,
+      "alpha_median": 0.85586019,
+      "alpha_q05": 0.18078913100000002,
+      "alpha_q95": 2.9826030999999995
+    },
+    "maximal": {
+      "alpha_mean": 3.27666769897725,
+      "alpha_std": 2.1963136389093516,
+      "alpha_median": 3.06976415,
+      "alpha_q05": 0.358394592,
+      "alpha_q95": 7.172102759999999
+    }
+  }
+}

@@ -1,0 +1,456 @@
+---
+title: "Pilot Study 1: Initial Results and Methodological Discoveries"
+subtitle: "Application Report 2"
+description: |
+  Results from our first pilot study investigating prompt framing effects on LLM 
+  rationality. We present the findings and document an important methodological 
+  challenge: position bias in the maximal prompting condition.
+categories: [applications, llm, prompt-framing, pilot]
+execute:
+  cache: true
+---
+
+```{python}
+#| label: setup
+#| include: false
+
+import sys
+import os
+from pathlib import Path
+
+# Add parent directories to path
+sys.path.insert(0, os.path.join(os.getcwd(), '..', '..'))
+project_root = Path(os.getcwd()).parent.parent.parent
+sys.path.insert(0, str(project_root))
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import json
+from collections import Counter
+import warnings
+warnings.filterwarnings('ignore')
+
+# Path to pilot study data
+data_dir = Path("data/pilot_study_1")
+```
+
+## Introduction
+
+This report presents results from our first pilot study investigating whether prompt framing affects LLM rationality. Following the experimental design outlined in [Report 1](01_background.qmd), we collected choice data from GPT-4 under four prompting conditions and fit the m_0 model to estimate the sensitivity parameter α for each condition.
+
+::: {.callout-important}
+## Key Finding
+While initial results suggested the maximal prompting condition yields higher α (greater sensitivity to EU-optimal choices), deeper analysis revealed a **position bias confound** that complicates interpretation. This discovery highlights the importance of careful experimental design when studying LLM decision-making.
+:::
+
+## Study Configuration
+
+```{python}
+#| label: load-metadata
+
+# Load study metadata
+with open(data_dir / "run_metadata.json", 'r') as f:
+    metadata = json.load(f)
+
+config = metadata["config"]
+cost_estimate = metadata["cost_estimate"]
+
+print("Study Configuration")
+print("=" * 50)
+print(f"  Decision problems: {config['num_problems']}")
+print(f"  Claims (alternatives): 20")
+print(f"  Alternatives per problem: {config['min_alternatives']}-{config['max_alternatives']}")
+print(f"  Prompt variants: {metadata['num_variants']}")
+print(f"  LLM model: {config['llm_model']}")
+print(f"  Temperature: {config['temperature']}")
+print(f"  Embedding model: {config['embedding_model']}")
+print(f"  Embedding dimensions (reduced): {config['target_dim']}")
+```
+
+### Cost Summary
+
+```{python}
+#| label: cost-summary
+
+print("\nAPI Cost Summary")
+print("=" * 50)
+print(f"  Embedding calls: {cost_estimate['embedding_costs']['num_embeddings']}")
+print(f"  Choice collection calls: {cost_estimate['choice_collection_costs']['num_api_calls']}")
+print(f"  Estimated cost: ${cost_estimate['total_estimated_cost_usd']:.2f}")
+print(f"  (Actual cost was slightly lower due to conservative token estimates)")
+```
+
+## Model Fitting Results
+
+We fit the m_0 model separately to choice data from each prompt variant using CmdStan with 4 chains × 1000 samples after 1000 warmup iterations.
+
+```{python}
+#| label: load-model-fits
+
+model_fits = metadata["model_fits"]
+
+# Create results dataframe
+results_df = pd.DataFrame([
+    {
+        "Variant": name.capitalize(),
+        "Level": ["Minimal", "Baseline", "Enhanced", "Maximal"].index(name.capitalize()),
+        "α Mean": fits["alpha_mean"],
+        "α Std": fits["alpha_std"],
+        "α Median": fits["alpha_median"],
+        "95% CI Lower": fits["alpha_q05"],
+        "95% CI Upper": fits["alpha_q95"],
+    }
+    for name, fits in model_fits.items()
+]).sort_values("Level")
+
+print("\nPosterior Estimates for α (Sensitivity Parameter)")
+print("=" * 70)
+print(results_df.to_string(index=False))
+```
+
+```{python}
+#| label: fig-alpha-comparison
+#| fig-cap: "Estimated sensitivity parameter α across prompt variants. Error bars show 90% credible intervals. The dashed line at α=1 represents moderate sensitivity; higher values indicate stronger preference for EU-optimal choices."
+
+fig, ax = plt.subplots(figsize=(10, 6))
+
+# Colors matching our variant scheme
+colors = {"Minimal": "#E69F00", "Baseline": "#56B4E9", 
+          "Enhanced": "#009E73", "Maximal": "#CC79A7"}
+
+variants = results_df["Variant"].tolist()
+x = np.arange(len(variants))
+means = results_df["α Mean"].values
+ci_lower = results_df["95% CI Lower"].values
+ci_upper = results_df["95% CI Upper"].values
+
+# Error bars (90% CI)
+yerr = np.array([means - ci_lower, ci_upper - means])
+
+bars = ax.bar(x, means, yerr=yerr, capsize=8, 
+              color=[colors[v] for v in variants],
+              alpha=0.8, edgecolor='black', linewidth=1.5)
+
+# Add value labels
+for i, (bar, mean, upper) in enumerate(zip(bars, means, ci_upper)):
+    ax.text(bar.get_x() + bar.get_width()/2, upper + 0.2,
+            f'{mean:.2f}', ha='center', va='bottom', fontsize=11, fontweight='bold')
+
+# Reference line
+ax.axhline(y=1.0, color='gray', linestyle='--', linewidth=1.5, 
+           label='α=1 (moderate sensitivity)')
+
+ax.set_xlabel('Prompt Variant (Rationality Emphasis →)', fontsize=12)
+ax.set_ylabel('Estimated α (Sensitivity Parameter)', fontsize=12)
+ax.set_title('SEU Sensitivity by Prompt Framing Condition', fontsize=14, fontweight='bold')
+ax.set_xticks(x)
+ax.set_xticklabels(variants)
+ax.legend(loc='upper left')
+ax.set_ylim(0, max(ci_upper) * 1.3)
+
+plt.tight_layout()
+plt.show()
+```
+
+### Initial Interpretation
+
+At first glance, the results appear to support our hypothesis:
+
+- **Minimal, Baseline, Enhanced**: α estimates around 0.9-1.4 (near random to moderate sensitivity)
+- **Maximal**: α ≈ 3.3 with 90% CI [0.4, 7.2] — substantially higher
+
+This would suggest that explicit decision-theoretic framing (the maximal condition) induces more rational choice behavior. However, examining the raw choice data revealed a potential confound.
+
+## Position Bias Analysis
+
+### Observing the Pattern
+
+When we examined the distribution of choice positions, a striking pattern emerged:
+
+```{python}
+#| label: load-choices
+
+# Load problems and choices
+with open(data_dir / "problems.json", 'r') as f:
+    problems_data = json.load(f)
+problems = problems_data["problems"]
+
+with open(data_dir / "raw_choices.json", 'r') as f:
+    choices = json.load(f)
+```
+
+```{python}
+#| label: fig-position-distributions
+#| fig-cap: "Distribution of choice positions by prompt variant. The maximal condition shows a strong preference for Position 1 (51%) compared to other conditions (21-27%)."
+
+fig, axes = plt.subplots(2, 2, figsize=(12, 10))
+axes = axes.flatten()
+
+variants_list = ["minimal", "baseline", "enhanced", "maximal"]
+colors = {"minimal": "#E69F00", "baseline": "#56B4E9", 
+          "enhanced": "#009E73", "maximal": "#CC79A7"}
+
+for i, variant in enumerate(variants_list):
+    ax = axes[i]
+    
+    # Count positions
+    positions = [c["choice_1indexed"] for c in choices[variant]["choices"]]
+    counts = Counter(positions)
+    total = len(positions)
+    
+    x = sorted(counts.keys())
+    y = [counts[k] for k in x]
+    pcts = [counts[k]/total*100 for k in x]
+    
+    bars = ax.bar(x, y, color=colors[variant], alpha=0.8, edgecolor='black')
+    
+    # Add percentage labels
+    for bar, pct in zip(bars, pcts):
+        ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 1,
+                f'{pct:.0f}%', ha='center', va='bottom', fontsize=10)
+    
+    ax.set_xlabel('Choice Position', fontsize=11)
+    ax.set_ylabel('Count', fontsize=11)
+    ax.set_title(f'{variant.capitalize()} Variant', fontsize=12, fontweight='bold')
+    ax.set_xticks(x)
+
+plt.suptitle('Choice Position Distributions by Prompt Variant', 
+             fontsize=14, fontweight='bold', y=1.02)
+plt.tight_layout()
+plt.show()
+```
+
+::: {.callout-warning}
+## Key Observation
+The maximal condition shows a **51% preference for Position 1**, compared to only 21-27% for other conditions. All conditions show roughly similar patterns for positions 2-4.
+:::
+
+### Disentangling Position vs. Content
+
+The critical question is whether this position preference reflects:
+
+1. **True position bias**: The maximal prompt induces a preference for "Claim 1" regardless of content
+2. **Content-position correlation**: Claims in position 1 happen to be more suspicious, and maximal is better at detecting this
+3. **Interaction effect**: Some combination of both
+
+To investigate, we analyzed choice rates for specific claims when they appeared in Position 1 versus other positions:
+
+```{python}
+#| label: position-content-analysis
+
+def analyze_claim_position_rates(claim_id, problems, choices, variants_list):
+    """Analyze choice rates for a claim by position and variant."""
+    results = []
+    
+    for variant in variants_list:
+        pos1_shown = pos1_chosen = 0
+        other_shown = other_chosen = 0
+        
+        for choice_data in choices[variant]["choices"]:
+            pid = choice_data["problem_id"]
+            choice_idx = choice_data["choice"]
+            problem = next(p for p in problems if p["id"] == pid)
+            
+            if claim_id in problem["claim_ids"]:
+                claim_pos = problem["claim_ids"].index(claim_id)
+                if claim_pos == 0:
+                    pos1_shown += 1
+                    if choice_idx == 0:
+                        pos1_chosen += 1
+                else:
+                    other_shown += 1
+                    if choice_idx == claim_pos:
+                        other_chosen += 1
+        
+        pos1_rate = pos1_chosen/pos1_shown*100 if pos1_shown > 0 else np.nan
+        other_rate = other_chosen/other_shown*100 if other_shown > 0 else np.nan
+        
+        results.append({
+            "Variant": variant.capitalize(),
+            "Pos1": f"{pos1_chosen}/{pos1_shown}",
+            "Pos1 Rate": pos1_rate,
+            "Other": f"{other_chosen}/{other_shown}",
+            "Other Rate": other_rate,
+            "Difference": pos1_rate - other_rate if not np.isnan(pos1_rate) and not np.isnan(other_rate) else np.nan
+        })
+    
+    return pd.DataFrame(results)
+
+# Analyze key claims
+print("Position Effect Analysis for Selected Claims")
+print("=" * 70)
+print("\nC007 (Life insurance - undisclosed heart condition):")
+print("  This claim is highly suspicious and chosen ~100% regardless of position")
+df_c007 = analyze_claim_position_rates("C007", problems, choices, variants_list)
+print(df_c007.to_string(index=False))
+```
+
+```{python}
+#| label: position-analysis-c003
+
+print("\n" + "=" * 70)
+print("\nC003 (Business interruption - fire suppression issue):")
+print("  Shows strong position bias in maximal condition")
+df_c003 = analyze_claim_position_rates("C003", problems, choices, variants_list)
+print(df_c003.to_string(index=False))
+```
+
+```{python}
+#| label: position-analysis-c009
+
+print("\n" + "=" * 70)
+print("\nC009 (Hail damage - well-documented legitimate claim):")
+print("  Other variants never choose it; maximal chooses it frequently")
+df_c009 = analyze_claim_position_rates("C009", problems, choices, variants_list)
+print(df_c009.to_string(index=False))
+```
+
+### Interpretation of Position Analysis
+
+The analysis reveals a nuanced picture:
+
+**C007 (Life Insurance Claim)**: All variants choose this claim ~100% of the time regardless of position. This is genuinely a suspicious claim (undisclosed pre-existing heart condition), and the consistent selection suggests all variants can identify clear fraud indicators.
+
+**C003 (Business Interruption)**: The maximal condition shows a +33 percentage point boost when this claim is in Position 1 versus other positions. Other variants show negative or smaller effects. This suggests a position-content interaction in the maximal condition.
+
+**C009 (Hail Damage)**: This is a well-documented, legitimate claim. Other variants appropriately never select it (0%). But maximal selects it 50-58% of the time—this appears to be position bias rather than content-based selection.
+
+```{python}
+#| label: fig-position-bias-summary
+#| fig-cap: "Position bias effect by prompt variant. Shows the difference in choice rate when claims appear in Position 1 vs. other positions, averaged across claims. The maximal condition shows substantially larger position effects."
+
+# Calculate average position effect for each variant
+position_effects = []
+
+for variant in variants_list:
+    effects = []
+    for claim_id in [f"C{i:03d}" for i in range(1, 21)]:  # All 20 claims
+        df = analyze_claim_position_rates(claim_id, problems, choices, [variant])
+        if not np.isnan(df["Difference"].values[0]):
+            effects.append(df["Difference"].values[0])
+    
+    position_effects.append({
+        "Variant": variant.capitalize(),
+        "Mean Position Effect": np.mean(effects),
+        "Std": np.std(effects),
+        "N Claims": len(effects)
+    })
+
+effects_df = pd.DataFrame(position_effects)
+
+fig, ax = plt.subplots(figsize=(8, 5))
+
+x = np.arange(len(effects_df))
+colors_list = [colors[v.lower()] for v in effects_df["Variant"]]
+bars = ax.bar(x, effects_df["Mean Position Effect"], 
+              yerr=effects_df["Std"]/np.sqrt(effects_df["N Claims"]),
+              color=colors_list, alpha=0.8, edgecolor='black', capsize=5)
+
+ax.axhline(y=0, color='gray', linestyle='-', linewidth=1)
+ax.set_xlabel('Prompt Variant', fontsize=12)
+ax.set_ylabel('Position 1 Advantage (percentage points)', fontsize=12)
+ax.set_title('Average Position Bias by Prompt Condition', fontsize=14, fontweight='bold')
+ax.set_xticks(x)
+ax.set_xticklabels(effects_df["Variant"])
+
+# Add value labels
+for bar in bars:
+    height = bar.get_height()
+    ax.text(bar.get_x() + bar.get_width()/2, height + 1,
+            f'{height:+.1f}%', ha='center', va='bottom', fontsize=10)
+
+plt.tight_layout()
+plt.show()
+```
+
+## Robustness Analysis
+
+We also examined the robustness of our embedding methodology:
+
+```{python}
+#| label: robustness-results
+
+with open(data_dir / "robustness_analysis.json", 'r') as f:
+    robustness = json.load(f)
+
+pca_results = robustness["pca_sensitivity"]["analysis"]
+
+print("PCA Dimension Sensitivity")
+print("=" * 50)
+print("Explained variance by target dimension:")
+for dim_key, dim_data in pca_results.items():
+    dim = dim_key.replace("dim_", "")
+    avg_var = np.mean([v.get("explained_variance", 0) for v in dim_data.values() if v.get("explained_variance")])
+    print(f"  D={dim}: {avg_var*100:.1f}% variance explained (avg across variants)")
+```
+
+::: {.callout-note}
+## Robustness Finding
+With only 20 claims, PCA is limited to 20 dimensions maximum (achieving 100% variance). The 16-dimensional reduction captures ~94% of embedding variance, suggesting our 32-dimensional target is more than sufficient for this pilot scale.
+:::
+
+## Discussion
+
+### What We Learned
+
+1. **Initial support for hypothesis**: The maximal condition does show higher estimated α, consistent with rationality framing improving EU sensitivity
+
+2. **Position bias confound**: However, the maximal condition also exhibits strong position bias (51% position 1 preference vs. ~25% for others), which may inflate the α estimate
+
+3. **Interaction effects**: The position effect varies by claim content, suggesting a complex interaction between framing, position, and claim characteristics
+
+### Methodological Implications
+
+The discovery of position bias has important implications for study design:
+
+::: {.callout-important}
+## Design Recommendation
+Future studies should **counterbalance claim positions** across problems. Each claim should appear equally often in each position, allowing us to:
+
+1. Estimate position bias directly
+2. Separate content-based sensitivity from position effects  
+3. Test whether the framing × position interaction is significant
+:::
+
+### Limitations of This Pilot
+
+1. **Small claim pool**: Only 20 claims limits generalizability
+2. **No position counterbalancing**: Claims are not balanced across positions
+3. **Single LLM**: Only GPT-4 tested; effects may differ across models
+4. **No repetitions**: Each problem presented once per condition (no within-condition reliability estimate)
+
+## Conclusion
+
+This pilot study provides preliminary evidence that prompt framing affects LLM decision-making behavior, with explicit rationality cues potentially increasing sensitivity to EU-optimal choices. However, the discovery of position bias in the maximal condition complicates interpretation and highlights the need for more careful experimental design.
+
+The position bias finding is itself interesting: it suggests that explicit decision-theoretic framing may activate different processing modes in LLMs—modes that may include heuristics like "the first option is likely correct." Understanding and controlling for such biases will be essential for rigorous study of LLM rationality.
+
+::: {.callout-tip}
+## Next Steps
+In Report 3, we will:
+
+1. Implement position-counterbalanced problem generation
+2. Expand the claim pool for better generalizability  
+3. Add within-condition repetitions to estimate reliability
+4. Potentially test multiple LLMs for cross-model comparison
+:::
+
+## Appendix: Claim Descriptions
+
+For reference, the 20 claims used in this pilot study:
+
+```{python}
+#| label: claims-appendix
+#| code-fold: true
+#| code-summary: "Show claims data"
+
+with open(data_dir / "claims.json", 'r') as f:
+    claims_data = json.load(f)
+
+for claim in claims_data["claims"][:10]:  # Show first 10
+    print(f"\n{claim['id']}:")
+    print(f"  {claim['description'][:200]}...")
+    
+print("\n... (10 more claims omitted for brevity)")
+```

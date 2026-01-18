@@ -1,8 +1,8 @@
 author:
-  - name: "Jeff Helzner"
+  - name:
+      given: Jeff
+      family: Helzner
     url: https://github.com/jeffhelzner
-    orcid: ""
-    affiliation: ""
 
 date: last-modified
 date-format: "MMMM D, YYYY"

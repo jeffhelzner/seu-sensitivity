@@ -4,7 +4,7 @@
 
 **Note**: This is an active research project. Code and documentation are evolving.
 
-A Bayesian framework for modeling and analyzing decision-making behavior through the lens of Subjective Expected Utility (SEU) theory. This project provides tools for generating experimental designs, fitting computational models, and assessing the rationality of decision makers (including Large Language Models).
+A Bayesian framework for modeling and analyzing decision-making behavior through the lens of Subjective Expected Utility (SEU) theory. This project provides tools for generating experimental designs, fitting computational models using Stan, and assessing the rationality of decision makers—including Large Language Models (LLMs).
 
 ## Development Status
 
@@ -12,10 +12,12 @@ A Bayesian framework for modeling and analyzing decision-making behavior through
 
 Current status:
 - ✅ Core theoretical framework established
-- ✅ Base Stan model (m_0) implemented and tested
-- ✅ Combined model (m_1) with risky and uncertain choice - implemented and tested
-- ✅ Study design tools functional
-- 🔄 LLM benchmarking application in progress
+- ✅ Base Stan model (m_0) for uncertain choice implemented and tested
+- ✅ Combined model (m_1) with risky and uncertain choice implemented and tested
+- ✅ Study design tools functional (m_0 and m_1)
+- ✅ Analysis pipeline complete (parameter recovery, SBC, prior predictive)
+- ✅ Quarto-based documentation and reports
+- 🔄 Prompt framing study application in progress
 - 📝 Documentation being expanded
 - 🔬 Empirical validation ongoing
 
@@ -39,29 +41,56 @@ This framework implements a computational approach to understanding decision mak
 seu-sensitivity/
 ├── reports/                 # Quarto-based documentation and reports
 │   ├── _quarto.yml         # Quarto project configuration
+│   ├── index.qmd           # Main documentation index
 │   ├── foundations/        # Foundational theoretical reports
-│   │   └── 01_abstract_formulation.qmd  # Mathematical framework
-│   ├── m1_extensions/      # Reports for m_1 model extensions
+│   │   ├── 01_abstract_formulation.qmd   # Mathematical framework
+│   │   ├── 02_concrete_implementation.qmd # Implementation details
+│   │   ├── 03_prior_analysis.qmd         # Prior predictive analysis
+│   │   ├── 04_parameter_recovery.qmd     # Parameter recovery study
+│   │   ├── 05_adding_risky_choices.qmd   # m_1 model development
+│   │   └── 06_sbc_validation.qmd         # Simulation-based calibration
 │   ├── applications/       # Applied research reports
-│   └── legacy/             # Archived legacy reports and theory files
+│   ├── blog/               # Blog-style posts
+│   └── legacy/             # Archived legacy reports
 ├── models/                  # Stan model implementations
-│   ├── m_0.stan            # Base SEU sensitivity model (uncertain choice only)
+│   ├── m_0.stan            # Base SEU model (uncertain choice only)
+│   ├── m_0_sim.stan        # m_0 simulation model
+│   ├── m_0_sbc.stan        # m_0 SBC model
 │   ├── m_1.stan            # Combined model (risky + uncertain choice)
+│   ├── m_1_sim.stan        # m_1 simulation model
+│   ├── m_1_sbc.stan        # m_1 SBC model
+│   ├── m_01.stan           # Intermediate model variant
 │   └── README_m1.md        # m_1 implementation guide
 ├── utils/                   # Core utilities
+│   ├── __init__.py         # Shared utilities, model detection
 │   ├── study_design.py     # Experimental design generation (m_0)
-│   ├── study_design_m1.py  # Extended design for m_1 (risky + uncertain)
+│   ├── study_design_m1.py  # Extended design for m_1
 │   └── README.md           # Utils documentation
 ├── analysis/                # Analysis scripts
-│   ├── parameter_recovery.py
-│   ├── prior_predictive.py
+│   ├── model_estimation.py # Model fitting utilities
+│   ├── parameter_recovery.py # Parameter recovery analysis
+│   ├── prior_predictive.py # Prior predictive checks
 │   ├── sbc.py              # Simulation-based calibration
-│   └── sample_size_estimation.py
+│   └── sample_size_estimation.py # Sample size planning
 ├── applications/            # Applied research projects
-│   ├── llm_rationality/    # LLM rationality benchmarking (legacy)
-│   └── prompt_framing_study/ # Prompt framing effects on rationality
+│   ├── prompt_framing_study/ # Prompt framing effects on LLM rationality
+│   └── llm_rationality/    # Legacy LLM benchmarking (deprecated)
+├── scripts/                 # Executable scripts
+│   ├── run_study_design.py # Generate study designs
+│   ├── run_model_estimation.py # Fit models
+│   ├── run_parameter_recovery.py # Run recovery analysis
+│   ├── run_prior_predictive.py # Prior predictive analysis
+│   ├── run_sbc.py          # SBC validation
+│   └── run_sample_size_estimation.py # Sample size analysis
 ├── configs/                 # Configuration files for studies
 ├── results/                 # Generated results and outputs
+│   ├── designs/            # Study designs
+│   ├── parameter_recovery/ # Recovery analysis results
+│   ├── prior_predictive/   # Prior predictive results
+│   ├── sample_size_estimation/ # Sample size results
+│   └── sbc/                # SBC results
+├── articles/                # Article drafts and plans
+├── prompts/                 # LLM prompt templates
 ├── environment.yml          # Conda environment specification
 ├── requirements.txt         # Pip requirements (alternative)
 └── README.md               # This file
@@ -71,9 +100,9 @@ seu-sensitivity/
 
 ### Prerequisites
 
-- Python 3.8+
+- Python 3.10+ (Python 3.10 recommended)
 - Conda (recommended) or pip
-- Stan (will be installed via CmdStanPy)
+- Stan (installed via CmdStanPy)
 
 ### Option 1: Using Conda (Recommended)
 
@@ -112,10 +141,15 @@ python -c "import cmdstanpy; cmdstanpy.install_cmdstan()"
 
 ### For LLM Benchmarking
 
+The project supports both OpenAI and Anthropic APIs for LLM studies:
+
 ```bash
-# Set up OpenAI API key
-echo "OPENAI_API_KEY=your-api-key-here" > .env
+# Set up API keys (create .env file or export directly)
+echo "OPENAI_API_KEY=your-openai-key-here" >> .env
+echo "ANTHROPIC_API_KEY=your-anthropic-key-here" >> .env
 ```
+
+See `.env.example` for a template.
 
 ## Quick Start
 
@@ -176,10 +210,33 @@ See [models/README_m1.md](models/README_m1.md) for detailed m_1 documentation.
 cd applications/prompt_framing_study
 
 # Run the full study pipeline
-python -m prompt_framing_study.study_runner
+python -m prompt_framing_study
 ```
 
 See [applications/prompt_framing_study/README.md](applications/prompt_framing_study/README.md) for detailed workflow on investigating how prompt framing affects LLM rationality.
+
+## Analysis Pipeline
+
+The project includes a complete analysis pipeline accessible via scripts:
+
+```bash
+# Generate a study design
+python scripts/run_study_design.py --config configs/study_config.json
+
+# Run prior predictive analysis
+python scripts/run_prior_predictive.py --config configs/prior_analysis_config.json
+
+# Run parameter recovery study
+python scripts/run_parameter_recovery.py --config configs/parameter_recovery_config.json
+
+# Run simulation-based calibration
+python scripts/run_sbc.py --config configs/sbc_config.json
+
+# Run sample size estimation
+python scripts/run_sample_size_estimation.py --config configs/sample_size_config.json
+```
+
+For m_1 models, use the corresponding `m1_*` config files.
 
 ## Theoretical Background
 
@@ -205,7 +262,7 @@ open _output/index.html
 
 ## Model m_0 Specification
 
-The base model (`models/m_0.stan`) implements:
+The base model (`models/m_0.stan`) implements a softmax choice model for uncertain choice problems:
 
 - **Subjective probabilities** determined by alternative features through softmax transformation
 - **Ordered utilities** with incremental differences on unit scale
@@ -224,6 +281,21 @@ The base model (`models/m_0.stan`) implements:
 - `w`: Feature vectors for each alternative
 - `I`: Indicator array (which alternatives in which problems)
 - `y`: Observed choices
+
+## Model m_1 Specification
+
+The combined model (`models/m_1.stan`) extends m_0 by adding risky choice problems with known objective probabilities:
+
+**Additional Parameters for m_1:**
+- `N`: Number of risky choice problems
+- `S`: Number of risky alternatives
+- `x`: Objective probability vectors for risky alternatives
+- `J`: Indicator array for risky problems
+- `z`: Observed risky choices
+
+**Key Advantage:** Separate identification of utility function (from risky choices) and subjective probability mapping (from uncertain choices).
+
+See [models/README_m1.md](models/README_m1.md) for detailed m_1 documentation.
 
 ## Study Design Tools
 
@@ -335,4 +407,20 @@ beta_samples = fit.stan_variable("beta")
 # Posterior predictive checks
 y_pred = fit.stan_variable("y_pred")
 ```
+
+## License
+
+See [LICENSE](LICENSE) for details.
+
+## Acknowledgments
+
+### AI Tools
+
+This project has been developed with significant assistance from AI tools, which have contributed to code development, documentation, mathematical derivations, and research design:
+
+- **Claude Opus 4.5** (Anthropic) — Primary AI assistant for complex reasoning, mathematical formulations, and code architecture
+- **Claude Sonnet 4.5** (Anthropic) — Used for code implementation, debugging, and documentation
+- **GitHub Copilot** — Code completion and suggestions during development
+
+We acknowledge that AI-assisted development is an evolving practice, and we have endeavored to verify AI-generated content for correctness and appropriateness throughout the project.
 

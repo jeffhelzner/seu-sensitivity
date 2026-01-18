@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.27">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Jeff Helzner">
+<meta name="dcterms.date" content="2026-01-18">
+<meta name="description" content="Investigating whether explicit rationality cues in prompts affect LLM sensitivity to subjective expected utility maximization, using contextualized embeddings to capture how framing shapes internal representations.">
+
+<title>Prompt Framing and LLM Rationality – SEU Sensitivity</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark-4d9afe2b8d18ee9fa5d0d57b5ed4214d.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-1fe82abf2a7e37c817ee6adf46d66500.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-dark-6cc1a338d8c1e7ab9fce866626f20738.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../site_libs/bootstrap/bootstrap-1fe82abf2a7e37c817ee6adf46d66500.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../../styles/seu-sensitivity.css">
+<meta name="citation_title" content="Prompt Framing and LLM Rationality">
+<meta name="citation_author" content="Jeff Helzner">
+<meta name="citation_publication_date" content="2026-01-18">
+<meta name="citation_cover_date" content="2026-01-18">
+<meta name="citation_year" content="2026">
+<meta name="citation_online_date" content="2026-01-18">
+<meta name="citation_fulltext_html_url" content="https://jeffhelzner.github.io/seu-sensitivity/applications/prompt_framing_study/01_background.html">
+<meta name="citation_language" content="en">
+<meta name="citation_journal_title" content="SEU Sensitivity Project">
+<meta name="citation_reference" content="citation_title=Theory of games and economic behavior;,citation_author=John Neumann;,citation_author=Oskar Morgenstern;,citation_publication_date=1947;,citation_cover_date=1947;,citation_year=1947;">
+<meta name="citation_reference" content="citation_title=The foundations of statistics;,citation_author=Leonard J. Savage;,citation_publication_date=1954;,citation_cover_date=1954;,citation_year=1954;,citation_publisher=John Wiley &amp;amp;amp; Sons;">
+<meta name="citation_reference" content="citation_title=Individual choice behavior: A theoretical analysis;,citation_author=R. Duncan Luce;,citation_publication_date=1959;,citation_cover_date=1959;,citation_year=1959;,citation_publisher=John Wiley &amp;amp;amp; Sons;">
+<meta name="citation_reference" content="citation_title=Conditional logit analysis of qualitative choice behavior;,citation_author=Daniel McFadden;,citation_publication_date=1974;,citation_cover_date=1974;,citation_year=1974;,citation_journal_title=Frontiers in Econometrics;,citation_publisher=Academic Press;">
+<meta name="citation_reference" content="citation_title=Discrete choice methods with simulation;,citation_author=Kenneth E. Train;,citation_publication_date=2009;,citation_cover_date=2009;,citation_year=2009;,citation_publisher=Cambridge University Press;">
+<meta name="citation_reference" content="citation_title=Validating Bayesian inference algorithms with simulation-based calibration;,citation_author=Sean Talts;,citation_author=Michael Betancourt;,citation_author=Daniel Simpson;,citation_author=Aki Vehtari;,citation_author=Andrew Gelman;,citation_publication_date=2018;,citation_cover_date=2018;,citation_year=2018;,citation_journal_title=arXiv preprint arXiv:1804.06788;">
+<meta name="citation_reference" content="citation_title=Bayesian workflow;,citation_author=Andrew Gelman;,citation_author=Aki Vehtari;,citation_author=Daniel Simpson;,citation_author=Charles C. Margossian;,citation_author=Bob Carpenter;,citation_author=Yuling Yao;,citation_author=Lauren Kennedy;,citation_author=Jonah Gabry;,citation_author=Paul-Christian Bürkner;,citation_author=Martin Modrák;,citation_publication_date=2020;,citation_cover_date=2020;,citation_year=2020;,citation_journal_title=arXiv preprint arXiv:2011.01808;">
+<meta name="citation_reference" content="citation_title=Stan: A probabilistic programming language;,citation_author=Bob Carpenter;,citation_author=Andrew Gelman;,citation_author=Matthew D. Hoffman;,citation_author=Daniel Lee;,citation_author=Ben Goodrich;,citation_author=Michael Betancourt;,citation_author=Marcus Brubaker;,citation_author=Jiqiang Guo;,citation_author=Peter Li;,citation_author=Allen Riddell;,citation_publication_date=2017;,citation_cover_date=2017;,citation_year=2017;,citation_issue=1;,citation_volume=76;,citation_journal_title=Journal of Statistical Software;">
+<meta name="citation_reference" content="citation_title=Visualization in Bayesian workflow;,citation_author=Jonah Gabry;,citation_author=Daniel Simpson;,citation_author=Aki Vehtari;,citation_author=Michael Betancourt;,citation_author=Andrew Gelman;,citation_publication_date=2019;,citation_cover_date=2019;,citation_year=2019;,citation_issue=2;,citation_volume=182;,citation_journal_title=Journal of the Royal Statistical Society: Series A;">
+<meta name="citation_reference" content="citation_title=The logic of decision;,citation_author=Richard C. Jeffrey;,citation_publication_date=1965;,citation_cover_date=1965;,citation_year=1965;">
+<meta name="citation_reference" content="citation_title=Prospect theory: An analysis of decision under risk;,citation_author=Daniel Kahneman;,citation_author=Amos Tversky;,citation_publication_date=1979;,citation_cover_date=1979;,citation_year=1979;,citation_issue=2;,citation_volume=47;,citation_journal_title=Econometrica;">
+<meta name="citation_reference" content="citation_title=Advances in prospect theory: Cumulative representation of uncertainty;,citation_author=Amos Tversky;,citation_author=Daniel Kahneman;,citation_publication_date=1992;,citation_cover_date=1992;,citation_year=1992;,citation_issue=4;,citation_volume=5;,citation_journal_title=Journal of Risk and Uncertainty;">
+<meta name="citation_reference" content="citation_title=The enterprise of knowledge: An essay on knowledge, credal probability, and chance;,citation_author=Isaac Levi;,citation_publication_date=1980;,citation_cover_date=1980;,citation_year=1980;">
+<meta name="citation_reference" content="citation_title=A behavioral model of rational choice;,citation_author=Herbert A. Simon;,citation_publication_date=1955;,citation_cover_date=1955;,citation_year=1955;,citation_issue=1;,citation_volume=69;,citation_journal_title=The Quarterly Journal of Economics;">
+<meta name="citation_reference" content="citation_title=Reasoning the fast and frugal way: Models of bounded rationality;,citation_author=Gerd Gigerenzer;,citation_author=Daniel G. Goldstein;,citation_publication_date=1996;,citation_cover_date=1996;,citation_year=1996;,citation_volume=103;,citation_inbook_title=Psychological review;">
+<meta name="citation_reference" content="citation_title=The methodology of positive economics;,citation_author=Milton Friedman;,citation_publication_date=1953;,citation_cover_date=1953;,citation_year=1953;,citation_journal_title=Essays in Positive Economics;,citation_publisher=University of Chicago Press;">
+<meta name="citation_reference" content="citation_title=Risk, uncertainty and profit;,citation_author=Frank H. Knight;,citation_publication_date=1921;,citation_cover_date=1921;,citation_year=1921;">
+<meta name="citation_reference" content="citation_title=Theory of games and economic behavior;,citation_author=John Neumann;,citation_author=Oskar Morgenstern;,citation_publication_date=1944;,citation_cover_date=1944;,citation_year=1944;">
+<meta name="citation_reference" content="citation_title=The foundations of statistics;,citation_author=Leonard J. Savage;,citation_publication_date=1954;,citation_cover_date=1954;,citation_year=1954;">
+<meta name="citation_reference" content="citation_title=A definition of subjective probability;,citation_author=Francis J. Anscombe;,citation_author=Robert J. Aumann;,citation_publication_date=1963;,citation_cover_date=1963;,citation_year=1963;,citation_issue=1;,citation_volume=34;,citation_journal_title=Annals of Mathematical Statistics;">
+<meta name="citation_reference" content="citation_title=Notes on the theory of choice;,citation_author=David M. Kreps;,citation_publication_date=1988;,citation_cover_date=1988;,citation_year=1988;">
+</head>
+
+<body class="nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">SEU Sensitivity</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-foundations" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Foundations</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-foundations">    
+        <li>
+    <a class="dropdown-item" href="../../foundations/01_abstract_formulation.html">
+ <span class="dropdown-text">1. Abstract Formulation</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../foundations/02_concrete_implementation.html">
+ <span class="dropdown-text">2. Concrete Implementation</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../foundations/03_prior_analysis.html">
+ <span class="dropdown-text">3. Prior Analysis</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../foundations/04_parameter_recovery.html">
+ <span class="dropdown-text">4. Parameter Recovery</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../foundations/05_adding_risky_choices.html">
+ <span class="dropdown-text">5. Adding Risky Choices</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../foundations/06_sbc_validation.html">
+ <span class="dropdown-text">6. SBC Validation</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-applications" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Applications</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-applications">    
+        <li><hr class="dropdown-divider"></li>
+        <li class="dropdown-header">Prompt Framing Study</li>
+        <li>
+    <a class="dropdown-item" href="../../applications/prompt_framing_study/01_background.html">
+ <span class="dropdown-text">1. Background</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../applications/prompt_framing_study/02_pilot_study_1.html">
+ <span class="dropdown-text">2. Pilot Study 1</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="../../blog/index.html"> 
+<span class="menu-text">Blog</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/jeffhelzner/seu-sensitivity"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active" data-toc-expanded="2">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction"><span class="header-section-number">0.1</span> Introduction</a></li>
+  <li><a href="#theoretical-framework" id="toc-theoretical-framework" class="nav-link" data-scroll-target="#theoretical-framework"><span class="header-section-number">0.2</span> Theoretical Framework</a>
+  <ul class="collapse">
+  <li><a href="#the-seu-sensitivity-model" id="toc-the-seu-sensitivity-model" class="nav-link" data-scroll-target="#the-seu-sensitivity-model"><span class="header-section-number">0.2.1</span> The SEU Sensitivity Model</a></li>
+  <li><a href="#prompt-framing-hypothesis" id="toc-prompt-framing-hypothesis" class="nav-link" data-scroll-target="#prompt-framing-hypothesis"><span class="header-section-number">0.2.2</span> Prompt Framing Hypothesis</a></li>
+  </ul></li>
+  <li><a href="#experimental-design" id="toc-experimental-design" class="nav-link" data-scroll-target="#experimental-design"><span class="header-section-number">0.3</span> Experimental Design</a>
+  <ul class="collapse">
+  <li><a href="#prompt-variants" id="toc-prompt-variants" class="nav-link" data-scroll-target="#prompt-variants"><span class="header-section-number">0.3.1</span> Prompt Variants</a></li>
+  <li><a href="#domain-insurance-claims-triage" id="toc-domain-insurance-claims-triage" class="nav-link" data-scroll-target="#domain-insurance-claims-triage"><span class="header-section-number">0.3.2</span> Domain: Insurance Claims Triage</a></li>
+  <li><a href="#contextualized-embeddings" id="toc-contextualized-embeddings" class="nav-link" data-scroll-target="#contextualized-embeddings"><span class="header-section-number">0.3.3</span> Contextualized Embeddings</a></li>
+  </ul></li>
+  <li><a href="#study-overview" id="toc-study-overview" class="nav-link" data-scroll-target="#study-overview"><span class="header-section-number">0.4</span> Study Overview</a></li>
+  <li><a href="#whats-next" id="toc-whats-next" class="nav-link" data-scroll-target="#whats-next"><span class="header-section-number">0.5</span> What’s Next</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<div class="quarto-title-block"><div><h1 class="title">Prompt Framing and LLM Rationality</h1><button type="button" class="btn code-tools-button" id="quarto-code-tools-source"><i class="bi"></i> Code</button></div></div>
+<p class="subtitle lead">Application Report 1: Background and Motivation</p>
+  <div class="quarto-categories">
+    <div class="quarto-category">applications</div>
+    <div class="quarto-category">llm</div>
+    <div class="quarto-category">prompt-framing</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    <p>Investigating whether explicit rationality cues in prompts affect LLM sensitivity to subjective expected utility maximization, using contextualized embeddings to capture how framing shapes internal representations.</p>
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p><a href="https://github.com/jeffhelzner">Jeff Helzner</a> </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">January 18, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="introduction" class="level2" data-number="0.1">
+<h2 data-number="0.1" class="anchored" data-anchor-id="introduction"><span class="header-section-number">0.1</span> Introduction</h2>
+<p>This report series applies the SEU sensitivity framework developed in the <a href="../../foundations/01_abstract_formulation.html">Foundations</a> reports to a novel research question: <strong>Does prompting an LLM with explicit rationality cues change its decision-making behavior?</strong></p>
+<p>Large Language Models (LLMs) have demonstrated impressive capabilities across a wide range of tasks, but their decision-making behavior remains poorly understood. When faced with choices involving uncertain outcomes, do LLMs behave rationally in the sense of maximizing expected utility? And crucially, can we <em>induce</em> more rational behavior through careful prompt engineering?</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Core Research Question
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>When prompted with explicit rationality cues (e.g., “maximize expected utility”), do LLMs exhibit higher sensitivity (α) to SEU-optimal choices compared to minimal prompts?</p>
+</div>
+</div>
+</section>
+<section id="theoretical-framework" class="level2" data-number="0.2">
+<h2 data-number="0.2" class="anchored" data-anchor-id="theoretical-framework"><span class="header-section-number">0.2</span> Theoretical Framework</h2>
+<section id="the-seu-sensitivity-model" class="level3" data-number="0.2.1">
+<h3 data-number="0.2.1" class="anchored" data-anchor-id="the-seu-sensitivity-model"><span class="header-section-number">0.2.1</span> The SEU Sensitivity Model</h3>
+<p>Our foundational model (m_0) characterizes a decision maker’s choice behavior through a softmax rule:</p>
+<p><span class="math display">\[
+P(\text{choose } r \mid \alpha, \boldsymbol{\eta}) = \frac{\exp(\alpha \cdot \eta_r)}{\sum_{j} \exp(\alpha \cdot \eta_j)}
+\]</span></p>
+<p>where:</p>
+<ul>
+<li><span class="math inline">\(\eta_r\)</span> is the expected utility of alternative <span class="math inline">\(r\)</span></li>
+<li><span class="math inline">\(\alpha \geq 0\)</span> is the <strong>sensitivity parameter</strong></li>
+</ul>
+<p>The sensitivity parameter α has a clear interpretation:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>α Value</th>
+<th>Interpretation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>α = 0</td>
+<td>Random choice (uniform distribution)</td>
+</tr>
+<tr class="even">
+<td>α = 1</td>
+<td>Moderate sensitivity to utility differences</td>
+</tr>
+<tr class="odd">
+<td>α → ∞</td>
+<td>Deterministic utility maximization</td>
+</tr>
+</tbody>
+</table>
+<p>By fitting this model to LLM choice data under different prompt conditions, we can quantify whether rationality framing affects the sensitivity parameter.</p>
+</section>
+<section id="prompt-framing-hypothesis" class="level3" data-number="0.2.2">
+<h3 data-number="0.2.2" class="anchored" data-anchor-id="prompt-framing-hypothesis"><span class="header-section-number">0.2.2</span> Prompt Framing Hypothesis</h3>
+<p>Our hypothesis is that prompt framing affects α through two potential mechanisms:</p>
+<ol type="1">
+<li><strong>Attention mechanism</strong>: Explicit rationality cues may focus the model’s attention on decision-relevant features</li>
+<li><strong>Representation shift</strong>: The same alternatives may be <em>represented differently</em> when embedded in rationality-framed contexts</li>
+</ol>
+<p>To capture the second mechanism, we introduce <strong>contextualized embeddings</strong>: rather than embedding claims in isolation, we embed them within the full prompt context. This allows the same claim to have different representations under different framings.</p>
+</section>
+</section>
+<section id="experimental-design" class="level2" data-number="0.3">
+<h2 data-number="0.3" class="anchored" data-anchor-id="experimental-design"><span class="header-section-number">0.3</span> Experimental Design</h2>
+<section id="prompt-variants" class="level3" data-number="0.3.1">
+<h3 data-number="0.3.1" class="anchored" data-anchor-id="prompt-variants"><span class="header-section-number">0.3.1</span> Prompt Variants</h3>
+<p>We designed four prompt variants with increasing levels of rationality emphasis:</p>
+<div id="cell-fig-prompt-variants" class="cell" data-execution_count="2">
+<div class="cell-output cell-output-display">
+<div id="fig-prompt-variants" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-prompt-variants-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="01_background_files/figure-html/fig-prompt-variants-output-1.svg" class="img-fluid figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-prompt-variants-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Four levels of rationality emphasis in prompt framing, from minimal task description to explicit decision-theoretic reasoning.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="domain-insurance-claims-triage" class="level3" data-number="0.3.2">
+<h3 data-number="0.3.2" class="anchored" data-anchor-id="domain-insurance-claims-triage"><span class="header-section-number">0.3.2</span> Domain: Insurance Claims Triage</h3>
+<p>We use insurance claims triage as our decision domain:</p>
+<ul>
+<li><strong>Task</strong>: Select which flagged claim to send for human investigation</li>
+<li><strong>Alternatives</strong>: 2-4 claims per decision problem</li>
+<li><strong>Outcomes (K=3)</strong>:
+<ul>
+<li>Both expert judges agree the selection warrants investigation (utility = 1.0)</li>
+<li>One judge agrees, one disagrees (utility = 0.5)</li>
+<li>Neither judge agrees (utility = 0.0)</li>
+</ul></li>
+</ul>
+<p>This domain was chosen because:</p>
+<ol type="1">
+<li>It involves genuine uncertainty about outcomes</li>
+<li>The claims vary in “suspiciousness” (providing natural variation in expected utility)</li>
+<li>The task is interpretable to LLMs trained on diverse text</li>
+</ol>
+</section>
+<section id="contextualized-embeddings" class="level3" data-number="0.3.3">
+<h3 data-number="0.3.3" class="anchored" data-anchor-id="contextualized-embeddings"><span class="header-section-number">0.3.3</span> Contextualized Embeddings</h3>
+<p>A key methodological innovation is our use of <strong>contextualized embeddings</strong>. Rather than computing a single embedding for each claim, we compute embeddings within the context of each prompt variant:</p>
+<pre><code>Embedding(claim | minimal_prompt) ≠ Embedding(claim | maximal_prompt)</code></pre>
+<p>This captures the hypothesis that the same claim is <em>represented differently</em> when framed with explicit rationality cues. The embedding serves as the feature vector (ψ) in our SEU model.</p>
+</section>
+</section>
+<section id="study-overview" class="level2" data-number="0.4">
+<h2 data-number="0.4" class="anchored" data-anchor-id="study-overview"><span class="header-section-number">0.4</span> Study Overview</h2>
+<p>The study pipeline consists of:</p>
+<ol type="1">
+<li><strong>Problem Generation</strong>: Create decision problems by sampling claims</li>
+<li><strong>Embedding Generation</strong>: Compute contextualized embeddings for all variant-claim pairs</li>
+<li><strong>Choice Collection</strong>: Present problems to LLM under each framing, collect choices</li>
+<li><strong>Model Fitting</strong>: Fit m_0 model separately for each variant</li>
+<li><strong>Analysis</strong>: Compare α estimates across variants</li>
+</ol>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Key Insight
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>If prompt framing affects rationality, we expect:</p>
+<ul>
+<li><strong>Higher α</strong> for maximal/enhanced prompts (more sensitivity to EU-optimal choices)</li>
+<li><strong>Lower α</strong> for minimal prompts (choices less tied to EU ranking)</li>
+</ul>
+<p>A null result (similar α across variants) would suggest LLM decision-making is relatively robust to framing.</p>
+</div>
+</div>
+</section>
+<section id="whats-next" class="level2" data-number="0.5">
+<h2 data-number="0.5" class="anchored" data-anchor-id="whats-next"><span class="header-section-number">0.5</span> What’s Next</h2>
+<p>In <a href="../../applications/prompt_framing_study/02_pilot_study_1.html">Report 2: Pilot Study</a>, we present results from our first pilot study, including:</p>
+<ul>
+<li>Cost estimation and API usage</li>
+<li>Model fitting results for each variant</li>
+<li>Discovery of methodological challenges (position bias)</li>
+<li>Lessons learned for study design refinement</li>
+</ul>
+
+
+<!-- -->
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{helzner2026,
+  author = {Helzner, Jeff},
+  title = {Prompt {Framing} and {LLM} {Rationality}},
+  date = {2026-01-18},
+  url = {https://jeffhelzner.github.io/seu-sensitivity/applications/prompt_framing_study/01_background.html},
+  langid = {en}
+}
+</code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-helzner2026" class="csl-entry quarto-appendix-citeas" role="listitem">
+Helzner, Jeff. 2026. <span>“Prompt Framing and LLM Rationality.”</span>
+SEU Sensitivity Project. January 18, 2026. <a href="https://jeffhelzner.github.io/seu-sensitivity/applications/prompt_framing_study/01_background.html">https://jeffhelzner.github.io/seu-sensitivity/applications/prompt_framing_study/01_background.html</a>.
+</div></div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+    const viewSource = window.document.getElementById('quarto-view-source') ||
+                       window.document.getElementById('quarto-code-tools-source');
+    if (viewSource) {
+      const sourceUrl = viewSource.getAttribute("data-quarto-source-url");
+      viewSource.addEventListener("click", function(e) {
+        if (sourceUrl) {
+          // rstudio viewer pane
+          if (/\bcapabilities=\b/.test(window.location)) {
+            window.open(sourceUrl);
+          } else {
+            window.location.href = sourceUrl;
+          }
+        } else {
+          const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
+          modal.show();
+        }
+        return false;
+      });
+    }
+    function toggleCodeHandler(show) {
+      return function(e) {
+        const detailsSrc = window.document.querySelectorAll(".cell > details > .sourceCode");
+        for (let i=0; i<detailsSrc.length; i++) {
+          const details = detailsSrc[i].parentElement;
+          if (show) {
+            details.open = true;
+          } else {
+            details.removeAttribute("open");
+          }
+        }
+        const cellCodeDivs = window.document.querySelectorAll(".cell > .sourceCode");
+        const fromCls = show ? "hidden" : "unhidden";
+        const toCls = show ? "unhidden" : "hidden";
+        for (let i=0; i<cellCodeDivs.length; i++) {
+          const codeDiv = cellCodeDivs[i];
+          if (codeDiv.classList.contains(fromCls)) {
+            codeDiv.classList.remove(fromCls);
+            codeDiv.classList.add(toCls);
+          } 
+        }
+        return false;
+      }
+    }
+    const hideAllCode = window.document.getElementById("quarto-hide-all-code");
+    if (hideAllCode) {
+      hideAllCode.addEventListener("click", toggleCodeHandler(false));
+    }
+    const showAllCode = window.document.getElementById("quarto-show-all-code");
+    if (showAllCode) {
+      showAllCode.addEventListener("click", toggleCodeHandler(true));
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/jeffhelzner\.github\.io\/seu-sensitivity\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "Prompt Framing and LLM Rationality"</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="an">subtitle:</span><span class="co"> "Application Report 1: Background and Motivation"</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="an">description:</span><span class="co"> |</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co">  Investigating whether explicit rationality cues in prompts affect LLM sensitivity </span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="co">  to subjective expected utility maximization, using contextualized embeddings to </span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co">  capture how framing shapes internal representations.</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="an">categories:</span><span class="co"> [applications, llm, prompt-framing]</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: setup</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="co">#| include: false</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> sys</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="co"># Add parent directories to path</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>sys.path.insert(<span class="dv">0</span>, os.path.join(os.getcwd(), <span class="st">'..'</span>, <span class="st">'..'</span>))</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>project_root <span class="op">=</span> os.path.dirname(os.path.dirname(os.path.dirname(os.getcwd())))</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>sys.path.insert(<span class="dv">0</span>, project_root)</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> warnings</span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>warnings.filterwarnings(<span class="st">'ignore'</span>)</span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a><span class="fu">## Introduction</span></span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>This report series applies the SEU sensitivity framework developed in the <span class="co">[</span><span class="ot">Foundations</span><span class="co">](../../foundations/01_abstract_formulation.qmd)</span> reports to a novel research question: **Does prompting an LLM with explicit rationality cues change its decision-making behavior?**</span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>Large Language Models (LLMs) have demonstrated impressive capabilities across a wide range of tasks, but their decision-making behavior remains poorly understood. When faced with choices involving uncertain outcomes, do LLMs behave rationally in the sense of maximizing expected utility? And crucially, can we *induce* more rational behavior through careful prompt engineering?</span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>::: {.callout-note}</span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a><span class="fu">## Core Research Question</span></span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a>When prompted with explicit rationality cues (e.g., "maximize expected utility"), do LLMs exhibit higher sensitivity (α) to SEU-optimal choices compared to minimal prompts?</span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a><span class="fu">## Theoretical Framework</span></span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a><span class="fu">### The SEU Sensitivity Model</span></span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a>Our foundational model (m_0) characterizes a decision maker's choice behavior through a softmax rule:</span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a>P(\text{choose } r \mid \alpha, \boldsymbol{\eta}) = \frac{\exp(\alpha \cdot \eta_r)}{\sum_{j} \exp(\alpha \cdot \eta_j)}</span>
+<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a>where:</span>
+<span id="cb2-53"><a href="#cb2-53" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>$\eta_r$ is the expected utility of alternative $r$</span>
+<span id="cb2-55"><a href="#cb2-55" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>$\alpha \geq 0$ is the **sensitivity parameter**</span>
+<span id="cb2-56"><a href="#cb2-56" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-57"><a href="#cb2-57" aria-hidden="true" tabindex="-1"></a>The sensitivity parameter α has a clear interpretation:</span>
+<span id="cb2-58"><a href="#cb2-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-59"><a href="#cb2-59" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> α Value <span class="pp">|</span> Interpretation <span class="pp">|</span></span>
+<span id="cb2-60"><a href="#cb2-60" aria-hidden="true" tabindex="-1"></a><span class="pp">|---------|----------------|</span></span>
+<span id="cb2-61"><a href="#cb2-61" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> α = 0 <span class="pp">|</span> Random choice (uniform distribution) <span class="pp">|</span></span>
+<span id="cb2-62"><a href="#cb2-62" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> α = 1 <span class="pp">|</span> Moderate sensitivity to utility differences <span class="pp">|</span></span>
+<span id="cb2-63"><a href="#cb2-63" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> α → ∞ <span class="pp">|</span> Deterministic utility maximization <span class="pp">|</span></span>
+<span id="cb2-64"><a href="#cb2-64" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-65"><a href="#cb2-65" aria-hidden="true" tabindex="-1"></a>By fitting this model to LLM choice data under different prompt conditions, we can quantify whether rationality framing affects the sensitivity parameter.</span>
+<span id="cb2-66"><a href="#cb2-66" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-67"><a href="#cb2-67" aria-hidden="true" tabindex="-1"></a><span class="fu">### Prompt Framing Hypothesis</span></span>
+<span id="cb2-68"><a href="#cb2-68" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-69"><a href="#cb2-69" aria-hidden="true" tabindex="-1"></a>Our hypothesis is that prompt framing affects α through two potential mechanisms:</span>
+<span id="cb2-70"><a href="#cb2-70" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-71"><a href="#cb2-71" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>**Attention mechanism**: Explicit rationality cues may focus the model's attention on decision-relevant features</span>
+<span id="cb2-72"><a href="#cb2-72" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>**Representation shift**: The same alternatives may be *represented differently* when embedded in rationality-framed contexts</span>
+<span id="cb2-73"><a href="#cb2-73" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-74"><a href="#cb2-74" aria-hidden="true" tabindex="-1"></a>To capture the second mechanism, we introduce **contextualized embeddings**: rather than embedding claims in isolation, we embed them within the full prompt context. This allows the same claim to have different representations under different framings.</span>
+<span id="cb2-75"><a href="#cb2-75" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-76"><a href="#cb2-76" aria-hidden="true" tabindex="-1"></a><span class="fu">## Experimental Design</span></span>
+<span id="cb2-77"><a href="#cb2-77" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-78"><a href="#cb2-78" aria-hidden="true" tabindex="-1"></a><span class="fu">### Prompt Variants</span></span>
+<span id="cb2-79"><a href="#cb2-79" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-80"><a href="#cb2-80" aria-hidden="true" tabindex="-1"></a>We designed four prompt variants with increasing levels of rationality emphasis:</span>
+<span id="cb2-81"><a href="#cb2-81" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-84"><a href="#cb2-84" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb2-85"><a href="#cb2-85" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-prompt-variants</span></span>
+<span id="cb2-86"><a href="#cb2-86" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Four levels of rationality emphasis in prompt framing, from minimal task description to explicit decision-theoretic reasoning."</span></span>
+<span id="cb2-87"><a href="#cb2-87" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
+<span id="cb2-88"><a href="#cb2-88" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-89"><a href="#cb2-89" aria-hidden="true" tabindex="-1"></a>variants <span class="op">=</span> [</span>
+<span id="cb2-90"><a href="#cb2-90" aria-hidden="true" tabindex="-1"></a>    {</span>
+<span id="cb2-91"><a href="#cb2-91" aria-hidden="true" tabindex="-1"></a>        <span class="st">"name"</span>: <span class="st">"Minimal"</span>,</span>
+<span id="cb2-92"><a href="#cb2-92" aria-hidden="true" tabindex="-1"></a>        <span class="st">"level"</span>: <span class="dv">0</span>,</span>
+<span id="cb2-93"><a href="#cb2-93" aria-hidden="true" tabindex="-1"></a>        <span class="st">"description"</span>: <span class="st">"Simple task instruction with no outcome structure or rationality cues"</span>,</span>
+<span id="cb2-94"><a href="#cb2-94" aria-hidden="true" tabindex="-1"></a>        <span class="st">"key_feature"</span>: <span class="st">"Just pick one"</span></span>
+<span id="cb2-95"><a href="#cb2-95" aria-hidden="true" tabindex="-1"></a>    },</span>
+<span id="cb2-96"><a href="#cb2-96" aria-hidden="true" tabindex="-1"></a>    {</span>
+<span id="cb2-97"><a href="#cb2-97" aria-hidden="true" tabindex="-1"></a>        <span class="st">"name"</span>: <span class="st">"Baseline"</span>, </span>
+<span id="cb2-98"><a href="#cb2-98" aria-hidden="true" tabindex="-1"></a>        <span class="st">"level"</span>: <span class="dv">1</span>,</span>
+<span id="cb2-99"><a href="#cb2-99" aria-hidden="true" tabindex="-1"></a>        <span class="st">"description"</span>: <span class="st">"Standard framing with K=3 outcome structure (both agree, one agrees, neither)"</span>,</span>
+<span id="cb2-100"><a href="#cb2-100" aria-hidden="true" tabindex="-1"></a>        <span class="st">"key_feature"</span>: <span class="st">"Outcome structure present"</span></span>
+<span id="cb2-101"><a href="#cb2-101" aria-hidden="true" tabindex="-1"></a>    },</span>
+<span id="cb2-102"><a href="#cb2-102" aria-hidden="true" tabindex="-1"></a>    {</span>
+<span id="cb2-103"><a href="#cb2-103" aria-hidden="true" tabindex="-1"></a>        <span class="st">"name"</span>: <span class="st">"Enhanced"</span>,</span>
+<span id="cb2-104"><a href="#cb2-104" aria-hidden="true" tabindex="-1"></a>        <span class="st">"level"</span>: <span class="dv">2</span>,</span>
+<span id="cb2-105"><a href="#cb2-105" aria-hidden="true" tabindex="-1"></a>        <span class="st">"description"</span>: <span class="st">"Explicit utility values (0.0, 0.5, 1.0) and rationality language"</span>,</span>
+<span id="cb2-106"><a href="#cb2-106" aria-hidden="true" tabindex="-1"></a>        <span class="st">"key_feature"</span>: <span class="st">"Utility values stated"</span></span>
+<span id="cb2-107"><a href="#cb2-107" aria-hidden="true" tabindex="-1"></a>    },</span>
+<span id="cb2-108"><a href="#cb2-108" aria-hidden="true" tabindex="-1"></a>    {</span>
+<span id="cb2-109"><a href="#cb2-109" aria-hidden="true" tabindex="-1"></a>        <span class="st">"name"</span>: <span class="st">"Maximal"</span>,</span>
+<span id="cb2-110"><a href="#cb2-110" aria-hidden="true" tabindex="-1"></a>        <span class="st">"level"</span>: <span class="dv">3</span>,</span>
+<span id="cb2-111"><a href="#cb2-111" aria-hidden="true" tabindex="-1"></a>        <span class="st">"description"</span>: <span class="st">"Full decision-theoretic framework with explicit EU maximization objective"</span>,</span>
+<span id="cb2-112"><a href="#cb2-112" aria-hidden="true" tabindex="-1"></a>        <span class="st">"key_feature"</span>: <span class="st">"EU formula provided"</span></span>
+<span id="cb2-113"><a href="#cb2-113" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb2-114"><a href="#cb2-114" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb2-115"><a href="#cb2-115" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-116"><a href="#cb2-116" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">5</span>))</span>
+<span id="cb2-117"><a href="#cb2-117" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-118"><a href="#cb2-118" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a visual representation</span></span>
+<span id="cb2-119"><a href="#cb2-119" aria-hidden="true" tabindex="-1"></a>colors <span class="op">=</span> [<span class="st">"#E69F00"</span>, <span class="st">"#56B4E9"</span>, <span class="st">"#009E73"</span>, <span class="st">"#CC79A7"</span>]</span>
+<span id="cb2-120"><a href="#cb2-120" aria-hidden="true" tabindex="-1"></a>y_positions <span class="op">=</span> [<span class="dv">3</span>, <span class="dv">2</span>, <span class="dv">1</span>, <span class="dv">0</span>]</span>
+<span id="cb2-121"><a href="#cb2-121" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-122"><a href="#cb2-122" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i, (v, y, c) <span class="kw">in</span> <span class="bu">enumerate</span>(<span class="bu">zip</span>(variants, y_positions, colors)):</span>
+<span id="cb2-123"><a href="#cb2-123" aria-hidden="true" tabindex="-1"></a>    ax.barh(y, v[<span class="st">"level"</span>] <span class="op">+</span> <span class="dv">1</span>, color<span class="op">=</span>c, alpha<span class="op">=</span><span class="fl">0.7</span>, height<span class="op">=</span><span class="fl">0.6</span>)</span>
+<span id="cb2-124"><a href="#cb2-124" aria-hidden="true" tabindex="-1"></a>    ax.text(v[<span class="st">"level"</span>] <span class="op">+</span> <span class="fl">1.1</span>, y, <span class="ss">f"</span><span class="sc">{</span>v[<span class="st">'name'</span>]<span class="sc">}</span><span class="ss">: </span><span class="sc">{</span>v[<span class="st">'key_feature'</span>]<span class="sc">}</span><span class="ss">"</span>, </span>
+<span id="cb2-125"><a href="#cb2-125" aria-hidden="true" tabindex="-1"></a>            va<span class="op">=</span><span class="st">'center'</span>, fontsize<span class="op">=</span><span class="dv">11</span>)</span>
+<span id="cb2-126"><a href="#cb2-126" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-127"><a href="#cb2-127" aria-hidden="true" tabindex="-1"></a>ax.set_yticks(y_positions)</span>
+<span id="cb2-128"><a href="#cb2-128" aria-hidden="true" tabindex="-1"></a>ax.set_yticklabels([<span class="ss">f"Level </span><span class="sc">{</span>v[<span class="st">'level'</span>]<span class="sc">}</span><span class="ss">"</span> <span class="cf">for</span> v <span class="kw">in</span> variants])</span>
+<span id="cb2-129"><a href="#cb2-129" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="st">"Rationality Emphasis →"</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb2-130"><a href="#cb2-130" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">"Prompt Framing Variants"</span>, fontsize<span class="op">=</span><span class="dv">14</span>, fontweight<span class="op">=</span><span class="st">'bold'</span>)</span>
+<span id="cb2-131"><a href="#cb2-131" aria-hidden="true" tabindex="-1"></a>ax.set_xlim(<span class="dv">0</span>, <span class="dv">6</span>)</span>
+<span id="cb2-132"><a href="#cb2-132" aria-hidden="true" tabindex="-1"></a>ax.spines[<span class="st">'top'</span>].set_visible(<span class="va">False</span>)</span>
+<span id="cb2-133"><a href="#cb2-133" aria-hidden="true" tabindex="-1"></a>ax.spines[<span class="st">'right'</span>].set_visible(<span class="va">False</span>)</span>
+<span id="cb2-134"><a href="#cb2-134" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-135"><a href="#cb2-135" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb2-136"><a href="#cb2-136" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb2-137"><a href="#cb2-137" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb2-138"><a href="#cb2-138" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-139"><a href="#cb2-139" aria-hidden="true" tabindex="-1"></a><span class="fu">### Domain: Insurance Claims Triage</span></span>
+<span id="cb2-140"><a href="#cb2-140" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-141"><a href="#cb2-141" aria-hidden="true" tabindex="-1"></a>We use insurance claims triage as our decision domain:</span>
+<span id="cb2-142"><a href="#cb2-142" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-143"><a href="#cb2-143" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Task**: Select which flagged claim to send for human investigation</span>
+<span id="cb2-144"><a href="#cb2-144" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Alternatives**: 2-4 claims per decision problem</span>
+<span id="cb2-145"><a href="#cb2-145" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Outcomes (K=3)**:</span>
+<span id="cb2-146"><a href="#cb2-146" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>Both expert judges agree the selection warrants investigation (utility = 1.0)</span>
+<span id="cb2-147"><a href="#cb2-147" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>One judge agrees, one disagrees (utility = 0.5)</span>
+<span id="cb2-148"><a href="#cb2-148" aria-hidden="true" tabindex="-1"></a><span class="ss">  - </span>Neither judge agrees (utility = 0.0)</span>
+<span id="cb2-149"><a href="#cb2-149" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-150"><a href="#cb2-150" aria-hidden="true" tabindex="-1"></a>This domain was chosen because:</span>
+<span id="cb2-151"><a href="#cb2-151" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-152"><a href="#cb2-152" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>It involves genuine uncertainty about outcomes</span>
+<span id="cb2-153"><a href="#cb2-153" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>The claims vary in "suspiciousness" (providing natural variation in expected utility)</span>
+<span id="cb2-154"><a href="#cb2-154" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>The task is interpretable to LLMs trained on diverse text</span>
+<span id="cb2-155"><a href="#cb2-155" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-156"><a href="#cb2-156" aria-hidden="true" tabindex="-1"></a><span class="fu">### Contextualized Embeddings</span></span>
+<span id="cb2-157"><a href="#cb2-157" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-158"><a href="#cb2-158" aria-hidden="true" tabindex="-1"></a>A key methodological innovation is our use of **contextualized embeddings**. Rather than computing a single embedding for each claim, we compute embeddings within the context of each prompt variant:</span>
+<span id="cb2-159"><a href="#cb2-159" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-160"><a href="#cb2-160" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb2-161"><a href="#cb2-161" aria-hidden="true" tabindex="-1"></a><span class="in">Embedding(claim | minimal_prompt) ≠ Embedding(claim | maximal_prompt)</span></span>
+<span id="cb2-162"><a href="#cb2-162" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb2-163"><a href="#cb2-163" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-164"><a href="#cb2-164" aria-hidden="true" tabindex="-1"></a>This captures the hypothesis that the same claim is *represented differently* when framed with explicit rationality cues. The embedding serves as the feature vector (ψ) in our SEU model.</span>
+<span id="cb2-165"><a href="#cb2-165" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-166"><a href="#cb2-166" aria-hidden="true" tabindex="-1"></a><span class="fu">## Study Overview</span></span>
+<span id="cb2-167"><a href="#cb2-167" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-168"><a href="#cb2-168" aria-hidden="true" tabindex="-1"></a>The study pipeline consists of:</span>
+<span id="cb2-169"><a href="#cb2-169" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-170"><a href="#cb2-170" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>**Problem Generation**: Create decision problems by sampling claims</span>
+<span id="cb2-171"><a href="#cb2-171" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>**Embedding Generation**: Compute contextualized embeddings for all variant-claim pairs</span>
+<span id="cb2-172"><a href="#cb2-172" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>**Choice Collection**: Present problems to LLM under each framing, collect choices</span>
+<span id="cb2-173"><a href="#cb2-173" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span>**Model Fitting**: Fit m_0 model separately for each variant</span>
+<span id="cb2-174"><a href="#cb2-174" aria-hidden="true" tabindex="-1"></a><span class="ss">5. </span>**Analysis**: Compare α estimates across variants</span>
+<span id="cb2-175"><a href="#cb2-175" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-176"><a href="#cb2-176" aria-hidden="true" tabindex="-1"></a>::: {.callout-tip}</span>
+<span id="cb2-177"><a href="#cb2-177" aria-hidden="true" tabindex="-1"></a><span class="fu">## Key Insight</span></span>
+<span id="cb2-178"><a href="#cb2-178" aria-hidden="true" tabindex="-1"></a>If prompt framing affects rationality, we expect:</span>
+<span id="cb2-179"><a href="#cb2-179" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-180"><a href="#cb2-180" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Higher α** for maximal/enhanced prompts (more sensitivity to EU-optimal choices)</span>
+<span id="cb2-181"><a href="#cb2-181" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Lower α** for minimal prompts (choices less tied to EU ranking)</span>
+<span id="cb2-182"><a href="#cb2-182" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-183"><a href="#cb2-183" aria-hidden="true" tabindex="-1"></a>A null result (similar α across variants) would suggest LLM decision-making is relatively robust to framing.</span>
+<span id="cb2-184"><a href="#cb2-184" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb2-185"><a href="#cb2-185" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-186"><a href="#cb2-186" aria-hidden="true" tabindex="-1"></a><span class="fu">## What's Next</span></span>
+<span id="cb2-187"><a href="#cb2-187" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-188"><a href="#cb2-188" aria-hidden="true" tabindex="-1"></a>In <span class="co">[</span><span class="ot">Report 2: Pilot Study</span><span class="co">](02_pilot_study_1.qmd)</span>, we present results from our first pilot study, including:</span>
+<span id="cb2-189"><a href="#cb2-189" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-190"><a href="#cb2-190" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Cost estimation and API usage</span>
+<span id="cb2-191"><a href="#cb2-191" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Model fitting results for each variant</span>
+<span id="cb2-192"><a href="#cb2-192" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Discovery of methodological challenges (position bias)</span>
+<span id="cb2-193"><a href="#cb2-193" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Lessons learned for study design refinement</span>
+</code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
+</div></div></div></div></div>
+</div> <!-- /content -->
+
+
+
+
+<script src="../../site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>

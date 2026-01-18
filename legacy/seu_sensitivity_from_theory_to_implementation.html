@@ -1,0 +1,1757 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.27">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Jeff Helzner">
+<meta name="dcterms.date" content="2026-01-18">
+
+<title>seu_sensitivity_from_theory_to_implementation – SEU Sensitivity</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-4d9afe2b8d18ee9fa5d0d57b5ed4214d.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-1fe82abf2a7e37c817ee6adf46d66500.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-6cc1a338d8c1e7ab9fce866626f20738.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-1fe82abf2a7e37c817ee6adf46d66500.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../styles/seu-sensitivity.css">
+<meta name="citation_author" content="Jeff Helzner">
+<meta name="citation_publication_date" content="2026-01-18">
+<meta name="citation_cover_date" content="2026-01-18">
+<meta name="citation_year" content="2026">
+<meta name="citation_online_date" content="2026-01-18">
+<meta name="citation_fulltext_html_url" content="https://jeffhelzner.github.io/seu-sensitivity/legacy/seu_sensitivity_from_theory_to_implementation.html">
+<meta name="citation_language" content="en">
+<meta name="citation_journal_title" content="SEU Sensitivity Project">
+<meta name="citation_reference" content="citation_title=Theory of games and economic behavior;,citation_author=John Neumann;,citation_author=Oskar Morgenstern;,citation_publication_date=1947;,citation_cover_date=1947;,citation_year=1947;">
+<meta name="citation_reference" content="citation_title=The foundations of statistics;,citation_author=Leonard J. Savage;,citation_publication_date=1954;,citation_cover_date=1954;,citation_year=1954;,citation_publisher=John Wiley &amp;amp;amp; Sons;">
+<meta name="citation_reference" content="citation_title=Individual choice behavior: A theoretical analysis;,citation_author=R. Duncan Luce;,citation_publication_date=1959;,citation_cover_date=1959;,citation_year=1959;,citation_publisher=John Wiley &amp;amp;amp; Sons;">
+<meta name="citation_reference" content="citation_title=Conditional logit analysis of qualitative choice behavior;,citation_author=Daniel McFadden;,citation_publication_date=1974;,citation_cover_date=1974;,citation_year=1974;,citation_journal_title=Frontiers in Econometrics;,citation_publisher=Academic Press;">
+<meta name="citation_reference" content="citation_title=Discrete choice methods with simulation;,citation_author=Kenneth E. Train;,citation_publication_date=2009;,citation_cover_date=2009;,citation_year=2009;,citation_publisher=Cambridge University Press;">
+<meta name="citation_reference" content="citation_title=Validating Bayesian inference algorithms with simulation-based calibration;,citation_author=Sean Talts;,citation_author=Michael Betancourt;,citation_author=Daniel Simpson;,citation_author=Aki Vehtari;,citation_author=Andrew Gelman;,citation_publication_date=2018;,citation_cover_date=2018;,citation_year=2018;,citation_journal_title=arXiv preprint arXiv:1804.06788;">
+<meta name="citation_reference" content="citation_title=Bayesian workflow;,citation_author=Andrew Gelman;,citation_author=Aki Vehtari;,citation_author=Daniel Simpson;,citation_author=Charles C. Margossian;,citation_author=Bob Carpenter;,citation_author=Yuling Yao;,citation_author=Lauren Kennedy;,citation_author=Jonah Gabry;,citation_author=Paul-Christian Bürkner;,citation_author=Martin Modrák;,citation_publication_date=2020;,citation_cover_date=2020;,citation_year=2020;,citation_journal_title=arXiv preprint arXiv:2011.01808;">
+<meta name="citation_reference" content="citation_title=Stan: A probabilistic programming language;,citation_author=Bob Carpenter;,citation_author=Andrew Gelman;,citation_author=Matthew D. Hoffman;,citation_author=Daniel Lee;,citation_author=Ben Goodrich;,citation_author=Michael Betancourt;,citation_author=Marcus Brubaker;,citation_author=Jiqiang Guo;,citation_author=Peter Li;,citation_author=Allen Riddell;,citation_publication_date=2017;,citation_cover_date=2017;,citation_year=2017;,citation_issue=1;,citation_volume=76;,citation_journal_title=Journal of Statistical Software;">
+<meta name="citation_reference" content="citation_title=Visualization in Bayesian workflow;,citation_author=Jonah Gabry;,citation_author=Daniel Simpson;,citation_author=Aki Vehtari;,citation_author=Michael Betancourt;,citation_author=Andrew Gelman;,citation_publication_date=2019;,citation_cover_date=2019;,citation_year=2019;,citation_issue=2;,citation_volume=182;,citation_journal_title=Journal of the Royal Statistical Society: Series A;">
+<meta name="citation_reference" content="citation_title=The logic of decision;,citation_author=Richard C. Jeffrey;,citation_publication_date=1965;,citation_cover_date=1965;,citation_year=1965;">
+<meta name="citation_reference" content="citation_title=Prospect theory: An analysis of decision under risk;,citation_author=Daniel Kahneman;,citation_author=Amos Tversky;,citation_publication_date=1979;,citation_cover_date=1979;,citation_year=1979;,citation_issue=2;,citation_volume=47;,citation_journal_title=Econometrica;">
+<meta name="citation_reference" content="citation_title=Advances in prospect theory: Cumulative representation of uncertainty;,citation_author=Amos Tversky;,citation_author=Daniel Kahneman;,citation_publication_date=1992;,citation_cover_date=1992;,citation_year=1992;,citation_issue=4;,citation_volume=5;,citation_journal_title=Journal of Risk and Uncertainty;">
+<meta name="citation_reference" content="citation_title=The enterprise of knowledge: An essay on knowledge, credal probability, and chance;,citation_author=Isaac Levi;,citation_publication_date=1980;,citation_cover_date=1980;,citation_year=1980;">
+<meta name="citation_reference" content="citation_title=A behavioral model of rational choice;,citation_author=Herbert A. Simon;,citation_publication_date=1955;,citation_cover_date=1955;,citation_year=1955;,citation_issue=1;,citation_volume=69;,citation_journal_title=The Quarterly Journal of Economics;">
+<meta name="citation_reference" content="citation_title=Reasoning the fast and frugal way: Models of bounded rationality;,citation_author=Gerd Gigerenzer;,citation_author=Daniel G. Goldstein;,citation_publication_date=1996;,citation_cover_date=1996;,citation_year=1996;,citation_volume=103;,citation_inbook_title=Psychological review;">
+<meta name="citation_reference" content="citation_title=The methodology of positive economics;,citation_author=Milton Friedman;,citation_publication_date=1953;,citation_cover_date=1953;,citation_year=1953;,citation_journal_title=Essays in Positive Economics;,citation_publisher=University of Chicago Press;">
+<meta name="citation_reference" content="citation_title=Risk, uncertainty and profit;,citation_author=Frank H. Knight;,citation_publication_date=1921;,citation_cover_date=1921;,citation_year=1921;">
+<meta name="citation_reference" content="citation_title=Theory of games and economic behavior;,citation_author=John Neumann;,citation_author=Oskar Morgenstern;,citation_publication_date=1944;,citation_cover_date=1944;,citation_year=1944;">
+<meta name="citation_reference" content="citation_title=The foundations of statistics;,citation_author=Leonard J. Savage;,citation_publication_date=1954;,citation_cover_date=1954;,citation_year=1954;">
+<meta name="citation_reference" content="citation_title=A definition of subjective probability;,citation_author=Francis J. Anscombe;,citation_author=Robert J. Aumann;,citation_publication_date=1963;,citation_cover_date=1963;,citation_year=1963;,citation_issue=1;,citation_volume=34;,citation_journal_title=Annals of Mathematical Statistics;">
+<meta name="citation_reference" content="citation_title=Notes on the theory of choice;,citation_author=David M. Kreps;,citation_publication_date=1988;,citation_cover_date=1988;,citation_year=1988;">
+</head>
+
+<body class="nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">SEU Sensitivity</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-foundations" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Foundations</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-foundations">    
+        <li>
+    <a class="dropdown-item" href="../foundations/01_abstract_formulation.html">
+ <span class="dropdown-text">1. Abstract Formulation</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../foundations/02_concrete_implementation.html">
+ <span class="dropdown-text">2. Concrete Implementation</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../foundations/03_prior_analysis.html">
+ <span class="dropdown-text">3. Prior Analysis</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../foundations/04_parameter_recovery.html">
+ <span class="dropdown-text">4. Parameter Recovery</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../foundations/05_adding_risky_choices.html">
+ <span class="dropdown-text">5. Adding Risky Choices</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../foundations/06_sbc_validation.html">
+ <span class="dropdown-text">6. SBC Validation</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-applications" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Applications</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-applications">    
+        <li><hr class="dropdown-divider"></li>
+        <li class="dropdown-header">Prompt Framing Study</li>
+        <li>
+    <a class="dropdown-item" href="../applications/prompt_framing_study/01_background.html">
+ <span class="dropdown-text">1. Background</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../applications/prompt_framing_study/02_pilot_study_1.html">
+ <span class="dropdown-text">2. Pilot Study 1</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="../blog/index.html"> 
+<span class="menu-text">Blog</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/jeffhelzner/seu-sensitivity"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active" data-toc-expanded="2">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#seu-sensitivity-from-abstract-motivation-to-concrete-implementation" id="toc-seu-sensitivity-from-abstract-motivation-to-concrete-implementation" class="nav-link active" data-scroll-target="#seu-sensitivity-from-abstract-motivation-to-concrete-implementation"><span class="header-section-number">1</span> SEU Sensitivity: From Abstract Motivation to Concrete Implementation</a>
+  <ul class="collapse">
+  <li><a href="#abstract-formulation" id="toc-abstract-formulation" class="nav-link" data-scroll-target="#abstract-formulation"><span class="header-section-number">1.1</span> Abstract Formulation</a>
+  <ul class="collapse">
+  <li><a href="#data-structure" id="toc-data-structure" class="nav-link" data-scroll-target="#data-structure"><span class="header-section-number">1.1.1</span> Data Structure</a></li>
+  <li><a href="#model-type" id="toc-model-type" class="nav-link" data-scroll-target="#model-type"><span class="header-section-number">1.1.2</span> Model Type</a></li>
+  <li><a href="#concrete-implementation" id="toc-concrete-implementation" class="nav-link" data-scroll-target="#concrete-implementation"><span class="header-section-number">1.1.3</span> Concrete Implementation</a></li>
+  </ul></li>
+  <li><a href="#prior-analysis" id="toc-prior-analysis" class="nav-link" data-scroll-target="#prior-analysis"><span class="header-section-number">1.2</span> Prior Analysis</a>
+  <ul class="collapse">
+  <li><a href="#study-design" id="toc-study-design" class="nav-link" data-scroll-target="#study-design"><span class="header-section-number">1.2.1</span> Study Design</a></li>
+  <li><a href="#prior-distribution-of-sensitivity-parameter" id="toc-prior-distribution-of-sensitivity-parameter" class="nav-link" data-scroll-target="#prior-distribution-of-sensitivity-parameter"><span class="header-section-number">1.2.2</span> Prior Distribution of Sensitivity Parameter</a></li>
+  <li><a href="#expected-utilities-under-the-prior" id="toc-expected-utilities-under-the-prior" class="nav-link" data-scroll-target="#expected-utilities-under-the-prior"><span class="header-section-number">1.2.3</span> Expected Utilities Under the Prior</a></li>
+  <li><a href="#simulated-choice-behavior" id="toc-simulated-choice-behavior" class="nav-link" data-scroll-target="#simulated-choice-behavior"><span class="header-section-number">1.2.4</span> Simulated Choice Behavior</a></li>
+  <li><a href="#seu-maximizer-selection" id="toc-seu-maximizer-selection" class="nav-link" data-scroll-target="#seu-maximizer-selection"><span class="header-section-number">1.2.5</span> SEU Maximizer Selection</a></li>
+  </ul></li>
+  <li><a href="#parameter-recovery-analysis" id="toc-parameter-recovery-analysis" class="nav-link" data-scroll-target="#parameter-recovery-analysis"><span class="header-section-number">1.3</span> Parameter Recovery Analysis</a>
+  <ul class="collapse">
+  <li><a href="#recovery-methodology" id="toc-recovery-methodology" class="nav-link" data-scroll-target="#recovery-methodology"><span class="header-section-number">1.3.1</span> Recovery Methodology</a></li>
+  <li><a href="#recovery-summary-statistics" id="toc-recovery-summary-statistics" class="nav-link" data-scroll-target="#recovery-summary-statistics"><span class="header-section-number">1.3.2</span> Recovery Summary Statistics</a></li>
+  <li><a href="#coverage-diagnostics" id="toc-coverage-diagnostics" class="nav-link" data-scroll-target="#coverage-diagnostics"><span class="header-section-number">1.3.3</span> Coverage Diagnostics</a></li>
+  <li><a href="#observations" id="toc-observations" class="nav-link" data-scroll-target="#observations"><span class="header-section-number">1.3.4</span> Observations</a></li>
+  </ul></li>
+  <li><a href="#sample-size-analysis-recovery-vs.-number-of-problems" id="toc-sample-size-analysis-recovery-vs.-number-of-problems" class="nav-link" data-scroll-target="#sample-size-analysis-recovery-vs.-number-of-problems"><span class="header-section-number">1.4</span> Sample Size Analysis: Recovery vs.&nbsp;Number of Problems</a>
+  <ul class="collapse">
+  <li><a href="#methodology" id="toc-methodology" class="nav-link" data-scroll-target="#methodology"><span class="header-section-number">1.4.1</span> Methodology</a></li>
+  <li><a href="#results-credible-interval-width-vs.-m" id="toc-results-credible-interval-width-vs.-m" class="nav-link" data-scroll-target="#results-credible-interval-width-vs.-m"><span class="header-section-number">1.4.2</span> Results: Credible Interval Width vs.&nbsp;M</a></li>
+  <li><a href="#results-estimation-error-vs.-m" id="toc-results-estimation-error-vs.-m" class="nav-link" data-scroll-target="#results-estimation-error-vs.-m"><span class="header-section-number">1.4.3</span> Results: Estimation Error vs.&nbsp;M</a></li>
+  <li><a href="#alternative-space-increasing-r-from-5-to-15" id="toc-alternative-space-increasing-r-from-5-to-15" class="nav-link" data-scroll-target="#alternative-space-increasing-r-from-5-to-15"><span class="header-section-number">1.4.4</span> Alternative Space: Increasing R from 5 to 15</a></li>
+  <li><a href="#observations-1" id="toc-observations-1" class="nav-link" data-scroll-target="#observations-1"><span class="header-section-number">1.4.5</span> Observations</a></li>
+  </ul></li>
+  <li><a href="#alternative-approach-informative-prior-on-utilities" id="toc-alternative-approach-informative-prior-on-utilities" class="nav-link" data-scroll-target="#alternative-approach-informative-prior-on-utilities"><span class="header-section-number">1.5</span> Alternative Approach: Informative Prior on Utilities</a>
+  <ul class="collapse">
+  <li><a href="#model-m_01-strengthened-dirichlet-prior" id="toc-model-m_01-strengthened-dirichlet-prior" class="nav-link" data-scroll-target="#model-m_01-strengthened-dirichlet-prior"><span class="header-section-number">1.5.1</span> Model m_01: Strengthened Dirichlet Prior</a></li>
+  <li><a href="#parameter-recovery-results" id="toc-parameter-recovery-results" class="nav-link" data-scroll-target="#parameter-recovery-results"><span class="header-section-number">1.5.2</span> Parameter Recovery Results</a></li>
+  <li><a href="#interpretation" id="toc-interpretation" class="nav-link" data-scroll-target="#interpretation"><span class="header-section-number">1.5.3</span> Interpretation</a></li>
+  </ul></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content"><div class="quarto-title-block"><div class="quarto-title-tools-only"><h1></h1><button type="button" class="btn code-tools-button" id="quarto-code-tools-source"><i class="bi"></i> Code</button></div></div>
+
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p><a href="https://github.com/jeffhelzner">Jeff Helzner</a> </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">January 18, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="seu-sensitivity-from-abstract-motivation-to-concrete-implementation" class="level1" data-number="1">
+<h1 data-number="1"><span class="header-section-number">1</span> SEU Sensitivity: From Abstract Motivation to Concrete Implementation</h1>
+<section id="abstract-formulation" class="level2" data-number="1.1">
+<h2 data-number="1.1" class="anchored" data-anchor-id="abstract-formulation"><span class="header-section-number">1.1</span> Abstract Formulation</h2>
+<section id="data-structure" class="level3" data-number="1.1.1">
+<h3 data-number="1.1.1" class="anchored" data-anchor-id="data-structure"><span class="header-section-number">1.1.1</span> Data Structure</h3>
+<p>Assume we have descriptions of <span class="math inline">\(R\)</span> alternatives, that these descriptions can be encoded as <span class="math inline">\(D\)</span>-dimensional vectors, and that we have created <span class="math inline">\(M\)</span> decision problems involving various subsets of these descriptions. Data collection consists of presenting the subject with each decision problem <span class="math inline">\(m \in \{1, \ldots, M\}\)</span> and recording their choice <span class="math inline">\(y_m\)</span> from the <span class="math inline">\(N_m\)</span> available alternatives.</p>
+<p>After data collection, we have the following data structure:</p>
+<ul>
+<li><span class="math inline">\(M\)</span>: number of decision problems</li>
+<li><span class="math inline">\(K\)</span>: number of possible consequences for each alternative</li>
+<li><span class="math inline">\(D\)</span>: dimensionality of alternative feature vectors</li>
+<li><span class="math inline">\(R\)</span>: number of distinct alternatives</li>
+<li><span class="math inline">\(\mathbf{W} = \{\mathbf{w}_1, \ldots, \mathbf{w}_R\}\)</span>: feature vectors for each alternative, where <span class="math inline">\(\mathbf{w}_r \in \mathbb{R}^D\)</span></li>
+<li><span class="math inline">\(\mathbf{I} = (I_{m,r})_{m=1:M,r=1:R}\)</span>: indicator matrix specifying which alternatives appear in which problems</li>
+<li><span class="math inline">\(\mathbf{y} = (y_1, \ldots, y_M)\)</span>: observed choices, where <span class="math inline">\(y_m \in \{1, \ldots, N_m\}\)</span></li>
+</ul>
+<p>This data structure supports a wide range of experiments. For now, however, we assume that the order of presentation—both across problems and within problems—is irrelevant to our analysis. This is a strong simplification that is surely false in realistic settings, but it serves as a starting point for building intuition about the core model.</p>
+<p>Our use of the term “description” is more suggestive than formal. Formally speaking, the only requirement is that these descriptions can be represented in a given finite-dimensional feature space. On the other hand, it is intended to be suggestive, as we want to consider experiments where subjects are presented with descriptions of various alternatives (e.g., monetary gambles described by probabilities and outcomes, consumer products described by attributes, etc.) and then are asked to choose among them.</p>
+</section>
+<section id="model-type" class="level3" data-number="1.1.2">
+<h3 data-number="1.1.2" class="anchored" data-anchor-id="model-type"><span class="header-section-number">1.1.2</span> Model Type</h3>
+<p>Assume that the observed choices <span class="math inline">\(\mathbf{y}\)</span> are generated by a decision maker with utilities <span class="math inline">\(\boldsymbol{\upsilon}\)</span> for each of the <span class="math inline">\(K\)</span> possible consequences, a functional procedure for assigning subjective probabilities <span class="math inline">\(\boldsymbol{\psi}\)</span> to the consequences of alternatives based on their descriptions, and a positive-valued <span class="math inline">\(\alpha\)</span> that measures the decision maker’s sensitivity to subjective expected utility (SEU) maximization.</p>
+<p>The subjective expected utility (SEU) of alternative <span class="math inline">\(r\)</span> is:</p>
+<p><span class="math display">\[\eta_r = \sum_{k=1}^K \psi_{r,k} \cdot \upsilon_k = \boldsymbol{\psi}_r^\top \boldsymbol{\upsilon}\]</span></p>
+<p>The probability that the decision maker chooses alternative <span class="math inline">\(r\)</span> from the set of alternatives in problem <span class="math inline">\(m\)</span> is given by a softmax:</p>
+<p><span class="math display">\[P(\text{choose } r \mid m, \alpha, \boldsymbol{\psi}, \boldsymbol{\upsilon}) = \frac{\exp(\alpha \cdot \eta_r)}{\sum_{j: I_{m,j}=1} \exp(\alpha \cdot \eta_j)}\]</span></p>
+<p>Conditional on the problem <span class="math inline">\(m\)</span> and utilities <span class="math inline">\(\upsilon\)</span>, the following properties of this model type are central to interpreting <span class="math inline">\(\alpha\)</span> as a measure of sensitivity to SEU maximization:</p>
+<ol type="1">
+<li><strong>Monotonicity</strong>: The probability of choosing SEU-maximizing alternatives increases as sensitivity increases.</li>
+<li><strong>Perfect Rationality Limit</strong>: As <span class="math inline">\(\alpha \to \infty\)</span>, choice probabilities concentrate on alternatives that maximize subjective expected utility.</li>
+<li><strong>Random Choice Limit</strong>: As <span class="math inline">\(\alpha \to 0\)</span>, choice probabilities converge to a uniform distribution over available alternatives.</li>
+</ol>
+<p>These properties follow from the softmax structure and its behavior under scaling. We review the details in the appendix.</p>
+<p>Note that we will need to assume standardized utilities <span class="math inline">\(\boldsymbol{\upsilon}\)</span> both for theoretical reasons (in SEU theory, utility is unique only up to positive affine transformations) and for the purpose of identification when fitting a model the this type.</p>
+</section>
+<section id="concrete-implementation" class="level3" data-number="1.1.3">
+<h3 data-number="1.1.3" class="anchored" data-anchor-id="concrete-implementation"><span class="header-section-number">1.1.3</span> Concrete Implementation</h3>
+<p>We now turn to a model of the type described above, as formulated in the Stan program (<code>models/m_0.stan</code>).</p>
+<p><strong>Data Block</strong></p>
+<p>This is just the data structure described above in Stan syntax:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode stan code-with-copy"><code class="sourceCode stan"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">// filepath: models/m_0.stan (excerpt)</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> {</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span>&lt;<span class="kw">lower</span>=<span class="dv">1</span>&gt; M;                    <span class="co">// number of decision problems</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span>&lt;<span class="kw">lower</span>=<span class="dv">2</span>&gt; K;                    <span class="co">// number of possible consequences</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span>&lt;<span class="kw">lower</span>=<span class="dv">1</span>&gt; D;                    <span class="co">// number of dimensions to describe an alternative</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span>&lt;<span class="kw">lower</span>=<span class="dv">2</span>&gt; R;                    <span class="co">// number of distinct alternatives</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">array</span>[R] <span class="dt">vector</span>[D] w;              <span class="co">// feature vectors for alternatives</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">array</span>[M,R] <span class="dt">int</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>,<span class="kw">upper</span>=<span class="dv">1</span>&gt; I; <span class="co">// indicator matrix</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="dt">array</span>[M] <span class="dt">int</span>&lt;<span class="kw">lower</span>=<span class="dv">1</span>&gt; y;           <span class="co">// observed choices</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Parameters Block</strong></p>
+<p>The Stan program estimates three sets of parameters:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode stan code-with-copy"><code class="sourceCode stan"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">// filepath: models/m_0.stan (excerpt)</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="kw">parameters</span> {</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">real</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt; alpha;           <span class="co">// sensitivity parameter</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">matrix</span>[K,D] beta;              <span class="co">// feature-to-probability mapping</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">simplex</span>[K<span class="dv">-1</span>] delta;            <span class="co">// utility increments</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><code>beta</code> parameterizes the mapping from features to subjective probabilities, and <code>delta</code> parameterizes the 0–1 scaling of utilities.</p>
+<p><strong>Transformed Parameters Block</strong></p>
+<p>The subjective probabilities, utilities, and expected utilities are defined as transformed parameters:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode stan code-with-copy"><code class="sourceCode stan"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">// filepath: models/m_0.stan (excerpt)</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="kw">transformed parameters</span> {</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">array</span>[sum(N)] <span class="dt">simplex</span>[K] psi;  <span class="co">// subjective probabilities</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">ordered</span>[K] upsilon;            <span class="co">// utilities (ordered, on unit scale)</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">vector</span>[sum(N)] eta;            <span class="co">// expected utilities</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">array</span>[M] <span class="dt">simplex</span>[max(N)] chi;  <span class="co">// choice probabilities</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Calculate subjective probabilities via softmax</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span>:sum(N)) {</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    psi[i] = softmax(beta * x[i]);</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Construct ordered utilities from increments</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>  upsilon = cumulative_sum(append_row(<span class="dv">0</span>, delta));</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Calculate expected utility for each alternative</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span>:sum(N)) {</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>    eta[i] = dot_product(psi[i], upsilon);</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Calculate choice probabilities with sensitivity scaling</span></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ...existing code...</span></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>  chi[i] = append_row(</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>    softmax(alpha * problem_eta),</span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>    rep_vector(<span class="dv">0</span>, max(N) - N[i])</span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>  );</span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ...existing code...</span></span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Remarks</strong></p>
+<ol type="1">
+<li><p><strong>Subjective Probabilities from Descriptions</strong>: We assume that the procedure for assigning subjective probabilities to an alternative’s possible consequences, based on its description, can be represented as a softmax applied to a linear mapping from descriptions to log-odds. This seems like a reasonable starting point, though more complex mappings could be considered in future work.</p></li>
+<li><p><strong>Utilities</strong>: We parameterize the 0–1-scaled utilities via cumulative sums:</p>
+<ul>
+<li><span class="math inline">\(\boldsymbol{\upsilon} = \text{cumsum}([0, \delta_1, \ldots, \delta_{K-1}])\)</span></li>
+<li><span class="math inline">\(\boldsymbol{\delta} \sim \text{Dirichlet}(1, \ldots, 1)\)</span> ensures <span class="math inline">\(\sum_i \delta_i = 1\)</span>, implying <span class="math inline">\(\upsilon_K = 1\)</span>.</li>
+</ul></li>
+</ol>
+<p>Note that the Dirichlet prior on <span class="math inline">\(\delta\)</span> induces a uniform prior over the space of possible utility vectors on the unit scale. Given that the utilities are assumed to represent the decision maker’s preferences, it might make more sense to increase the concentration parameter to get more separation between the alternatives, e.g., for psychological plausibility. Increasing the concentration should also reduce the chance of non-fatal numerical issues when two utilities are very close together, causing Stan’s ordered vector type to complain about the resulting <span class="math inline">\(\upsilon\)</span> not being strictly ordered.</p>
+<ol start="3" type="1">
+<li><strong>Choice Probabilities</strong>: The softmax choice rule from the abstract model is implemented directly:
+<ul>
+<li><span class="math inline">\(P(\text{choose } r \mid m, \alpha, \psi, \upsilon) = \exp(\alpha \cdot \eta_r) / \sum_j \exp(\alpha \cdot \eta_j)\)</span></li>
+</ul></li>
+</ol>
+<p><strong>Model Block</strong></p>
+<p>Prior distributions and the likelihood function complete the Bayesian specification:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode stan code-with-copy"><code class="sourceCode stan"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">// filepath: models/m_0.stan (excerpt)</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="kw">model</span> {</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Priors</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  alpha ~ lognormal(<span class="dv">0</span>, <span class="dv">1</span>);               <span class="co">// sensitivity</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  to_vector(beta) ~ std_normal();        <span class="co">// feature coefficients</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  delta ~ dirichlet(rep_vector(<span class="dv">1</span>,K<span class="dv">-1</span>));  <span class="co">// utility increments</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Likelihood</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span>:M) {</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>    y[i] ~ categorical(chi[i]);</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>There was no particular reason for selecting these priors. Of course, the same could be said of other parts of the model, e.g., linearity assumptions, which, as with the choice of priors, were made for mathematical and computational simplicity.</p>
+</section>
+</section>
+<section id="prior-analysis" class="level2" data-number="1.2">
+<h2 data-number="1.2" class="anchored" data-anchor-id="prior-analysis"><span class="header-section-number">1.2</span> Prior Analysis</h2>
+<p>We now turn to a prior analysis of the m_0.stan program described above (note: we actually run the analysis on the program models/m_0_sim.stan, but this is a purely technical matter related to Stan). The prior predictive analysis samples parameter configurations from the prior, simulates choices under those parameters, and examines the resulting distributions.</p>
+<section id="study-design" class="level3" data-number="1.2.1">
+<h3 data-number="1.2.1" class="anchored" data-anchor-id="study-design"><span class="header-section-number">1.2.1</span> Study Design</h3>
+<p>For the present analysis, we will use a study design with the following characteristics (see <code>study_design.json</code> in this directory):</p>
+<ul>
+<li><strong>M = 10</strong> decision problems</li>
+<li><strong>K = 3</strong> possible consequences per alternative</li>
+<li><strong>D = 2</strong> feature dimensions</li>
+<li><strong>R = 5</strong> distinct alternatives</li>
+<li>Alternatives per problem: 2 to 4 (mean = 3.2)</li>
+<li>Alternative appearance frequency: 3 to 8 appearances (mean = 6.4)</li>
+</ul>
+<p><strong>Feature Vectors (w)</strong>: The 5 distinct alternatives are characterized by 2-dimensional feature vectors:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="er">"w":</span> <span class="ot">[</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="ot">[</span><span class="fl">0.901</span><span class="ot">,</span> <span class="fl">-0.404</span><span class="ot">],</span>   <span class="er">//</span> <span class="er">Alternative</span> <span class="dv">1</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="ot">[</span><span class="fl">0.658</span><span class="ot">,</span> <span class="fl">-0.658</span><span class="ot">],</span>   <span class="er">//</span> <span class="er">Alternative</span> <span class="dv">2</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="ot">[</span><span class="fl">0.516</span><span class="ot">,</span>  <span class="fl">0.396</span><span class="ot">],</span>   <span class="er">//</span> <span class="er">Alternative</span> <span class="dv">3</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="ot">[</span><span class="fl">-0.854</span><span class="ot">,</span> <span class="fl">-0.648</span><span class="ot">],</span>  <span class="er">//</span> <span class="er">Alternative</span> <span class="dv">4</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="ot">[</span><span class="fl">-0.341</span><span class="ot">,</span> <span class="fl">-0.006</span><span class="ot">]</span>   <span class="er">//</span> <span class="er">Alternative</span> <span class="dv">5</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="ot">]</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Indicator Matrix (I)</strong>: The 10×5 indicator matrix specifies which alternatives appear in which problems. For instance:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="er">"I":</span> <span class="ot">[</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="ot">[</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">],</span>  <span class="er">//</span> <span class="er">Problem</span> <span class="dv">1</span><span class="er">:</span> <span class="er">alternatives</span> <span class="fu">{</span><span class="er">2</span><span class="fu">,</span> <span class="er">4</span><span class="fu">,</span> <span class="er">5</span><span class="fu">}</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="ot">[</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">],</span>  <span class="er">//</span> <span class="er">Problem</span> <span class="dv">2</span><span class="er">:</span> <span class="er">alternatives</span> <span class="fu">{</span><span class="er">2</span><span class="fu">,</span> <span class="er">4</span><span class="fu">,</span> <span class="er">5</span><span class="fu">}</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="ot">[</span><span class="dv">1</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">],</span>  <span class="er">//</span> <span class="er">Problem</span> <span class="dv">3</span><span class="er">:</span> <span class="er">alternatives</span> <span class="fu">{</span><span class="er">1</span><span class="fu">,</span> <span class="er">2</span><span class="fu">,</span> <span class="er">3</span><span class="fu">,</span> <span class="er">5</span><span class="fu">}</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="ot">[</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">],</span>  <span class="er">//</span> <span class="er">Problem</span> <span class="dv">4</span><span class="er">:</span> <span class="er">alternatives</span> <span class="fu">{</span><span class="er">2</span><span class="fu">,</span> <span class="er">3</span><span class="fu">,</span> <span class="er">4</span><span class="fu">,</span> <span class="er">5</span><span class="fu">}</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="er">//</span> <span class="er">...</span> <span class="er">(</span><span class="dv">6</span> <span class="er">more</span> <span class="er">problems)</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="ot">]</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><img src="figures/alt_frequency.png" class="img-fluid" alt="Alternative Frequency"> <em>Figure 1: Frequency with which each of the 5 distinct alternatives appears across the 10 decision problems. Alternatives appear between 3-8 times, with alternative 2 appearing most frequently (8 times) and alternatives 1 and 3 appearing least frequently (3 times each).</em></p>
+<p><img src="figures/alts_per_problem.png" class="img-fluid" alt="Alternatives Per Problem"> <em>Figure 2: Distribution of the number of alternatives in each decision problem.</em></p>
+</section>
+<section id="prior-distribution-of-sensitivity-parameter" class="level3" data-number="1.2.2">
+<h3 data-number="1.2.2" class="anchored" data-anchor-id="prior-distribution-of-sensitivity-parameter"><span class="header-section-number">1.2.2</span> Prior Distribution of Sensitivity Parameter</h3>
+<p>The sensitivity parameter α, which governs how strongly choices reflect SEU maximization, follows a lognormal(0, 1) prior. This prior produces a wide range of sensitivity values:</p>
+<p><img src="figures/alpha_dist.png" class="img-fluid" alt="Alpha Distribution"> <em>Figure 3: Prior distribution of α (sensitivity parameter).</em></p>
+</section>
+<section id="expected-utilities-under-the-prior" class="level3" data-number="1.2.3">
+<h3 data-number="1.2.3" class="anchored" data-anchor-id="expected-utilities-under-the-prior"><span class="header-section-number">1.2.3</span> Expected Utilities Under the Prior</h3>
+<p><img src="figures/expected_utilities.png" class="img-fluid" alt="Expected Utilities"> <em>Figure 4: Distribution of expected utilities for alternatives across the 10 decision problems. Each box represents the distribution of expected utility values across 1000 parameter samples from the prior. The variation both within and across problems reflects uncertainty in subjective probabilities (determined by the 3×2 β matrix) and utilities (determined by δ, a 2-simplex for the 3 consequences).</em></p>
+</section>
+<section id="simulated-choice-behavior" class="level3" data-number="1.2.4">
+<h3 data-number="1.2.4" class="anchored" data-anchor-id="simulated-choice-behavior"><span class="header-section-number">1.2.4</span> Simulated Choice Behavior</h3>
+<p><img src="figures/choice_distribution.png" class="img-fluid" alt="Choice Distribution"> <em>Figure 5: Empirical choice frequencies for the 10 decision problems.</em></p>
+</section>
+<section id="seu-maximizer-selection" class="level3" data-number="1.2.5">
+<h3 data-number="1.2.5" class="anchored" data-anchor-id="seu-maximizer-selection"><span class="header-section-number">1.2.5</span> SEU Maximizer Selection</h3>
+<p>We now turn to an estimate of the probability of selecting an seu maximizer under the prior.</p>
+<p><strong>Computational Implementation</strong>: For each simulated decision problem, we track whether the chosen alternative maximizes subjective expected utility. The implementation in <code>m_0_sim.stan</code> performs this check as follows:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode stan code-with-copy"><code class="sourceCode stan"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co">// For each decision problem i with N[i] alternatives:</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="co">// 1. Identify the maximum expected utility</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="dt">real</span> max_eta = max(problem_eta);</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="co">// 2. Check if the selected alternative has the maximum expected utility</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="co">//    (within numerical tolerance to handle floating-point comparison)</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (abs(problem_eta[y[i]] - max_eta) &lt; <span class="fl">1e-10</span>) {</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  selected_seu_max[i] = <span class="dv">1</span>;</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> {</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>  selected_seu_max[i] = <span class="dv">0</span>;</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>This produces two key outputs: - <code>selected_seu_max[i]</code>: Binary indicator for each problem (1 = SEU maximizer selected, 0 = otherwise) - <code>total_seu_max_selected</code>: Sum across all M problems, counting how many times the SEU maximizer was chosen</p>
+<p>The numerical tolerance (1e-10) accounts for floating-point arithmetic issues when multiple alternatives have nearly identical expected utilities.</p>
+<p><img src="figures/prob_seu_max_by_problem.png" class="img-fluid" alt="Probability SEU Max by Problem"> <em>Figure 6: Probability of selecting the SEU-maximizing alternative for each of the 10 decision problems.</em></p>
+<p><img src="figures/total_seu_max_distribution.png" class="img-fluid" alt="Total SEU Max Distribution"> <em>Figure 7: Distribution of the total number of problems (out of 10) where the SEU maximizer was selected across 1000 simulations. The distribution shape and central tendency reveal the range of behaviors implied by the prior on α and the other parameters.</em></p>
+</section>
+</section>
+<section id="parameter-recovery-analysis" class="level2" data-number="1.3">
+<h2 data-number="1.3" class="anchored" data-anchor-id="parameter-recovery-analysis"><span class="header-section-number">1.3</span> Parameter Recovery Analysis</h2>
+<p>Having examined the prior predictive distribution, we now turn to parameter recovery analysis: can the model reliably recover known parameter values from simulated data? This is crucial for assessing whether our proposed experimental designs can support accurate inference about the sensitivity parameter α and the other model parameters.</p>
+<section id="recovery-methodology" class="level3" data-number="1.3.1">
+<h3 data-number="1.3.1" class="anchored" data-anchor-id="recovery-methodology"><span class="header-section-number">1.3.1</span> Recovery Methodology</h3>
+<p>The parameter recovery analysis proceeds as follows:</p>
+<ol type="1">
+<li><p><strong>Data Generation</strong>: For each iteration, we sample parameter values from the prior distributions:</p>
+<ul>
+<li>α ~ lognormal(0, 1)</li>
+<li>β[k,d] ~ N(0, 1) for each consequence k and dimension d</li>
+<li>δ ~ Dirichlet(1, …, 1) for the (K-1)-simplex</li>
+</ul></li>
+<li><p><strong>Simulation</strong>: Using these “true” parameters, we simulate choice data according to the model.</p></li>
+<li><p><strong>Inference</strong>: We fit the model to the simulated data using MCMC, obtaining posterior distributions for all parameters.</p></li>
+<li><p><strong>Evaluation</strong>: We assess recovery quality through:</p>
+<ul>
+<li><strong>Bias</strong>: Mean difference between posterior means and true values</li>
+<li><strong>RMSE</strong>: Root mean squared error between estimates and true values<br>
+</li>
+<li><strong>Coverage</strong>: Proportion of 90% credible intervals containing the true value</li>
+<li><strong>CI Width</strong>: Average width of 90% credible intervals</li>
+</ul></li>
+</ol>
+</section>
+<section id="recovery-summary-statistics" class="level3" data-number="1.3.2">
+<h3 data-number="1.3.2" class="anchored" data-anchor-id="recovery-summary-statistics"><span class="header-section-number">1.3.2</span> Recovery Summary Statistics</h3>
+<p>The following table summarizes recovery performance across 20 iterations using our 10-problem study design:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Parameter</th>
+<th>Bias</th>
+<th>RMSE</th>
+<th>Coverage</th>
+<th>CI Width</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>alpha</td>
+<td>0.045</td>
+<td>0.512</td>
+<td>95.0%</td>
+<td>1.891</td>
+</tr>
+<tr class="even">
+<td>beta (avg)</td>
+<td>-0.001</td>
+<td>0.571</td>
+<td>91.7%</td>
+<td>2.189</td>
+</tr>
+<tr class="odd">
+<td>delta (avg)</td>
+<td>0.000</td>
+<td>0.104</td>
+<td>92.5%</td>
+<td>0.401</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="coverage-diagnostics" class="level3" data-number="1.3.3">
+<h3 data-number="1.3.3" class="anchored" data-anchor-id="coverage-diagnostics"><span class="header-section-number">1.3.3</span> Coverage Diagnostics</h3>
+<p>To understand parameter recovery in detail, we examine the 90% credible intervals for each parameter across all iterations. Green intervals indicate successful coverage (the true value falls within the interval), while red intervals indicate coverage failures.</p>
+<p><strong>Alpha (Sensitivity Parameter)</strong></p>
+<p><img src="figures/recovery_alpha_coverage.png" class="img-fluid" alt="Alpha Coverage"> <em>Figure 8: 90% credible intervals for α across 20 recovery iterations.</em></p>
+<p><strong>Beta Parameters (Feature-to-Probability Mapping)</strong></p>
+<p>The β matrix maps the D=2 dimensional feature vectors to subjective probabilities over K=3 consequences, requiring estimation of 6 parameters.</p>
+<p><img src="figures/recovery_beta_1_1_coverage.png" class="img-fluid" alt="Beta 1,1 Coverage"> <em>Figure 9: Coverage intervals for β[1,1]. This parameter maps the first feature dimension to the log-odds of the first consequence.</em></p>
+<p><img src="figures/recovery_beta_1_2_coverage.png" class="img-fluid" alt="Beta 1,2 Coverage"> <em>Figure 10: Coverage intervals for β[1,2]. This parameter maps the second feature dimension to the log-odds of the first consequence.</em></p>
+<p><img src="figures/recovery_beta_2_1_coverage.png" class="img-fluid" alt="Beta 2,1 Coverage"> <em>Figure 11: Coverage intervals for β[2,1]. This parameter maps the first feature dimension to the log-odds of the second consequence.</em></p>
+<p><img src="figures/recovery_beta_2_2_coverage.png" class="img-fluid" alt="Beta 2,2 Coverage"> <em>Figure 12: Coverage intervals for β[2,2]. This parameter maps the second feature dimension to the log-odds of the second consequence.</em></p>
+<p><img src="figures/recovery_beta_3_1_coverage.png" class="img-fluid" alt="Beta 3,1 Coverage"> <em>Figure 13: Coverage intervals for β[3,1]. This parameter maps the first feature dimension to the log-odds of the third consequence.</em></p>
+<p><img src="figures/recovery_beta_3_2_coverage.png" class="img-fluid" alt="Beta 3,2 Coverage"> <em>Figure 14: Coverage intervals for β[3,2]. This parameter maps the second feature dimension to the log-odds of the third consequence.</em></p>
+<p><strong>Delta Parameters (Utility Increments)</strong></p>
+<p>The δ parameters represent increments on the unit utility scale, constrained to sum to 1 (as a 2-simplex for K=3 consequences).</p>
+<p><img src="figures/recovery_delta_1_coverage.png" class="img-fluid" alt="Delta 1 Coverage"> <em>Figure 15: Coverage intervals for δ[1], the utility increment from consequence 1 to consequence 2.</em></p>
+<p><img src="figures/recovery_delta_2_coverage.png" class="img-fluid" alt="Delta 2 Coverage"> <em>Figure 16: Coverage intervals for δ[2], the utility increment from consequence 2 to consequence 3.</em></p>
+</section>
+<section id="observations" class="level3" data-number="1.3.4">
+<h3 data-number="1.3.4" class="anchored" data-anchor-id="observations"><span class="header-section-number">1.3.4</span> Observations</h3>
+<p>It looks like the <span class="math inline">\(\alpha\)</span> parameter, as well as the first and third sets of <span class="math inline">\(\beta\)</span> parameters are showing some evidence of recoverability, while the second set of <span class="math inline">\(\beta\)</span> parameters and both <span class="math inline">\(\delta\)</span> parameters look as though are not being informed by the data at all. Perhaps they are being informed slightly, and we just need to consider a larger study design. We can enlarge in several different directions. In the next section, we will consider increasing the number of problems (M) while holding everything else constant to see if that helps.</p>
+</section>
+</section>
+<section id="sample-size-analysis-recovery-vs.-number-of-problems" class="level2" data-number="1.4">
+<h2 data-number="1.4" class="anchored" data-anchor-id="sample-size-analysis-recovery-vs.-number-of-problems"><span class="header-section-number">1.4</span> Sample Size Analysis: Recovery vs.&nbsp;Number of Problems</h2>
+<p>To investigate whether the identification issues observed at M=10 are due to insufficient sample size or represent deeper structural problems, we conducted a systematic sample size analysis. Using the same set of alternatives (w) and varying only M and the indicator matrix I, we examined parameter recovery across M ∈ {10, 15, 20, 25, 30}.</p>
+<section id="methodology" class="level3" data-number="1.4.1">
+<h3 data-number="1.4.1" class="anchored" data-anchor-id="methodology"><span class="header-section-number">1.4.1</span> Methodology</h3>
+<p>For each value of M:</p>
+<ol type="1">
+<li><strong>Fixed Design Elements</strong>: Used the identical 5 alternatives (w) from the base study design</li>
+<li><strong>Varying Elements</strong>: Generated new indicator matrices (I) for M problems, with 2-4 alternatives per problem</li>
+<li><strong>Recovery Iterations</strong>: Conducted 50 parameter recovery iterations per M value</li>
+<li><strong>Metrics Tracked</strong>:
+<ul>
+<li>90% credible interval width</li>
+<li>Root mean squared error (RMSE)</li>
+<li>Mean absolute error (MAE)</li>
+<li>Coverage rate</li>
+</ul></li>
+</ol>
+<p>This design ensures that observed changes in recovery are attributable to M rather than differences in the alternative space.</p>
+</section>
+<section id="results-credible-interval-width-vs.-m" class="level3" data-number="1.4.2">
+<h3 data-number="1.4.2" class="anchored" data-anchor-id="results-credible-interval-width-vs.-m"><span class="header-section-number">1.4.2</span> Results: Credible Interval Width vs.&nbsp;M</h3>
+<p><img src="figures/sample_size_ci_width_comparison.png" class="img-fluid" alt="CI Width Comparison"> <em>Figure 17: Mean 90% credible interval width across parameters as a function of M. Left: <span class="math inline">\(\alpha\)</span> shows consistent narrowing. Middle: <span class="math inline">\(\beta[1,]\)</span> and <span class="math inline">\(\beta[3,]\)</span> narrow with M, while <span class="math inline">\(\beta[2,]\)</span> stays relatively constant. Right: The <span class="math inline">\(\delta\)</span> parameters maintain wide intervals across all M values, indicating persistent identification issues.</em></p>
+</section>
+<section id="results-estimation-error-vs.-m" class="level3" data-number="1.4.3">
+<h3 data-number="1.4.3" class="anchored" data-anchor-id="results-estimation-error-vs.-m"><span class="header-section-number">1.4.3</span> Results: Estimation Error vs.&nbsp;M</h3>
+<p><img src="figures/sample_size_rmse_comparison.png" class="img-fluid" alt="RMSE Comparison"> <em>Figure 18: Root mean squared error (RMSE) as a function of M. With the possible exception of <span class="math inline">\(\alpha\)</span>, and possibly <span class="math inline">\(\beta[1,1]\)</span> and <span class="math inline">\(\beta[3,1]\)</span>, these plots don’t seem to show the error trending downward with increasing M.</em></p>
+</section>
+<section id="alternative-space-increasing-r-from-5-to-15" class="level3" data-number="1.4.4">
+<h3 data-number="1.4.4" class="anchored" data-anchor-id="alternative-space-increasing-r-from-5-to-15"><span class="header-section-number">1.4.4</span> Alternative Space: Increasing R from 5 to 15</h3>
+<p>The initial sample size analysis used R=5 distinct alternatives. To investigate whether the identification issues stem from an insufficiently rich alternative space rather than sample size alone, we conducted a second analysis with R=15 alternatives while maintaining the same range of M values.</p>
+<p><strong>Methodology</strong>: Using a new set of 15 alternatives drawn from the same feature distribution (2-dimensional, standard normal), we repeated the sample size analysis for M ∈ {10, 15, 20, 25, 30}, with 20 recovery iterations per M value. All other aspects of the methodology remained identical to the R=5 analysis.</p>
+<p><img src="figures/sample_size_r15/ci_width_comparison.png" class="img-fluid" alt="CI Width Comparison R15"> <em>Figure 19: Mean 90% credible interval width with R=15 alternatives. The pattern closely mirrors the R=5 results: α and selected β parameters narrow with M, while β[2,·] and δ parameters remain wide.</em></p>
+<p><img src="figures/sample_size_r15/rmse_comparison.png" class="img-fluid" alt="RMSE Comparison R15"> <em>Figure 20: RMSE with R=15 alternatives. Again, the patterns are remarkably similar to R=5: no clear downward trend for most parameters except possibly α and β[1,1] and β[3,1].</em></p>
+</section>
+<section id="observations-1" class="level3" data-number="1.4.5">
+<h3 data-number="1.4.5" class="anchored" data-anchor-id="observations-1"><span class="header-section-number">1.4.5</span> Observations</h3>
+<p>The increased alternative space (R=15) did not substantially improve parameter recovery compared to R=5. The persistent identification issues for certain parameters suggest that the model structure or the information content of the data may be limiting factors, rather than sample size or alternative diversity alone. We consider a slight modification to the model structure in the next section to address these issues.</p>
+</section>
+</section>
+<section id="alternative-approach-informative-prior-on-utilities" class="level2" data-number="1.5">
+<h2 data-number="1.5" class="anchored" data-anchor-id="alternative-approach-informative-prior-on-utilities"><span class="header-section-number">1.5</span> Alternative Approach: Informative Prior on Utilities</h2>
+<p>Given the persistent identification issues with the δ parameters (utility increments), we explored whether a more informative prior might help. The original m_0 model uses a symmetric Dirichlet(1,1) prior on the (K-1)-simplex for δ, which induces a uniform distribution over the space of possible utility configurations on [0,1].</p>
+<section id="model-m_01-strengthened-dirichlet-prior" class="level3" data-number="1.5.1">
+<h3 data-number="1.5.1" class="anchored" data-anchor-id="model-m_01-strengthened-dirichlet-prior"><span class="header-section-number">1.5.1</span> Model m_01: Strengthened Dirichlet Prior</h3>
+<p>We created model m_01, identical to m_0 except for using <code>delta ~ dirichlet(rep_vector(5, K-1))</code> instead of <code>dirichlet(rep_vector(1, K-1))</code>. This stronger prior:</p>
+<ul>
+<li>Concentrates probability mass around utilities that are more evenly spaced</li>
+<li>For K=3, encourages the middle utility (upsilon[2]) to be closer to 0.5</li>
+<li>Reduces prior uncertainty about utility configurations</li>
+</ul>
+<p><strong>Prior Predictive Comparison</strong>: Under the Dirichlet(5,5) prior for K=3: - Mean of middle utility: 0.506 (vs 0.500 under Dirichlet(1,1)) - Std of middle utility: 0.150 (vs 0.289 under Dirichlet(1,1))</p>
+<p>The stronger prior substantially reduces the variance of the middle utility from 0.289 to 0.150—approximately a 48% reduction in standard deviation.</p>
+</section>
+<section id="parameter-recovery-results" class="level3" data-number="1.5.2">
+<h3 data-number="1.5.2" class="anchored" data-anchor-id="parameter-recovery-results"><span class="header-section-number">1.5.2</span> Parameter Recovery Results</h3>
+<p>We ran the same 20-iteration parameter recovery analysis on the same 10-problem study design used for m_0.</p>
+<p><img src="figures/recovery_m01/delta_1_coverage.png" class="img-fluid" alt="Delta 1 Coverage m01"> <em>Figure 21: 90% credible intervals for δ[1] under model m_01 with Dirichlet(5,5) prior. Coverage = 85.0%. The intervals are noticeably narrower than under m_0, reflecting the stronger prior.</em></p>
+<p><img src="figures/recovery_m01/delta_2_coverage.png" class="img-fluid" alt="Delta 2 Coverage m01"> <em>Figure 22: 90% credible intervals for δ[2] under model m_01 with Dirichlet(5,5) prior. Coverage = 85.0%. Again, intervals are much narrower but the posterior means show no clear relationship to true values.</em></p>
+</section>
+<section id="interpretation" class="level3" data-number="1.5.3">
+<h3 data-number="1.5.3" class="anchored" data-anchor-id="interpretation"><span class="header-section-number">1.5.3</span> Interpretation</h3>
+<p>The informative prior approach <strong>successfully reduced posterior uncertainty</strong> but <strong>failed to solve the identification problem</strong>:</p>
+<ol type="1">
+<li><p><strong>Narrower Intervals</strong>: The credible intervals for δ parameters are approximately half as wide as under m_0 (width ~0.50 vs ~0.90), reflecting the informative prior.</p></li>
+<li><p><strong>Poor Calibration</strong>: Coverage dropped from 92-94% under m_0 to 85%, suggesting the narrower intervals don’t appropriately reflect the data’s information content.</p></li>
+<li><p><strong>Unresponsive Posteriors</strong>: Most critically, the posterior means show essentially no relationship to the true parameter values. The posteriors are dominated by the prior—they cluster around δ ≈ 0.5 regardless of the true values.</p></li>
+<li><p><strong>Regularization vs.&nbsp;Identification</strong>: The informative prior acts as a regularizer that reduces variance, but it cannot create information that isn’t in the data. The fundamental issue remains: <strong>choice data under this experimental design do not strongly constrain the utility parameters</strong>.</p></li>
+</ol>
+<p>This negative result is important because it rules out “weak priors” as the primary cause of poor δ recovery. Even with a prior that concentrates 68% of its mass in the range [0.35, 0.65] for the middle utility, the data fail to pull the posterior away from this prior concentration.</p>
+<p>The persistent identification issues across different values of M, R, and prior specifications point toward a more fundamental problem: the confounding between subjective probabilities (ψ, determined by β) and utilities (υ, determined by δ) in the expected utility calculation η = ψ’υ. The model may achieve similar choice probabilities with different (β, δ) combinations, making these parameters empirically indistinguishable from choice data alone.</p>
+
+
+<!-- -->
+
+</section>
+</section>
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{helzner2026,
+  author = {Helzner, Jeff},
+  date = {2026-01-18},
+  url = {https://jeffhelzner.github.io/seu-sensitivity/legacy/seu_sensitivity_from_theory_to_implementation.html},
+  langid = {en}
+}
+</code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-helzner2026" class="csl-entry quarto-appendix-citeas" role="listitem">
+Helzner, Jeff. 2026. SEU Sensitivity Project. January 18, 2026. <a href="https://jeffhelzner.github.io/seu-sensitivity/legacy/seu_sensitivity_from_theory_to_implementation.html">https://jeffhelzner.github.io/seu-sensitivity/legacy/seu_sensitivity_from_theory_to_implementation.html</a>.
+</div></div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+    const viewSource = window.document.getElementById('quarto-view-source') ||
+                       window.document.getElementById('quarto-code-tools-source');
+    if (viewSource) {
+      const sourceUrl = viewSource.getAttribute("data-quarto-source-url");
+      viewSource.addEventListener("click", function(e) {
+        if (sourceUrl) {
+          // rstudio viewer pane
+          if (/\bcapabilities=\b/.test(window.location)) {
+            window.open(sourceUrl);
+          } else {
+            window.location.href = sourceUrl;
+          }
+        } else {
+          const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
+          modal.show();
+        }
+        return false;
+      });
+    }
+    function toggleCodeHandler(show) {
+      return function(e) {
+        const detailsSrc = window.document.querySelectorAll(".cell > details > .sourceCode");
+        for (let i=0; i<detailsSrc.length; i++) {
+          const details = detailsSrc[i].parentElement;
+          if (show) {
+            details.open = true;
+          } else {
+            details.removeAttribute("open");
+          }
+        }
+        const cellCodeDivs = window.document.querySelectorAll(".cell > .sourceCode");
+        const fromCls = show ? "hidden" : "unhidden";
+        const toCls = show ? "unhidden" : "hidden";
+        for (let i=0; i<cellCodeDivs.length; i++) {
+          const codeDiv = cellCodeDivs[i];
+          if (codeDiv.classList.contains(fromCls)) {
+            codeDiv.classList.remove(fromCls);
+            codeDiv.classList.add(toCls);
+          } 
+        }
+        return false;
+      }
+    }
+    const hideAllCode = window.document.getElementById("quarto-hide-all-code");
+    if (hideAllCode) {
+      hideAllCode.addEventListener("click", toggleCodeHandler(false));
+    }
+    const showAllCode = window.document.getElementById("quarto-show-all-code");
+    if (showAllCode) {
+      showAllCode.addEventListener("click", toggleCodeHandler(true));
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/jeffhelzner\.github\.io\/seu-sensitivity\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu"># SEU Sensitivity: From Abstract Motivation to Concrete Implementation</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="fu">## Abstract Formulation</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="fu">### Data Structure</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>Assume we have descriptions of $R$ alternatives, that these descriptions can be encoded as $D$-dimensional vectors, and that we have created $M$ decision problems involving various subsets of these descriptions. Data collection consists of presenting the subject with each decision problem $m \in <span class="sc">\{</span>1, \ldots, M<span class="sc">\}</span>$ and recording their choice $y_m$ from the $N_m$ available alternatives.</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>After data collection, we have the following data structure:</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>$M$: number of decision problems</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>$K$: number of possible consequences for each alternative</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>$D$: dimensionality of alternative feature vectors</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>$R$: number of distinct alternatives</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>$\mathbf{W} = <span class="sc">\{</span>\mathbf{w}_1, \ldots, \mathbf{w}_R<span class="sc">\}</span>$: feature vectors for each alternative, where $\mathbf{w}_r \in \mathbb{R}^D$</span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>$\mathbf{I} = (I_{m,r})_{m=1:M,r=1:R}$: indicator matrix specifying which alternatives appear in which problems</span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>$\mathbf{y} = (y_1, \ldots, y_M)$: observed choices, where $y_m \in <span class="sc">\{</span>1, \ldots, N_m<span class="sc">\}</span>$</span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>This data structure supports a wide range of experiments. For now, however, we assume that the order of presentation—both across problems and within problems—is irrelevant to our analysis. This is a strong simplification that is surely false in realistic settings, but it serves as a starting point for building intuition about the core model. </span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>Our use of the term "description" is more suggestive than formal. Formally speaking, the only requirement is that these descriptions can be represented in a given finite-dimensional feature space. On the other hand, it is intended to be suggestive, as we want to consider experiments where subjects are presented with descriptions of various alternatives (e.g., monetary gambles described by probabilities and outcomes, consumer products described by attributes, etc.) and then are asked to choose among them. </span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a><span class="fu">### Model Type</span></span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>Assume that the observed choices $\mathbf{y}$ are generated by a decision maker with utilities $\boldsymbol{\upsilon}$ for each of the $K$ possible consequences, a functional procedure for assigning subjective probabilities $\boldsymbol{\psi}$ to the consequences of alternatives based on their descriptions, and a positive-valued $\alpha$ that measures the decision maker's sensitivity to subjective expected utility (SEU) maximization.</span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>The subjective expected utility (SEU) of alternative $r$ is:</span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a>$$\eta_r = \sum_{k=1}^K \psi_{r,k} \cdot \upsilon_k = \boldsymbol{\psi}_r^\top \boldsymbol{\upsilon}$$</span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a>The probability that the decision maker chooses alternative $r$ from the set of alternatives in problem $m$ is given by a softmax:</span>
+<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a>$$P(\text{choose } r \mid m, \alpha, \boldsymbol{\psi}, \boldsymbol{\upsilon}) = \frac{\exp(\alpha \cdot \eta_r)}{\sum_{j: I_{m,j}=1} \exp(\alpha \cdot \eta_j)}$$</span>
+<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-35"><a href="#cb8-35" aria-hidden="true" tabindex="-1"></a>Conditional on the problem $m$ and utilities $\upsilon$, the following properties of this model type are central to interpreting $\alpha$ as a measure of sensitivity to SEU maximization:</span>
+<span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-37"><a href="#cb8-37" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>**Monotonicity**: The probability of choosing SEU-maximizing alternatives increases as sensitivity increases.</span>
+<span id="cb8-38"><a href="#cb8-38" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>**Perfect Rationality Limit**: As $\alpha \to \infty$, choice probabilities concentrate on alternatives that maximize subjective expected utility.</span>
+<span id="cb8-39"><a href="#cb8-39" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>**Random Choice Limit**: As $\alpha \to 0$, choice probabilities converge to a uniform distribution over available alternatives.</span>
+<span id="cb8-40"><a href="#cb8-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-41"><a href="#cb8-41" aria-hidden="true" tabindex="-1"></a>These properties follow from the softmax structure and its behavior under scaling. We review the details in the appendix.</span>
+<span id="cb8-42"><a href="#cb8-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-43"><a href="#cb8-43" aria-hidden="true" tabindex="-1"></a>Note that we will need to assume standardized utilities $\boldsymbol{\upsilon}$ both for theoretical reasons (in SEU theory, utility is unique only up to positive affine transformations) and for the purpose of identification when fitting a model the this type.</span>
+<span id="cb8-44"><a href="#cb8-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-45"><a href="#cb8-45" aria-hidden="true" tabindex="-1"></a><span class="fu">### Concrete Implementation</span></span>
+<span id="cb8-46"><a href="#cb8-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-47"><a href="#cb8-47" aria-hidden="true" tabindex="-1"></a>We now turn to a model of the type described above, as formulated in the Stan program (<span class="in">`models/m_0.stan`</span>).</span>
+<span id="cb8-48"><a href="#cb8-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-49"><a href="#cb8-49" aria-hidden="true" tabindex="-1"></a>**Data Block**</span>
+<span id="cb8-50"><a href="#cb8-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-51"><a href="#cb8-51" aria-hidden="true" tabindex="-1"></a>This is just the data structure described above in Stan syntax:</span>
+<span id="cb8-52"><a href="#cb8-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-53"><a href="#cb8-53" aria-hidden="true" tabindex="-1"></a><span class="in">````stan</span></span>
+<span id="cb8-54"><a href="#cb8-54" aria-hidden="true" tabindex="-1"></a><span class="in">// filepath: models/m_0.stan (excerpt)</span></span>
+<span id="cb8-55"><a href="#cb8-55" aria-hidden="true" tabindex="-1"></a><span class="in">data {</span></span>
+<span id="cb8-56"><a href="#cb8-56" aria-hidden="true" tabindex="-1"></a><span class="in">  int&lt;lower=1&gt; M;                    // number of decision problems</span></span>
+<span id="cb8-57"><a href="#cb8-57" aria-hidden="true" tabindex="-1"></a><span class="in">  int&lt;lower=2&gt; K;                    // number of possible consequences</span></span>
+<span id="cb8-58"><a href="#cb8-58" aria-hidden="true" tabindex="-1"></a><span class="in">  int&lt;lower=1&gt; D;                    // number of dimensions to describe an alternative</span></span>
+<span id="cb8-59"><a href="#cb8-59" aria-hidden="true" tabindex="-1"></a><span class="in">  int&lt;lower=2&gt; R;                    // number of distinct alternatives</span></span>
+<span id="cb8-60"><a href="#cb8-60" aria-hidden="true" tabindex="-1"></a><span class="in">  array[R] vector[D] w;              // feature vectors for alternatives</span></span>
+<span id="cb8-61"><a href="#cb8-61" aria-hidden="true" tabindex="-1"></a><span class="in">  array[M,R] int&lt;lower=0,upper=1&gt; I; // indicator matrix</span></span>
+<span id="cb8-62"><a href="#cb8-62" aria-hidden="true" tabindex="-1"></a><span class="in">  array[M] int&lt;lower=1&gt; y;           // observed choices</span></span>
+<span id="cb8-63"><a href="#cb8-63" aria-hidden="true" tabindex="-1"></a><span class="in">}</span></span>
+<span id="cb8-64"><a href="#cb8-64" aria-hidden="true" tabindex="-1"></a><span class="in">````</span></span>
+<span id="cb8-65"><a href="#cb8-65" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-66"><a href="#cb8-66" aria-hidden="true" tabindex="-1"></a>**Parameters Block**</span>
+<span id="cb8-67"><a href="#cb8-67" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-68"><a href="#cb8-68" aria-hidden="true" tabindex="-1"></a>The Stan program estimates three sets of parameters:</span>
+<span id="cb8-69"><a href="#cb8-69" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-70"><a href="#cb8-70" aria-hidden="true" tabindex="-1"></a><span class="in">````stan</span></span>
+<span id="cb8-71"><a href="#cb8-71" aria-hidden="true" tabindex="-1"></a><span class="in">// filepath: models/m_0.stan (excerpt)</span></span>
+<span id="cb8-72"><a href="#cb8-72" aria-hidden="true" tabindex="-1"></a><span class="in">parameters {</span></span>
+<span id="cb8-73"><a href="#cb8-73" aria-hidden="true" tabindex="-1"></a><span class="in">  real&lt;lower=0&gt; alpha;           // sensitivity parameter</span></span>
+<span id="cb8-74"><a href="#cb8-74" aria-hidden="true" tabindex="-1"></a><span class="in">  matrix[K,D] beta;              // feature-to-probability mapping</span></span>
+<span id="cb8-75"><a href="#cb8-75" aria-hidden="true" tabindex="-1"></a><span class="in">  simplex[K-1] delta;            // utility increments</span></span>
+<span id="cb8-76"><a href="#cb8-76" aria-hidden="true" tabindex="-1"></a><span class="in">}</span></span>
+<span id="cb8-77"><a href="#cb8-77" aria-hidden="true" tabindex="-1"></a><span class="in">````</span></span>
+<span id="cb8-78"><a href="#cb8-78" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-79"><a href="#cb8-79" aria-hidden="true" tabindex="-1"></a><span class="in">`beta`</span> parameterizes the mapping from features to subjective probabilities, and <span class="in">`delta`</span> parameterizes the 0–1 scaling of utilities.</span>
+<span id="cb8-80"><a href="#cb8-80" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-81"><a href="#cb8-81" aria-hidden="true" tabindex="-1"></a>**Transformed Parameters Block**</span>
+<span id="cb8-82"><a href="#cb8-82" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-83"><a href="#cb8-83" aria-hidden="true" tabindex="-1"></a>The subjective probabilities, utilities, and expected utilities are defined as transformed parameters:</span>
+<span id="cb8-84"><a href="#cb8-84" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-85"><a href="#cb8-85" aria-hidden="true" tabindex="-1"></a><span class="in">````stan</span></span>
+<span id="cb8-86"><a href="#cb8-86" aria-hidden="true" tabindex="-1"></a><span class="in">// filepath: models/m_0.stan (excerpt)</span></span>
+<span id="cb8-87"><a href="#cb8-87" aria-hidden="true" tabindex="-1"></a><span class="in">transformed parameters {</span></span>
+<span id="cb8-88"><a href="#cb8-88" aria-hidden="true" tabindex="-1"></a><span class="in">  array[sum(N)] simplex[K] psi;  // subjective probabilities</span></span>
+<span id="cb8-89"><a href="#cb8-89" aria-hidden="true" tabindex="-1"></a><span class="in">  ordered[K] upsilon;            // utilities (ordered, on unit scale)</span></span>
+<span id="cb8-90"><a href="#cb8-90" aria-hidden="true" tabindex="-1"></a><span class="in">  vector[sum(N)] eta;            // expected utilities</span></span>
+<span id="cb8-91"><a href="#cb8-91" aria-hidden="true" tabindex="-1"></a><span class="in">  array[M] simplex[max(N)] chi;  // choice probabilities</span></span>
+<span id="cb8-92"><a href="#cb8-92" aria-hidden="true" tabindex="-1"></a><span class="in">  </span></span>
+<span id="cb8-93"><a href="#cb8-93" aria-hidden="true" tabindex="-1"></a><span class="in">  // Calculate subjective probabilities via softmax</span></span>
+<span id="cb8-94"><a href="#cb8-94" aria-hidden="true" tabindex="-1"></a><span class="in">  for (i in 1:sum(N)) {</span></span>
+<span id="cb8-95"><a href="#cb8-95" aria-hidden="true" tabindex="-1"></a><span class="in">    psi[i] = softmax(beta * x[i]);</span></span>
+<span id="cb8-96"><a href="#cb8-96" aria-hidden="true" tabindex="-1"></a><span class="in">  }</span></span>
+<span id="cb8-97"><a href="#cb8-97" aria-hidden="true" tabindex="-1"></a><span class="in">  </span></span>
+<span id="cb8-98"><a href="#cb8-98" aria-hidden="true" tabindex="-1"></a><span class="in">  // Construct ordered utilities from increments</span></span>
+<span id="cb8-99"><a href="#cb8-99" aria-hidden="true" tabindex="-1"></a><span class="in">  upsilon = cumulative_sum(append_row(0, delta));</span></span>
+<span id="cb8-100"><a href="#cb8-100" aria-hidden="true" tabindex="-1"></a><span class="in">  </span></span>
+<span id="cb8-101"><a href="#cb8-101" aria-hidden="true" tabindex="-1"></a><span class="in">  // Calculate expected utility for each alternative</span></span>
+<span id="cb8-102"><a href="#cb8-102" aria-hidden="true" tabindex="-1"></a><span class="in">  for (i in 1:sum(N)) {</span></span>
+<span id="cb8-103"><a href="#cb8-103" aria-hidden="true" tabindex="-1"></a><span class="in">    eta[i] = dot_product(psi[i], upsilon);</span></span>
+<span id="cb8-104"><a href="#cb8-104" aria-hidden="true" tabindex="-1"></a><span class="in">  }</span></span>
+<span id="cb8-105"><a href="#cb8-105" aria-hidden="true" tabindex="-1"></a><span class="in">  </span></span>
+<span id="cb8-106"><a href="#cb8-106" aria-hidden="true" tabindex="-1"></a><span class="in">  // Calculate choice probabilities with sensitivity scaling</span></span>
+<span id="cb8-107"><a href="#cb8-107" aria-hidden="true" tabindex="-1"></a><span class="in">  // ...existing code...</span></span>
+<span id="cb8-108"><a href="#cb8-108" aria-hidden="true" tabindex="-1"></a><span class="in">  chi[i] = append_row(</span></span>
+<span id="cb8-109"><a href="#cb8-109" aria-hidden="true" tabindex="-1"></a><span class="in">    softmax(alpha * problem_eta),</span></span>
+<span id="cb8-110"><a href="#cb8-110" aria-hidden="true" tabindex="-1"></a><span class="in">    rep_vector(0, max(N) - N[i])</span></span>
+<span id="cb8-111"><a href="#cb8-111" aria-hidden="true" tabindex="-1"></a><span class="in">  );</span></span>
+<span id="cb8-112"><a href="#cb8-112" aria-hidden="true" tabindex="-1"></a><span class="in">  // ...existing code...</span></span>
+<span id="cb8-113"><a href="#cb8-113" aria-hidden="true" tabindex="-1"></a><span class="in">}</span></span>
+<span id="cb8-114"><a href="#cb8-114" aria-hidden="true" tabindex="-1"></a><span class="in">````</span></span>
+<span id="cb8-115"><a href="#cb8-115" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-116"><a href="#cb8-116" aria-hidden="true" tabindex="-1"></a>**Remarks**</span>
+<span id="cb8-117"><a href="#cb8-117" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-118"><a href="#cb8-118" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>**Subjective Probabilities from Descriptions**: We assume that the procedure for assigning subjective probabilities to an alternative's possible consequences, based on its description, can be represented as a softmax applied to a linear mapping from descriptions to log-odds. This seems like a reasonable starting point, though more complex mappings could be considered in future work.</span>
+<span id="cb8-119"><a href="#cb8-119" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-120"><a href="#cb8-120" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>**Utilities**: We parameterize the 0–1-scaled utilities via cumulative sums:</span>
+<span id="cb8-121"><a href="#cb8-121" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>$\boldsymbol{\upsilon} = \text{cumsum}(<span class="co">[</span><span class="ot">0, \delta_1, \ldots, \delta_{K-1}</span><span class="co">]</span>)$</span>
+<span id="cb8-122"><a href="#cb8-122" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>$\boldsymbol{\delta} \sim \text{Dirichlet}(1, \ldots, 1)$ ensures $\sum_i \delta_i = 1$, implying $\upsilon_K = 1$.</span>
+<span id="cb8-123"><a href="#cb8-123" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb8-124"><a href="#cb8-124" aria-hidden="true" tabindex="-1"></a>  Note that the Dirichlet prior on $\delta$ induces a uniform prior over the space of possible utility vectors on the unit scale. Given that the utilities are assumed to represent the decision maker's preferences, it might make more sense to increase the concentration parameter to get more separation between the alternatives, e.g., for psychological plausibility. Increasing the concentration should also reduce the chance of non-fatal numerical issues when two utilities are very close together, causing Stan's ordered vector type to complain about the resulting $\upsilon$ not being strictly ordered.</span>
+<span id="cb8-125"><a href="#cb8-125" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-126"><a href="#cb8-126" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>**Choice Probabilities**: The softmax choice rule from the abstract model is implemented directly:</span>
+<span id="cb8-127"><a href="#cb8-127" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>$P(\text{choose } r \mid m, \alpha, \psi, \upsilon) = \exp(\alpha \cdot \eta_r) / \sum_j \exp(\alpha \cdot \eta_j)$</span>
+<span id="cb8-128"><a href="#cb8-128" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-129"><a href="#cb8-129" aria-hidden="true" tabindex="-1"></a>**Model Block**</span>
+<span id="cb8-130"><a href="#cb8-130" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-131"><a href="#cb8-131" aria-hidden="true" tabindex="-1"></a>Prior distributions and the likelihood function complete the Bayesian specification:</span>
+<span id="cb8-132"><a href="#cb8-132" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-133"><a href="#cb8-133" aria-hidden="true" tabindex="-1"></a><span class="in">````stan</span></span>
+<span id="cb8-134"><a href="#cb8-134" aria-hidden="true" tabindex="-1"></a><span class="in">// filepath: models/m_0.stan (excerpt)</span></span>
+<span id="cb8-135"><a href="#cb8-135" aria-hidden="true" tabindex="-1"></a><span class="in">model {</span></span>
+<span id="cb8-136"><a href="#cb8-136" aria-hidden="true" tabindex="-1"></a><span class="in">  // Priors</span></span>
+<span id="cb8-137"><a href="#cb8-137" aria-hidden="true" tabindex="-1"></a><span class="in">  alpha ~ lognormal(0, 1);               // sensitivity</span></span>
+<span id="cb8-138"><a href="#cb8-138" aria-hidden="true" tabindex="-1"></a><span class="in">  to_vector(beta) ~ std_normal();        // feature coefficients</span></span>
+<span id="cb8-139"><a href="#cb8-139" aria-hidden="true" tabindex="-1"></a><span class="in">  delta ~ dirichlet(rep_vector(1,K-1));  // utility increments</span></span>
+<span id="cb8-140"><a href="#cb8-140" aria-hidden="true" tabindex="-1"></a><span class="in">  </span></span>
+<span id="cb8-141"><a href="#cb8-141" aria-hidden="true" tabindex="-1"></a><span class="in">  // Likelihood</span></span>
+<span id="cb8-142"><a href="#cb8-142" aria-hidden="true" tabindex="-1"></a><span class="in">  for (i in 1:M) {</span></span>
+<span id="cb8-143"><a href="#cb8-143" aria-hidden="true" tabindex="-1"></a><span class="in">    y[i] ~ categorical(chi[i]);</span></span>
+<span id="cb8-144"><a href="#cb8-144" aria-hidden="true" tabindex="-1"></a><span class="in">  }</span></span>
+<span id="cb8-145"><a href="#cb8-145" aria-hidden="true" tabindex="-1"></a><span class="in">}</span></span>
+<span id="cb8-146"><a href="#cb8-146" aria-hidden="true" tabindex="-1"></a><span class="in">````</span></span>
+<span id="cb8-147"><a href="#cb8-147" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-148"><a href="#cb8-148" aria-hidden="true" tabindex="-1"></a>There was no particular reason for selecting these priors. Of course, the same could be said of other parts of the model, e.g., linearity assumptions, which, as with the choice of priors, were made for mathematical and computational simplicity. </span>
+<span id="cb8-149"><a href="#cb8-149" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-150"><a href="#cb8-150" aria-hidden="true" tabindex="-1"></a><span class="fu">## Prior Analysis</span></span>
+<span id="cb8-151"><a href="#cb8-151" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-152"><a href="#cb8-152" aria-hidden="true" tabindex="-1"></a>We now turn to a prior analysis of the m_0.stan program described above (note: we actually run the analysis on the program models/m_0_sim.stan, but this is a purely technical matter related to Stan). The prior predictive analysis samples parameter configurations from the prior, simulates choices under those parameters, and examines the resulting distributions.</span>
+<span id="cb8-153"><a href="#cb8-153" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-154"><a href="#cb8-154" aria-hidden="true" tabindex="-1"></a><span class="fu">### Study Design</span></span>
+<span id="cb8-155"><a href="#cb8-155" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-156"><a href="#cb8-156" aria-hidden="true" tabindex="-1"></a>For the present analysis, we will use a study design with the following characteristics (see <span class="in">`study_design.json`</span> in this directory):</span>
+<span id="cb8-157"><a href="#cb8-157" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-158"><a href="#cb8-158" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**M = 10** decision problems</span>
+<span id="cb8-159"><a href="#cb8-159" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**K = 3** possible consequences per alternative</span>
+<span id="cb8-160"><a href="#cb8-160" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**D = 2** feature dimensions</span>
+<span id="cb8-161"><a href="#cb8-161" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**R = 5** distinct alternatives</span>
+<span id="cb8-162"><a href="#cb8-162" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Alternatives per problem: 2 to 4 (mean = 3.2)</span>
+<span id="cb8-163"><a href="#cb8-163" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Alternative appearance frequency: 3 to 8 appearances (mean = 6.4)</span>
+<span id="cb8-164"><a href="#cb8-164" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-165"><a href="#cb8-165" aria-hidden="true" tabindex="-1"></a>**Feature Vectors (w)**: The 5 distinct alternatives are characterized by 2-dimensional feature vectors:</span>
+<span id="cb8-166"><a href="#cb8-166" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-167"><a href="#cb8-167" aria-hidden="true" tabindex="-1"></a><span class="in">```json</span></span>
+<span id="cb8-168"><a href="#cb8-168" aria-hidden="true" tabindex="-1"></a><span class="st">"w"</span><span class="op">:</span> [</span>
+<span id="cb8-169"><a href="#cb8-169" aria-hidden="true" tabindex="-1"></a>  [<span class="fl">0.901</span><span class="op">,</span> <span class="op">-</span><span class="fl">0.404</span>]<span class="op">,</span>   <span class="co">// Alternative 1</span></span>
+<span id="cb8-170"><a href="#cb8-170" aria-hidden="true" tabindex="-1"></a>  [<span class="fl">0.658</span><span class="op">,</span> <span class="op">-</span><span class="fl">0.658</span>]<span class="op">,</span>   <span class="co">// Alternative 2</span></span>
+<span id="cb8-171"><a href="#cb8-171" aria-hidden="true" tabindex="-1"></a>  [<span class="fl">0.516</span><span class="op">,</span>  <span class="fl">0.396</span>]<span class="op">,</span>   <span class="co">// Alternative 3</span></span>
+<span id="cb8-172"><a href="#cb8-172" aria-hidden="true" tabindex="-1"></a>  [<span class="op">-</span><span class="fl">0.854</span><span class="op">,</span> <span class="op">-</span><span class="fl">0.648</span>]<span class="op">,</span>  <span class="co">// Alternative 4</span></span>
+<span id="cb8-173"><a href="#cb8-173" aria-hidden="true" tabindex="-1"></a>  [<span class="op">-</span><span class="fl">0.341</span><span class="op">,</span> <span class="op">-</span><span class="fl">0.006</span>]   <span class="co">// Alternative 5</span></span>
+<span id="cb8-174"><a href="#cb8-174" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb8-175"><a href="#cb8-175" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb8-176"><a href="#cb8-176" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-177"><a href="#cb8-177" aria-hidden="true" tabindex="-1"></a>**Indicator Matrix (I)**: The 10×5 indicator matrix specifies which alternatives appear in which problems. For instance:</span>
+<span id="cb8-178"><a href="#cb8-178" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-179"><a href="#cb8-179" aria-hidden="true" tabindex="-1"></a><span class="in">```json</span></span>
+<span id="cb8-180"><a href="#cb8-180" aria-hidden="true" tabindex="-1"></a><span class="st">"I"</span><span class="op">:</span> [</span>
+<span id="cb8-181"><a href="#cb8-181" aria-hidden="true" tabindex="-1"></a>  [<span class="dv">0</span><span class="op">,</span> <span class="dv">1</span><span class="op">,</span> <span class="dv">0</span><span class="op">,</span> <span class="dv">1</span><span class="op">,</span> <span class="dv">1</span>]<span class="op">,</span>  <span class="co">// Problem 1: alternatives {2, 4, 5}</span></span>
+<span id="cb8-182"><a href="#cb8-182" aria-hidden="true" tabindex="-1"></a>  [<span class="dv">0</span><span class="op">,</span> <span class="dv">1</span><span class="op">,</span> <span class="dv">0</span><span class="op">,</span> <span class="dv">1</span><span class="op">,</span> <span class="dv">1</span>]<span class="op">,</span>  <span class="co">// Problem 2: alternatives {2, 4, 5}</span></span>
+<span id="cb8-183"><a href="#cb8-183" aria-hidden="true" tabindex="-1"></a>  [<span class="dv">1</span><span class="op">,</span> <span class="dv">1</span><span class="op">,</span> <span class="dv">1</span><span class="op">,</span> <span class="dv">0</span><span class="op">,</span> <span class="dv">1</span>]<span class="op">,</span>  <span class="co">// Problem 3: alternatives {1, 2, 3, 5}</span></span>
+<span id="cb8-184"><a href="#cb8-184" aria-hidden="true" tabindex="-1"></a>  [<span class="dv">0</span><span class="op">,</span> <span class="dv">1</span><span class="op">,</span> <span class="dv">1</span><span class="op">,</span> <span class="dv">1</span><span class="op">,</span> <span class="dv">1</span>]<span class="op">,</span>  <span class="co">// Problem 4: alternatives {2, 3, 4, 5}</span></span>
+<span id="cb8-185"><a href="#cb8-185" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ... (6 more problems)</span></span>
+<span id="cb8-186"><a href="#cb8-186" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb8-187"><a href="#cb8-187" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb8-188"><a href="#cb8-188" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-189"><a href="#cb8-189" aria-hidden="true" tabindex="-1"></a><span class="al">![Alternative Frequency](figures/alt_frequency.png)</span></span>
+<span id="cb8-190"><a href="#cb8-190" aria-hidden="true" tabindex="-1"></a>*Figure 1: Frequency with which each of the 5 distinct alternatives appears across the 10 decision problems. Alternatives appear between 3-8 times, with alternative 2 appearing most frequently (8 times) and alternatives 1 and 3 appearing least frequently (3 times each).*</span>
+<span id="cb8-191"><a href="#cb8-191" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-192"><a href="#cb8-192" aria-hidden="true" tabindex="-1"></a><span class="al">![Alternatives Per Problem](figures/alts_per_problem.png)</span></span>
+<span id="cb8-193"><a href="#cb8-193" aria-hidden="true" tabindex="-1"></a>*Figure 2: Distribution of the number of alternatives in each decision problem.*</span>
+<span id="cb8-194"><a href="#cb8-194" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-195"><a href="#cb8-195" aria-hidden="true" tabindex="-1"></a><span class="fu">### Prior Distribution of Sensitivity Parameter</span></span>
+<span id="cb8-196"><a href="#cb8-196" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-197"><a href="#cb8-197" aria-hidden="true" tabindex="-1"></a>The sensitivity parameter α, which governs how strongly choices reflect SEU maximization, follows a lognormal(0, 1) prior. This prior produces a wide range of sensitivity values:</span>
+<span id="cb8-198"><a href="#cb8-198" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-199"><a href="#cb8-199" aria-hidden="true" tabindex="-1"></a><span class="al">![Alpha Distribution](figures/alpha_dist.png)</span></span>
+<span id="cb8-200"><a href="#cb8-200" aria-hidden="true" tabindex="-1"></a>*Figure 3: Prior distribution of α (sensitivity parameter).*</span>
+<span id="cb8-201"><a href="#cb8-201" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-202"><a href="#cb8-202" aria-hidden="true" tabindex="-1"></a><span class="fu">### Expected Utilities Under the Prior</span></span>
+<span id="cb8-203"><a href="#cb8-203" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-204"><a href="#cb8-204" aria-hidden="true" tabindex="-1"></a><span class="al">![Expected Utilities](figures/expected_utilities.png)</span></span>
+<span id="cb8-205"><a href="#cb8-205" aria-hidden="true" tabindex="-1"></a>*Figure 4: Distribution of expected utilities for alternatives across the 10 decision problems. Each box represents the distribution of expected utility values across 1000 parameter samples from the prior. The variation both within and across problems reflects uncertainty in subjective probabilities (determined by the 3×2 β matrix) and utilities (determined by δ, a 2-simplex for the 3 consequences).*</span>
+<span id="cb8-206"><a href="#cb8-206" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-207"><a href="#cb8-207" aria-hidden="true" tabindex="-1"></a><span class="fu">### Simulated Choice Behavior</span></span>
+<span id="cb8-208"><a href="#cb8-208" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-209"><a href="#cb8-209" aria-hidden="true" tabindex="-1"></a><span class="al">![Choice Distribution](figures/choice_distribution.png)</span></span>
+<span id="cb8-210"><a href="#cb8-210" aria-hidden="true" tabindex="-1"></a>*Figure 5: Empirical choice frequencies for the 10 decision problems.*</span>
+<span id="cb8-211"><a href="#cb8-211" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-212"><a href="#cb8-212" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-213"><a href="#cb8-213" aria-hidden="true" tabindex="-1"></a><span class="fu">### SEU Maximizer Selection</span></span>
+<span id="cb8-214"><a href="#cb8-214" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-215"><a href="#cb8-215" aria-hidden="true" tabindex="-1"></a>We now turn to an estimate of the probability of selecting an seu maximizer under the prior.</span>
+<span id="cb8-216"><a href="#cb8-216" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-217"><a href="#cb8-217" aria-hidden="true" tabindex="-1"></a>**Computational Implementation**: For each simulated decision problem, we track whether the chosen alternative maximizes subjective expected utility. The implementation in <span class="in">`m_0_sim.stan`</span> performs this check as follows:</span>
+<span id="cb8-218"><a href="#cb8-218" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-219"><a href="#cb8-219" aria-hidden="true" tabindex="-1"></a><span class="in">````stan</span></span>
+<span id="cb8-220"><a href="#cb8-220" aria-hidden="true" tabindex="-1"></a><span class="in">// For each decision problem i with N[i] alternatives:</span></span>
+<span id="cb8-221"><a href="#cb8-221" aria-hidden="true" tabindex="-1"></a><span class="in">// 1. Identify the maximum expected utility</span></span>
+<span id="cb8-222"><a href="#cb8-222" aria-hidden="true" tabindex="-1"></a><span class="in">real max_eta = max(problem_eta);</span></span>
+<span id="cb8-223"><a href="#cb8-223" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-224"><a href="#cb8-224" aria-hidden="true" tabindex="-1"></a><span class="in">// 2. Check if the selected alternative has the maximum expected utility</span></span>
+<span id="cb8-225"><a href="#cb8-225" aria-hidden="true" tabindex="-1"></a><span class="in">//    (within numerical tolerance to handle floating-point comparison)</span></span>
+<span id="cb8-226"><a href="#cb8-226" aria-hidden="true" tabindex="-1"></a><span class="in">if (abs(problem_eta[y[i]] - max_eta) &lt; 1e-10) {</span></span>
+<span id="cb8-227"><a href="#cb8-227" aria-hidden="true" tabindex="-1"></a><span class="in">  selected_seu_max[i] = 1;</span></span>
+<span id="cb8-228"><a href="#cb8-228" aria-hidden="true" tabindex="-1"></a><span class="in">} else {</span></span>
+<span id="cb8-229"><a href="#cb8-229" aria-hidden="true" tabindex="-1"></a><span class="in">  selected_seu_max[i] = 0;</span></span>
+<span id="cb8-230"><a href="#cb8-230" aria-hidden="true" tabindex="-1"></a><span class="in">}</span></span>
+<span id="cb8-231"><a href="#cb8-231" aria-hidden="true" tabindex="-1"></a><span class="in">````</span></span>
+<span id="cb8-232"><a href="#cb8-232" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-233"><a href="#cb8-233" aria-hidden="true" tabindex="-1"></a>This produces two key outputs:</span>
+<span id="cb8-234"><a href="#cb8-234" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`selected_seu_max[i]`</span>: Binary indicator for each problem (1 = SEU maximizer selected, 0 = otherwise)</span>
+<span id="cb8-235"><a href="#cb8-235" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`total_seu_max_selected`</span>: Sum across all M problems, counting how many times the SEU maximizer was chosen</span>
+<span id="cb8-236"><a href="#cb8-236" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-237"><a href="#cb8-237" aria-hidden="true" tabindex="-1"></a>The numerical tolerance (1e-10) accounts for floating-point arithmetic issues when multiple alternatives have nearly identical expected utilities.</span>
+<span id="cb8-238"><a href="#cb8-238" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-239"><a href="#cb8-239" aria-hidden="true" tabindex="-1"></a><span class="al">![Probability SEU Max by Problem](figures/prob_seu_max_by_problem.png)</span></span>
+<span id="cb8-240"><a href="#cb8-240" aria-hidden="true" tabindex="-1"></a>*Figure 6: Probability of selecting the SEU-maximizing alternative for each of the 10 decision problems.*</span>
+<span id="cb8-241"><a href="#cb8-241" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-242"><a href="#cb8-242" aria-hidden="true" tabindex="-1"></a><span class="al">![Total SEU Max Distribution](figures/total_seu_max_distribution.png)</span></span>
+<span id="cb8-243"><a href="#cb8-243" aria-hidden="true" tabindex="-1"></a>*Figure 7: Distribution of the total number of problems (out of 10) where the SEU maximizer was selected across 1000 simulations. The distribution shape and central tendency reveal the range of behaviors implied by the prior on α and the other parameters.*</span>
+<span id="cb8-244"><a href="#cb8-244" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-245"><a href="#cb8-245" aria-hidden="true" tabindex="-1"></a><span class="fu">## Parameter Recovery Analysis</span></span>
+<span id="cb8-246"><a href="#cb8-246" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-247"><a href="#cb8-247" aria-hidden="true" tabindex="-1"></a>Having examined the prior predictive distribution, we now turn to parameter recovery analysis: can the model reliably recover known parameter values from simulated data? This is crucial for assessing whether our proposed experimental designs can support accurate inference about the sensitivity parameter α and the other model parameters.</span>
+<span id="cb8-248"><a href="#cb8-248" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-249"><a href="#cb8-249" aria-hidden="true" tabindex="-1"></a><span class="fu">### Recovery Methodology</span></span>
+<span id="cb8-250"><a href="#cb8-250" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-251"><a href="#cb8-251" aria-hidden="true" tabindex="-1"></a>The parameter recovery analysis proceeds as follows:</span>
+<span id="cb8-252"><a href="#cb8-252" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-253"><a href="#cb8-253" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>**Data Generation**: For each iteration, we sample parameter values from the prior distributions:</span>
+<span id="cb8-254"><a href="#cb8-254" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>α ~ lognormal(0, 1)</span>
+<span id="cb8-255"><a href="#cb8-255" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>β<span class="co">[</span><span class="ot">k,d</span><span class="co">]</span> ~ N(0, 1) for each consequence k and dimension d</span>
+<span id="cb8-256"><a href="#cb8-256" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>δ ~ Dirichlet(1, ..., 1) for the (K-1)-simplex</span>
+<span id="cb8-257"><a href="#cb8-257" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-258"><a href="#cb8-258" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>**Simulation**: Using these "true" parameters, we simulate choice data according to the model.</span>
+<span id="cb8-259"><a href="#cb8-259" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-260"><a href="#cb8-260" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>**Inference**: We fit the model to the simulated data using MCMC, obtaining posterior distributions for all parameters.</span>
+<span id="cb8-261"><a href="#cb8-261" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-262"><a href="#cb8-262" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span>**Evaluation**: We assess recovery quality through:</span>
+<span id="cb8-263"><a href="#cb8-263" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>**Bias**: Mean difference between posterior means and true values</span>
+<span id="cb8-264"><a href="#cb8-264" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>**RMSE**: Root mean squared error between estimates and true values  </span>
+<span id="cb8-265"><a href="#cb8-265" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>**Coverage**: Proportion of 90% credible intervals containing the true value</span>
+<span id="cb8-266"><a href="#cb8-266" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>**CI Width**: Average width of 90% credible intervals</span>
+<span id="cb8-267"><a href="#cb8-267" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-268"><a href="#cb8-268" aria-hidden="true" tabindex="-1"></a><span class="fu">### Recovery Summary Statistics</span></span>
+<span id="cb8-269"><a href="#cb8-269" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-270"><a href="#cb8-270" aria-hidden="true" tabindex="-1"></a>The following table summarizes recovery performance across 20 iterations using our 10-problem study design:</span>
+<span id="cb8-271"><a href="#cb8-271" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-272"><a href="#cb8-272" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Parameter    <span class="pp">|</span> Bias   <span class="pp">|</span> RMSE  <span class="pp">|</span> Coverage <span class="pp">|</span> CI Width <span class="pp">|</span></span>
+<span id="cb8-273"><a href="#cb8-273" aria-hidden="true" tabindex="-1"></a><span class="pp">|-------------|--------|-------|----------|----------|</span></span>
+<span id="cb8-274"><a href="#cb8-274" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> alpha       <span class="pp">|</span> 0.045  <span class="pp">|</span> 0.512 <span class="pp">|</span> 95.0%    <span class="pp">|</span> 1.891    <span class="pp">|</span></span>
+<span id="cb8-275"><a href="#cb8-275" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> beta (avg)  <span class="pp">|</span> -0.001 <span class="pp">|</span> 0.571 <span class="pp">|</span> 91.7%    <span class="pp">|</span> 2.189    <span class="pp">|</span></span>
+<span id="cb8-276"><a href="#cb8-276" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> delta (avg) <span class="pp">|</span> 0.000  <span class="pp">|</span> 0.104 <span class="pp">|</span> 92.5%    <span class="pp">|</span> 0.401    <span class="pp">|</span></span>
+<span id="cb8-277"><a href="#cb8-277" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-278"><a href="#cb8-278" aria-hidden="true" tabindex="-1"></a><span class="fu">### Coverage Diagnostics</span></span>
+<span id="cb8-279"><a href="#cb8-279" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-280"><a href="#cb8-280" aria-hidden="true" tabindex="-1"></a>To understand parameter recovery in detail, we examine the 90% credible intervals for each parameter across all iterations. Green intervals indicate successful coverage (the true value falls within the interval), while red intervals indicate coverage failures.</span>
+<span id="cb8-281"><a href="#cb8-281" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-282"><a href="#cb8-282" aria-hidden="true" tabindex="-1"></a>**Alpha (Sensitivity Parameter)**</span>
+<span id="cb8-283"><a href="#cb8-283" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-284"><a href="#cb8-284" aria-hidden="true" tabindex="-1"></a><span class="al">![Alpha Coverage](figures/recovery_alpha_coverage.png)</span></span>
+<span id="cb8-285"><a href="#cb8-285" aria-hidden="true" tabindex="-1"></a>*Figure 8: 90% credible intervals for α across 20 recovery iterations.*</span>
+<span id="cb8-286"><a href="#cb8-286" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-287"><a href="#cb8-287" aria-hidden="true" tabindex="-1"></a>**Beta Parameters (Feature-to-Probability Mapping)**</span>
+<span id="cb8-288"><a href="#cb8-288" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-289"><a href="#cb8-289" aria-hidden="true" tabindex="-1"></a>The β matrix maps the D=2 dimensional feature vectors to subjective probabilities over K=3 consequences, requiring estimation of 6 parameters.</span>
+<span id="cb8-290"><a href="#cb8-290" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-291"><a href="#cb8-291" aria-hidden="true" tabindex="-1"></a><span class="al">![Beta 1,1 Coverage](figures/recovery_beta_1_1_coverage.png)</span></span>
+<span id="cb8-292"><a href="#cb8-292" aria-hidden="true" tabindex="-1"></a>*Figure 9: Coverage intervals for β[1,1]. This parameter maps the first feature dimension to the log-odds of the first consequence.*</span>
+<span id="cb8-293"><a href="#cb8-293" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-294"><a href="#cb8-294" aria-hidden="true" tabindex="-1"></a><span class="al">![Beta 1,2 Coverage](figures/recovery_beta_1_2_coverage.png)</span></span>
+<span id="cb8-295"><a href="#cb8-295" aria-hidden="true" tabindex="-1"></a>*Figure 10: Coverage intervals for β[1,2]. This parameter maps the second feature dimension to the log-odds of the first consequence.*</span>
+<span id="cb8-296"><a href="#cb8-296" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-297"><a href="#cb8-297" aria-hidden="true" tabindex="-1"></a><span class="al">![Beta 2,1 Coverage](figures/recovery_beta_2_1_coverage.png)</span></span>
+<span id="cb8-298"><a href="#cb8-298" aria-hidden="true" tabindex="-1"></a>*Figure 11: Coverage intervals for β[2,1]. This parameter maps the first feature dimension to the log-odds of the second consequence.*</span>
+<span id="cb8-299"><a href="#cb8-299" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-300"><a href="#cb8-300" aria-hidden="true" tabindex="-1"></a><span class="al">![Beta 2,2 Coverage](figures/recovery_beta_2_2_coverage.png)</span></span>
+<span id="cb8-301"><a href="#cb8-301" aria-hidden="true" tabindex="-1"></a>*Figure 12: Coverage intervals for β[2,2]. This parameter maps the second feature dimension to the log-odds of the second consequence.*</span>
+<span id="cb8-302"><a href="#cb8-302" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-303"><a href="#cb8-303" aria-hidden="true" tabindex="-1"></a><span class="al">![Beta 3,1 Coverage](figures/recovery_beta_3_1_coverage.png)</span></span>
+<span id="cb8-304"><a href="#cb8-304" aria-hidden="true" tabindex="-1"></a>*Figure 13: Coverage intervals for β[3,1]. This parameter maps the first feature dimension to the log-odds of the third consequence.*</span>
+<span id="cb8-305"><a href="#cb8-305" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-306"><a href="#cb8-306" aria-hidden="true" tabindex="-1"></a><span class="al">![Beta 3,2 Coverage](figures/recovery_beta_3_2_coverage.png)</span></span>
+<span id="cb8-307"><a href="#cb8-307" aria-hidden="true" tabindex="-1"></a>*Figure 14: Coverage intervals for β[3,2]. This parameter maps the second feature dimension to the log-odds of the third consequence.*</span>
+<span id="cb8-308"><a href="#cb8-308" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-309"><a href="#cb8-309" aria-hidden="true" tabindex="-1"></a>**Delta Parameters (Utility Increments)**</span>
+<span id="cb8-310"><a href="#cb8-310" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-311"><a href="#cb8-311" aria-hidden="true" tabindex="-1"></a>The δ parameters represent increments on the unit utility scale, constrained to sum to 1 (as a 2-simplex for K=3 consequences).</span>
+<span id="cb8-312"><a href="#cb8-312" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-313"><a href="#cb8-313" aria-hidden="true" tabindex="-1"></a><span class="al">![Delta 1 Coverage](figures/recovery_delta_1_coverage.png)</span></span>
+<span id="cb8-314"><a href="#cb8-314" aria-hidden="true" tabindex="-1"></a>*Figure 15: Coverage intervals for δ[1], the utility increment from consequence 1 to consequence 2.*</span>
+<span id="cb8-315"><a href="#cb8-315" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-316"><a href="#cb8-316" aria-hidden="true" tabindex="-1"></a><span class="al">![Delta 2 Coverage](figures/recovery_delta_2_coverage.png)</span></span>
+<span id="cb8-317"><a href="#cb8-317" aria-hidden="true" tabindex="-1"></a>*Figure 16: Coverage intervals for δ[2], the utility increment from consequence 2 to consequence 3.*</span>
+<span id="cb8-318"><a href="#cb8-318" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-319"><a href="#cb8-319" aria-hidden="true" tabindex="-1"></a><span class="fu">### Observations</span></span>
+<span id="cb8-320"><a href="#cb8-320" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-321"><a href="#cb8-321" aria-hidden="true" tabindex="-1"></a>It looks like the $\alpha$ parameter, as well as the first and third sets of $\beta$ parameters are showing some evidence of recoverability, while the second set of $\beta$ parameters and both $\delta$ parameters look as though are not being informed by the data at all. Perhaps they are being informed slightly, and we just need to consider a larger study design. We can enlarge in several different directions. In the next section, we will consider increasing the number of problems (M) while holding everything else constant to see if that helps.</span>
+<span id="cb8-322"><a href="#cb8-322" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-323"><a href="#cb8-323" aria-hidden="true" tabindex="-1"></a><span class="fu">## Sample Size Analysis: Recovery vs. Number of Problems</span></span>
+<span id="cb8-324"><a href="#cb8-324" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-325"><a href="#cb8-325" aria-hidden="true" tabindex="-1"></a>To investigate whether the identification issues observed at M=10 are due to insufficient sample size or represent deeper structural problems, we conducted a systematic sample size analysis. Using the same set of alternatives (w) and varying only M and the indicator matrix I, we examined parameter recovery across M ∈ {10, 15, 20, 25, 30}.</span>
+<span id="cb8-326"><a href="#cb8-326" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-327"><a href="#cb8-327" aria-hidden="true" tabindex="-1"></a><span class="fu">### Methodology</span></span>
+<span id="cb8-328"><a href="#cb8-328" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-329"><a href="#cb8-329" aria-hidden="true" tabindex="-1"></a>For each value of M:</span>
+<span id="cb8-330"><a href="#cb8-330" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-331"><a href="#cb8-331" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>**Fixed Design Elements**: Used the identical 5 alternatives (w) from the base study design</span>
+<span id="cb8-332"><a href="#cb8-332" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>**Varying Elements**: Generated new indicator matrices (I) for M problems, with 2-4 alternatives per problem</span>
+<span id="cb8-333"><a href="#cb8-333" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>**Recovery Iterations**: Conducted 50 parameter recovery iterations per M value</span>
+<span id="cb8-334"><a href="#cb8-334" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span>**Metrics Tracked**: </span>
+<span id="cb8-335"><a href="#cb8-335" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>90% credible interval width</span>
+<span id="cb8-336"><a href="#cb8-336" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>Root mean squared error (RMSE)</span>
+<span id="cb8-337"><a href="#cb8-337" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>Mean absolute error (MAE)</span>
+<span id="cb8-338"><a href="#cb8-338" aria-hidden="true" tabindex="-1"></a><span class="ss">   - </span>Coverage rate</span>
+<span id="cb8-339"><a href="#cb8-339" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-340"><a href="#cb8-340" aria-hidden="true" tabindex="-1"></a>This design ensures that observed changes in recovery are attributable to M rather than differences in the alternative space.</span>
+<span id="cb8-341"><a href="#cb8-341" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-342"><a href="#cb8-342" aria-hidden="true" tabindex="-1"></a><span class="fu">### Results: Credible Interval Width vs. M</span></span>
+<span id="cb8-343"><a href="#cb8-343" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-344"><a href="#cb8-344" aria-hidden="true" tabindex="-1"></a><span class="al">![CI Width Comparison](figures/sample_size_ci_width_comparison.png)</span></span>
+<span id="cb8-345"><a href="#cb8-345" aria-hidden="true" tabindex="-1"></a>*Figure 17: Mean 90% credible interval width across parameters as a function of M. Left: $\alpha$ shows consistent narrowing. Middle: $\beta[1,]$ and $\beta[3,]$ narrow with M, while $\beta[2,]$ stays relatively constant. Right: The $\delta$ parameters maintain wide intervals across all M values, indicating persistent identification issues.*</span>
+<span id="cb8-346"><a href="#cb8-346" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-347"><a href="#cb8-347" aria-hidden="true" tabindex="-1"></a><span class="fu">### Results: Estimation Error vs. M</span></span>
+<span id="cb8-348"><a href="#cb8-348" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-349"><a href="#cb8-349" aria-hidden="true" tabindex="-1"></a><span class="al">![RMSE Comparison](figures/sample_size_rmse_comparison.png)</span></span>
+<span id="cb8-350"><a href="#cb8-350" aria-hidden="true" tabindex="-1"></a>*Figure 18: Root mean squared error (RMSE) as a function of M. With the possible exception of $\alpha$, and possibly $\beta[1,1]$ and $\beta[3,1]$, these plots don't seem to show the error trending downward with increasing M.*</span>
+<span id="cb8-351"><a href="#cb8-351" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-352"><a href="#cb8-352" aria-hidden="true" tabindex="-1"></a><span class="fu">### Alternative Space: Increasing R from 5 to 15</span></span>
+<span id="cb8-353"><a href="#cb8-353" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-354"><a href="#cb8-354" aria-hidden="true" tabindex="-1"></a>The initial sample size analysis used R=5 distinct alternatives. To investigate whether the identification issues stem from an insufficiently rich alternative space rather than sample size alone, we conducted a second analysis with R=15 alternatives while maintaining the same range of M values.</span>
+<span id="cb8-355"><a href="#cb8-355" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-356"><a href="#cb8-356" aria-hidden="true" tabindex="-1"></a>**Methodology**: Using a new set of 15 alternatives drawn from the same feature distribution (2-dimensional, standard normal), we repeated the sample size analysis for M ∈ {10, 15, 20, 25, 30}, with 20 recovery iterations per M value. All other aspects of the methodology remained identical to the R=5 analysis.</span>
+<span id="cb8-357"><a href="#cb8-357" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-358"><a href="#cb8-358" aria-hidden="true" tabindex="-1"></a><span class="al">![CI Width Comparison R15](figures/sample_size_r15/ci_width_comparison.png)</span></span>
+<span id="cb8-359"><a href="#cb8-359" aria-hidden="true" tabindex="-1"></a>*Figure 19: Mean 90% credible interval width with R=15 alternatives. The pattern closely mirrors the R=5 results: α and selected β parameters narrow with M, while β[2,·] and δ parameters remain wide.*</span>
+<span id="cb8-360"><a href="#cb8-360" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-361"><a href="#cb8-361" aria-hidden="true" tabindex="-1"></a><span class="al">![RMSE Comparison R15](figures/sample_size_r15/rmse_comparison.png)</span></span>
+<span id="cb8-362"><a href="#cb8-362" aria-hidden="true" tabindex="-1"></a>*Figure 20: RMSE with R=15 alternatives. Again, the patterns are remarkably similar to R=5: no clear downward trend for most parameters except possibly α and β[1,1] and β[3,1].*</span>
+<span id="cb8-363"><a href="#cb8-363" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-364"><a href="#cb8-364" aria-hidden="true" tabindex="-1"></a><span class="fu">### Observations</span></span>
+<span id="cb8-365"><a href="#cb8-365" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-366"><a href="#cb8-366" aria-hidden="true" tabindex="-1"></a>The increased alternative space (R=15) did not substantially improve parameter recovery compared to R=5. The persistent identification issues for certain parameters suggest that the model structure or the information content of the data may be limiting factors, rather than sample size or alternative diversity alone. We consider a slight modification to the model structure in the next section to address these issues.</span>
+<span id="cb8-367"><a href="#cb8-367" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-368"><a href="#cb8-368" aria-hidden="true" tabindex="-1"></a><span class="fu">## Alternative Approach: Informative Prior on Utilities</span></span>
+<span id="cb8-369"><a href="#cb8-369" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-370"><a href="#cb8-370" aria-hidden="true" tabindex="-1"></a>Given the persistent identification issues with the δ parameters (utility increments), we explored whether a more informative prior might help. The original m_0 model uses a symmetric Dirichlet(1,1) prior on the (K-1)-simplex for δ, which induces a uniform distribution over the space of possible utility configurations on <span class="co">[</span><span class="ot">0,1</span><span class="co">]</span>.</span>
+<span id="cb8-371"><a href="#cb8-371" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-372"><a href="#cb8-372" aria-hidden="true" tabindex="-1"></a><span class="fu">### Model m_01: Strengthened Dirichlet Prior</span></span>
+<span id="cb8-373"><a href="#cb8-373" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-374"><a href="#cb8-374" aria-hidden="true" tabindex="-1"></a>We created model m_01, identical to m_0 except for using <span class="in">`delta ~ dirichlet(rep_vector(5, K-1))`</span> instead of <span class="in">`dirichlet(rep_vector(1, K-1))`</span>. This stronger prior:</span>
+<span id="cb8-375"><a href="#cb8-375" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-376"><a href="#cb8-376" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Concentrates probability mass around utilities that are more evenly spaced</span>
+<span id="cb8-377"><a href="#cb8-377" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>For K=3, encourages the middle utility (upsilon<span class="co">[</span><span class="ot">2</span><span class="co">]</span>) to be closer to 0.5</span>
+<span id="cb8-378"><a href="#cb8-378" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Reduces prior uncertainty about utility configurations</span>
+<span id="cb8-379"><a href="#cb8-379" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-380"><a href="#cb8-380" aria-hidden="true" tabindex="-1"></a>**Prior Predictive Comparison**: Under the Dirichlet(5,5) prior for K=3:</span>
+<span id="cb8-381"><a href="#cb8-381" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Mean of middle utility: 0.506 (vs 0.500 under Dirichlet(1,1))</span>
+<span id="cb8-382"><a href="#cb8-382" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Std of middle utility: 0.150 (vs 0.289 under Dirichlet(1,1))</span>
+<span id="cb8-383"><a href="#cb8-383" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-384"><a href="#cb8-384" aria-hidden="true" tabindex="-1"></a>The stronger prior substantially reduces the variance of the middle utility from 0.289 to 0.150—approximately a 48% reduction in standard deviation.</span>
+<span id="cb8-385"><a href="#cb8-385" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-386"><a href="#cb8-386" aria-hidden="true" tabindex="-1"></a><span class="fu">### Parameter Recovery Results</span></span>
+<span id="cb8-387"><a href="#cb8-387" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-388"><a href="#cb8-388" aria-hidden="true" tabindex="-1"></a>We ran the same 20-iteration parameter recovery analysis on the same 10-problem study design used for m_0.</span>
+<span id="cb8-389"><a href="#cb8-389" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-390"><a href="#cb8-390" aria-hidden="true" tabindex="-1"></a><span class="al">![Delta 1 Coverage m01](figures/recovery_m01/delta_1_coverage.png)</span></span>
+<span id="cb8-391"><a href="#cb8-391" aria-hidden="true" tabindex="-1"></a>*Figure 21: 90% credible intervals for δ[1] under model m_01 with Dirichlet(5,5) prior. Coverage = 85.0%. The intervals are noticeably narrower than under m_0, reflecting the stronger prior.*</span>
+<span id="cb8-392"><a href="#cb8-392" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-393"><a href="#cb8-393" aria-hidden="true" tabindex="-1"></a><span class="al">![Delta 2 Coverage m01](figures/recovery_m01/delta_2_coverage.png)</span></span>
+<span id="cb8-394"><a href="#cb8-394" aria-hidden="true" tabindex="-1"></a>*Figure 22: 90% credible intervals for δ[2] under model m_01 with Dirichlet(5,5) prior. Coverage = 85.0%. Again, intervals are much narrower but the posterior means show no clear relationship to true values.*</span>
+<span id="cb8-395"><a href="#cb8-395" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-396"><a href="#cb8-396" aria-hidden="true" tabindex="-1"></a><span class="fu">### Interpretation</span></span>
+<span id="cb8-397"><a href="#cb8-397" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-398"><a href="#cb8-398" aria-hidden="true" tabindex="-1"></a>The informative prior approach **successfully reduced posterior uncertainty** but **failed to solve the identification problem**:</span>
+<span id="cb8-399"><a href="#cb8-399" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-400"><a href="#cb8-400" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>**Narrower Intervals**: The credible intervals for δ parameters are approximately half as wide as under m_0 (width ~0.50 vs ~0.90), reflecting the informative prior.</span>
+<span id="cb8-401"><a href="#cb8-401" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-402"><a href="#cb8-402" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>**Poor Calibration**: Coverage dropped from 92-94% under m_0 to 85%, suggesting the narrower intervals don't appropriately reflect the data's information content.</span>
+<span id="cb8-403"><a href="#cb8-403" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-404"><a href="#cb8-404" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>**Unresponsive Posteriors**: Most critically, the posterior means show essentially no relationship to the true parameter values. The posteriors are dominated by the prior—they cluster around δ ≈ 0.5 regardless of the true values.</span>
+<span id="cb8-405"><a href="#cb8-405" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-406"><a href="#cb8-406" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span>**Regularization vs. Identification**: The informative prior acts as a regularizer that reduces variance, but it cannot create information that isn't in the data. The fundamental issue remains: **choice data under this experimental design do not strongly constrain the utility parameters**.</span>
+<span id="cb8-407"><a href="#cb8-407" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-408"><a href="#cb8-408" aria-hidden="true" tabindex="-1"></a>This negative result is important because it rules out "weak priors" as the primary cause of poor δ recovery. Even with a prior that concentrates 68% of its mass in the range <span class="co">[</span><span class="ot">0.35, 0.65</span><span class="co">]</span> for the middle utility, the data fail to pull the posterior away from this prior concentration.</span>
+<span id="cb8-409"><a href="#cb8-409" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-410"><a href="#cb8-410" aria-hidden="true" tabindex="-1"></a>The persistent identification issues across different values of M, R, and prior specifications point toward a more fundamental problem: the confounding between subjective probabilities (ψ, determined by β) and utilities (υ, determined by δ) in the expected utility calculation η = ψ'υ. The model may achieve similar choice probabilities with different (β, δ) combinations, making these parameters empirically indistinguishable from choice data alone.</span>
+<span id="cb8-411"><a href="#cb8-411" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-412"><a href="#cb8-412" aria-hidden="true" tabindex="-1"></a></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
+</div></div></div></div></div>
+</div> <!-- /content -->
+
+
+
+
+<script src="../site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>

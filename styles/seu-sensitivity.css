@@ -1,0 +1,156 @@
+/* SEU Sensitivity Report Styling */
+
+/* Primary color scheme */
+:root {
+  --seu-primary: #2c5282;
+  --seu-secondary: #4a90a4;
+  --seu-accent: #ed8936;
+  --seu-background: #f7fafc;
+  --seu-text: #2d3748;
+}
+
+/* Callout boxes for theorems and proofs */
+.callout-theorem {
+  border-left: 4px solid var(--seu-primary);
+  background-color: #ebf4ff;
+  padding: 1rem;
+  margin: 1rem 0;
+}
+
+.callout-proof {
+  border-left: 4px solid #718096;
+  background-color: #f7fafc;
+  padding: 1rem;
+  margin: 1rem 0;
+  font-style: italic;
+}
+
+.callout-proof::before {
+  content: "Proof. ";
+  font-weight: bold;
+  font-style: normal;
+}
+
+.callout-proof::after {
+  content: " □";
+  float: right;
+}
+
+/* Definition styling */
+.callout-definition {
+  border-left: 4px solid var(--seu-accent);
+  background-color: #fffaf0;
+  padding: 1rem;
+  margin: 1rem 0;
+}
+
+/* Notation summary tables */
+.notation-table {
+  font-size: 0.9rem;
+  margin: 1rem 0;
+}
+
+.notation-table th {
+  background-color: var(--seu-primary);
+  color: white;
+  padding: 0.5rem;
+}
+
+.notation-table td {
+  padding: 0.5rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+/* Model specification blocks */
+.model-spec {
+  background-color: #f0fff4;
+  border: 1px solid #9ae6b4;
+  border-radius: 4px;
+  padding: 1rem;
+  margin: 1rem 0;
+}
+
+/* Code output styling */
+.cell-output-display {
+  margin-top: 0.5rem;
+}
+
+/* Figure captions */
+.figure-caption {
+  font-size: 0.9rem;
+  color: #4a5568;
+  margin-top: 0.5rem;
+}
+
+/* Report header styling */
+.quarto-title-block {
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--seu-primary);
+}
+
+.quarto-title .title {
+  color: var(--seu-primary);
+}
+
+.quarto-title .subtitle {
+  color: var(--seu-secondary);
+  font-size: 1.2rem;
+}
+
+/* Abstract/description styling */
+.quarto-title-meta-contents {
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+/* Section headers */
+h2 {
+  color: var(--seu-primary);
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 0.5rem;
+  margin-top: 2rem;
+}
+
+h3 {
+  color: var(--seu-secondary);
+}
+
+/* Math display improvements */
+.math.display {
+  overflow-x: auto;
+  padding: 0.5rem 0;
+}
+
+/* Responsive tables */
+.table-responsive {
+  overflow-x: auto;
+}
+
+/* TOC styling */
+#TOC {
+  font-size: 0.9rem;
+}
+
+#TOC a {
+  color: var(--seu-text);
+}
+
+#TOC a:hover {
+  color: var(--seu-primary);
+}
+
+/* Print styles */
+@media print {
+  .quarto-title-block {
+    page-break-after: avoid;
+  }
+  
+  .callout {
+    page-break-inside: avoid;
+  }
+  
+  pre {
+    page-break-inside: avoid;
+  }
+}

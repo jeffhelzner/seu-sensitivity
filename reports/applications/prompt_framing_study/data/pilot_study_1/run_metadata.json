@@ -58,33 +58,150 @@
     "/Users/jeffhelzner/seu-sensitivity/applications/prompt_framing_study/results/run_20260117_184005/stan_data_maximal.json"
   ],
   "model_fits": {
+    "maximal": {
+      "alpha_mean": 3.2941460850175,
+      "alpha_std": 2.168125701484358,
+      "alpha_median": 3.0774482,
+      "alpha_q05": 0.3974424615,
+      "alpha_q95": 7.200530149999999,
+      "alpha_q025": 0.23628359200000001,
+      "alpha_q975": 7.956980862499998,
+      "ppc": {
+        "model_type": "m_0",
+        "p_values": {
+          "ll": 0.366,
+          "modal": 0.392,
+          "prob": 0.355
+        },
+        "n_problems": 100,
+        "interpretation": {
+          "ll": {
+            "status": "\u2713",
+            "text": "Good fit (p=0.366)",
+            "two_sided_p": 0.732
+          },
+          "modal": {
+            "status": "\u2713",
+            "text": "Good fit (p=0.392)",
+            "two_sided_p": 0.784
+          },
+          "prob": {
+            "status": "\u2713",
+            "text": "Good fit (p=0.355)",
+            "two_sided_p": 0.71
+          }
+        },
+        "has_extreme_p_values": false
+      }
+    },
     "minimal": {
-      "alpha_mean": 1.3625299171525,
-      "alpha_std": 1.0752048716826097,
-      "alpha_median": 1.06988525,
-      "alpha_q05": 0.20857428800000002,
-      "alpha_q95": 3.4052096199999964
+      "alpha_mean": 1.3733556208754998,
+      "alpha_std": 1.0815087438731903,
+      "alpha_median": 1.06913375,
+      "alpha_q05": 0.2022859975,
+      "alpha_q95": 3.5179871299999994,
+      "alpha_q025": 0.15190849174999999,
+      "alpha_q975": 4.201866914999999,
+      "ppc": {
+        "model_type": "m_0",
+        "p_values": {
+          "ll": 0.477,
+          "modal": 0.5075,
+          "prob": 0.4635
+        },
+        "n_problems": 100,
+        "interpretation": {
+          "ll": {
+            "status": "\u2713",
+            "text": "Good fit (p=0.477)",
+            "two_sided_p": 0.954
+          },
+          "modal": {
+            "status": "\u2713",
+            "text": "Good fit (p=0.507)",
+            "two_sided_p": 0.9850000000000001
+          },
+          "prob": {
+            "status": "\u2713",
+            "text": "Good fit (p=0.464)",
+            "two_sided_p": 0.927
+          }
+        },
+        "has_extreme_p_values": false
+      }
     },
     "baseline": {
-      "alpha_mean": 0.9157124787052501,
-      "alpha_std": 0.7043266973175873,
-      "alpha_median": 0.7274282,
-      "alpha_q05": 0.16349627750000004,
-      "alpha_q95": 2.291161745
+      "alpha_mean": 0.933638527263,
+      "alpha_std": 0.6907537534853397,
+      "alpha_median": 0.760721025,
+      "alpha_q05": 0.1931025335,
+      "alpha_q95": 2.2471435349999997,
+      "alpha_q025": 0.14805821824999998,
+      "alpha_q975": 2.6662006349999974,
+      "ppc": {
+        "model_type": "m_0",
+        "p_values": {
+          "ll": 0.5925,
+          "modal": 0.5725,
+          "prob": 0.568
+        },
+        "n_problems": 100,
+        "interpretation": {
+          "ll": {
+            "status": "\u2713",
+            "text": "Good fit (p=0.593)",
+            "two_sided_p": 0.815
+          },
+          "modal": {
+            "status": "\u2713",
+            "text": "Good fit (p=0.573)",
+            "two_sided_p": 0.855
+          },
+          "prob": {
+            "status": "\u2713",
+            "text": "Good fit (p=0.568)",
+            "two_sided_p": 0.8640000000000001
+          }
+        },
+        "has_extreme_p_values": false
+      }
     },
     "enhanced": {
-      "alpha_mean": 1.12507118815475,
-      "alpha_std": 0.9331163077894022,
-      "alpha_median": 0.85586019,
-      "alpha_q05": 0.18078913100000002,
-      "alpha_q95": 2.9826030999999995
-    },
-    "maximal": {
-      "alpha_mean": 3.27666769897725,
-      "alpha_std": 2.1963136389093516,
-      "alpha_median": 3.06976415,
-      "alpha_q05": 0.358394592,
-      "alpha_q95": 7.172102759999999
+      "alpha_mean": 1.1660890703059998,
+      "alpha_std": 0.9812661146600128,
+      "alpha_median": 0.880530445,
+      "alpha_q05": 0.17698079249999998,
+      "alpha_q95": 3.153685864999999,
+      "alpha_q025": 0.12127655250000001,
+      "alpha_q975": 3.9091122399999967,
+      "ppc": {
+        "model_type": "m_0",
+        "p_values": {
+          "ll": 0.5205,
+          "modal": 0.5195,
+          "prob": 0.505
+        },
+        "n_problems": 100,
+        "interpretation": {
+          "ll": {
+            "status": "\u2713",
+            "text": "Good fit (p=0.520)",
+            "two_sided_p": 0.9590000000000001
+          },
+          "modal": {
+            "status": "\u2713",
+            "text": "Good fit (p=0.519)",
+            "two_sided_p": 0.9610000000000001
+          },
+          "prob": {
+            "status": "\u2713",
+            "text": "Good fit (p=0.505)",
+            "two_sided_p": 0.99
+          }
+        },
+        "has_extreme_p_values": false
+      }
     }
-  }
+  },
+  "ppc_analysis_completed": true
 }

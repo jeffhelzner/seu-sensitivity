@@ -425,6 +425,13 @@ class StudyVisualizer:
             self.plot_alpha_comparison(results["model_fits"], 
                                        save_path=str(fig_path), show=False)
             generated_figures.append(str(fig_path))
+            
+            # PPC summary if available
+            ppc_fig_path = output_dir / "ppc_summary.png"
+            ppc_fig = self.plot_ppc_summary(results["model_fits"], 
+                                            save_path=str(ppc_fig_path), show=False)
+            if ppc_fig is not None:
+                generated_figures.append(str(ppc_fig_path))
         
         # Choice distributions
         if "raw_choices" in results or self.results_dir:
@@ -439,6 +446,97 @@ class StudyVisualizer:
         
         logger.info(f"Generated {len(generated_figures)} figures in {output_dir}")
         return str(output_dir)
+    
+    def plot_ppc_summary(
+        self,
+        model_fits: Dict[str, Dict[str, Any]],
+        save_path: Optional[str] = None,
+        show: bool = True
+    ) -> Optional[Any]:
+        """
+        Plot posterior predictive check p-values across variants.
+        
+        Creates a heatmap showing p-values for each test statistic and variant,
+        with color coding to highlight potential misfit.
+        
+        Args:
+            model_fits: Dict mapping variant_name -> fit results with 'ppc' key
+            save_path: Path to save figure
+            show: Whether to display
+            
+        Returns:
+            matplotlib Figure object or None if plotting unavailable
+        """
+        if not HAS_MATPLOTLIB:
+            logger.warning("matplotlib required for plotting")
+            return None
+        
+        # Extract PPC results
+        variants = []
+        statistics = ["ll", "modal", "prob"]
+        p_values = {stat: [] for stat in statistics}
+        
+        variant_order = ["minimal", "baseline", "enhanced", "maximal"]
+        for variant in variant_order:
+            if variant in model_fits and "ppc" in model_fits[variant]:
+                ppc = model_fits[variant]["ppc"]
+                if "p_values" in ppc:
+                    variants.append(variant)
+                    for stat in statistics:
+                        p_values[stat].append(ppc["p_values"].get(stat, np.nan))
+        
+        if not variants:
+            logger.warning("No PPC results found in model_fits")
+            return None
+        
+        # Create heatmap data
+        data = np.array([p_values[stat] for stat in statistics])
+        
+        fig, ax = plt.subplots(figsize=(10, 4))
+        
+        # Custom colormap: green near 0.5, red near 0 or 1
+        from matplotlib.colors import LinearSegmentedColormap
+        colors = ['#d73027', '#fee08b', '#1a9850', '#fee08b', '#d73027']
+        positions = [0, 0.25, 0.5, 0.75, 1.0]
+        cmap = LinearSegmentedColormap.from_list('ppc', list(zip(positions, colors)))
+        
+        im = ax.imshow(data, cmap=cmap, aspect='auto', vmin=0, vmax=1)
+        
+        # Add colorbar
+        cbar = fig.colorbar(im, ax=ax, label='Posterior p-value')
+        cbar.ax.axhline(y=0.05, color='black', linewidth=1, linestyle='--')
+        cbar.ax.axhline(y=0.95, color='black', linewidth=1, linestyle='--')
+        
+        # Labels
+        stat_labels = ["Log-likelihood", "Modal accuracy", "Chosen probability"]
+        ax.set_yticks(range(len(statistics)))
+        ax.set_yticklabels(stat_labels)
+        ax.set_xticks(range(len(variants)))
+        ax.set_xticklabels([v.capitalize() for v in variants])
+        
+        # Add value annotations
+        for i in range(len(statistics)):
+            for j in range(len(variants)):
+                val = data[i, j]
+                # Determine text color based on background
+                text_color = 'white' if (val < 0.15 or val > 0.85) else 'black'
+                ax.text(j, i, f'{val:.2f}', ha='center', va='center', 
+                       color=text_color, fontsize=11, fontweight='bold')
+        
+        ax.set_title('Posterior Predictive Check Summary\n(p ≈ 0.5 indicates good fit)', 
+                     fontsize=14, fontweight='bold')
+        ax.set_xlabel('Prompt Variant', fontsize=12)
+        
+        plt.tight_layout()
+        
+        if save_path:
+            fig.savefig(save_path, dpi=150, bbox_inches='tight')
+            logger.info(f"Saved PPC summary plot to {save_path}")
+        
+        if show:
+            plt.show()
+        
+        return fig
     
     @staticmethod
     def set_publication_style():
@@ -459,3 +557,4 @@ class StudyVisualizer:
                 'axes.spines.top': False,
                 'axes.spines.right': False
             })
+

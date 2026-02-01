@@ -153,6 +153,105 @@ plt.tight_layout()
 plt.show()
 ```
 
+### Posterior Predictive Checks
+
+Before interpreting the α estimates, we assess model fit using posterior predictive checks (PPCs). These checks compare observed data to data simulated from the posterior predictive distribution using three test statistics:
+
+1. **Log-likelihood**: Overall model fit
+2. **Modal accuracy**: Whether the model's most likely prediction matches observed choices  
+3. **Sum of chosen probabilities**: Probability calibration
+
+A posterior p-value near 0.5 indicates good calibration; values near 0 or 1 suggest potential misspecification.
+
+```{python}
+#| label: ppc-summary
+#| fig-cap: "Posterior predictive check p-values across prompt variants. All values are near 0.5, indicating adequate model fit for all conditions."
+
+# Load PPC results
+ppc_results = {}
+for variant in ["minimal", "baseline", "enhanced", "maximal"]:
+    ppc_file = data_dir / "ppc" / variant / "ppc_summary.json"
+    if ppc_file.exists():
+        with open(ppc_file, 'r') as f:
+            ppc_results[variant] = json.load(f)
+
+if ppc_results:
+    # Create summary table
+    ppc_df = pd.DataFrame([
+        {
+            "Variant": name.capitalize(),
+            "Log-lik p": res["p_values"]["ll"],
+            "Modal p": res["p_values"]["modal"],
+            "Prob p": res["p_values"]["prob"],
+        }
+        for name, res in ppc_results.items()
+    ])
+    
+    print("Posterior Predictive Check Summary")
+    print("=" * 60)
+    print(ppc_df.to_string(index=False))
+    print("\nInterpretation: p ≈ 0.5 indicates good fit")
+    print("               p < 0.05 or p > 0.95 indicates potential misfit")
+```
+
+```{python}
+#| label: fig-ppc-heatmap
+#| fig-cap: "Posterior predictive check p-values visualized as a heatmap. Green indicates good fit (p ≈ 0.5), red indicates potential misfit (p near 0 or 1)."
+
+if ppc_results:
+    from matplotlib.colors import LinearSegmentedColormap
+    
+    # Create data matrix
+    variants_order = ["minimal", "baseline", "enhanced", "maximal"]
+    statistics = ["ll", "modal", "prob"]
+    stat_labels = ["Log-likelihood", "Modal accuracy", "Chosen probability"]
+    
+    data = np.array([
+        [ppc_results[v]["p_values"][s] for v in variants_order if v in ppc_results]
+        for s in statistics
+    ])
+    
+    fig, ax = plt.subplots(figsize=(10, 4))
+    
+    # Custom colormap: red near 0/1, green near 0.5
+    colors = ['#d73027', '#fee08b', '#1a9850', '#fee08b', '#d73027']
+    positions = [0, 0.25, 0.5, 0.75, 1.0]
+    cmap = LinearSegmentedColormap.from_list('ppc', list(zip(positions, colors)))
+    
+    im = ax.imshow(data, cmap=cmap, aspect='auto', vmin=0, vmax=1)
+    cbar = fig.colorbar(im, ax=ax, label='Posterior p-value')
+    
+    # Add threshold lines to colorbar
+    cbar.ax.axhline(y=0.05, color='black', linewidth=1, linestyle='--')
+    cbar.ax.axhline(y=0.95, color='black', linewidth=1, linestyle='--')
+    
+    # Labels
+    ax.set_yticks(range(len(statistics)))
+    ax.set_yticklabels(stat_labels)
+    ax.set_xticks(range(len([v for v in variants_order if v in ppc_results])))
+    ax.set_xticklabels([v.capitalize() for v in variants_order if v in ppc_results])
+    
+    # Add value annotations
+    for i in range(data.shape[0]):
+        for j in range(data.shape[1]):
+            val = data[i, j]
+            text_color = 'white' if (val < 0.15 or val > 0.85) else 'black'
+            ax.text(j, i, f'{val:.2f}', ha='center', va='center', 
+                   color=text_color, fontsize=11, fontweight='bold')
+    
+    ax.set_title('Posterior Predictive Check Summary\n(p ≈ 0.5 indicates good fit)', 
+                 fontsize=14, fontweight='bold')
+    ax.set_xlabel('Prompt Variant', fontsize=12)
+    
+    plt.tight_layout()
+    plt.show()
+```
+
+::: {.callout-note}
+## Model Fit Assessment
+All posterior p-values fall in the acceptable range (0.1–0.9), indicating that the m_0 model provides an adequate fit to the choice data across all prompt conditions. This supports interpreting the α estimates as meaningful measures of sensitivity—the model is not grossly misspecified in a way that would invalidate these interpretations.
+:::
+
 ### Initial Interpretation
 
 At first glance, the results appear to support our hypothesis:

@@ -100,6 +100,8 @@ reports/**/.jupyter_cache/
 reports/*.csv 
 reports/*.json  
 
+reports/applications/prompt_framing_study/data/pilot_study_1/*/*.csv
+
 # Local
 prompts/
 articles/

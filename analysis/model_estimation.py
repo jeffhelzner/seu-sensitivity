@@ -47,6 +47,7 @@ import numpy as np
 import pandas as pd
 from cmdstanpy import CmdStanModel
 
+from analysis.posterior_predictive_checks import PosteriorPredictiveChecker, run_posterior_predictive_checks
 
 class ModelEstimation:
     """
@@ -193,6 +194,20 @@ class ModelEstimation:
 
         # Create pair plots for main parameters
         self._create_pair_plots(K, D)
+        
+        # Run posterior predictive checks
+        ppc_dir = os.path.join(self.output_dir, "posterior_predictive_checks")
+        try:
+            ppc_results = run_posterior_predictive_checks(
+                fit=fit,
+                observed_data=data,
+                output_dir=ppc_dir,
+                verbose=True
+            )
+            self.ppc_results = ppc_results
+        except Exception as e:
+            print(f"Warning: Posterior predictive checks failed: {e}")
+            self.ppc_results = None
 
         return fit
         

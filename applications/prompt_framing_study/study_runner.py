@@ -444,13 +444,22 @@ class StudyRunner:
             stan_data_packages: Dict mapping variant_name -> stan_data
             
         Returns:
-            Dict with model fit results
+            Dict with model fit results including posterior predictive checks
         """
         try:
             import cmdstanpy
         except ImportError:
             logger.error("cmdstanpy not installed. Skipping model fitting.")
             return {"error": "cmdstanpy not installed"}
+        
+        # Import PPC module
+        try:
+            import sys
+            sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+            from analysis.posterior_predictive_checks import PosteriorPredictiveChecker
+        except ImportError as e:
+            logger.warning(f"Could not import PosteriorPredictiveChecker: {e}")
+            PosteriorPredictiveChecker = None
         
         # Find the m_0 model
         model_path = Path(__file__).parent.parent.parent / "models" / "m_0.stan"
@@ -487,6 +496,28 @@ class StudyRunner:
                         "num_divergences": int(fit.diagnose().count("divergence")),
                     }
                 }
+                
+                # Run posterior predictive checks
+                if PosteriorPredictiveChecker is not None:
+                    try:
+                        checker = PosteriorPredictiveChecker(fit, stan_data)
+                        ppc_results = checker.to_dict()
+                        fit_results[variant_name]["ppc"] = ppc_results
+                        
+                        # Log PPC summary
+                        logger.info(f"PPC for {variant_name}:")
+                        for stat, p in ppc_results["p_values"].items():
+                            symbol = ppc_results["interpretation"][stat]["status"]
+                            logger.info(f"  {stat}: p={p:.3f} {symbol}")
+                        
+                        # Save PPC plots
+                        ppc_dir = self.results_dir / "ppc" / variant_name
+                        ppc_dir.mkdir(parents=True, exist_ok=True)
+                        checker.plot_all_diagnostics(str(ppc_dir), show=False)
+                        
+                    except Exception as e:
+                        logger.warning(f"PPC failed for {variant_name}: {e}")
+                        fit_results[variant_name]["ppc"] = {"error": str(e)}
                 
                 # Save samples
                 samples_file = self.results_dir / f"samples_{variant_name}.csv"

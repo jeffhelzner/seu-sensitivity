@@ -495,9 +495,9 @@ print(display_df.to_string(index=False))
 The results above reveal an asymmetry in parameter recovery:
 
 - **α (sensitivity)** is recovered well, with posterior means clustering tightly around true values
-- **β (feature weights)** and **δ (utility increments)** show weaker recovery, with wider credible intervals and lower precision compared to α
+- **β (feature weights)** and **δ (utility increments)** show significantly weaker recovery, with wider credible intervals and lower precision compared to α
 
-This pattern reflects the identification structure analyzed formally in [Report 5](05_adding_risky_choices.qmd): while α is globally identified, β and δ are only **weakly identified** through their composite mapping to expected utilities. Since expected utility depends on the product of subjective probabilities (from β) and utilities (from δ), uncertainty in one parameter propagates to the other. The posteriors do concentrate relative to the prior—the data is informative—but at a slower rate than for α.
+This pattern reflects the identification structure analyzed formally in [Report 5](05_adding_risky_choices.qmd): while α is globally identified, β and δ are only **weakly identified** through their composite mapping to expected utilities.
 
 **Importantly for applications focused on estimating sensitivity (α):** The weaker identification of β and δ does not substantially impair α recovery. As the figures above show, α is well-recovered even when β and δ remain uncertain. If the primary research question concerns sensitivity to expected utility differences rather than the decomposition of expected utility into beliefs and values, the identification challenges for (β, δ) may be of secondary concern.
 :::
@@ -519,7 +519,7 @@ Note that this does not mean β and δ are completely uninformed by the data—t
 
 ### Does Increasing Sample Size Help?
 
-A natural question is whether the weaker (β, δ) recovery is simply a matter of insufficient data. The study design with M=25 decision problems might not provide enough information. Let's test this by doubling the sample size to M=50.
+A natural question is whether the weaker δ recovery is simply a matter of insufficient data. (Note: β exhibits similar patterns to δ due to their structural coupling, so we focus on δ as representative of the utility-function parameters.) The study design with M=25 decision problems might not provide enough information. Let's test this by doubling the sample size to M=50.
 
 To ensure a valid comparison, we use the `extend()` method to create the larger design from the original M=25 design. This keeps the same alternatives (features) and original problems, adding 25 new problems that use those same alternatives. Any differences in recovery can then be attributed to sample size rather than different feature configurations.
 
@@ -595,7 +595,7 @@ delta_df_m50 = pd.DataFrame(delta_stats_m50)
 
 ```{python}
 #| label: fig-sample-size-comparison
-#| fig-cap: "Comparison of parameter recovery between M=25 and M=50. Doubling the number of decision problems improves α recovery but has a more modest effect on (β, δ) recovery."
+#| fig-cap: "Comparison of parameter recovery between M=25 and M=50. Doubling the number of decision problems improves α recovery but has a more modest effect on δ recovery. (β exhibits similar patterns to δ due to their structural coupling.)"
 
 fig, axes = plt.subplots(1, 3, figsize=(15, 5))
 
@@ -688,7 +688,7 @@ print(comparison_df.to_string(index=False))
 
 ### Does Adding New Alternatives Help?
 
-The M=50 extension above adds problems over the **same** alternatives—it doesn't expand the feature space. But we might hypothesize that adding **new** alternatives (with new feature vectors) provides qualitatively different information that could help with δ recovery.
+The M=50 extension above adds problems over the **same** alternatives—it doesn't expand the feature space. But we might hypothesize that adding **new** alternatives (with new feature vectors) provides qualitatively different information that could help with δ recovery. (As with the previous section, β exhibits similar patterns to δ.)
 
 To test this, we use `extend_with_alternatives()` to add 15 new alternatives along with 25 new problems that use those alternatives. This parallels how model m_1 (in [Report 5](05_adding_risky_choices.qmd)) adds new risky alternatives along with new risky problems, enabling a fairer comparison.
 
@@ -769,7 +769,7 @@ delta_df_m50_new = pd.DataFrame(delta_stats_m50_new)
 
 ```{python}
 #| label: fig-three-way-comparison
-#| fig-cap: "Three-way comparison of (β, δ) recovery: M=25 (base), M=50 (same alternatives), and M=50 (new alternatives). Adding new alternatives may provide different information than simply adding more problems over existing alternatives."
+#| fig-cap: "Three-way comparison of δ recovery: M=25 (base), M=50 (same alternatives), and M=50 (new alternatives). Adding new alternatives may provide different information than simply adding more problems over existing alternatives. (β exhibits similar patterns to δ due to their structural coupling.)"
 
 fig, axes = plt.subplots(1, 3, figsize=(16, 5))
 
@@ -875,23 +875,23 @@ print(tabulate(three_way_data, headers=headers, tablefmt='simple', stralign='rig
 
 ### Interpretation: Sample Size and Alternative Effects
 
-The three-way comparison reveals important patterns about what helps (β, δ) recovery:
+The three-way comparison reveals important patterns about what helps δ recovery (β exhibits similar patterns due to the structural coupling between these parameters):
 
 ::: {.callout-note}
 ## Extension Type Matters
 
 Comparing the three conditions:
 
-1. **M=25 (base)**: Baseline recovery with modest (β, δ) precision
+1. **M=25 (base)**: Baseline recovery with modest δ precision
 2. **M=50 (same alternatives)**: Adding 25 problems over the same R=15 alternatives
 3. **M=50 (new alternatives)**: Adding 25 problems using 15 **new** alternatives (R increases to 30)
 
 Key findings:
 - **α recovery** improves with more data regardless of extension type
-- **(β, δ) recovery** may benefit differently from new alternatives vs. more problems over existing alternatives
+- **δ recovery** may benefit differently from new alternatives vs. more problems over existing alternatives
 - Adding new feature vectors expands the feature space, potentially providing different information about how features map to subjective probabilities
 
-The comparison between conditions 2 and 3 is particularly important for understanding what helps (β, δ) recovery. If new alternatives (condition 3) outperform same alternatives (condition 2), it suggests that expanding the feature space provides qualitatively different information.
+The comparison between conditions 2 and 3 is particularly important for understanding what helps δ recovery. If new alternatives (condition 3) outperform same alternatives (condition 2), it suggests that expanding the feature space provides qualitatively different information.
 :::
 
 This three-way comparison sets up a crucial comparison for [Report 5](05_adding_risky_choices.qmd), where we add risky alternatives (lotteries with known probabilities) instead of additional uncertain alternatives. By comparing:

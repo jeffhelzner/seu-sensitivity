@@ -23,7 +23,7 @@ from scipy.special import softmax
 
 ## Introduction
 
-This report establishes the theoretical foundations for our computational model of decision-making agents. We derive three properties of the softmax choice model with respect to an arbitrary value function, then show how these properties apply specifically when values are subjective expected utilities (SEU). While mathematically straightforward, these properties are essential to our intended interpretation: when value is taken to be subjective expected utility, $\alpha$ can be interpreted as measuring a decision maker's alignment with the normative standard of SEU rationality—how consistently their choices track the SEU ranking.
+This report establishes the theoretical foundations for the intended interpretation of the models that are discussed in subsequent reports. We derive three properties of the softmax choice model with respect to an arbitrary value function, then show how these properties apply specifically when values are subjective expected utilities (SEU). While mathematically straightforward, these properties are essential to our intended interpretation: when value is taken to be subjective expected utility, $\alpha$ can be interpreted as measuring a decision maker's alignment with the normative standard of SEU rationality—how consistently their choices track the SEU ranking.
 
 This separation clarifies an important conceptual point: the core choice-theoretic results are independent of how values are constructed—they follow from the structure of softmax choice alone. The SEU interpretation provides the substantive behavioral content and connects our model to classical decision theory [@savage1954; @vonneumann1947].
 
@@ -433,7 +433,7 @@ $$
 Then:
 
 1. $\tilde{\eta}_r = a \cdot \eta_r + b$ for all alternatives $r$
-2. $P(r \mid \alpha, \tilde{\boldsymbol{\upsilon}}) = P(r \mid \alpha \cdot a, \boldsymbol{\upsilon})$
+2. $P(\text{choose } r \mid \alpha, \tilde{\boldsymbol{\upsilon}}) = P(\text{choose } r \mid \alpha \cdot a, \boldsymbol{\upsilon})$
 
 The pair $(\alpha, \boldsymbol{\upsilon})$ and $(\alpha \cdot a, \tilde{\boldsymbol{\upsilon}})$ generate **identical** choice probabilities.
 :::
@@ -452,13 +452,13 @@ since $\sum_k \psi_{r,k} = 1$.
 
 **Part 2:**
 $$
-P(r \mid \alpha, \tilde{\boldsymbol{\upsilon}}) = \frac{\exp(\alpha \cdot [a \cdot \eta_r + b])}{\sum_j \exp(\alpha \cdot [a \cdot \eta_j + b])}
+P(\text{choose } r \mid \alpha, \tilde{\boldsymbol{\upsilon}}) = \frac{\exp(\alpha \cdot [a \cdot \eta_r + b])}{\sum_j \exp(\alpha \cdot [a \cdot \eta_j + b])}
 $$
 
 $$
 = \frac{\exp(\alpha a \cdot \eta_r) \cdot \exp(\alpha b)}{\sum_j \exp(\alpha a \cdot \eta_j) \cdot \exp(\alpha b)}
 = \frac{\exp(\alpha a \cdot \eta_r)}{\sum_j \exp(\alpha a \cdot \eta_j)}
-= P(r \mid \alpha a, \boldsymbol{\upsilon}) \quad \blacksquare
+= P(\text{choose } r \mid \alpha a, \boldsymbol{\upsilon}) \quad \blacksquare
 $$
 :::
 
@@ -533,7 +533,7 @@ The limiting behavior established in Properties 2 and 3 occurs at different rate
 Let $\Delta = \min\{V^* - V(r) : r \notin \mathcal{R}^*\}$ be the minimum gap between optimal and suboptimal values. For any suboptimal alternative $r \notin \mathcal{R}^*$:
 
 $$
-P(r \mid \alpha, V) = O\left(e^{-\alpha \Delta}\right) \quad \text{as } \alpha \to \infty
+P(\text{choose } r \mid \alpha, V) = O\left(e^{-\alpha \Delta}\right) \quad \text{as } \alpha \to \infty
 $$
 
 Convergence to the optimality limit is exponential with rate $\Delta$.
@@ -544,17 +544,17 @@ Convergence to the optimality limit is exponential with rate $\Delta$.
 
 For $r \notin \mathcal{R}^*$, recall from the proof of Property 2:
 $$
-P(r) = \frac{\exp(\alpha \cdot [V(r) - V^*])}{|\mathcal{R}^*| + \sum_{j \in \mathcal{R}^-} \exp(\alpha \cdot [V(j) - V^*])}
+P(\text{choose } r) = \frac{\exp(\alpha \cdot [V(r) - V^*])}{|\mathcal{R}^*| + \sum_{j \in \mathcal{R}^-} \exp(\alpha \cdot [V(j) - V^*])}
 $$
 
 Since $V(r) - V^* \leq -\Delta < 0$:
 $$
-P(r) \leq \frac{\exp(-\alpha \Delta)}{|\mathcal{R}^*|} = \frac{1}{|\mathcal{R}^*|} e^{-\alpha \Delta}
+P(\text{choose } r) \leq \frac{\exp(-\alpha \Delta)}{|\mathcal{R}^*|} = \frac{1}{|\mathcal{R}^*|} e^{-\alpha \Delta}
 $$
 
 The denominator is bounded below by $|\mathcal{R}^*| \geq 1$, giving:
 $$
-P(r) = O(e^{-\alpha \Delta}) \quad \blacksquare
+P(\text{choose } r) = O(e^{-\alpha \Delta}) \quad \blacksquare
 $$
 :::
 
@@ -567,7 +567,7 @@ $$
 For any alternative $r \in \mathcal{R}$, let $\bar{V} = \frac{1}{|\mathcal{R}|}\sum_j V(j)$ denote the arithmetic mean of values. Then:
 
 $$
-P(r \mid \alpha, V) = \frac{1}{|\mathcal{R}|} + \alpha \cdot \left[V(r) - \bar{V}\right] \cdot \frac{1}{|\mathcal{R}|} + O(\alpha^2)
+P(\text{choose } r \mid \alpha, V) = \frac{1}{|\mathcal{R}|} + \alpha \cdot \left[V(r) - \bar{V}\right] \cdot \frac{1}{|\mathcal{R}|} + O(\alpha^2)
 $$
 
 Convergence to uniformity is first-order (linear) in $\alpha$.
@@ -579,14 +579,14 @@ Convergence to uniformity is first-order (linear) in $\alpha$.
 Expanding $\exp(\alpha V(r)) = 1 + \alpha V(r) + \frac{\alpha^2 V(r)^2}{2} + O(\alpha^3)$:
 
 $$
-P(r) = \frac{1 + \alpha V(r) + O(\alpha^2)}{\sum_j [1 + \alpha V(j) + O(\alpha^2)]}
+P(\text{choose } r) = \frac{1 + \alpha V(r) + O(\alpha^2)}{\sum_j [1 + \alpha V(j) + O(\alpha^2)]}
 = \frac{1 + \alpha V(r) + O(\alpha^2)}{|\mathcal{R}| + \alpha \sum_j V(j) + O(\alpha^2)}
 $$
 
 Let $S = \sum_j V(j) = |\mathcal{R}| \cdot \bar{V}$. Using the expansion $(1+x)^{-1} = 1 - x + O(x^2)$:
 
 $$
-P(r) = \frac{1 + \alpha V(r)}{|\mathcal{R}|} \cdot \left(1 + \frac{\alpha S}{|\mathcal{R}|}\right)^{-1} + O(\alpha^2)
+P(\text{choose } r) = \frac{1 + \alpha V(r)}{|\mathcal{R}|} \cdot \left(1 + \frac{\alpha S}{|\mathcal{R}|}\right)^{-1} + O(\alpha^2)
 $$
 
 $$

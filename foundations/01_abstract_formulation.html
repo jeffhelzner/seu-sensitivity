@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Jeff Helzner">
-<meta name="dcterms.date" content="2026-01-18">
+<meta name="dcterms.date" content="2026-02-01">
 <meta name="description" content="A formal specification of the softmax choice model with sensitivity parameter α, including complete proofs of the three fundamental properties that characterize sensitivity to value maximization.">
 
 <title>Abstract Formulation of the SEU Sensitivity Model – SEU Sensitivity</title>
@@ -168,10 +168,10 @@ window.Quarto = {
 <link rel="stylesheet" href="../styles/seu-sensitivity.css">
 <meta name="citation_title" content="Abstract Formulation of the SEU Sensitivity Model">
 <meta name="citation_author" content="Jeff Helzner">
-<meta name="citation_publication_date" content="2026-01-18">
-<meta name="citation_cover_date" content="2026-01-18">
+<meta name="citation_publication_date" content="2026-02-01">
+<meta name="citation_cover_date" content="2026-02-01">
 <meta name="citation_year" content="2026">
-<meta name="citation_online_date" content="2026-01-18">
+<meta name="citation_online_date" content="2026-02-01">
 <meta name="citation_fulltext_html_url" content="https://jeffhelzner.github.io/seu-sensitivity/foundations/01_abstract_formulation.html">
 <meta name="citation_language" content="en">
 <meta name="citation_journal_title" content="SEU Sensitivity Project">
@@ -532,7 +532,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">January 18, 2026</p>
+      <p class="date">February 1, 2026</p>
     </div>
   </div>
   
@@ -546,7 +546,7 @@ window.Quarto = {
 
 <section id="introduction" class="level2" data-number="0.1">
 <h2 data-number="0.1" class="anchored" data-anchor-id="introduction"><span class="header-section-number">0.1</span> Introduction</h2>
-<p>This report establishes the theoretical foundations for our computational model of decision-making agents. We derive three properties of the softmax choice model with respect to an arbitrary value function, then show how these properties apply specifically when values are subjective expected utilities (SEU). While mathematically straightforward, these properties are essential to our intended interpretation: when value is taken to be subjective expected utility, <span class="math inline">\(\alpha\)</span> can be interpreted as measuring a decision maker’s alignment with the normative standard of SEU rationality—how consistently their choices track the SEU ranking.</p>
+<p>This report establishes the theoretical foundations for the intended interpretation of the models that are discussed in subsequent reports. We derive three properties of the softmax choice model with respect to an arbitrary value function, then show how these properties apply specifically when values are subjective expected utilities (SEU). While mathematically straightforward, these properties are essential to our intended interpretation: when value is taken to be subjective expected utility, <span class="math inline">\(\alpha\)</span> can be interpreted as measuring a decision maker’s alignment with the normative standard of SEU rationality—how consistently their choices track the SEU ranking.</p>
 <p>This separation clarifies an important conceptual point: the core choice-theoretic results are independent of how values are constructed—they follow from the structure of softmax choice alone. The SEU interpretation provides the substantive behavioral content and connects our model to classical decision theory <span class="citation" data-cites="savage1954 vonneumann1947">(<a href="#ref-savage1954" role="doc-biblioref">Savage 1954</a>; <a href="#ref-vonneumann1947" role="doc-biblioref">Neumann and Morgenstern 1947</a>)</span>.</p>
 <div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center">
@@ -1086,7 +1086,7 @@ Figure&nbsp;2: Visual summary of the three fundamental properties. Left: Monoton
 <p>Then:</p>
 <ol type="1">
 <li><span class="math inline">\(\tilde{\eta}_r = a \cdot \eta_r + b\)</span> for all alternatives <span class="math inline">\(r\)</span></li>
-<li><span class="math inline">\(P(r \mid \alpha, \tilde{\boldsymbol{\upsilon}}) = P(r \mid \alpha \cdot a, \boldsymbol{\upsilon})\)</span></li>
+<li><span class="math inline">\(P(\text{choose } r \mid \alpha, \tilde{\boldsymbol{\upsilon}}) = P(\text{choose } r \mid \alpha \cdot a, \boldsymbol{\upsilon})\)</span></li>
 </ol>
 <p>The pair <span class="math inline">\((\alpha, \boldsymbol{\upsilon})\)</span> and <span class="math inline">\((\alpha \cdot a, \tilde{\boldsymbol{\upsilon}})\)</span> generate <strong>identical</strong> choice probabilities.</p>
 </div>
@@ -1110,12 +1110,12 @@ Figure&nbsp;2: Visual summary of the three fundamental properties. Left: Monoton
 \]</span></p>
 <p>since <span class="math inline">\(\sum_k \psi_{r,k} = 1\)</span>.</p>
 <p><strong>Part 2:</strong> <span class="math display">\[
-P(r \mid \alpha, \tilde{\boldsymbol{\upsilon}}) = \frac{\exp(\alpha \cdot [a \cdot \eta_r + b])}{\sum_j \exp(\alpha \cdot [a \cdot \eta_j + b])}
+P(\text{choose } r \mid \alpha, \tilde{\boldsymbol{\upsilon}}) = \frac{\exp(\alpha \cdot [a \cdot \eta_r + b])}{\sum_j \exp(\alpha \cdot [a \cdot \eta_j + b])}
 \]</span></p>
 <p><span class="math display">\[
 = \frac{\exp(\alpha a \cdot \eta_r) \cdot \exp(\alpha b)}{\sum_j \exp(\alpha a \cdot \eta_j) \cdot \exp(\alpha b)}
 = \frac{\exp(\alpha a \cdot \eta_r)}{\sum_j \exp(\alpha a \cdot \eta_j)}
-= P(r \mid \alpha a, \boldsymbol{\upsilon}) \quad \blacksquare
+= P(\text{choose } r \mid \alpha a, \boldsymbol{\upsilon}) \quad \blacksquare
 \]</span></p>
 </div>
 </div>
@@ -1268,7 +1268,7 @@ Table&nbsp;1: Interpretation of α for a one-unit expected utility difference (m
 <div class="callout-body-container callout-body">
 <p>Let <span class="math inline">\(\Delta = \min\{V^* - V(r) : r \notin \mathcal{R}^*\}\)</span> be the minimum gap between optimal and suboptimal values. For any suboptimal alternative <span class="math inline">\(r \notin \mathcal{R}^*\)</span>:</p>
 <p><span class="math display">\[
-P(r \mid \alpha, V) = O\left(e^{-\alpha \Delta}\right) \quad \text{as } \alpha \to \infty
+P(\text{choose } r \mid \alpha, V) = O\left(e^{-\alpha \Delta}\right) \quad \text{as } \alpha \to \infty
 \]</span></p>
 <p>Convergence to the optimality limit is exponential with rate <span class="math inline">\(\Delta\)</span>.</p>
 </div>
@@ -1286,13 +1286,13 @@ P(r \mid \alpha, V) = O\left(e^{-\alpha \Delta}\right) \quad \text{as } \alpha \
 <div id="callout-18" class="callout-18-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <p>For <span class="math inline">\(r \notin \mathcal{R}^*\)</span>, recall from the proof of Property 2: <span class="math display">\[
-P(r) = \frac{\exp(\alpha \cdot [V(r) - V^*])}{|\mathcal{R}^*| + \sum_{j \in \mathcal{R}^-} \exp(\alpha \cdot [V(j) - V^*])}
+P(\text{choose } r) = \frac{\exp(\alpha \cdot [V(r) - V^*])}{|\mathcal{R}^*| + \sum_{j \in \mathcal{R}^-} \exp(\alpha \cdot [V(j) - V^*])}
 \]</span></p>
 <p>Since <span class="math inline">\(V(r) - V^* \leq -\Delta &lt; 0\)</span>: <span class="math display">\[
-P(r) \leq \frac{\exp(-\alpha \Delta)}{|\mathcal{R}^*|} = \frac{1}{|\mathcal{R}^*|} e^{-\alpha \Delta}
+P(\text{choose } r) \leq \frac{\exp(-\alpha \Delta)}{|\mathcal{R}^*|} = \frac{1}{|\mathcal{R}^*|} e^{-\alpha \Delta}
 \]</span></p>
 <p>The denominator is bounded below by <span class="math inline">\(|\mathcal{R}^*| \geq 1\)</span>, giving: <span class="math display">\[
-P(r) = O(e^{-\alpha \Delta}) \quad \blacksquare
+P(\text{choose } r) = O(e^{-\alpha \Delta}) \quad \blacksquare
 \]</span></p>
 </div>
 </div>
@@ -1313,7 +1313,7 @@ P(r) = O(e^{-\alpha \Delta}) \quad \blacksquare
 <div class="callout-body-container callout-body">
 <p>For any alternative <span class="math inline">\(r \in \mathcal{R}\)</span>, let <span class="math inline">\(\bar{V} = \frac{1}{|\mathcal{R}|}\sum_j V(j)\)</span> denote the arithmetic mean of values. Then:</p>
 <p><span class="math display">\[
-P(r \mid \alpha, V) = \frac{1}{|\mathcal{R}|} + \alpha \cdot \left[V(r) - \bar{V}\right] \cdot \frac{1}{|\mathcal{R}|} + O(\alpha^2)
+P(\text{choose } r \mid \alpha, V) = \frac{1}{|\mathcal{R}|} + \alpha \cdot \left[V(r) - \bar{V}\right] \cdot \frac{1}{|\mathcal{R}|} + O(\alpha^2)
 \]</span></p>
 <p>Convergence to uniformity is first-order (linear) in <span class="math inline">\(\alpha\)</span>.</p>
 </div>
@@ -1332,12 +1332,12 @@ P(r \mid \alpha, V) = \frac{1}{|\mathcal{R}|} + \alpha \cdot \left[V(r) - \bar{V
 <div class="callout-body-container callout-body">
 <p>Expanding <span class="math inline">\(\exp(\alpha V(r)) = 1 + \alpha V(r) + \frac{\alpha^2 V(r)^2}{2} + O(\alpha^3)\)</span>:</p>
 <p><span class="math display">\[
-P(r) = \frac{1 + \alpha V(r) + O(\alpha^2)}{\sum_j [1 + \alpha V(j) + O(\alpha^2)]}
+P(\text{choose } r) = \frac{1 + \alpha V(r) + O(\alpha^2)}{\sum_j [1 + \alpha V(j) + O(\alpha^2)]}
 = \frac{1 + \alpha V(r) + O(\alpha^2)}{|\mathcal{R}| + \alpha \sum_j V(j) + O(\alpha^2)}
 \]</span></p>
 <p>Let <span class="math inline">\(S = \sum_j V(j) = |\mathcal{R}| \cdot \bar{V}\)</span>. Using the expansion <span class="math inline">\((1+x)^{-1} = 1 - x + O(x^2)\)</span>:</p>
 <p><span class="math display">\[
-P(r) = \frac{1 + \alpha V(r)}{|\mathcal{R}|} \cdot \left(1 + \frac{\alpha S}{|\mathcal{R}|}\right)^{-1} + O(\alpha^2)
+P(\text{choose } r) = \frac{1 + \alpha V(r)}{|\mathcal{R}|} \cdot \left(1 + \frac{\alpha S}{|\mathcal{R}|}\right)^{-1} + O(\alpha^2)
 \]</span></p>
 <p><span class="math display">\[
 = \frac{1 + \alpha V(r)}{|\mathcal{R}|} \cdot \left(1 - \frac{\alpha S}{|\mathcal{R}|}\right) + O(\alpha^2)
@@ -1438,13 +1438,13 @@ Simon, Herbert A. 1955. <span>“A Behavioral Model of Rational Choice.”</span
 <div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{helzner2026,
   author = {Helzner, Jeff},
   title = {Abstract {Formulation} of the {SEU} {Sensitivity} {Model}},
-  date = {2026-01-18},
+  date = {2026-02-01},
   url = {https://jeffhelzner.github.io/seu-sensitivity/foundations/01_abstract_formulation.html},
   langid = {en}
 }
 </code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-helzner2026" class="csl-entry quarto-appendix-citeas" role="listitem">
 Helzner, Jeff. 2026. <span>“Abstract Formulation of the SEU Sensitivity
-Model.”</span> SEU Sensitivity Project. January 18, 2026. <a href="https://jeffhelzner.github.io/seu-sensitivity/foundations/01_abstract_formulation.html">https://jeffhelzner.github.io/seu-sensitivity/foundations/01_abstract_formulation.html</a>.
+Model.”</span> SEU Sensitivity Project. February 1, 2026. <a href="https://jeffhelzner.github.io/seu-sensitivity/foundations/01_abstract_formulation.html">https://jeffhelzner.github.io/seu-sensitivity/foundations/01_abstract_formulation.html</a>.
 </div></div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
@@ -1935,7 +1935,7 @@ Model.”</span> SEU Sensitivity Project. January 18, 2026. <a href="https://jef
 <span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a><span class="fu">## Introduction</span></span>
 <span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>This report establishes the theoretical foundations for our computational model of decision-making agents. We derive three properties of the softmax choice model with respect to an arbitrary value function, then show how these properties apply specifically when values are subjective expected utilities (SEU). While mathematically straightforward, these properties are essential to our intended interpretation: when value is taken to be subjective expected utility, $\alpha$ can be interpreted as measuring a decision maker's alignment with the normative standard of SEU rationality—how consistently their choices track the SEU ranking.</span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>This report establishes the theoretical foundations for the intended interpretation of the models that are discussed in subsequent reports. We derive three properties of the softmax choice model with respect to an arbitrary value function, then show how these properties apply specifically when values are subjective expected utilities (SEU). While mathematically straightforward, these properties are essential to our intended interpretation: when value is taken to be subjective expected utility, $\alpha$ can be interpreted as measuring a decision maker's alignment with the normative standard of SEU rationality—how consistently their choices track the SEU ranking.</span>
 <span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>This separation clarifies an important conceptual point: the core choice-theoretic results are independent of how values are constructed—they follow from the structure of softmax choice alone. The SEU interpretation provides the substantive behavioral content and connects our model to classical decision theory <span class="co">[</span><span class="ot">@savage1954; @vonneumann1947</span><span class="co">]</span>.</span>
 <span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a></span>
@@ -2345,7 +2345,7 @@ Model.”</span> SEU Sensitivity Project. January 18, 2026. <a href="https://jef
 <span id="cb4-439"><a href="#cb4-439" aria-hidden="true" tabindex="-1"></a>Then:</span>
 <span id="cb4-440"><a href="#cb4-440" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-441"><a href="#cb4-441" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>$\tilde{\eta}_r = a \cdot \eta_r + b$ for all alternatives $r$</span>
-<span id="cb4-442"><a href="#cb4-442" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>$P(r \mid \alpha, \tilde{\boldsymbol{\upsilon}}) = P(r \mid \alpha \cdot a, \boldsymbol{\upsilon})$</span>
+<span id="cb4-442"><a href="#cb4-442" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>$P(\text{choose } r \mid \alpha, \tilde{\boldsymbol{\upsilon}}) = P(\text{choose } r \mid \alpha \cdot a, \boldsymbol{\upsilon})$</span>
 <span id="cb4-443"><a href="#cb4-443" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-444"><a href="#cb4-444" aria-hidden="true" tabindex="-1"></a>The pair $(\alpha, \boldsymbol{\upsilon})$ and $(\alpha \cdot a, \tilde{\boldsymbol{\upsilon}})$ generate **identical** choice probabilities.</span>
 <span id="cb4-445"><a href="#cb4-445" aria-hidden="true" tabindex="-1"></a>:::</span>
@@ -2364,13 +2364,13 @@ Model.”</span> SEU Sensitivity Project. January 18, 2026. <a href="https://jef
 <span id="cb4-458"><a href="#cb4-458" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-459"><a href="#cb4-459" aria-hidden="true" tabindex="-1"></a>**Part 2:**</span>
 <span id="cb4-460"><a href="#cb4-460" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb4-461"><a href="#cb4-461" aria-hidden="true" tabindex="-1"></a>P(r \mid \alpha, \tilde{\boldsymbol{\upsilon}}) = \frac{\exp(\alpha \cdot <span class="co">[</span><span class="ot">a \cdot \eta_r + b</span><span class="co">]</span>)}{\sum_j \exp(\alpha \cdot <span class="co">[</span><span class="ot">a \cdot \eta_j + b</span><span class="co">]</span>)}</span>
+<span id="cb4-461"><a href="#cb4-461" aria-hidden="true" tabindex="-1"></a>P(\text{choose } r \mid \alpha, \tilde{\boldsymbol{\upsilon}}) = \frac{\exp(\alpha \cdot <span class="co">[</span><span class="ot">a \cdot \eta_r + b</span><span class="co">]</span>)}{\sum_j \exp(\alpha \cdot <span class="co">[</span><span class="ot">a \cdot \eta_j + b</span><span class="co">]</span>)}</span>
 <span id="cb4-462"><a href="#cb4-462" aria-hidden="true" tabindex="-1"></a>$$</span>
 <span id="cb4-463"><a href="#cb4-463" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-464"><a href="#cb4-464" aria-hidden="true" tabindex="-1"></a>$$</span>
 <span id="cb4-465"><a href="#cb4-465" aria-hidden="true" tabindex="-1"></a>= \frac{\exp(\alpha a \cdot \eta_r) \cdot \exp(\alpha b)}{\sum_j \exp(\alpha a \cdot \eta_j) \cdot \exp(\alpha b)}</span>
 <span id="cb4-466"><a href="#cb4-466" aria-hidden="true" tabindex="-1"></a>= \frac{\exp(\alpha a \cdot \eta_r)}{\sum_j \exp(\alpha a \cdot \eta_j)}</span>
-<span id="cb4-467"><a href="#cb4-467" aria-hidden="true" tabindex="-1"></a>= P(r \mid \alpha a, \boldsymbol{\upsilon}) \quad \blacksquare</span>
+<span id="cb4-467"><a href="#cb4-467" aria-hidden="true" tabindex="-1"></a>= P(\text{choose } r \mid \alpha a, \boldsymbol{\upsilon}) \quad \blacksquare</span>
 <span id="cb4-468"><a href="#cb4-468" aria-hidden="true" tabindex="-1"></a>$$</span>
 <span id="cb4-469"><a href="#cb4-469" aria-hidden="true" tabindex="-1"></a>:::</span>
 <span id="cb4-470"><a href="#cb4-470" aria-hidden="true" tabindex="-1"></a></span>
@@ -2445,7 +2445,7 @@ Model.”</span> SEU Sensitivity Project. January 18, 2026. <a href="https://jef
 <span id="cb4-541"><a href="#cb4-541" aria-hidden="true" tabindex="-1"></a>Let $\Delta = \min<span class="sc">\{</span>V^* - V(r) : r \notin \mathcal{R}^*\}$ be the minimum gap between optimal and suboptimal values. For any suboptimal alternative $r \notin \mathcal{R}^*$:</span>
 <span id="cb4-542"><a href="#cb4-542" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-543"><a href="#cb4-543" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb4-544"><a href="#cb4-544" aria-hidden="true" tabindex="-1"></a>P(r \mid \alpha, V) = O\left(e^{-\alpha \Delta}\right) \quad \text{as } \alpha \to \infty</span>
+<span id="cb4-544"><a href="#cb4-544" aria-hidden="true" tabindex="-1"></a>P(\text{choose } r \mid \alpha, V) = O\left(e^{-\alpha \Delta}\right) \quad \text{as } \alpha \to \infty</span>
 <span id="cb4-545"><a href="#cb4-545" aria-hidden="true" tabindex="-1"></a>$$</span>
 <span id="cb4-546"><a href="#cb4-546" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-547"><a href="#cb4-547" aria-hidden="true" tabindex="-1"></a>Convergence to the optimality limit is exponential with rate $\Delta$.</span>
@@ -2456,17 +2456,17 @@ Model.”</span> SEU Sensitivity Project. January 18, 2026. <a href="https://jef
 <span id="cb4-552"><a href="#cb4-552" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-553"><a href="#cb4-553" aria-hidden="true" tabindex="-1"></a>For $r \notin \mathcal{R}^*$, recall from the proof of Property 2:</span>
 <span id="cb4-554"><a href="#cb4-554" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb4-555"><a href="#cb4-555" aria-hidden="true" tabindex="-1"></a>P(r) = \frac{\exp(\alpha \cdot <span class="co">[</span><span class="ot">V(r) - V^*</span><span class="co">]</span>)}{|\mathcal{R}^*| + \sum_{j \in \mathcal{R}^-} \exp(\alpha \cdot [V(j) - V^*])}</span>
+<span id="cb4-555"><a href="#cb4-555" aria-hidden="true" tabindex="-1"></a>P(\text{choose } r) = \frac{\exp(\alpha \cdot <span class="co">[</span><span class="ot">V(r) - V^*</span><span class="co">]</span>)}{|\mathcal{R}^*| + \sum_{j \in \mathcal{R}^-} \exp(\alpha \cdot [V(j) - V^*])}</span>
 <span id="cb4-556"><a href="#cb4-556" aria-hidden="true" tabindex="-1"></a>$$</span>
 <span id="cb4-557"><a href="#cb4-557" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-558"><a href="#cb4-558" aria-hidden="true" tabindex="-1"></a>Since $V(r) - V^* \leq -\Delta &lt; 0$:</span>
 <span id="cb4-559"><a href="#cb4-559" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb4-560"><a href="#cb4-560" aria-hidden="true" tabindex="-1"></a>P(r) \leq \frac{\exp(-\alpha \Delta)}{|\mathcal{R}^*|} = \frac{1}{|\mathcal{R}^*|} e^{-\alpha \Delta}</span>
+<span id="cb4-560"><a href="#cb4-560" aria-hidden="true" tabindex="-1"></a>P(\text{choose } r) \leq \frac{\exp(-\alpha \Delta)}{|\mathcal{R}^*|} = \frac{1}{|\mathcal{R}^*|} e^{-\alpha \Delta}</span>
 <span id="cb4-561"><a href="#cb4-561" aria-hidden="true" tabindex="-1"></a>$$</span>
 <span id="cb4-562"><a href="#cb4-562" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-563"><a href="#cb4-563" aria-hidden="true" tabindex="-1"></a>The denominator is bounded below by $|\mathcal{R}^*| \geq 1$, giving:</span>
 <span id="cb4-564"><a href="#cb4-564" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb4-565"><a href="#cb4-565" aria-hidden="true" tabindex="-1"></a>P(r) = O(e^{-\alpha \Delta}) \quad \blacksquare</span>
+<span id="cb4-565"><a href="#cb4-565" aria-hidden="true" tabindex="-1"></a>P(\text{choose } r) = O(e^{-\alpha \Delta}) \quad \blacksquare</span>
 <span id="cb4-566"><a href="#cb4-566" aria-hidden="true" tabindex="-1"></a>$$</span>
 <span id="cb4-567"><a href="#cb4-567" aria-hidden="true" tabindex="-1"></a>:::</span>
 <span id="cb4-568"><a href="#cb4-568" aria-hidden="true" tabindex="-1"></a></span>
@@ -2479,7 +2479,7 @@ Model.”</span> SEU Sensitivity Project. January 18, 2026. <a href="https://jef
 <span id="cb4-575"><a href="#cb4-575" aria-hidden="true" tabindex="-1"></a>For any alternative $r \in \mathcal{R}$, let $\bar{V} = \frac{1}{|\mathcal{R}|}\sum_j V(j)$ denote the arithmetic mean of values. Then:</span>
 <span id="cb4-576"><a href="#cb4-576" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-577"><a href="#cb4-577" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb4-578"><a href="#cb4-578" aria-hidden="true" tabindex="-1"></a>P(r \mid \alpha, V) = \frac{1}{|\mathcal{R}|} + \alpha \cdot \left<span class="co">[</span><span class="ot">V(r) - \bar{V}\right</span><span class="co">]</span> \cdot \frac{1}{|\mathcal{R}|} + O(\alpha^2)</span>
+<span id="cb4-578"><a href="#cb4-578" aria-hidden="true" tabindex="-1"></a>P(\text{choose } r \mid \alpha, V) = \frac{1}{|\mathcal{R}|} + \alpha \cdot \left<span class="co">[</span><span class="ot">V(r) - \bar{V}\right</span><span class="co">]</span> \cdot \frac{1}{|\mathcal{R}|} + O(\alpha^2)</span>
 <span id="cb4-579"><a href="#cb4-579" aria-hidden="true" tabindex="-1"></a>$$</span>
 <span id="cb4-580"><a href="#cb4-580" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-581"><a href="#cb4-581" aria-hidden="true" tabindex="-1"></a>Convergence to uniformity is first-order (linear) in $\alpha$.</span>
@@ -2491,14 +2491,14 @@ Model.”</span> SEU Sensitivity Project. January 18, 2026. <a href="https://jef
 <span id="cb4-587"><a href="#cb4-587" aria-hidden="true" tabindex="-1"></a>Expanding $\exp(\alpha V(r)) = 1 + \alpha V(r) + \frac{\alpha^2 V(r)^2}{2} + O(\alpha^3)$:</span>
 <span id="cb4-588"><a href="#cb4-588" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-589"><a href="#cb4-589" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb4-590"><a href="#cb4-590" aria-hidden="true" tabindex="-1"></a>P(r) = \frac{1 + \alpha V(r) + O(\alpha^2)}{\sum_j <span class="co">[</span><span class="ot">1 + \alpha V(j) + O(\alpha^2)</span><span class="co">]</span>}</span>
+<span id="cb4-590"><a href="#cb4-590" aria-hidden="true" tabindex="-1"></a>P(\text{choose } r) = \frac{1 + \alpha V(r) + O(\alpha^2)}{\sum_j <span class="co">[</span><span class="ot">1 + \alpha V(j) + O(\alpha^2)</span><span class="co">]</span>}</span>
 <span id="cb4-591"><a href="#cb4-591" aria-hidden="true" tabindex="-1"></a>= \frac{1 + \alpha V(r) + O(\alpha^2)}{|\mathcal{R}| + \alpha \sum_j V(j) + O(\alpha^2)}</span>
 <span id="cb4-592"><a href="#cb4-592" aria-hidden="true" tabindex="-1"></a>$$</span>
 <span id="cb4-593"><a href="#cb4-593" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-594"><a href="#cb4-594" aria-hidden="true" tabindex="-1"></a>Let $S = \sum_j V(j) = |\mathcal{R}| \cdot \bar{V}$. Using the expansion $(1+x)^{-1} = 1 - x + O(x^2)$:</span>
 <span id="cb4-595"><a href="#cb4-595" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-596"><a href="#cb4-596" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb4-597"><a href="#cb4-597" aria-hidden="true" tabindex="-1"></a>P(r) = \frac{1 + \alpha V(r)}{|\mathcal{R}|} \cdot \left(1 + \frac{\alpha S}{|\mathcal{R}|}\right)^{-1} + O(\alpha^2)</span>
+<span id="cb4-597"><a href="#cb4-597" aria-hidden="true" tabindex="-1"></a>P(\text{choose } r) = \frac{1 + \alpha V(r)}{|\mathcal{R}|} \cdot \left(1 + \frac{\alpha S}{|\mathcal{R}|}\right)^{-1} + O(\alpha^2)</span>
 <span id="cb4-598"><a href="#cb4-598" aria-hidden="true" tabindex="-1"></a>$$</span>
 <span id="cb4-599"><a href="#cb4-599" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-600"><a href="#cb4-600" aria-hidden="true" tabindex="-1"></a>$$</span>

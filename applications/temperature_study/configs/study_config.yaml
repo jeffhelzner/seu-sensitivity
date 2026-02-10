@@ -1,0 +1,32 @@
+# Temperature Study Configuration
+# See DESIGN.md for full rationale
+
+# ── Temperature conditions ──
+temperatures: [0.0, 0.3, 0.7, 1.0, 1.5]
+
+# ── Problem parameters ──
+num_problems: 100          # Base decision problems
+min_alternatives: 2        # Minimum claims per problem
+max_alternatives: 4        # Maximum claims per problem
+num_presentations: 3       # P: shuffled orderings per problem
+
+# ── Model parameters ──
+K: 3                       # Consequences (both agree / one agrees / neither)
+target_dim: 32             # PCA target dimensions for embeddings
+
+# ── API settings ──
+llm_model: "gpt-4o"
+embedding_model: "text-embedding-3-small"
+provider: "openai"
+seed: 42
+
+# ── Pipeline control ──
+fit_models: false           # Fit Stan models after data collection
+stan_model: "m_0"
+
+# ── Storage ──
+save_raw_embeddings: true
+
+# ── API robustness ──
+max_retries: 3
+retry_delay: 2.0

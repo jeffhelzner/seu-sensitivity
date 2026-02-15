@@ -31,15 +31,13 @@ def rng():
 
 @pytest.fixture
 def raw_embeddings_per_temp(rng):
-    """Simulate raw embeddings for 2 temperatures, 3 problems × 2-3 claims each."""
+    """Simulate raw embeddings for 2 temperatures, keyed by claim ID."""
     dims = 64  # small for test speed
     embs: dict[float, dict[str, np.ndarray]] = {}
     for temp in [0.0, 0.7]:
         d = {}
-        for pid in ["P0001", "P0002", "P0003"]:
-            for cid in ["C001", "C002", "C003"]:
-                key = f"{pid}_{cid}"
-                d[key] = rng.standard_normal(dims)
+        for cid in ["C001", "C002", "C003", "C004", "C005"]:
+            d[cid] = rng.standard_normal(dims)
         embs[temp] = d
     return embs
 
@@ -290,13 +288,13 @@ class TestFilterValidChoices:
 class TestStanDataBuilder:
 
     def _make_reduced_embs(self, problems, dim=8):
-        """Generate fake reduced embeddings for all problem×claim combos."""
+        """Generate fake reduced embeddings keyed by claim ID."""
         rng = np.random.default_rng(42)
         embs = {}
         for p in problems:
             for cid in p["claim_ids"]:
-                key = f"{p['id']}_{cid}"
-                embs[key] = rng.standard_normal(dim)
+                if cid not in embs:
+                    embs[cid] = rng.standard_normal(dim)
         return embs
 
     def test_build_produces_valid_stan_data(
@@ -402,7 +400,8 @@ class TestSerialization:
         embs = {}
         for p in mock_problems:
             for cid in p["claim_ids"]:
-                embs[f"{p['id']}_{cid}"] = rng.standard_normal(8)
+                if cid not in embs:
+                    embs[cid] = rng.standard_normal(8)
 
         stan_data = builder.build(
             all_valid_choices["choices"], embs, mock_problems

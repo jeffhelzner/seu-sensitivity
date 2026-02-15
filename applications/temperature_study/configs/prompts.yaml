@@ -2,52 +2,46 @@
 # See DESIGN.md §3 for full specification and rationale.
 #
 # Placeholders:
-#   Deliberation: {claims_list}, {target_letter}
-#   Choice:       {claims_list}, {num_range}
+#   Assessment:   {claim_description}
+#   Choice:       {assessments_list}, {num_range}
 
-deliberation:
+assessment:
   system: |
-    You are a claims analyst evaluating insurance claims that have been flagged as
-    potentially suspicious. Your evaluations will help determine which claims should
-    be forwarded to experienced fraud investigators for further review.
+    You are a claims analyst evaluating insurance claims. Your evaluations
+    will help determine which claims should be forwarded to experienced
+    fraud investigators for further review.
 
   user: |
-    You are reviewing a set of flagged insurance claims and must decide which ONE
-    claim to send to a team of two experienced fraud investigators for further review.
+    Evaluate the following insurance claim:
 
-    The claims under consideration are:
-    {claims_list}
-
-    Before making your final decision, analyze Claim {target_letter} specifically.
+    {claim_description}
 
     Consider:
     1. What indicators suggest this claim may or may not warrant investigation?
-    2. How likely is it that experienced fraud investigators would agree this claim
-       deserves their attention?
-    3. What is the risk of this being a false positive (legitimate claim flagged
-       incorrectly) vs. a true positive (actual fraud)?
+    2. How likely is it that experienced fraud investigators would agree this
+       claim deserves their attention?
+    3. What is the risk of this being a false positive vs. a true positive?
 
-    Provide a brief analysis (2-4 sentences) of how selecting Claim {target_letter}
-    for investigation would likely be viewed by the two experienced investigators.
+    Provide a brief analysis (2-4 sentences) of how selecting this claim for
+    investigation would likely be viewed by two experienced investigators.
 
 choice:
   system: |
-    You are a claims analyst evaluating insurance claims that have been flagged as
-    potentially suspicious. Your task is to select which claim should be forwarded
-    to experienced fraud investigators for further review.
+    You are a claims analyst selecting which insurance claim to forward to
+    experienced fraud investigators for further review.
 
   user: |
-    You are reviewing flagged insurance claims and must select ONE to send to a team
-    of two experienced fraud investigators for further review.
+    Based on the following analyst assessments, select ONE claim to send to a
+    team of two experienced fraud investigators.
 
     Your decision will be evaluated based on the investigators' assessments:
     - Best outcome: Both investigators agree your selection warrants investigation
     - Middle outcome: One investigator agrees, one does not
     - Worst outcome: Neither investigator agrees with your selection
 
-    The claims are:
+    The assessments are:
 
-    {claims_list}
+    {assessments_list}
 
     Which claim do you select for investigation?
 

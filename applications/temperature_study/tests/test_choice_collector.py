@@ -101,13 +101,13 @@ def mock_config(tmp_path, sample_claims):
     prompts_path = tmp_path / "configs" / "prompts.yaml"
     prompts_path.parent.mkdir(parents=True, exist_ok=True)
     prompts = {
-        "deliberation": {
-            "system": "You are a claims analyst.",
-            "user": "Claims:\n{claims_list}\n\nAnalyze Claim {target_letter}.",
+        "assessment": {
+            "system": "You are evaluating insurance claims.",
+            "user": "Claim description:\n{claim_description}\n\nProvide a brief assessment.",
         },
         "choice": {
-            "system": "You are a claims analyst selecting a claim for investigation.",
-            "user": "Claims:\n{claims_list}\n\nChoose ({num_range}).",
+            "system": "You are selecting a claim for investigation.",
+            "user": "Assessments:\n{assessments_list}\n\nChoose ({num_range}).",
         },
     }
     with open(prompts_path, "w") as f:

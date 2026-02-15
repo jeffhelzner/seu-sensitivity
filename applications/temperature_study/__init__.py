@@ -22,7 +22,7 @@ from .llm_client import (
     parse_choice,
 )
 from .problem_generator import ProblemGenerator
-from .deliberation_collector import DeliberationCollector
+from .assessment_collector import AssessmentCollector
 from .choice_collector import ChoiceCollector
 from .data_preparation import EmbeddingReducer, StanDataBuilder, filter_valid_choices
 from .study_runner import TemperatureStudyRunner
@@ -43,7 +43,7 @@ __all__ = [
     "create_llm_client",
     "parse_choice",
     "ProblemGenerator",
-    "DeliberationCollector",
+    "AssessmentCollector",
     "ChoiceCollector",
     "EmbeddingReducer",
     "StanDataBuilder",

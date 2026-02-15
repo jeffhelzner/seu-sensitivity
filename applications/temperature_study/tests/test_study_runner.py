@@ -20,7 +20,7 @@ from applications.temperature_study.llm_client import LLMClient, EmbeddingClient
 
 
 class MockLLM(LLMClient):
-    """Mock LLM: deliberation returns text, choice returns "1"."""
+    """Mock LLM: assessment returns text, choice returns "1"."""
 
     def __init__(self, **kwargs):
         super().__init__(model="mock", **kwargs)
@@ -73,13 +73,13 @@ def study_config(tmp_path, sample_claims):
     prompts_path = tmp_path / "configs" / "prompts.yaml"
     prompts_path.parent.mkdir(parents=True, exist_ok=True)
     prompts = {
-        "deliberation": {
-            "system": "You are a claims analyst.",
-            "user": "Claims:\n{claims_list}\n\nAnalyze Claim {target_letter}.",
+        "assessment": {
+            "system": "You are evaluating insurance claims.",
+            "user": "Claim description:\n{claim_description}\n\nProvide a brief assessment.",
         },
         "choice": {
-            "system": "You are a claims analyst.",
-            "user": "Claims:\n{claims_list}\n\nChoose ({num_range}).",
+            "system": "You are selecting a claim for investigation.",
+            "user": "Assessments:\n{assessments_list}\n\nChoose ({num_range}).",
         },
     }
     with open(prompts_path, "w") as f:
@@ -117,13 +117,14 @@ class TestStudyRunnerIntegration:
         # Inject into the collectors that will be lazily created
         gen = runner._get_generator()
 
-        from applications.temperature_study.deliberation_collector import (
-            DeliberationCollector,
+        from applications.temperature_study.assessment_collector import (
+            AssessmentCollector,
         )
         from applications.temperature_study.choice_collector import ChoiceCollector
 
-        runner._delib_collector = DeliberationCollector(
-            runner.config, gen, llm_client=mock_llm, embedding_client=mock_emb
+        runner._assess_collector = AssessmentCollector(
+            runner.config, gen.claims,
+            llm_client=mock_llm, embedding_client=mock_emb,
         )
         runner._choice_collector = ChoiceCollector(
             runner.config, gen, llm_client=mock_llm
@@ -137,7 +138,7 @@ class TestStudyRunnerIntegration:
 
         assert "phases" in summary
         assert "phase1" in summary["phases"]
-        assert "phase2a_deliberation" in summary["phases"]
+        assert "phase2a_assessment" in summary["phases"]
         assert "phase2b_choices" in summary["phases"]
         assert "phase3_data_prep" in summary["phases"]
 

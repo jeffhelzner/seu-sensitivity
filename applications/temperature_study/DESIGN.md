@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-This document proposes a new experimental application of the SEU sensitivity models that examines **how LLM temperature affects estimated sensitivity (α)**. The study addresses methodological issues discovered in the prompt framing pilot by implementing position counterbalancing and capturing richer "deliberative embeddings" that reflect the AI's reasoning about each choice option.
+This document proposes a new experimental application of the SEU sensitivity models that examines **how LLM temperature affects estimated sensitivity (α)**. The study addresses methodological issues discovered in the prompt framing pilot by implementing position counterbalancing and capturing per-claim "assessment embeddings" that reflect the AI's evaluation of each alternative.
 
 ---
 
@@ -72,167 +72,117 @@ Result: C007 chosen 3/3 times despite appearing in positions 2, 1, and 3
 
 **Note on notation:** We use P for presentations to avoid confusion with R in m_0.stan, which denotes the number of distinct alternatives across all problems.
 
-### 2.5 Improved Embeddings: Deliberative Feature Descriptions
+### 2.5 Assessment-Based Feature Descriptions
 
-**Problem with current approach:** The prompt framing study embedded claims using a generic context. This may not capture how the LLM actually evaluates each alternative within a specific decision problem.
+**Problem with context-dependent deliberation:** An earlier design asked the LLM to deliberate on each claim within the context of a specific decision problem (all other claims visible). This produced embeddings that varied by problem context, violating the m_0 model assumption that `w[r]` is a fixed property of alternative *r*.
 
-**New approach:** For each claim in a problem, ask the LLM to **articulate its reasoning** about how selecting that claim would be viewed by investigators, *before* making a choice. Then embed this deliberative response.
+**Current approach:** For each claim in the pool, ask the LLM to **assess the claim on its own merits**, independent of any specific decision problem. Then embed this assessment response.
 
 **Benefits:**
-- Embeddings capture problem-specific, alternative-specific reasoning
-- Richer feature representations that reflect the LLM's actual evaluation process
-- More interpretable: we can examine *what* the LLM considers when evaluating claims
+- One embedding per claim, consistent with `w[r]` in m_0.stan
+- No averaging hack needed to collapse context-dependent embeddings
+- Dramatically fewer API calls (30 claims × 5 temps = 150 vs. ~1,500)
+- More interpretable: assessments capture claim-level features, not problem-context effects
 
 ---
 
 ## 3. Prompt Specifications
 
-### 3.1 Deliberation Prompt
+### 3.1 Assessment Prompt
 
-Used to elicit reasoning about each claim before the choice is made. Called once per claim in each problem.
+Used to elicit a per-claim evaluation that is independent of any specific decision problem. Called once per claim in the pool (not once per problem × claim).
 
 ```
 SYSTEM PROMPT:
-You are a claims analyst evaluating insurance claims that have been flagged as 
-potentially suspicious. Your evaluations will help determine which claims should 
-be forwarded to experienced fraud investigators for further review.
+You are evaluating insurance claims to help determine which should be
+forwarded to experienced fraud investigators for further review.
 
 USER PROMPT:
-You are reviewing a set of flagged insurance claims and must decide which ONE 
-claim to send to a team of two experienced fraud investigators for further review.
+Consider the following insurance claim:
 
-The claims under consideration are:
-- Claim A: {claim_1_description}
-- Claim B: {claim_2_description}
-- Claim C: {claim_3_description}
+{claim_description}
 
-Before making your final decision, analyze Claim {target_letter} specifically.
-
-Consider:
+Provide a brief assessment (2-4 sentences) covering:
 1. What indicators suggest this claim may or may not warrant investigation?
-2. How likely is it that experienced fraud investigators would agree this claim 
-   deserves their attention?
-3. What is the risk of this being a false positive (legitimate claim flagged 
-   incorrectly) vs. a true positive (actual fraud)?
-
-Provide a brief analysis (2-4 sentences) of how selecting Claim {target_letter} 
-for investigation would likely be viewed by the two experienced investigators.
+2. How likely is it that experienced fraud investigators would agree this
+   claim deserves their attention?
+3. What is the risk of this being a false positive vs. a true positive?
 ```
 
 **Example instantiation:**
 
 ```
-You are reviewing a set of flagged insurance claims and must decide which ONE 
-claim to send to a team of two experienced fraud investigators for further review.
+Consider the following insurance claim:
 
-The claims under consideration are:
-- Claim A: Auto collision claim for $12,000. Claimant reports rear-end collision 
-  at low speed but vehicle shows extensive front-end damage. Police report not 
-  filed. Three prior claims in past 2 years.
-- Claim B: Homeowner's claim for $8,500 water damage. Burst pipe during cold snap. 
-  Plumber's report confirms frozen pipe. Photos show water damage consistent with 
-  described event. No prior claims.
-- Claim C: Business interruption claim for $45,000. Restaurant claims 3 weeks 
-  closure due to kitchen fire. Fire department report confirms grease fire. 
-  However, financial records show business was already struggling with declining 
-  revenue for 6 months prior.
+Auto collision claim for $12,000. Claimant reports rear-end collision
+at low speed but vehicle shows extensive front-end damage. Police report
+not filed. Three prior claims in past 2 years.
 
-Before making your final decision, analyze Claim A specifically.
-
-Consider:
+Provide a brief assessment (2-4 sentences) covering:
 1. What indicators suggest this claim may or may not warrant investigation?
-2. How likely is it that experienced fraud investigators would agree this claim 
-   deserves their attention?
-3. What is the risk of this being a false positive (legitimate claim flagged 
-   incorrectly) vs. a true positive (actual fraud)?
-
-Provide a brief analysis (2-4 sentences) of how selecting Claim A for 
-investigation would likely be viewed by the two experienced investigators.
+2. How likely is it that experienced fraud investigators would agree this
+   claim deserves their attention?
+3. What is the risk of this being a false positive vs. a true positive?
 ```
 
 **Expected response (to be embedded):**
 
-> Claim A presents several red flags that would likely catch investigators' 
-> attention: the damage pattern is inconsistent with the reported accident 
-> mechanism (front damage from a rear-end collision), no police report was filed, 
-> and there's a pattern of prior claims. Experienced investigators would likely 
-> view this as a reasonable referral, as the physical evidence inconsistency alone 
-> warrants closer examination. The risk of false positive is relatively low given 
+> This claim presents several red flags: the damage pattern is inconsistent
+> with the reported accident mechanism (front damage from a rear-end
+> collision), no police report was filed, and there is a pattern of
+> prior claims. Experienced investigators would likely view this as a
+> reasonable referral, as the physical evidence inconsistency alone warrants
+> closer examination. The risk of false positive is relatively low given
 > the multiple independent indicators.
 
 ### 3.2 Choice Prompt
 
-Used after deliberation phase to collect the final choice. The order of claims is shuffled for each presentation.
+Used after the assessment phase to collect the final choice. The choice agent sees the **assessment texts** (not raw claim descriptions) so that its decisions are based on the same information encoded in `w[r]`. The order of claims is shuffled for each presentation.
 
 ```
 SYSTEM PROMPT:
-You are a claims analyst evaluating insurance claims that have been flagged as 
-potentially suspicious. Your task is to select which claim should be forwarded 
-to experienced fraud investigators for further review.
+You are evaluating insurance claims to help determine which should be
+forwarded to experienced fraud investigators for further review.
 
 USER PROMPT:
-You are reviewing flagged insurance claims and must select ONE to send to a team 
-of two experienced fraud investigators for further review.
+You are reviewing insurance claims and must select ONE to forward to a
+team of two experienced fraud investigators for further review.
 
 Your decision will be evaluated based on the investigators' assessments:
 - Best outcome: Both investigators agree your selection warrants investigation
 - Middle outcome: One investigator agrees, one does not
 - Worst outcome: Neither investigator agrees with your selection
 
-The claims are:
+Here are the assessments for the claims under consideration:
 
-- Claim 1: {claim_at_position_1}
-- Claim 2: {claim_at_position_2}
-- Claim 3: {claim_at_position_3}
+{assessments_list}
 
-Which claim do you select for investigation? 
+Which claim do you select for investigation?
 
-Respond with ONLY the claim number (1, 2, or 3).
+Respond with ONLY the claim number ({num_range}).
 ```
 
-**Example with 4 alternatives:**
-
+Where `{assessments_list}` is formatted as:
 ```
-You are reviewing flagged insurance claims and must select ONE to send to a team 
-of two experienced fraud investigators for further review.
-
-Your decision will be evaluated based on the investigators' assessments:
-- Best outcome: Both investigators agree your selection warrants investigation
-- Middle outcome: One investigator agrees, one does not
-- Worst outcome: Neither investigator agrees with your selection
-
-The claims are:
-
-- Claim 1: Business interruption claim for $45,000. Restaurant claims 3 weeks 
-  closure due to kitchen fire. Fire department report confirms grease fire. 
-  However, financial records show business was already struggling with declining 
-  revenue for 6 months prior.
-- Claim 2: Auto collision claim for $12,000. Claimant reports rear-end collision 
-  at low speed but vehicle shows extensive front-end damage. Police report not 
-  filed. Three prior claims in past 2 years.
-- Claim 3: Homeowner's claim for $8,500 water damage. Burst pipe during cold snap. 
-  Plumber's report confirms frozen pipe. Photos show water damage consistent with 
-  described event. No prior claims.
-- Claim 4: Life insurance claim for $500,000. Policy purchased 14 months ago. 
-  Insured died of heart attack at age 52. Medical records show no prior heart 
-  conditions disclosed on application, but pharmacy records indicate cholesterol 
-  medication prescribed 3 years prior.
-
-Which claim do you select for investigation? 
-
-Respond with ONLY the claim number (1, 2, 3, or 4).
+- Claim 1: [assessment text for claim at position 1]
+- Claim 2: [assessment text for claim at position 2]
+- Claim 3: [assessment text for claim at position 3]
 ```
+
+**Note:** The assessment texts shown in the choice prompt come from the assessment phase at the *same temperature*. This ensures the choice agent's information basis is consistent with the temperature condition being tested.
 
 ### 3.3 Prompt Design Rationale
 
 | Design Choice | Rationale |
 |---------------|-----------|
-| Generic letter labels (A, B, C) in deliberation | Prevents position anchoring during analysis phase |
+| Per-claim assessments (no problem context) | Produces one embedding per claim, consistent with `w[r]` in m_0 |
+| Assessments shown in choice prompt | Choice agent decides based on same info encoded in `w[r]` |
 | Numeric labels (1, 2, 3) in choice | Standard choice format, enables position bias analysis |
-| Separate deliberation and choice | Captures reasoning before commitment; enables embedding of reasoning |
+| Separate assessment and choice phases | Assessments produce embeddings; choices produce `y[m]` |
 | K=3 outcome structure explicit | Matches model assumptions; provides clear utility ordering |
 | "ONLY the claim number" instruction | Reduces parsing errors; cleaner response extraction |
 | No explicit EU language | Baseline framing; isolates temperature effects from rationality framing |
+| Neutral system prompts (no "flagged" language) | Avoids priming the LLM toward suspicion |
 
 ---
 
@@ -253,23 +203,23 @@ Respond with ONLY the claim number (1, 2, 3, or 4).
 
 | Component | Calculation | API Calls |
 |-----------|-------------|-----------|
-| Deliberations | 100 problems × avg(3) claims × 5 temps | ~1,500 |
+| Assessments | 30 claims × 5 temps | 150 |
 | Choices | 100 problems × P(=3) presentations × 5 temps | 1,500 |
-| Embeddings | ~1,500 deliberation responses | 1,500 |
-| **Total** | | **~4,500** |
+| Embeddings | 150 assessment responses | 150 |
+| **Total** | | **~1,800** |
 
 ### 4.2 Estimated Costs
 
 | Component | Est. Tokens | Est. Cost (gpt-4o) |
 |-----------|-------------|-------------------|
-| Deliberations (input) | ~600K | ~$1.50 |
-| Deliberations (output) | ~150K | ~$2.25 |
-| Choices (input) | ~400K | ~$1.00 |
+| Assessments (input) | ~45K | ~$0.11 |
+| Assessments (output) | ~15K | ~$0.23 |
+| Choices (input) | ~600K | ~$1.50 |
 | Choices (output) | ~15K | ~$0.25 |
-| Embeddings | ~300K | ~$0.03 |
-| **Total** | **~1.5M** | **~$5-7** |
+| Embeddings | ~30K | ~$0.003 |
+| **Total** | **~705K** | **~$2-3** |
 
-*Note: Costs are estimates based on current gpt-4o pricing. Actual costs may vary.*
+*Note: Costs are estimates based on current gpt-4o pricing. Significantly lower than the previous deliberation-based design (~$5-7) because assessments are per-claim, not per-problem×claim.*
 
 ---
 
@@ -302,21 +252,22 @@ Respond with ONLY the claim number (1, 2, 3, or 4).
 }
 ```
 
-### Phase 2: Deliberation Collection (Per Temperature)
+### Phase 2: Assessment Collection (Per Temperature)
 
 For each temperature T in [0.0, 0.3, 0.7, 1.0, 1.5]:
 
-1. For each problem:
-   - For each claim in the problem:
-     - Send deliberation prompt (with all claims visible, target claim specified)
-     - Record deliberation response
-     - Embed the deliberation response
-2. **After all temperatures are collected:** Pool the raw embeddings from all five temperature conditions and fit PCA on the pooled set to learn the projection matrix. Then apply that projection to each temperature's raw embeddings separately. This ensures a shared coordinate system derived from the full range of deliberative variation, without arbitrarily privileging any single temperature.
-3. Save deliberations and reduced embeddings
+1. For each claim in the pool (30 claims):
+   - Send assessment prompt with the claim's description (no other claims visible)
+   - Record assessment response
+   - Embed the assessment response
+2. **After all temperatures are collected:** Pool the raw embeddings from all five temperature conditions and fit PCA on the pooled set to learn the projection matrix. Then apply that projection to each temperature's raw embeddings separately. This ensures a shared coordinate system derived from the full range of assessment variation, without arbitrarily privileging any single temperature.
+3. Save assessments and reduced embeddings
 
-**Why per-temperature deliberation:** In the m_0 model, `w[r]` represents the feature description of alternative r that forms the basis for the decision maker's subjective probabilities over consequences (via `softmax(beta * w[r])`). Temperature affects *how the LLM reasons* about each claim, not just how it samples a final choice token. Collecting deliberations at each temperature level therefore captures a genuine aspect of the decision-making process—the quality and character of the reasoning that informs belief formation—rather than an incidental source of noise. Fixing deliberations at a single temperature would artificially decouple the belief-formation stage from the temperature manipulation.
+**Why per-claim (not per-problem×claim):** In the m_0 model, `w[r]` is a fixed property of alternative *r*. Assessments collected per-claim directly produce one embedding per claim, consistent with this assumption. The earlier deliberation-based design produced context-dependent embeddings that required averaging across problem contexts—an unsatisfying workaround.
 
-**Output per temperature:** `deliberations_T{temp}.json`, `embeddings_T{temp}.npz`
+**Why per-temperature assessment:** Temperature affects *how the LLM reasons* about each claim. Collecting assessments at each temperature level captures a genuine aspect of the belief-formation process. Fixing assessments at a single temperature would artificially decouple belief formation from the temperature manipulation.
+
+**Output per temperature:** `assessments_T{temp}.json`, `embeddings_raw_T{temp}.npz`
 
 ### Phase 3: Choice Collection (Per Temperature)
 
@@ -324,7 +275,7 @@ For each temperature T in [0.0, 0.3, 0.7, 1.0, 1.5]:
 
 1. For each problem:
    - For each presentation (shuffled ordering):
-     - Send choice prompt with claims in presentation order
+     - Send choice prompt with **assessment texts** (from the same temperature) in presentation order
      - Parse response to extract position choice (1-indexed)
      - If parsing fails (no valid integer, out of range, or ambiguous response): mark as **NA** and log the raw response. Do **not** default to any position—this was a source of systematic position bias in the prompt framing pilot.
      - If parsing succeeds: map position to claim ID
@@ -373,7 +324,7 @@ For each temperature:
    - `K`: number of consequences (3)
    - `D`: embedding dimension (32)
    - `R`: number of distinct claims across all problems (from the claim pool)
-   - `w[R, D]`: deliberative embeddings for each distinct claim
+   - `w[R, D]`: assessment embeddings for each distinct claim
    - `I[M, R]`: indicator matrix (which claims in which problem-presentation)
    - `y[M]`: chosen claim for each valid observation
 
@@ -461,7 +412,7 @@ applications/temperature_study/
 ├── config.py                      # Configuration dataclasses & validation
 ├── llm_client.py                  # LLM API interface (adapted from prompt_framing_study)
 ├── problem_generator.py           # Problem generation with shuffled presentations
-├── deliberation_collector.py      # Deliberation elicitation & embedding
+├── assessment_collector.py         # Per-claim assessment elicitation & embedding
 ├── choice_collector.py            # Choice collection with position tracking
 ├── study_runner.py                # Main pipeline orchestration
 ├── data_preparation.py            # Stan data packaging
@@ -490,10 +441,13 @@ applications/temperature_study/
 └── # Tests
 └── tests/
     ├── __init__.py
+    ├── conftest.py
     ├── test_problem_generator.py
-    ├── test_deliberation.py
+    ├── test_assessment_collector.py
     ├── test_choice_collector.py
-    └── conftest.py
+    ├── test_data_preparation.py
+    ├── test_study_runner.py
+    └── ...
 ```
 
 ### 7.2 Module Specifications
@@ -527,10 +481,11 @@ class StudyConfig:
 - `ProblemGenerator.generate_problems()` - create base problems with 2-4 claims
 - `ProblemGenerator.generate_presentations()` - create P randomly shuffled orderings per problem
 
-#### `deliberation_collector.py`
-- `DeliberationCollector.collect_deliberations(problems, temperature)` 
-- Embeds each deliberation response
-- Caches to avoid redundant calls
+#### `assessment_collector.py`
+- `AssessmentCollector.collect_temperature(temperature)` 
+- Iterates over claims (not problems × claims); one assessment per claim per temperature
+- Embeds each assessment response
+- `get_assessment_texts()` extracts {claim_id → text} for the choice phase
 
 #### `choice_collector.py`
 - `ChoiceCollector.collect_choices(problems, temperature)`
@@ -561,7 +516,7 @@ class StudyConfig:
 
 ## 8. Resolved Design Decisions
 
-1. **PCA fitting strategy:** Deliberations are collected at every temperature level (see #5). To reduce embedding dimensionality, raw embeddings from all five temperature conditions are *pooled* and PCA is fit on the pooled set to learn a projection matrix. That projection is then applied to each temperature's embeddings separately. This derives the reduced coordinate system from the full range of deliberative variation rather than arbitrarily anchoring on a single temperature, while still ensuring a shared basis for cross-condition comparability of `beta` estimates.
+1. **PCA fitting strategy:** Assessments are collected at every temperature level (see #5). To reduce embedding dimensionality, raw embeddings from all five temperature conditions are *pooled* and PCA is fit on the pooled set to learn a projection matrix. That projection is then applied to each temperature's embeddings separately. This derives the reduced coordinate system from the full range of assessment variation rather than arbitrarily anchoring on a single temperature, while still ensuring a shared basis for cross-condition comparability of `beta` estimates.
 
 2. **Data structure:** Each presentation is treated as a separate observation in the model (M ≤ 100 × P = 300 per temperature, after NA removal). No aggregation or majority voting—the model naturally handles repeated observations of the same base problem.
    
@@ -569,9 +524,11 @@ class StudyConfig:
 
 4. **Cross-model comparison:** Deferred to future work pending results of this initial study.
 
-5. **Per-temperature deliberation:** Deliberations are collected at each temperature level (not fixed at a single temperature). In the m_0 model, `w[r]` forms the basis for the decision maker's subjective probabilities via `softmax(beta * w[r])`. Temperature affects the LLM's reasoning process, which is part of the belief-formation mechanism that `w[r]` is meant to capture. Fixing deliberations at one temperature would artificially decouple belief formation from the manipulation.
+5. **Per-temperature assessment:** Assessments are collected at each temperature level (not fixed at a single temperature). In the m_0 model, `w[r]` forms the basis for the decision maker's subjective probabilities via `softmax(beta * w[r])`. Temperature affects the LLM's reasoning process, which is part of the belief-formation mechanism that `w[r]` is meant to capture. Fixing assessments at one temperature would artificially decouple belief formation from the manipulation.
 
-6. **NA handling for failed choice parses:** Unparseable LLM responses are recorded as NA and excluded before passing data to Stan (which does not accept missing values). This replaces the prompt framing pilot's approach of silently defaulting to position 0 (the first alternative), which likely contributed to the observed position bias. NA rates and excluded observations are reported transparently in the analysis (see §6.4).
+6. **Assessment-based design (replaces deliberation-based):** Assessments are collected per-claim (not per-problem×claim), producing one embedding per claim per temperature. This is consistent with m_0's `w[r]` being a fixed property of alternative *r*. The choice agent sees assessment texts rather than raw claim descriptions, ensuring decisions are based on the same information encoded in `w`. The earlier deliberation-based design produced context-dependent embeddings that required averaging—this is eliminated.
+
+7. **NA handling for failed choice parses:** Unparseable LLM responses are recorded as NA and excluded before passing data to Stan (which does not accept missing values). This replaces the prompt framing pilot's approach of silently defaulting to position 0 (the first alternative), which likely contributed to the observed position bias. NA rates and excluded observations are reported transparently in the analysis (see §6.4).
 
 ---
 
@@ -581,7 +538,7 @@ class StudyConfig:
 2. **Data quality:** >95% valid choice responses; <5% NA rate per temperature. All NAs logged, excluded from Stan data, and reported in analysis. No silent defaults to any position.
 3. **Statistical power:** Posterior distributions sufficiently narrow to detect meaningful α differences
 4. **Position bias control:** Demonstrated reduction in position confound vs. pilot
-5. **Interpretability:** Deliberative embeddings provide meaningful, examinable features
+5. **Interpretability:** Assessment embeddings provide meaningful, examinable features
 
 ---
 

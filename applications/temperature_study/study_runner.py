@@ -3,7 +3,7 @@ Study Runner — main pipeline orchestration for the Temperature Study.
 
 Runs the full pipeline end-to-end:
   Phase 1 → Problem generation
-  Phase 2 → Deliberation collection  +  Choice collection
+  Phase 2 → Assessment collection  +  Choice collection
   Phase 3 → Pooled PCA  +  NA filtering  +  Stan data assembly
   Phase 4 → Model fitting (optional, requires cmdstanpy)
 
@@ -22,7 +22,7 @@ import numpy as np
 
 from .config import StudyConfig
 from .problem_generator import ProblemGenerator
-from .deliberation_collector import DeliberationCollector
+from .assessment_collector import AssessmentCollector
 from .choice_collector import ChoiceCollector
 from .data_preparation import (
     EmbeddingReducer,
@@ -50,7 +50,7 @@ class TemperatureStudyRunner:
 
         # Components — lazily created during run()
         self._generator: Optional[ProblemGenerator] = None
-        self._delib_collector: Optional[DeliberationCollector] = None
+        self._assess_collector: Optional[AssessmentCollector] = None
         self._choice_collector: Optional[ChoiceCollector] = None
 
     # ------------------------------------------------------------------
@@ -90,29 +90,31 @@ class TemperatureStudyRunner:
         }
 
         if not skip_collection:
-            # ── Phase 2a: Deliberation Collection ──
-            per_temp_delibs, per_temp_raw_embs = self._run_phase2a(problems)
-            summary["phases"]["phase2a_deliberation"] = {
-                "temperatures": list(per_temp_delibs.keys()),
-                "deliberations_per_temp": {
-                    str(t): d["total_deliberations"]
-                    for t, d in per_temp_delibs.items()
+            # ── Phase 2a: Assessment Collection ──
+            per_temp_assess, per_temp_raw_embs = self._run_phase2a()
+            summary["phases"]["phase2a_assessment"] = {
+                "temperatures": list(per_temp_assess.keys()),
+                "assessments_per_temp": {
+                    str(t): d["total_assessments"]
+                    for t, d in per_temp_assess.items()
                 },
             }
 
             # ── Phase 2b: Choice Collection ──
-            per_temp_choices = self._run_phase2b(problems)
+            per_temp_choices = self._run_phase2b(
+                problems, per_temp_assess
+            )
             summary["phases"]["phase2b_choices"] = {
                 "temperatures": list(per_temp_choices.keys()),
                 "na_summary": ChoiceCollector.summarize_na(per_temp_choices),
             }
         else:
-            per_temp_delibs, per_temp_raw_embs = self._load_deliberations()
+            per_temp_assess, per_temp_raw_embs = self._load_assessments()
             per_temp_choices = self._load_choices()
 
         # ── Phase 3: Data Preparation ──
         stan_outputs = self._run_phase3(
-            problems, per_temp_delibs, per_temp_raw_embs, per_temp_choices
+            problems, per_temp_assess, per_temp_raw_embs, per_temp_choices
         )
         summary["phases"]["phase3_data_prep"] = stan_outputs
 
@@ -153,43 +155,51 @@ class TemperatureStudyRunner:
         return problems
 
     # ------------------------------------------------------------------
-    # Phase 2a: Deliberation Collection
+    # Phase 2a: Assessment Collection
     # ------------------------------------------------------------------
 
     def _run_phase2a(
-        self, problems: List[Dict[str, Any]]
+        self,
     ) -> Tuple[Dict[float, Dict[str, Any]], Dict[float, Dict[str, np.ndarray]]]:
-        logger.info("═══ Phase 2a: Deliberation Collection ═══")
-        collector = self._get_delib_collector()
+        logger.info("═══ Phase 2a: Assessment Collection ═══")
+        collector = self._get_assess_collector()
 
-        per_temp_delibs: Dict[float, Dict[str, Any]] = {}
-        per_temp_raw: Dict[float, Dict[str, np.ndarray]] = {}
+        per_temp_assess, per_temp_raw = collector.collect_all_temperatures()
 
+        # Checkpoint each temperature
         for temp in self.config.temperatures:
-            logger.info("  Collecting deliberations at T=%.1f", temp)
-            delib_dict, raw_embs = collector.collect_temperature(problems, temp)
-            per_temp_delibs[temp] = delib_dict
-            per_temp_raw[temp] = raw_embs
-
-            # Save immediately (checkpoint)
-            collector.save_deliberations(temp, delib_dict, raw_embs)
+            collector.save_assessments(
+                temp, per_temp_assess[temp], per_temp_raw[temp]
+            )
 
         logger.info(
-            "Deliberation usage: %s",
+            "Assessment usage: %s",
             json.dumps(collector.get_usage_summary(), indent=2),
         )
-        return per_temp_delibs, per_temp_raw
+        return per_temp_assess, per_temp_raw
 
     # ------------------------------------------------------------------
     # Phase 2b: Choice Collection
     # ------------------------------------------------------------------
 
     def _run_phase2b(
-        self, problems: List[Dict[str, Any]]
+        self,
+        problems: List[Dict[str, Any]],
+        per_temp_assess: Dict[float, Dict[str, Any]],
     ) -> Dict[float, Dict[str, Any]]:
         logger.info("═══ Phase 2b: Choice Collection ═══")
         collector = self._get_choice_collector()
-        per_temp = collector.collect_all_temperatures(problems)
+
+        # Build assessments_per_temp: {temp -> {claim_id -> text}}
+        assessments_per_temp: Dict[float, Dict[str, str]] = {}
+        for temp, assess_dict in per_temp_assess.items():
+            assessments_per_temp[temp] = (
+                AssessmentCollector.get_assessment_texts(assess_dict)
+            )
+
+        per_temp = collector.collect_all_temperatures(
+            problems, assessments_per_temp=assessments_per_temp
+        )
 
         # Save
         collector.save_all(per_temp)
@@ -207,7 +217,7 @@ class TemperatureStudyRunner:
     def _run_phase3(
         self,
         problems: List[Dict[str, Any]],
-        per_temp_delibs: Dict[float, Dict[str, Any]],
+        per_temp_assess: Dict[float, Dict[str, Any]],
         per_temp_raw_embs: Dict[float, Dict[str, np.ndarray]],
         per_temp_choices: Dict[float, Dict[str, Any]],
     ) -> Dict[str, Any]:
@@ -288,6 +298,8 @@ class TemperatureStudyRunner:
             logger.warning("cmdstanpy not installed — skipping model fitting")
             return {"skipped": True, "reason": "cmdstanpy not available"}
 
+        from analysis.posterior_predictive_checks import PosteriorPredictiveChecker
+
         model_path = (
             Path(__file__).resolve().parent.parent.parent
             / "models"
@@ -317,12 +329,41 @@ class TemperatureStudyRunner:
                 show_progress=True,
             )
 
-            # Save fit summary
+            # ── Persist fit artefacts ──
             ts = f"{temp:.1f}".replace(".", "_")
             fit_dir = self.results_dir / f"fit_T{ts}"
             fit_dir.mkdir(parents=True, exist_ok=True)
 
+            # 1. Save CmdStan CSV draw files
+            fit.save_csvfiles(dir=str(fit_dir))
+            logger.info("  Saved CSV draw files → %s", fit_dir)
+
+            # 2. Parameter summary (Rhat, ESS, quantiles)
+            summary_df = fit.summary()
+            summary_df.to_csv(fit_dir / "summary.csv")
+            logger.info("  Saved parameter summary → summary.csv")
+
+            # 3. Diagnostics text (divergences, tree-depth, E-BFMI)
+            diagnostics_text = fit.diagnose()
+            (fit_dir / "diagnostics.txt").write_text(diagnostics_text)
+            logger.info("  Saved diagnostics → diagnostics.txt")
+
+            # 4. Posterior predictive checks
+            checker = PosteriorPredictiveChecker(fit, stan_data)
+            ppc = checker.to_dict()
+            with open(fit_dir / "ppc.json", "w") as f:
+                json.dump(ppc, f, indent=2)
+            ppc_summary = checker.summary()
+            (fit_dir / "ppc_summary.txt").write_text(ppc_summary)
+            logger.info("  Saved PPC → ppc.json, ppc_summary.txt")
+
+            # 5. Alpha draws (compact .npz for quick reload)
             alpha_draws = fit.stan_variable("alpha")
+            np.savez_compressed(
+                fit_dir / "alpha_draws.npz", alpha=alpha_draws
+            )
+
+            # ── Build results dict ──
             fit_results[temp_str] = {
                 "alpha_mean": float(np.mean(alpha_draws)),
                 "alpha_median": float(np.median(alpha_draws)),
@@ -330,6 +371,8 @@ class TemperatureStudyRunner:
                 "alpha_q05": float(np.quantile(alpha_draws, 0.05)),
                 "alpha_q95": float(np.quantile(alpha_draws, 0.95)),
                 "output_dir": str(fit_dir),
+                "ppc_p_values": ppc["p_values"],
+                "diagnostics": diagnostics_text,
             }
 
             logger.info(
@@ -340,6 +383,21 @@ class TemperatureStudyRunner:
                 fit_results[temp_str]["alpha_q05"],
                 fit_results[temp_str]["alpha_q95"],
             )
+            for stat, pval in ppc["p_values"].items():
+                logger.info("    PPC %s: p=%.3f", stat, pval)
+
+        # 6. Save cross-temperature summary JSON
+        summary_out = {
+            temp_str: {
+                k: v
+                for k, v in info.items()
+                if k != "diagnostics"
+            }
+            for temp_str, info in fit_results.items()
+        }
+        with open(self.results_dir / "fit_summary.json", "w") as f:
+            json.dump(summary_out, f, indent=2)
+        logger.info("Saved cross-temperature summary → fit_summary.json")
 
         return fit_results
 
@@ -379,25 +437,25 @@ class TemperatureStudyRunner:
     # Loading helpers (for skip_collection mode)
     # ------------------------------------------------------------------
 
-    def _load_deliberations(
+    def _load_assessments(
         self,
     ) -> Tuple[Dict[float, Dict[str, Any]], Dict[float, Dict[str, np.ndarray]]]:
-        logger.info("Loading saved deliberations and embeddings…")
-        per_temp_delibs: Dict[float, Dict[str, Any]] = {}
+        logger.info("Loading saved assessments and embeddings…")
+        per_temp_assess: Dict[float, Dict[str, Any]] = {}
         per_temp_raw: Dict[float, Dict[str, np.ndarray]] = {}
 
         for temp in self.config.temperatures:
             ts = f"{temp:.1f}".replace(".", "_")
-            delib_path = self.results_dir / f"deliberations_T{ts}.json"
+            assess_path = self.results_dir / f"assessments_T{ts}.json"
             emb_path = self.results_dir / f"embeddings_raw_T{ts}.npz"
 
-            with open(delib_path) as f:
-                per_temp_delibs[temp] = json.load(f)
+            with open(assess_path) as f:
+                per_temp_assess[temp] = json.load(f)
 
             data = np.load(emb_path)
             per_temp_raw[temp] = {k: data[k] for k in data.files}
 
-        return per_temp_delibs, per_temp_raw
+        return per_temp_assess, per_temp_raw
 
     def _load_choices(self) -> Dict[float, Dict[str, Any]]:
         logger.info("Loading saved choices…")
@@ -417,12 +475,13 @@ class TemperatureStudyRunner:
             self._generator = ProblemGenerator.from_config(self.config)
         return self._generator
 
-    def _get_delib_collector(self) -> DeliberationCollector:
-        if self._delib_collector is None:
-            self._delib_collector = DeliberationCollector(
-                self.config, self._get_generator()
+    def _get_assess_collector(self) -> AssessmentCollector:
+        if self._assess_collector is None:
+            gen = self._get_generator()
+            self._assess_collector = AssessmentCollector(
+                self.config, gen.claims
             )
-        return self._delib_collector
+        return self._assess_collector
 
     def _get_choice_collector(self) -> ChoiceCollector:
         if self._choice_collector is None:

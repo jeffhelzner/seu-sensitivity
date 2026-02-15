@@ -16,6 +16,18 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
+# Load environment variables from .env file
+try:
+    from dotenv import load_dotenv
+    # Look for .env in project root (three levels up from this file)
+    env_path = Path(__file__).resolve().parent.parent.parent / ".env"
+    if env_path.exists():
+        load_dotenv(env_path)
+    else:
+        load_dotenv()
+except ImportError:
+    pass  # dotenv not installed, rely on environment variables
+
 
 def _setup_logging(verbose: bool = False) -> None:
     level = logging.DEBUG if verbose else logging.INFO
@@ -49,25 +61,78 @@ def cmd_validate(args: argparse.Namespace) -> None:
 def cmd_estimate_cost(args: argparse.Namespace) -> None:
     """Print estimated API cost breakdown."""
     from .config import StudyConfig
+    from .llm_client import OPENAI_PRICING, ANTHROPIC_PRICING, EMBEDDING_PRICING
 
     config = StudyConfig.from_yaml(args.config)
 
-    avg_alts = (config.min_alternatives + config.max_alternatives) / 2
-    n_delib = config.num_problems * avg_alts * len(config.temperatures)
+    # Load claim pool to count claims
+    claims_path = Path(config.claims_file)
+    if claims_path.exists():
+        with open(claims_path) as f:
+            pool = json.load(f)
+        n_claims = len(pool.get("claims", []))
+    else:
+        # Fallback: estimate from problem parameters
+        n_claims = 30  # default pool size
+        print(f"⚠️   Claim pool not found at {claims_path}, assuming {n_claims} claims")
+
+    n_assess = n_claims * len(config.temperatures)
     n_choices = (
         config.num_problems
         * config.num_presentations
         * len(config.temperatures)
     )
-    n_embed = n_delib
+    n_embed = n_assess
+
+    # Token estimates per call (based on prompt templates and typical responses)
+    # Assessment: ~300 input tokens (system + user + claim description),
+    #             ~100 output tokens (2-4 sentence analysis)
+    # Choice:     ~400 input tokens (system + user + assessment texts),
+    #             ~10 output tokens (single number)
+    # Embedding:  ~200 tokens per assessment response
+    assess_input_tok = 300 * n_assess
+    assess_output_tok = 100 * n_assess
+    choice_input_tok = 400 * n_choices
+    choice_output_tok = 10 * n_choices
+    embed_tok = 200 * n_embed
+
+    # Look up pricing
+    provider = getattr(config, "provider", "openai")
+    if provider == "anthropic":
+        pricing = ANTHROPIC_PRICING.get(config.llm_model, {"input": 0, "output": 0})
+    else:
+        pricing = OPENAI_PRICING.get(config.llm_model, {"input": 0, "output": 0})
+    embed_pricing = EMBEDDING_PRICING.get(config.embedding_model, 0.0)
+
+    assess_cost = (
+        (assess_input_tok / 1_000_000) * pricing["input"]
+        + (assess_output_tok / 1_000_000) * pricing["output"]
+    )
+    choice_cost = (
+        (choice_input_tok / 1_000_000) * pricing["input"]
+        + (choice_output_tok / 1_000_000) * pricing["output"]
+    )
+    embed_cost = (embed_tok / 1_000_000) * embed_pricing
+
+    total_cost = assess_cost + choice_cost + embed_cost
 
     print("═══ Estimated API Calls ═══")
-    print(f"  Deliberations : {n_delib:,.0f}")
+    print(f"  Assessments   : {n_assess:,.0f}")
     print(f"  Choices       : {n_choices:,.0f}")
     print(f"  Embeddings    : {n_embed:,.0f}")
-    print(f"  Total         : {n_delib + n_choices + n_embed:,.0f}")
+    print(f"  Total calls   : {n_assess + n_choices + n_embed:,.0f}")
     print()
-    print("(Detailed token-level cost estimation will be added with study_runner)")
+    print(f"═══ Estimated Cost ({config.llm_model}) ═══")
+    print(f"  Assessments   : ${assess_cost:,.2f}  "
+          f"({assess_input_tok / 1e6:.2f}M in / {assess_output_tok / 1e6:.2f}M out)")
+    print(f"  Choices       : ${choice_cost:,.2f}  "
+          f"({choice_input_tok / 1e6:.2f}M in / {choice_output_tok / 1e6:.2f}M out)")
+    print(f"  Embeddings    : ${embed_cost:,.2f}  "
+          f"({embed_tok / 1e6:.2f}M tokens, {config.embedding_model})")
+    print(f"  ─────────────────────────")
+    print(f"  Total         : ${total_cost:,.2f}")
+    print()
+    print("Note: Token counts are estimates based on typical prompt/response sizes.")
 
 
 def cmd_run(args: argparse.Namespace) -> None:
@@ -111,13 +176,39 @@ def cmd_fit(args: argparse.Namespace) -> None:
         print(f"⚠️  Model fitting skipped: {fit_results['reason']}")
         return
 
-    print("✅  Model fitting complete.")
+    print("✅  Model fitting complete.\n")
+
     for temp_str, info in fit_results.items():
-        if isinstance(info, dict) and "alpha_median" in info:
-            print(
-                f"    T={temp_str}: α median={info['alpha_median']:.3f}  "
-                f"90% CI=[{info['alpha_q05']:.3f}, {info['alpha_q95']:.3f}]"
-            )
+        if not isinstance(info, dict) or "alpha_median" not in info:
+            continue
+
+        print(f"── T={temp_str} ──")
+        print(
+            f"  α  median={info['alpha_median']:.3f}  "
+            f"mean={info['alpha_mean']:.3f}  "
+            f"90% CI=[{info['alpha_q05']:.3f}, {info['alpha_q95']:.3f}]"
+        )
+
+        # Diagnostics one-liner
+        diag = info.get("diagnostics", "")
+        if "no problems detected" in diag.lower():
+            print("  Diagnostics: ✓ no problems detected")
+        else:
+            # Print first meaningful line of diagnostics
+            for line in diag.splitlines():
+                line = line.strip()
+                if line and not line.startswith("Processing"):
+                    print(f"  Diagnostics: {line}")
+                    break
+
+        # PPC p-values
+        ppc = info.get("ppc_p_values", {})
+        if ppc:
+            parts = [f"{stat}={p:.3f}" for stat, p in ppc.items()]
+            print(f"  PPC p-values: {', '.join(parts)}")
+
+        print(f"  Output: {info['output_dir']}")
+        print()
 
 
 # ── main entry point ────────────────────────────────────────────────

@@ -2,7 +2,9 @@
 Choice Collector for the Temperature Study.
 
 Sends choice prompts for each problem × presentation × temperature,
-parses responses with NA-safe logic, and records position metadata.
+using assessment texts (not raw claim descriptions) so that the
+choice agent operates on the same information encoded into w[r].
+Parses responses with NA-safe logic and records position metadata.
 """
 from __future__ import annotations
 
@@ -26,8 +28,9 @@ class ChoiceCollector:
     Collect choices per temperature with NA-safe parsing.
 
     For each problem × presentation × temperature, the choice prompt is
-    sent with claims in the presentation's shuffled order.  Responses are
-    parsed strictly; failures are recorded as NA (``valid=false``).
+    sent with assessment texts in the presentation's shuffled order.
+    Responses are parsed strictly; failures are recorded as NA
+    (``valid=false``).
     """
 
     def __init__(
@@ -71,6 +74,7 @@ class ChoiceCollector:
         problems: List[Dict[str, Any]],
         temperature: float,
         *,
+        assessments: Optional[Dict[str, str]] = None,
         checkpoint_every: int = 50,
     ) -> Dict[str, Any]:
         """
@@ -79,6 +83,9 @@ class ChoiceCollector:
         Args:
             problems: List of problem dicts with ``presentations``.
             temperature: The LLM temperature for this condition.
+            assessments: Mapping of claim_id → assessment text.  When
+                provided, the choice prompt presents these assessment
+                texts instead of raw claim descriptions.
             checkpoint_every: Save intermediate results every N choices.
 
         Returns:
@@ -99,12 +106,20 @@ class ChoiceCollector:
 
             for pres in problem["presentations"]:
                 ordered_ids = pres["order"]
-                claims_list_str = self.generator.format_choice_claims_list(
-                    ordered_ids
-                )
+
+                if assessments is not None:
+                    list_str = ProblemGenerator.format_choice_assessments_list(
+                        ordered_ids, assessments
+                    )
+                else:
+                    # Fallback: use raw claim descriptions formatted as
+                    # assessments (for tests or backward compatibility)
+                    list_str = self.generator.format_choice_claims_list(
+                        ordered_ids
+                    )
 
                 user_prompt = user_template.format(
-                    claims_list=claims_list_str,
+                    assessments_list=list_str,
                     num_range=num_range_str,
                 )
 
@@ -188,10 +203,18 @@ class ChoiceCollector:
         self,
         problems: List[Dict[str, Any]],
         *,
+        assessments_per_temp: Optional[Dict[float, Dict[str, str]]] = None,
         checkpoint_every: int = 50,
     ) -> Dict[float, Dict[str, Any]]:
         """
         Collect choices across all configured temperatures.
+
+        Args:
+            problems: List of problem dicts with ``presentations``.
+            assessments_per_temp: Optional mapping of temperature →
+                {claim_id → assessment text}.  When provided, assessment
+                texts are used in the choice prompt.
+            checkpoint_every: Save intermediate results every N choices.
 
         Returns:
             Dict mapping temperature → choices dict.
@@ -199,8 +222,15 @@ class ChoiceCollector:
         results: Dict[float, Dict[str, Any]] = {}
         for temp in self.config.temperatures:
             logger.info("Starting choice collection at T=%.1f", temp)
+            assess = (
+                assessments_per_temp[temp]
+                if assessments_per_temp is not None
+                else None
+            )
             results[temp] = self.collect_temperature(
-                problems, temp, checkpoint_every=checkpoint_every
+                problems, temp,
+                assessments=assess,
+                checkpoint_every=checkpoint_every,
             )
             logger.info(
                 "T=%.1f cost so far: $%.4f",

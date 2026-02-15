@@ -48,7 +48,7 @@ class EmbeddingReducer:
         Args:
             pooled_embeddings: Dict mapping arbitrary keys to 1-D raw
                 embedding vectors.  Typically keyed as
-                ``"{problem_id}_{claim_id}_T{temp}"``.
+                ``"{claim_id}_T{temp}"``.
 
         Returns:
             self (for chaining).
@@ -87,7 +87,7 @@ class EmbeddingReducer:
         Apply the fitted PCA projection to a set of raw embeddings.
 
         Args:
-            raw_embeddings: Dict mapping keys (e.g. ``"{problem_id}_{claim_id}"``)
+            raw_embeddings: Dict mapping keys (e.g. claim IDs)
                 to 1-D raw embedding vectors.
 
         Returns:
@@ -109,10 +109,10 @@ class EmbeddingReducer:
         Convenience: pool → fit → project per temperature.
 
         Args:
-            per_temp_raw: Maps temperature → {embedding_key → raw_vector}.
+            per_temp_raw: Maps temperature → {claim_id → raw_vector}.
 
         Returns:
-            Maps temperature → {embedding_key → reduced_vector}.
+            Maps temperature → {claim_id → reduced_vector}.
         """
         # Pool all temperatures
         pooled: Dict[str, np.ndarray] = {}
@@ -232,8 +232,8 @@ class StanDataBuilder:
 
         Args:
             valid_choices: List of valid choice entries (``valid==True``).
-            reduced_embeddings: Maps ``"{problem_id}_{claim_id}"`` → reduced
-                embedding vector (D-dim).
+            reduced_embeddings: Maps claim_id → reduced embedding vector
+                (D-dim).  One vector per distinct claim.
             problems: Full problem list (for claim_ids lookup).
 
         Returns:
@@ -268,31 +268,18 @@ class StanDataBuilder:
         R = len(claim_id_list)
 
         # ── 2. Build w[R, D] ──
-        # We need one embedding per distinct claim. Since embeddings are keyed
-        # as "{problem_id}_{claim_id}", the same claim may have different
-        # embeddings across problems (deliberation is problem-context-specific).
-        # Strategy: average across all problem contexts where this claim appears.
-        claim_vectors: Dict[str, List[np.ndarray]] = {cid: [] for cid in claim_id_list}
-        for key, vec in reduced_embeddings.items():
-            # key format: "{problem_id}_{claim_id}"
-            parts = key.rsplit("_", 1)
-            if len(parts) == 2:
-                cid = parts[1]
-                if cid in claim_vectors:
-                    claim_vectors[cid].append(vec)
-
+        # One embedding per distinct claim, keyed directly by claim_id.
         w: List[List[float]] = []
         D = None
         for cid in claim_id_list:
-            vecs = claim_vectors[cid]
-            if not vecs:
+            if cid not in reduced_embeddings:
                 raise ValueError(
                     f"No reduced embedding found for claim {cid}"
                 )
-            avg_vec = np.mean(vecs, axis=0)
-            w.append(avg_vec.tolist())
+            vec = reduced_embeddings[cid]
+            w.append(vec.tolist() if isinstance(vec, np.ndarray) else list(vec))
             if D is None:
-                D = len(avg_vec)
+                D = len(vec)
 
         if D is None:
             raise ValueError("Could not determine embedding dimension D")

@@ -201,6 +201,29 @@ class ProblemGenerator:
         return "\n".join(lines)
 
     @staticmethod
+    def format_choice_assessments_list(
+        ordered_claim_ids: List[str],
+        assessments: Dict[str, str],
+    ) -> str:
+        """
+        Format assessment texts with numeric labels for the choice prompt.
+
+        Args:
+            ordered_claim_ids: Claim IDs in presentation order.
+            assessments: Mapping of claim_id → assessment text.
+
+        Example output::
+
+            - Claim 1: <assessment text>
+            - Claim 2: <assessment text>
+        """
+        lines: List[str] = []
+        for idx, cid in enumerate(ordered_claim_ids, start=1):
+            text = assessments[cid]
+            lines.append(f"- Claim {idx}: {text}")
+        return "\n".join(lines)
+
+    @staticmethod
     def claim_index_to_letter(index: int) -> str:
         """Map a 0-based claim index to its letter label (A, B, …)."""
         return _LETTERS[index]

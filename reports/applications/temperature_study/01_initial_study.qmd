@@ -1,0 +1,695 @@
+---
+title: "Temperature and SEU Sensitivity: Initial Results"
+subtitle: "Application Report: Temperature Study 1"
+description: |
+  An initial investigation of how LLM sampling temperature affects estimated 
+  sensitivity (α) to expected utility maximization, using a calibrated prior 
+  and the m_01 model variant.
+categories: [applications, temperature, m_01]
+execute:
+  cache: true
+---
+
+```{python}
+#| label: setup
+#| include: false
+
+import sys
+import os
+
+reports_root = os.path.normpath(os.path.join(os.getcwd(), '..', '..'))
+project_root = os.path.dirname(reports_root)
+sys.path.insert(0, reports_root)
+sys.path.insert(0, project_root)
+
+import numpy as np
+import json
+import warnings
+warnings.filterwarnings('ignore')
+
+import matplotlib.pyplot as plt
+
+# Use project plotting style
+from report_utils import set_seu_style, SEU_COLORS, SEU_PALETTE
+set_seu_style()
+
+# Data directory (frozen snapshot — immune to future pipeline runs)
+from pathlib import Path
+data_dir = Path("data")
+```
+
+## Introduction
+
+The foundational reports established the SEU sensitivity model's theoretical properties ([Report 1](../../foundations/01_abstract_formulation.qmd)), concrete implementation ([Report 2](../../foundations/02_concrete_implementation.qmd)), and computational validity ([Reports 3–6](../../foundations/03_prior_analysis.qmd)). This report presents the first empirical application: investigating how the **sampling temperature** of a large language model affects its estimated sensitivity to expected utility maximization.
+
+The motivation is straightforward. In the softmax choice model, the sensitivity parameter $\alpha$ governs how sharply choices track expected utility differences. Language models employ their own softmax temperature during token sampling, which controls the entropy of the next-token distribution. If the LLM's choice behavior is well-described by our model, then increasing the external sampling temperature should *decrease* the estimated $\alpha$—the additional stochasticity in token generation should manifest as noisier, less EU-aligned choices.
+
+::: {.callout-note}
+## What This Report Covers
+This report presents initial results from a single data collection. The study design, prior calibration, model fitting, and primary analysis are documented here. Subsequent reports will address robustness checks and extensions.
+:::
+
+## Experimental Design {#sec-design}
+
+### Task and Conditions
+
+We use an insurance claims triage task in which GPT-4o selects which claim to forward for investigation from a set of $K = 3$ alternatives. The LLM first *assesses* each claim individually (producing text that is then embedded), and subsequently makes a *choice* among the alternatives in a given problem.
+
+Five temperature levels define the between-condition factor:
+
+```{python}
+#| label: tbl-conditions
+#| tbl-cap: "Experimental conditions. Each temperature level constitutes a separate model fit."
+
+import pandas as pd
+
+conditions = pd.DataFrame({
+    'Level': [1, 2, 3, 4, 5],
+    'Temperature': [0.0, 0.3, 0.7, 1.0, 1.5],
+    'Description': [
+        'Deterministic (greedy decoding)',
+        'Low variance',
+        'Moderate variance (typical default)',
+        'High variance',
+        'Very high variance'
+    ]
+})
+conditions
+```
+
+### Design Parameters
+
+```{python}
+#| label: design-params
+#| echo: true
+
+# Load frozen study configuration
+import yaml
+
+with open(data_dir / "study_config.yaml") as f:
+    config = yaml.safe_load(f)
+
+# Load run summary for pipeline details
+with open(data_dir / "run_summary.json") as f:
+    run_summary = json.load(f)
+
+print(f"Study Design:")
+print(f"  Decision problems (M):      {config['num_problems']} base × {config['num_presentations']} presentations = {config['num_problems'] * config['num_presentations']}")
+print(f"  Alternatives per problem:    {config['min_alternatives']}–{config['max_alternatives']}")
+print(f"  Consequences (K):            {config['K']}")
+print(f"  Embedding dimensions (D):    {config['target_dim']}")
+print(f"  Distinct alternatives (R):   {run_summary['phases']['phase3_data_prep']['per_temperature']['0.0']['R']}")
+print(f"  LLM model:                   {config['llm_model']}")
+print(f"  Embedding model:             {config['embedding_model']}")
+```
+
+Each of the 100 base problems is presented $P = 3$ times with claims shuffled to different positions, yielding $M = 300$ observations per temperature condition. This **position counterbalancing** design addresses the systematic position bias discovered in an earlier pilot study, where unparseable responses were silently mapped to position 0. Here, each claim appears in multiple positions across presentations, and any unparseable response is recorded as NA rather than assigned a default.
+
+### Feature Construction
+
+Alternative features are constructed through a two-stage process. First, the LLM assesses each claim on its own merits at the relevant temperature, producing a natural-language evaluation. These assessments are embedded using `text-embedding-3-small`, yielding high-dimensional vectors. Second, all embeddings across temperature conditions are pooled and projected via PCA to $D = 32$ dimensions. Crucially, PCA is fit once on the pooled set and then applied to each condition separately, ensuring a shared coordinate system without privileging any single temperature.
+
+```{python}
+#| label: pca-variance
+#| echo: false
+
+pca = run_summary['phases']['phase3_data_prep']['pca_summary']
+cumvar = np.cumsum(pca['explained_variance_ratio'])
+
+print(f"PCA Summary:")
+print(f"  Components retained: {pca['n_components']}")
+print(f"  Total variance explained: {pca['total_explained_variance']:.1%}")
+print(f"  First 5 components: {cumvar[4]:.1%}")
+print(f"  First 10 components: {cumvar[9]:.1%}")
+```
+
+### Data Quality
+
+```{python}
+#| label: data-quality
+#| echo: false
+
+na = run_summary['phases']['phase2b_choices']['na_summary']
+print(f"NA Summary:")
+print(f"  Overall: {na['overall']['na']} / {na['overall']['total']} ({na['overall']['na_rate']:.1%})")
+for key, val in na['per_temperature'].items():
+    print(f"  {key}: {val['na']} / {val['total']} ({val['na_rate']:.1%})")
+```
+
+No observations were lost to parsing failures at any temperature level—a substantial improvement over the earlier pilot, which required ad hoc imputation.
+
+## Model and Prior Calibration {#sec-model}
+
+### The m_01 Model Variant
+
+We fit the **m_01** model, which is structurally identical to the foundational m_0 model described in [Report 2](../../foundations/02_concrete_implementation.qmd). The only difference is the prior on the sensitivity parameter $\alpha$:
+
+| | m_0 (foundational) | m_01 (this study) |
+|---|---|---|
+| $\alpha$ prior | $\text{Lognormal}(0, 1)$ | $\text{Lognormal}(3.0, 0.75)$ |
+| Prior median | $\approx 1$ | $\approx 20$ |
+| Prior 90% CI | $[0.19, 5.0]$ | $[5.5, 67]$ |
+| All other priors | — | Identical to m_0 |
+
+The foundational prior $\text{Lognormal}(0, 1)$ was chosen for generality: it spans a wide range of sensitivity levels appropriate for exploring the model's behavior in simulation. However, when applied to LLM choice data—where we expect substantial sensitivity to EU differences—this prior places most of its mass well below the region where the data concentrate. The prior predictive analysis below motivates a more informative alternative.
+
+### Prior Predictive Grid Search
+
+To select the m_01 prior, we conducted a grid search over 12 candidate lognormal hyperparameter pairs $(\mu, \sigma)$, evaluating each via prior predictive simulation against the actual study design.
+
+For each candidate prior, we:
+
+1. Drew $N = 200$ values of $\alpha$ from $\text{Lognormal}(\mu, \sigma)$
+2. Simulated choice data from `m_0_sim.stan` using the actual study design ($M = 300$, $K = 3$, $D = 32$, $R = 30$)
+3. Computed the **SEU-maximizer selection rate**: the fraction of problems in which the simulated agent chose the alternative with the highest expected utility
+
+```{python}
+#| label: fig-grid-search
+#| fig-cap: "Prior predictive grid search results. Each point represents a candidate lognormal prior for α, evaluated by the SEU-maximizer selection rate it implies. The selected prior lognormal(3.0, 0.75) balances informativeness with sufficient coverage of the plausible parameter range."
+
+with open(data_dir / "grid_results.json") as f:
+    grid = json.load(f)
+
+results = grid['results']
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+
+# Left: SEU rate by prior
+labels = [r['prior_label'] for r in results]
+means = [r['seu_rate_mean'] for r in results]
+q05s = [r['seu_rate_q05'] for r in results]
+q95s = [r['seu_rate_q95'] for r in results]
+
+y_pos = np.arange(len(labels))
+errors = np.array([[m - q05, q95 - m] for m, q05, q95 in zip(means, q05s, q95s)]).T
+
+colors = [SEU_COLORS['accent'] if 'lognormal(3.0, 0.75)' in l else SEU_COLORS['primary'] 
+          for l in labels]
+
+axes[0].barh(y_pos, means, xerr=errors, color=colors, alpha=0.8, 
+             edgecolor='white', capsize=3)
+axes[0].set_yticks(y_pos)
+axes[0].set_yticklabels(labels, fontsize=9)
+axes[0].set_xlabel('SEU-Maximizer Selection Rate')
+axes[0].set_title('Prior-Implied SEU-Max Rate')
+axes[0].axvline(x=1/3, color='gray', linestyle='--', alpha=0.5, label='Random (1/K)')
+axes[0].legend(fontsize=9)
+axes[0].set_xlim(0, 1)
+
+# Right: prior density comparison
+selected = [r for r in results if 'lognormal(3.0, 0.75)' in r['prior_label']][0]
+foundational = [r for r in results if 'lognormal(0.0, 1.0)' in r['prior_label']][0]
+
+from scipy.stats import lognorm
+x = np.linspace(0.1, 150, 500)
+
+# m_0 prior: lognormal(0, 1) → scipy shape=1, scale=exp(0)=1
+axes[1].plot(x, lognorm.pdf(x, s=1.0, scale=np.exp(0)), 
+             color=SEU_COLORS['secondary'], linewidth=2, label='m_0: Lognormal(0, 1)')
+# m_01 prior: lognormal(3.0, 0.75)
+axes[1].plot(x, lognorm.pdf(x, s=0.75, scale=np.exp(3.0)),
+             color=SEU_COLORS['accent'], linewidth=2, label='m_01: Lognormal(3.0, 0.75)')
+axes[1].set_xlabel('α')
+axes[1].set_ylabel('Density')
+axes[1].set_title('Prior Comparison')
+axes[1].legend(fontsize=9)
+axes[1].set_xlim(0, 150)
+
+plt.tight_layout()
+plt.show()
+```
+
+The selected prior $\text{Lognormal}(3.0, 0.75)$ has the following properties:
+
+- **Median $\approx 20$**, placing prior mass in the region where we expect LLM sensitivity to lie
+- **90% CI $\approx [5.5, 67]$**, wide enough to accommodate substantial uncertainty
+- **Prior-implied SEU-max rate $\approx 78\%$**, consistent with the expectation that LLMs make reasonably EU-aligned choices
+- **No numerical issues**: the prior avoids the extreme $\alpha$ values that caused softmax overflow with wider priors
+
+::: {.callout-note}
+## Why Not the Foundational Prior?
+The m_0 prior $\text{Lognormal}(0, 1)$ was designed for generality in simulation studies. Its median of $\approx 1$ means most prior mass sits in a regime where choices are nearly random—appropriate for exploring model behavior, but a poor match for LLM data where we observe strong EU-alignment. With the actual study design ($M = 300$, $D = 32$), the foundational prior also places non-negligible mass on very large $\alpha$ values that cause numerical overflow in the softmax computation. The m_01 prior resolves both issues.
+:::
+
+## Results {#sec-results}
+
+### Loading Posterior Draws
+
+```{python}
+#| label: load-posteriors
+#| output: false
+
+temperatures = [0.0, 0.3, 0.7, 1.0, 1.5]
+temp_labels = {t: f"T={t}" for t in temperatures}
+
+# Load alpha draws for each temperature
+alpha_draws = {}
+for t in temperatures:
+    key = f"T{str(t).replace('.', '_')}"
+    data = np.load(data_dir / f"alpha_draws_{key}.npz")
+    alpha_draws[t] = data['alpha']
+
+# Load pre-computed analysis results
+with open(data_dir / "primary_analysis.json") as f:
+    analysis = json.load(f)
+
+# Load fit summary
+with open(data_dir / "fit_summary.json") as f:
+    fit_summary = json.load(f)
+```
+
+```{python}
+#| echo: false
+# Verify draws loaded correctly
+for t in temperatures:
+    n = len(alpha_draws[t])
+    print(f"  T={t}: {n:,} posterior draws loaded")
+```
+
+### MCMC Diagnostics
+
+```{python}
+#| label: tbl-diagnostics
+#| tbl-cap: "MCMC diagnostics for all five temperature conditions. All fits used 4 chains with 1,000 warmup and 1,000 sampling iterations each (4,000 post-warmup draws total)."
+
+diag_rows = []
+for t in temperatures:
+    key = f"T{str(t).replace('.', '_')}"
+    with open(data_dir / f"diagnostics_{key}.txt") as f:
+        diag_text = f.read()
+    
+    # Parse divergences
+    if "No divergent transitions" in diag_text:
+        n_div = 0
+    else:
+        import re
+        match = re.search(r'(\d+) of (\d+)', diag_text)
+        n_div = int(match.group(1)) if match else 0
+    
+    rhat_ok = "R-hat values satisfactory" in diag_text
+    ess_ok = "effective sample size satisfactory" in diag_text
+    ebfmi_ok = "E-BFMI satisfactory" in diag_text
+    
+    diag_rows.append({
+        'Temperature': t,
+        'Divergences': f"{n_div}/4000",
+        'R̂': '✓' if rhat_ok else '✗',
+        'ESS': '✓' if ess_ok else '✗',
+        'E-BFMI': '✓' if ebfmi_ok else '✗',
+    })
+
+pd.DataFrame(diag_rows)
+```
+
+All conditions show clean diagnostics. The 1–2 divergent transitions at $T = 1.0$ and $T = 1.5$ (< 0.05% of transitions) are well within acceptable bounds and do not indicate systematic sampling difficulties.
+
+### Posterior Summaries
+
+```{python}
+#| label: tbl-posteriors
+#| tbl-cap: "Posterior summaries for the sensitivity parameter α at each temperature level. Intervals are 90% credible intervals."
+
+summary = analysis['summary_table']
+
+rows = []
+for s in summary:
+    rows.append({
+        'Temperature': s['temperature'],
+        'Median': f"{s['median']:.1f}",
+        'Mean': f"{s['mean']:.1f}",
+        'SD': f"{s['sd']:.1f}",
+        '90% CI': f"[{s['ci_low']:.1f}, {s['ci_high']:.1f}]",
+    })
+
+pd.DataFrame(rows)
+```
+
+The estimates reveal a clear pattern: $\alpha$ is highest at $T = 0.0$ (greedy decoding) and lowest at $T = 1.5$ (high temperature), with intermediate conditions falling between these extremes. Note, however, the near-equality of the $T = 0.3$ and $T = 0.7$ estimates—a point we return to below.
+
+### Forest Plot
+
+```{python}
+#| label: fig-forest
+#| fig-cap: "Forest plot of posterior α distributions across temperature conditions. Points show posterior medians; thick bars span the 50% credible interval; thin bars span the 90% credible interval. Higher temperature is associated with lower estimated sensitivity."
+#| fig-height: 5
+
+fig, ax = plt.subplots(figsize=(8, 5))
+
+y_positions = np.arange(len(temperatures))[::-1]
+
+for i, t in enumerate(temperatures):
+    draws = alpha_draws[t]
+    median = np.median(draws)
+    q05, q25, q75, q95 = np.percentile(draws, [5, 25, 75, 95])
+    
+    y = y_positions[i]
+    
+    # 90% CI (thin line)
+    ax.plot([q05, q95], [y, y], color=SEU_PALETTE[i], linewidth=1.5, alpha=0.7)
+    # 50% CI (thick line)
+    ax.plot([q25, q75], [y, y], color=SEU_PALETTE[i], linewidth=4, alpha=0.9)
+    # Median (point)
+    ax.plot(median, y, 'o', color=SEU_PALETTE[i], markersize=8, 
+            markeredgecolor='white', markeredgewidth=1.5, zorder=5)
+
+ax.set_yticks(y_positions)
+ax.set_yticklabels([f'T = {t}' for t in temperatures])
+ax.set_xlabel('Sensitivity (α)')
+ax.set_title('Posterior Distributions of α by Temperature')
+ax.grid(axis='x', alpha=0.3)
+ax.grid(axis='y', alpha=0)
+
+plt.tight_layout()
+plt.show()
+```
+
+### Posterior Densities
+
+```{python}
+#| label: fig-density
+#| fig-cap: "Kernel density estimates of the posterior α distributions. The separation between T = 0.0 and T ≥ 1.0 is clear, while T = 0.3 and T = 0.7 overlap substantially."
+#| fig-height: 5
+
+from scipy.stats import gaussian_kde
+
+fig, ax = plt.subplots(figsize=(8, 5))
+
+for i, t in enumerate(temperatures):
+    draws = alpha_draws[t]
+    kde = gaussian_kde(draws)
+    x_grid = np.linspace(draws.min() * 0.8, draws.max() * 1.1, 300)
+    ax.fill_between(x_grid, kde(x_grid), alpha=0.2, color=SEU_PALETTE[i])
+    ax.plot(x_grid, kde(x_grid), color=SEU_PALETTE[i], linewidth=2, 
+            label=f'T = {t} (median = {np.median(draws):.0f})')
+
+ax.set_xlabel('Sensitivity (α)')
+ax.set_ylabel('Density')
+ax.set_title('Posterior Density of α')
+ax.legend(loc='upper right')
+
+plt.tight_layout()
+plt.show()
+```
+
+### Posterior Predictive Checks
+
+```{python}
+#| label: tbl-ppc
+#| tbl-cap: "Posterior predictive check p-values for each temperature condition. Values near 0.5 indicate good calibration; values near 0 or 1 indicate model misfit. Three test statistics are used: log-likelihood (ll), modal choice frequency (modal), and mean choice probability (prob)."
+
+ppc_rows = []
+for t in temperatures:
+    key = f"T{str(t).replace('.', '_')}"
+    with open(data_dir / f"ppc_{key}.json") as f:
+        ppc = json.load(f)
+    
+    pvals = ppc['p_values']
+    ppc_rows.append({
+        'Temperature': t,
+        'Log-likelihood': f"{pvals['ll']:.3f}",
+        'Modal frequency': f"{pvals['modal']:.3f}",
+        'Mean probability': f"{pvals['prob']:.3f}",
+    })
+
+pd.DataFrame(ppc_rows)
+```
+
+All posterior predictive p-values fall comfortably within $[0.3, 0.65]$, indicating that the model provides an adequate description of the choice data at every temperature level. There is no evidence of systematic misfit.
+
+## Monotonicity Analysis {#sec-monotonicity}
+
+The central question of this study is whether estimated sensitivity $\alpha$ decreases monotonically with temperature. We assess this at three levels of granularity.
+
+### Global Slope
+
+We fit a simple linear relationship $\alpha = a + b \cdot T$ to each posterior draw, yielding a posterior distribution over the slope $b$:
+
+```{python}
+#| label: fig-slope
+#| fig-cap: "Posterior distribution of the slope Δα/ΔT from a draw-wise linear fit. The entire 90% credible interval lies below zero, providing strong evidence that α decreases with temperature."
+
+slopes = analysis['slope']
+
+# Recompute the slope draws for the density plot
+temp_array = np.array(temperatures)
+
+slope_draws = []
+for draw_idx in range(len(alpha_draws[temperatures[0]])):
+    alphas_at_draw = np.array([alpha_draws[t][draw_idx] for t in temperatures])
+    # OLS slope: cov(T, α) / var(T)
+    b = np.cov(temp_array, alphas_at_draw)[0, 1] / np.var(temp_array)
+    slope_draws.append(b)
+slope_draws = np.array(slope_draws)
+
+fig, ax = plt.subplots(figsize=(8, 4))
+
+kde = gaussian_kde(slope_draws)
+x_grid = np.linspace(np.percentile(slope_draws, 0.5), np.percentile(slope_draws, 99.5), 300)
+ax.fill_between(x_grid, kde(x_grid), alpha=0.3, color=SEU_COLORS['primary'])
+ax.plot(x_grid, kde(x_grid), color=SEU_COLORS['primary'], linewidth=2)
+
+median_slope = np.median(slope_draws)
+ax.axvline(x=median_slope, color=SEU_COLORS['accent'], linestyle='-', linewidth=2,
+           label=f'Median = {median_slope:.1f}')
+ax.axvline(x=0, color='gray', linestyle='--', alpha=0.5, label='No effect')
+
+# Shade 90% CI
+q05, q95 = np.percentile(slope_draws, [5, 95])
+mask = (x_grid >= q05) & (x_grid <= q95)
+ax.fill_between(x_grid[mask], kde(x_grid[mask]), alpha=0.15, color=SEU_COLORS['accent'])
+ax.axvline(x=q05, color=SEU_COLORS['accent'], linestyle=':', alpha=0.6)
+ax.axvline(x=q95, color=SEU_COLORS['accent'], linestyle=':', alpha=0.6)
+
+ax.set_xlabel('Slope (Δα / ΔT)')
+ax.set_ylabel('Density')
+ax.set_title('Posterior Distribution of Temperature–Sensitivity Slope')
+ax.legend()
+
+plt.tight_layout()
+plt.show()
+
+print(f"Slope summary:")
+print(f"  Median:  {median_slope:.1f}")
+print(f"  90% CI:  [{q05:.1f}, {q95:.1f}]")
+print(f"  P(slope < 0): {np.mean(slope_draws < 0):.4f}")
+```
+
+The posterior probability that the slope is negative exceeds 0.99, providing strong evidence for the directional hypothesis: higher temperature is associated with lower sensitivity to expected utility.
+
+### Pairwise Comparisons
+
+```{python}
+#| label: tbl-pairwise
+#| tbl-cap: "Posterior probability that α is higher at the lower temperature in each pair. Values above 0.95 indicate strong separation; values near 0.5 indicate indistinguishability."
+
+pairs = analysis['pairwise_comparisons']
+
+pair_rows = []
+for key, prob in pairs.items():
+    t1, t2 = key.split('_vs_')
+    strength = '●●●' if prob > 0.95 else ('●●' if prob > 0.8 else ('●' if prob > 0.65 else '○'))
+    pair_rows.append({
+        'Comparison': f'α(T={t1}) > α(T={t2})',
+        'P': f'{prob:.3f}',
+        'Evidence': strength,
+    })
+
+pd.DataFrame(pair_rows)
+```
+
+The pairwise analysis reveals a structured pattern:
+
+- **Strong separation** ($P > 0.95$): $T = 0.0$ vs $T = 1.0$ and $T = 1.5$
+- **Moderate separation** ($P > 0.8$): $T = 0.3$ vs $T \geq 1.0$; $T = 0.7$ vs $T \geq 1.0$
+- **Weak/no separation** ($P \approx 0.5$): $T = 0.3$ vs $T = 0.7$
+
+### Strict Monotonicity
+
+```{python}
+#| label: monotonicity
+#| echo: true
+
+# P(α(T=0.0) > α(T=0.3) > α(T=0.7) > α(T=1.0) > α(T=1.5)) — joint probability
+n_draws = len(alpha_draws[0.0])
+strictly_decreasing = 0
+
+for i in range(n_draws):
+    vals = [alpha_draws[t][i] for t in temperatures]
+    if all(vals[j] > vals[j+1] for j in range(len(vals)-1)):
+        strictly_decreasing += 1
+
+p_mono = strictly_decreasing / n_draws
+print(f"P(α strictly decreasing across all T): {p_mono:.4f}")
+```
+
+The probability of *strict* monotonicity across all five levels is modest, at approximately 0.12. This is driven entirely by the near-equality of $\alpha$ at $T = 0.3$ and $T = 0.7$, where the pairwise probability is essentially a coin flip ($P = 0.48$). Collapsing these two levels yields a coarser ordering that holds with much higher confidence:
+
+```{python}
+#| label: coarse-monotonicity
+#| echo: true
+
+# Coarser test: α(T=0.0) > mean(α(T=0.3), α(T=0.7)) > α(T=1.0) > α(T=1.5)
+coarse_decreasing = 0
+
+for i in range(n_draws):
+    a00 = alpha_draws[0.0][i]
+    a_mid = (alpha_draws[0.3][i] + alpha_draws[0.7][i]) / 2
+    a10 = alpha_draws[1.0][i]
+    a15 = alpha_draws[1.5][i]
+    if a00 > a_mid > a10 > a15:
+        coarse_decreasing += 1
+
+p_coarse = coarse_decreasing / n_draws
+print(f"P(α(0.0) > mean(α(0.3), α(0.7)) > α(1.0) > α(1.5)): {p_coarse:.4f}")
+```
+
+## Discussion {#sec-discussion}
+
+### Summary of Findings
+
+The results support the directional hypothesis: increasing LLM temperature decreases estimated sensitivity to expected utility maximization. The evidence is strongest at the global level—the posterior slope $\Delta\alpha / \Delta T$ is negative with high confidence—and weakest at fine-grained adjacent comparisons.
+
+```{python}
+#| label: fig-summary
+#| fig-cap: "Summary of the temperature–sensitivity relationship. Left: Posterior medians with 90% credible intervals. Right: Pairwise posterior probabilities P(α_i > α_j) as a heatmap."
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+
+# Left: point estimates with CIs
+medians = [np.median(alpha_draws[t]) for t in temperatures]
+q05s = [np.percentile(alpha_draws[t], 5) for t in temperatures]
+q95s = [np.percentile(alpha_draws[t], 95) for t in temperatures]
+
+axes[0].errorbar(temperatures, medians, 
+                 yerr=[np.array(medians) - np.array(q05s), np.array(q95s) - np.array(medians)],
+                 fmt='o-', color=SEU_COLORS['primary'], linewidth=2, markersize=8,
+                 capsize=5, capthick=1.5)
+axes[0].set_xlabel('Temperature')
+axes[0].set_ylabel('Sensitivity (α)')
+axes[0].set_title('α vs. Temperature')
+axes[0].set_xticks(temperatures)
+
+# Right: pairwise heatmap
+n_temps = len(temperatures)
+heatmap = np.full((n_temps, n_temps), np.nan)
+
+for key, prob in pairs.items():
+    t1, t2 = key.split('_vs_')
+    i = temperatures.index(float(t1))
+    j = temperatures.index(float(t2))
+    heatmap[i, j] = prob
+    heatmap[j, i] = 1 - prob
+
+np.fill_diagonal(heatmap, 0.5)
+
+im = axes[1].imshow(heatmap, cmap='RdYlGn', vmin=0, vmax=1, aspect='equal')
+axes[1].set_xticks(range(n_temps))
+axes[1].set_xticklabels([f'{t}' for t in temperatures])
+axes[1].set_yticks(range(n_temps))
+axes[1].set_yticklabels([f'{t}' for t in temperatures])
+axes[1].set_xlabel('Temperature (column)')
+axes[1].set_ylabel('Temperature (row)')
+axes[1].set_title('P(α_row > α_col)')
+
+# Annotate cells
+for i in range(n_temps):
+    for j in range(n_temps):
+        if not np.isnan(heatmap[i, j]):
+            color = 'white' if heatmap[i, j] > 0.8 or heatmap[i, j] < 0.2 else 'black'
+            axes[1].text(j, i, f'{heatmap[i, j]:.2f}', ha='center', va='center', 
+                        fontsize=9, color=color)
+
+plt.colorbar(im, ax=axes[1], shrink=0.8)
+
+plt.tight_layout()
+plt.show()
+```
+
+### Interpreting the Non-Separation at $T = 0.3$ and $T = 0.7$
+
+The inability to distinguish $\alpha$ at these two temperatures admits several interpretations:
+
+1. **Threshold effect.** The relationship between temperature and sensitivity may not be linear. There may be a regime ($T \lesssim 0.7$) where the LLM's choice behavior is relatively stable, with sensitivity declining more sharply only at higher temperatures.
+
+2. **Insufficient statistical power.** With $M = 300$ observations per condition, the study may lack power to resolve small differences in $\alpha$. The posteriors at $T = 0.3$ and $T = 0.7$ have standard deviations of $\sim 15$–$19$, comparable to the difference between their medians ($\sim 1.5$).
+
+3. **Genuine non-monotonicity.** It is possible that the true relationship is not strictly monotonic at fine scales, even if the overall trend is negative.
+
+These interpretations are not mutually exclusive, and the current data do not distinguish among them.
+
+### Model Adequacy
+
+The posterior predictive checks provide no evidence of misfit at any temperature level. This is reassuring but not conclusive—PPC p-values assess whether the model *can* reproduce summary statistics of the data, not whether the model captures the *mechanism* by which temperature affects choices. The m_01 model treats each temperature condition as an independent estimation problem; it does not model how temperature enters the choice process.
+
+### Relation to the Foundational Framework
+
+These results can be interpreted through the lens of [Report 1](../../foundations/01_abstract_formulation.qmd):
+
+- The **monotonicity property** (Theorem 1) tells us that for any fixed value function, higher $\alpha$ implies higher probability of choosing value-maximizing alternatives. Our finding that $\alpha$ decreases with temperature thus means the LLM's choices become *less* concentrated on EU-maximizing alternatives as temperature increases.
+
+- The **rate of convergence** (Theorem 5) tells us that the effect of $\alpha$ on choice probabilities depends on the gap $\Delta$ between the best and second-best expected utilities. Problems with larger utility gaps will show temperature effects more readily.
+
+- The **commitment–performance distinction** discussed in Report 1 provides a natural framing: if we take EU maximization as the LLM's "commitment" (the normative standard its training approximates), then temperature controls the *performance* noise around that commitment.
+
+## Reproducibility {#sec-reproducibility}
+
+### Data Snapshot
+
+All results in this report are loaded from a frozen data snapshot in the `data/` subdirectory, which is version-controlled. This protects the report from changes if the temperature study pipeline is re-run with different parameters.
+
+The snapshot contains:
+
+| File | Description |
+|------|-------------|
+| `alpha_draws_T*.npz` | Posterior draws of α (4,000 per condition) |
+| `ppc_T*.json` | Posterior predictive check results |
+| `diagnostics_T*.txt` | CmdStan diagnostic output |
+| `stan_data_T*.json` | Stan-ready data (for refitting) |
+| `fit_summary.json` | Summary statistics across conditions |
+| `primary_analysis.json` | Pre-computed monotonicity and slope statistics |
+| `run_summary.json` | Pipeline metadata and configuration |
+| `grid_results.json` | Prior predictive grid search results |
+| `study_config.yaml` | Frozen copy of the study configuration |
+
+### Refitting from Source
+
+To reproduce the Stan fits from the included `stan_data_T*.json` files:
+
+```{python}
+#| label: refit-example
+#| eval: false
+#| echo: true
+
+# Uncomment to refit from source data (requires CmdStanPy; ~30 min per condition)
+#
+# import cmdstanpy
+# model = cmdstanpy.CmdStanModel(stan_file="models/m_01.stan")
+#
+# for t in [0.0, 0.3, 0.7, 1.0, 1.5]:
+#     key = f"T{str(t).replace('.', '_')}"
+#     fit = model.sample(
+#         data=f"data/stan_data_{key}.json",
+#         chains=4,
+#         iter_warmup=1000,
+#         iter_sampling=1000,
+#         seed=42,
+#     )
+#     print(f"T={t}: alpha median = {np.median(fit.stan_variable('alpha')):.1f}")
+```
+
+## Next Steps
+
+This initial study establishes that temperature affects estimated SEU sensitivity. Several extensions are planned:
+
+1. **Position bias and consistency analysis.** The data support analyses described in DESIGN.md §6.2–6.4, examining whether position bias or choice inconsistency varies with temperature. These diagnostics may reveal whether temperature affects *how* the LLM chooses, beyond the summary captured by $\alpha$.
+
+2. **Alternative model specifications.** The current analysis fits m_01 (structurally identical to m_0) at each temperature independently. A hierarchical extension could model $\alpha(T)$ as a function of temperature, borrowing strength across conditions.
+
+3. **Replication with different LLMs.** The temperature parameter has model-specific effects. Repeating this study with different architectures would test the generality of the finding.
+
+4. **Robustness to prior choice.** While the prior predictive analysis motivates $\text{Lognormal}(3.0, 0.75)$, a sensitivity analysis across nearby priors would characterize how much the conclusions depend on this specific choice.
+
+## References
+
+::: {#refs}
+:::

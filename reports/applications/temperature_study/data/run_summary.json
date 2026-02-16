@@ -1,0 +1,186 @@
+{
+  "config": {
+    "temperatures": [
+      0.0,
+      0.3,
+      0.7,
+      1.0,
+      1.5
+    ],
+    "num_problems": 100,
+    "min_alternatives": 2,
+    "max_alternatives": 4,
+    "num_presentations": 3,
+    "K": 3,
+    "target_dim": 32,
+    "llm_model": "gpt-4o",
+    "embedding_model": "text-embedding-3-small",
+    "provider": "openai",
+    "seed": 42,
+    "claims_file": "/Users/jeffhelzner/seu-sensitivity/applications/temperature_study/data/claims.json",
+    "prompts_file": "/Users/jeffhelzner/seu-sensitivity/applications/temperature_study/configs/prompts.yaml",
+    "fit_models": false,
+    "stan_model": "m_0",
+    "max_retries": 3,
+    "retry_delay": 2.0,
+    "save_raw_embeddings": true,
+    "results_dir": "/Users/jeffhelzner/seu-sensitivity/applications/temperature_study/results"
+  },
+  "started_at": "2026-02-15T22:31:11.964071+00:00",
+  "phases": {
+    "phase1": {
+      "num_problems": 100,
+      "output": "/Users/jeffhelzner/seu-sensitivity/applications/temperature_study/results/problems.json"
+    },
+    "phase2a_assessment": {
+      "temperatures": [
+        0.0,
+        0.3,
+        0.7,
+        1.0,
+        1.5
+      ],
+      "assessments_per_temp": {
+        "0.0": 30,
+        "0.3": 30,
+        "0.7": 30,
+        "1.0": 30,
+        "1.5": 30
+      }
+    },
+    "phase2b_choices": {
+      "temperatures": [
+        0.0,
+        0.3,
+        0.7,
+        1.0,
+        1.5
+      ],
+      "na_summary": {
+        "per_temperature": {
+          "T=0.0": {
+            "valid": 300,
+            "na": 0,
+            "total": 300,
+            "na_rate": 0.0
+          },
+          "T=0.3": {
+            "valid": 300,
+            "na": 0,
+            "total": 300,
+            "na_rate": 0.0
+          },
+          "T=0.7": {
+            "valid": 300,
+            "na": 0,
+            "total": 300,
+            "na_rate": 0.0
+          },
+          "T=1.0": {
+            "valid": 300,
+            "na": 0,
+            "total": 300,
+            "na_rate": 0.0
+          },
+          "T=1.5": {
+            "valid": 300,
+            "na": 0,
+            "total": 300,
+            "na_rate": 0.0
+          }
+        },
+        "overall": {
+          "valid": 1500,
+          "na": 0,
+          "total": 1500,
+          "na_rate": 0.0
+        }
+      }
+    },
+    "phase3_data_prep": {
+      "per_temperature": {
+        "0.0": {
+          "stan_data": "/Users/jeffhelzner/seu-sensitivity/applications/temperature_study/results/stan_data_T0_0.json",
+          "na_log": "/Users/jeffhelzner/seu-sensitivity/applications/temperature_study/results/na_removal_log_T0_0.json",
+          "M": 300,
+          "R": 30,
+          "D": 32,
+          "na_removed": 0
+        },
+        "0.3": {
+          "stan_data": "/Users/jeffhelzner/seu-sensitivity/applications/temperature_study/results/stan_data_T0_3.json",
+          "na_log": "/Users/jeffhelzner/seu-sensitivity/applications/temperature_study/results/na_removal_log_T0_3.json",
+          "M": 300,
+          "R": 30,
+          "D": 32,
+          "na_removed": 0
+        },
+        "0.7": {
+          "stan_data": "/Users/jeffhelzner/seu-sensitivity/applications/temperature_study/results/stan_data_T0_7.json",
+          "na_log": "/Users/jeffhelzner/seu-sensitivity/applications/temperature_study/results/na_removal_log_T0_7.json",
+          "M": 300,
+          "R": 30,
+          "D": 32,
+          "na_removed": 0
+        },
+        "1.0": {
+          "stan_data": "/Users/jeffhelzner/seu-sensitivity/applications/temperature_study/results/stan_data_T1_0.json",
+          "na_log": "/Users/jeffhelzner/seu-sensitivity/applications/temperature_study/results/na_removal_log_T1_0.json",
+          "M": 300,
+          "R": 30,
+          "D": 32,
+          "na_removed": 0
+        },
+        "1.5": {
+          "stan_data": "/Users/jeffhelzner/seu-sensitivity/applications/temperature_study/results/stan_data_T1_5.json",
+          "na_log": "/Users/jeffhelzner/seu-sensitivity/applications/temperature_study/results/na_removal_log_T1_5.json",
+          "M": 300,
+          "R": 30,
+          "D": 32,
+          "na_removed": 0
+        }
+      },
+      "pca_summary": {
+        "fitted": true,
+        "n_components": 32,
+        "explained_variance_ratio": [
+          0.0973463373497664,
+          0.08595713410256547,
+          0.06493693149693439,
+          0.06111712265170752,
+          0.04478473311801859,
+          0.04191503632031367,
+          0.03874452852197371,
+          0.03396086926356148,
+          0.03136984345697195,
+          0.02941833271883133,
+          0.02824462602056688,
+          0.025185558133169573,
+          0.021862388953093854,
+          0.01927738979338316,
+          0.017405444168719964,
+          0.01588819579871355,
+          0.01569854243921432,
+          0.014270302719882326,
+          0.013667534704924633,
+          0.01259153489572672,
+          0.011713005458648739,
+          0.01113512940115824,
+          0.010362237485912477,
+          0.010307459099184109,
+          0.01019356883922095,
+          0.009462525961153228,
+          0.009181981498833595,
+          0.008097799332409726,
+          0.007381319593658086,
+          0.007265564966857642,
+          0.0067759295745826505,
+          0.0065968210636796025
+        ],
+        "total_explained_variance": 0.8221157289033385
+      }
+    }
+  },
+  "finished_at": "2026-02-15T23:22:16.088455+00:00",
+  "duration_seconds": 3064.124384
+}

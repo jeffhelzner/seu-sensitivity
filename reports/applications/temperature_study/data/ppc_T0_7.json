@@ -1,0 +1,27 @@
+{
+  "model_type": "m_0",
+  "p_values": {
+    "ll": 0.43425,
+    "modal": 0.5035,
+    "prob": 0.38475
+  },
+  "n_problems": 300,
+  "interpretation": {
+    "ll": {
+      "status": "\u2713",
+      "text": "Good fit (p=0.434)",
+      "two_sided_p": 0.8685
+    },
+    "modal": {
+      "status": "\u2713",
+      "text": "Good fit (p=0.503)",
+      "two_sided_p": 0.9930000000000001
+    },
+    "prob": {
+      "status": "\u2713",
+      "text": "Good fit (p=0.385)",
+      "two_sided_p": 0.7695
+    }
+  },
+  "has_extreme_p_values": false
+}

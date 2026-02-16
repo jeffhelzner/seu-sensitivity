@@ -20,6 +20,12 @@ These reports establish the theoretical and methodological foundations:
 5. **[Adding Risky Choices](foundations/05_adding_risky_choices.qmd)** — Extension to model m_1 for utility identification
 6. **[SBC Validation](foundations/06_sbc_validation.qmd)** — Simulation-based calibration results
 
+### Application Reports
+
+#### Temperature Study
+
+1. **[Initial Results](applications/temperature_study/01_initial_study.qmd)** — How LLM temperature affects estimated SEU sensitivity
+
 ## Key Insights
 
 ::: {.callout-note}

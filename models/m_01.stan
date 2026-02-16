@@ -1,13 +1,16 @@
 /**
  * Bayesian Decision Theory Model (m_01)
- * 
- * Modifies m_0 by increasing concentration of parameter of Dirichlet prior on utility differences
  *
- * This model implements an expected utility framework where:
- * - Agents have subjective probabilities over K possible consequences for each alternative
- * - These probabilities are determined by features of the alternative through a softmax transformation
- * - Utilities are ordered and parameterized as incremental differences on a unit scale
- * - Choices follow a softmax distribution of expected utilities based on the agent's sensitivity to their expected utilities
+ * Structurally identical to m_0.  Differs only in the prior
+ * hyperparameters for alpha, which are chosen via prior predictive
+ * analysis rather than convenience defaults.
+ *
+ * Prior:  alpha ~ lognormal(3.0, 0.75)
+ *   median  ≈ 20,  90 % CI ≈ [5.5, 67]
+ *   prior-implied SEU-max rate ≈ 0.78
+ *
+ * See scripts/run_prior_predictive_grid.py and
+ * results/prior_predictive/grid_search/ for the calibration rationale.
  */
 data{
   int<lower=1> M; // the number of decision problems
@@ -88,9 +91,9 @@ transformed parameters{
 }
 model{
   // Priors
-  alpha ~ lognormal(0, 1);          // Prior on choice sensitivity (now lognormal)
+  alpha ~ lognormal(3.0, 0.75);     // Informative prior on choice sensitivity (calibrated via prior predictive analysis)
   to_vector(beta) ~ std_normal();    // Prior on subjective probability parameters
-  delta ~ dirichlet(rep_vector(5,K-1)); // Prior ensures utilities are ordered increments on unit scale
+  delta ~ dirichlet(rep_vector(1,K-1)); // Prior ensures utilities are ordered increments on unit scale
   
   // Likelihood: categorical choice model
   for(i in 1:M){
@@ -104,10 +107,46 @@ generated quantities {
     log_lik[i] = categorical_lpmf(y[i] | chi[i]);
   }
   
-  // Posterior predictive checks
+  // Posterior predictive samples
   array[M] int y_pred;
   for (i in 1:M) {
     y_pred[i] = categorical_rng(chi[i]);
   }
+  
+  // === Posterior Predictive Check Statistics ===
+  
+  // 1. Log-likelihood discrepancy
+  real T_obs_ll = sum(log_lik);
+  real T_rep_ll = 0;
+  for (m in 1:M) {
+    T_rep_ll += categorical_lpmf(y_pred[m] | chi[m]);
+  }
+  int<lower=0,upper=1> ppc_ll = (T_rep_ll >= T_obs_ll) ? 1 : 0;
+  
+  // 2. Modal choice accuracy (with tie handling)
+  int T_obs_modal = 0;
+  int T_rep_modal = 0;
+  for (m in 1:M) {
+    // Find the maximum probability
+    real max_prob = chi[m][1];
+    for (j in 2:N[m]) {
+      if (chi[m][j] > max_prob) {
+        max_prob = chi[m][j];
+      }
+    }
+    // Check if choice achieves max probability (tolerance for floating point)
+    T_obs_modal += (chi[m][y[m]] >= max_prob - 1e-9) ? 1 : 0;
+    T_rep_modal += (chi[m][y_pred[m]] >= max_prob - 1e-9) ? 1 : 0;
+  }
+  int<lower=0,upper=1> ppc_modal = (T_rep_modal >= T_obs_modal) ? 1 : 0;
+  
+  // 3. Sum of chosen probabilities
+  real T_obs_prob = 0;
+  real T_rep_prob = 0;
+  for (m in 1:M) {
+    T_obs_prob += chi[m][y[m]];
+    T_rep_prob += chi[m][y_pred[m]];
+  }
+  int<lower=0,upper=1> ppc_prob = (T_rep_prob >= T_obs_prob) ? 1 : 0;
 }
 

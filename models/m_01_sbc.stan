@@ -1,7 +1,9 @@
 /**
  * Bayesian Decision Theory Model (m_01) for Simulation Based Calibration
- * 
- * Modifies m_0 by increasing concentration of parameter of Dirichlet prior on utility differences
+ *
+ * Structurally identical to m_0_sbc.  Differs only in the alpha
+ * prior: lognormal(3.0, 0.75), calibrated via prior predictive
+ * analysis (see scripts/run_prior_predictive_grid.py).
  *
  * Following conventions required by rstan's sbc() function
  */
@@ -39,7 +41,7 @@ transformed data {
   }
   
   // Draw "true" parameters (with trailing underscore as required)
-  real<lower=0> alpha_ = lognormal_rng(0, 1);
+  real<lower=0> alpha_ = lognormal_rng(3.0, 0.75);
   
   matrix[K,D] beta_;
   for (k in 1:K) {
@@ -48,7 +50,7 @@ transformed data {
     }
   }
   
-  simplex[K-1] delta_ = dirichlet_rng(rep_vector(5.0, K-1));
+  simplex[K-1] delta_ = dirichlet_rng(rep_vector(1.0, K-1));
   
   // Construct utilities from delta_
   vector[K] upsilon_;
@@ -104,9 +106,9 @@ transformed parameters {
 
 model {
   // Priors (same as used to generate true values)
-  alpha ~ lognormal(0, 1);          
+  alpha ~ lognormal(3.0, 0.75);     
   to_vector(beta) ~ std_normal();    
-  delta ~ dirichlet(rep_vector(5,K-1));
+  delta ~ dirichlet(rep_vector(1,K-1));
   
   // Likelihood
   {

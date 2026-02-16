@@ -27,11 +27,9 @@ website:
       - text: "Applications"
         menu:
           - text: "---"
-          - text: "Prompt Framing Study"
-          - text: "1. Background"
-            href: applications/prompt_framing_study/01_background.qmd
-          - text: "2. Pilot Study 1"
-            href: applications/prompt_framing_study/02_pilot_study_1.qmd
+          - text: "Temperature Study"
+          - text: "1. Initial Results"
+            href: applications/temperature_study/01_initial_study.qmd
       - text: "Blog"
         href: blog/index.qmd
     right:

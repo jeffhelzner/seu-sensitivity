@@ -1,11 +1,13 @@
 /**
  * Data Simulation Model for m_01
- * 
- * Modifies m_0 by increasing concentration of parameter of Dirichlet prior on utility differences
  *
- * This version of the model generates parameters internally
- * and produces synthetic data following the Bayesian Decision Theory model.
- * Features (w) are provided as input rather than generated.
+ * Structurally identical to m_0_sim.  The caller controls the
+ * alpha prior through the alpha_mean / alpha_sd data inputs,
+ * so no Stan-level changes are needed; only the values passed
+ * at runtime differ between m_0 and m_01.
+ *
+ * For m_01 the intended inputs are alpha_mean=3.0, alpha_sd=0.75
+ * (i.e. lognormal(3.0, 0.75), calibrated via prior predictive analysis).
  */
 data {
   // Simulation control parameters
@@ -58,8 +60,8 @@ generated quantities {
     }
   }
   
-  // Generate utility differences using Dirichlet prior with concentration = 5
-  simplex[K-1] delta = dirichlet_rng(rep_vector(5.0, K-1));
+  // Generate utility differences using Dirichlet prior
+  simplex[K-1] delta = dirichlet_rng(rep_vector(1.0, K-1));
   
   // Subjective probabilities over consequences
   array[total_alts] vector[K] psi;

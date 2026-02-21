@@ -3,7 +3,7 @@ title: "Temperature and SEU Sensitivity: Initial Results"
 subtitle: "Application Report: Temperature Study 1"
 description: |
   An initial investigation of how LLM sampling temperature affects estimated 
-  sensitivity (α) to expected utility maximization, using a calibrated prior 
+  sensitivity (α) to subjective expected utility maximization, using a calibrated prior 
   and the m_01 model variant.
 categories: [applications, temperature, m_01]
 execute:
@@ -40,7 +40,7 @@ data_dir = Path("data")
 
 ## Introduction
 
-The foundational reports established the SEU sensitivity model's theoretical properties ([Report 1](../../foundations/01_abstract_formulation.qmd)), concrete implementation ([Report 2](../../foundations/02_concrete_implementation.qmd)), and computational validity ([Reports 3–6](../../foundations/03_prior_analysis.qmd)). This report presents the first empirical application: investigating how the **sampling temperature** of a large language model affects its estimated sensitivity to expected utility maximization.
+The foundational reports established the SEU sensitivity model's theoretical properties ([Report 1](../../foundations/01_abstract_formulation.qmd)), concrete implementation ([Report 2](../../foundations/02_concrete_implementation.qmd)), and computational validity ([Reports 3–6](../../foundations/03_prior_analysis.qmd)). This report presents the first empirical application: investigating how the **sampling temperature** of a large language model affects its estimated sensitivity to subjective expected utility maximization.
 
 The motivation is straightforward. In the softmax choice model, the sensitivity parameter $\alpha$ governs how sharply choices track expected utility differences. Language models employ their own softmax temperature during token sampling, which controls the entropy of the next-token distribution. If the LLM's choice behavior is well-described by our model, then increasing the external sampling temperature should *decrease* the estimated $\alpha$—the additional stochasticity in token generation should manifest as noisier, less EU-aligned choices.
 
@@ -53,7 +53,7 @@ This report presents initial results from a single data collection. The study de
 
 ### Task and Conditions
 
-We use an insurance claims triage task in which GPT-4o selects which claim to forward for investigation from a set of $K = 3$ alternatives. The LLM first *assesses* each claim individually (producing text that is then embedded), and subsequently makes a *choice* among the alternatives in a given problem.
+We use an insurance claims triage task in which GPT-4o selects which claim to forward for investigation from a set of alternatives. Each alternative (claim) can lead to one of $K = 3$ possible consequences, and there are $R$ distinct alternatives in the pool (see Design Parameters below). In each decision problem, the LLM is presented with a subset of these alternatives. The LLM first *assesses* each claim individually (producing text that is then embedded), and subsequently makes a *choice* among the alternatives in a given problem.
 
 Five temperature levels define the between-condition factor:
 
@@ -192,8 +192,6 @@ axes[0].set_yticks(y_pos)
 axes[0].set_yticklabels(labels, fontsize=9)
 axes[0].set_xlabel('SEU-Maximizer Selection Rate')
 axes[0].set_title('Prior-Implied SEU-Max Rate')
-axes[0].axvline(x=1/3, color='gray', linestyle='--', alpha=0.5, label='Random (1/K)')
-axes[0].legend(fontsize=9)
 axes[0].set_xlim(0, 1)
 
 # Right: prior density comparison
@@ -393,6 +391,16 @@ plt.show()
 
 ### Posterior Predictive Checks
 
+We assess model adequacy via posterior predictive checks (PPCs). For each posterior draw of the parameters, we simulate a replicated dataset of the same size and structure as the observed data, then compare the observed and replicated datasets on three complementary test statistics:
+
+- **Log-likelihood (ll).** The sum of log-probabilities assigned by the model to the observed choices, $T_{\text{ll}} = \sum_{m=1}^{M} \log p(y_m \mid \theta)$. This is a global goodness-of-fit measure: if the model systematically assigns lower probability to real choices than to simulated ones, the observed $T_{\text{ll}}$ will fall in the tail of the replicated distribution.
+
+- **Modal choice frequency (modal).** For each decision problem, identify the alternative chosen most often across replications; the test statistic is the fraction of problems where the mode matches the observed choice. This targets whether the model correctly identifies the *most likely* choice in each problem, independent of the exact probabilities.
+
+- **Mean choice probability (prob).** The average predicted probability of the actually chosen alternative, $T_{\text{prob}} = M^{-1} \sum_{m=1}^{M} p(y_m \mid \theta)$. This measures whether the model's confidence in the observed choices is well-calibrated on average.
+
+The posterior predictive p-value for each statistic is the proportion of replicated datasets in which the test statistic equals or exceeds the observed value. Values near 0.5 indicate good calibration; values near 0 or 1 signal systematic misfit.
+
 ```{python}
 #| label: tbl-ppc
 #| tbl-cap: "Posterior predictive check p-values for each temperature condition. Values near 0.5 indicate good calibration; values near 0 or 1 indicate model misfit. Three test statistics are used: log-likelihood (ll), modal choice frequency (modal), and mean choice probability (prob)."
@@ -422,7 +430,9 @@ The central question of this study is whether estimated sensitivity $\alpha$ dec
 
 ### Global Slope
 
-We fit a simple linear relationship $\alpha = a + b \cdot T$ to each posterior draw, yielding a posterior distribution over the slope $b$:
+To summarize the overall direction and magnitude of the temperature–sensitivity relationship, we compute a posterior distribution over a linear slope coefficient. For each posterior draw $s = 1, \ldots, S$, we have a vector of five $\alpha$ values—one per temperature condition. We fit a simple ordinary least squares regression $\alpha^{(s)}(T) = a^{(s)} + b^{(s)} \cdot T$ across the five temperature levels, yielding one slope $b^{(s)}$ per draw. The resulting $S$ slope values define a posterior distribution over $b = \Delta\alpha / \Delta T$.
+
+This is *not* a regression model in the usual sense—it is a derived quantity computed from the joint posterior. The slope summarizes whether, on the whole, higher temperature is associated with lower sensitivity. A slope whose posterior mass lies entirely below zero provides evidence for the directional hypothesis that temperature reduces EU sensitivity:
 
 ```{python}
 #| label: fig-slope
@@ -478,6 +488,12 @@ The posterior probability that the slope is negative exceeds 0.99, providing str
 
 ### Pairwise Comparisons
 
+The global slope averages over all five conditions and may mask local structure (e.g., two adjacent temperatures that produce indistinguishable $\alpha$ values). To examine the ordering at finer resolution, we compute pairwise posterior probabilities. For each pair of temperature conditions $(T_i, T_j)$ with $T_i < T_j$, we calculate
+$$
+P\bigl(\alpha(T_i) > \alpha(T_j) \mid \text{data}\bigr) = \frac{1}{S} \sum_{s=1}^{S} \mathbb{1}\bigl[\alpha^{(s)}(T_i) > \alpha^{(s)}(T_j)\bigr],
+$$
+where the indicator function is evaluated draw-by-draw from the *independent* posteriors at each temperature. Values near 1.0 indicate that the lower-temperature condition almost certainly yields higher sensitivity; values near 0.5 indicate that the two conditions are effectively indistinguishable.
+
 ```{python}
 #| label: tbl-pairwise
 #| tbl-cap: "Posterior probability that α is higher at the lower temperature in each pair. Values above 0.95 indicate strong separation; values near 0.5 indicate indistinguishability."
@@ -504,6 +520,12 @@ The pairwise analysis reveals a structured pattern:
 - **Weak/no separation** ($P \approx 0.5$): $T = 0.3$ vs $T = 0.7$
 
 ### Strict Monotonicity
+
+The pairwise analysis examines each adjacent or non-adjacent pair in isolation. A stronger test asks whether the *entire* ordering $\alpha(T = 0.0) > \alpha(T = 0.3) > \alpha(T = 0.7) > \alpha(T = 1.0) > \alpha(T = 1.5)$ holds simultaneously. We estimate the joint probability of strict monotonicity by computing, for each posterior draw, whether the five $\alpha$ values are strictly decreasing:
+$$
+P(\text{strict monotonicity} \mid \text{data}) = \frac{1}{S} \sum_{s=1}^{S} \prod_{j=1}^{4} \mathbb{1}\bigl[\alpha^{(s)}(T_j) > \alpha^{(s)}(T_{j+1})\bigr].
+$$
+Because this requires *every* adjacent pair to satisfy the ordering in the *same* draw, the joint probability is necessarily smaller than any single pairwise probability—a single weakly-ordered pair drives it down.
 
 ```{python}
 #| label: monotonicity

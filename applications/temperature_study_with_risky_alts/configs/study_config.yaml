@@ -1,0 +1,33 @@
+# Temperature Study with Risky Alternatives — Configuration
+#
+# Collects risky choice data from the LLM at each temperature level,
+# then merges with existing uncertain data to produce Stan data packages
+# for models m_1, m_2, and m_3.
+
+# ── Temperature conditions (must match the original temperature study) ──
+temperatures: [0.0, 0.3, 0.7, 1.0, 1.5]
+
+# ── Risky problem parameters ──
+num_problems: 100          # Number of risky decision problems
+min_alternatives: 2        # Minimum risky alternatives per problem
+max_alternatives: 4        # Maximum risky alternatives per problem
+num_presentations: 3       # P: shuffled orderings per problem (position counterbalancing)
+
+# ── Model parameters ──
+K: 3                       # Consequences (both agree / one agrees / neither)
+
+# ── API settings ──
+llm_model: "gpt-4o"
+provider: "openai"
+seed: 42
+
+# ── Pipeline control ──
+fit_models: false           # Whether to fit Stan models after data collection
+
+# ── Paths ──
+# Path to the existing temperature study results (for uncertain data)
+temperature_study_results_dir: null  # Set at runtime; defaults to ../temperature_study/results
+
+# ── API robustness ──
+max_retries: 3
+retry_delay: 2.0

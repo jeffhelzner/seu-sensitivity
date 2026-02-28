@@ -22,7 +22,8 @@ Current status:
 - ✅ Quarto-based documentation and reports
 - 🔄 Prompt framing study application in progress
 - 🔄 Temperature study application in progress
-- 📝 Documentation being expanded
+- � Temperature study with risky alternatives in progress
+- �📝 Documentation being expanded
 - 🔬 Empirical validation ongoing
 
 **Note for users**: While the core functionality is stable, API and features may change as the project evolves. Feedback and contributions are welcome!
@@ -94,6 +95,7 @@ seu-sensitivity/
 ├── applications/            # Applied research projects
 │   ├── prompt_framing_study/ # Prompt framing effects on LLM rationality
 │   ├── temperature_study/  # LLM temperature effects on sensitivity
+│   ├── temperature_study_with_risky_alts/ # Risky choice collection for m_1/m_2/m_3
 │   └── llm_rationality/    # Legacy LLM benchmarking (deprecated)
 ├── scripts/                 # Executable scripts
 │   ├── run_study_design.py # Generate study designs
@@ -398,6 +400,20 @@ Investigate how LLM sampling temperature affects estimated sensitivity (α) to e
 - Deliberative embeddings
 
 See [applications/temperature_study/README.md](applications/temperature_study/README.md) for the full experimental design.
+
+### Temperature Study with Risky Alternatives
+
+Extend the temperature study by collecting risky choice data — decisions among alternatives with explicit probability distributions over consequences. The risky data merges with the existing uncertain data to produce augmented Stan data packages for models m_1, m_2, and m_3.
+
+**Research Question**: Does LLM sensitivity to expected utility differ between risky choices (known probabilities) and uncertain choices (belief-derived probabilities), and how does temperature modulate each?
+
+**Key Features:**
+- 30 hand-crafted risky alternatives with K = 3 probability simplexes
+- 100 risky problems (2–4 alternatives each) with position counterbalancing
+- Merges with existing uncertain data — no re-collection needed
+- Produces augmented Stan data for m_1 (shared α), m_2 (separate α and ω), and m_3 (proportional κ·α)
+
+See [applications/temperature_study_with_risky_alts/README.md](applications/temperature_study_with_risky_alts/README.md) for the full design and CLI reference.
 
 ### Legacy: LLM Rationality Benchmarking (Deprecated)
 

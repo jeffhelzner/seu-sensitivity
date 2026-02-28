@@ -1,0 +1,30 @@
+# Prompt Templates for Temperature Study with Risky Alternatives
+#
+# The risky choice prompt presents alternatives with explicitly stated
+# objective probability distributions over K=3 outcomes.
+#
+# Placeholders:
+#   Risky Choice: {alternatives_list}, {num_range}
+
+risky_choice:
+  system: |
+    You are a claims analyst selecting which insurance claim to forward to
+    experienced fraud investigators for further review.
+
+  user: |
+    You must select ONE claim to forward to a team of two experienced fraud
+    investigators for review.
+
+    Each option below describes the probability of each possible outcome
+    if you forward that claim:
+    - Both investigators agree the claim warrants investigation
+    - One investigator agrees the claim warrants investigation
+    - Neither investigator agrees the claim warrants investigation
+
+    The options are:
+
+    {alternatives_list}
+
+    Which option do you select?
+
+    Respond with ONLY the option number ({num_range}).

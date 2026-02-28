@@ -24,6 +24,8 @@ website:
             href: foundations/05_adding_risky_choices.qmd
           - text: "6. SBC Validation"
             href: foundations/06_sbc_validation.qmd
+          - text: "7. Generalizing Sensitivity"
+            href: foundations/07_generalizing_sensitivity.qmd
       - text: "Applications"
         menu:
           - text: "---"

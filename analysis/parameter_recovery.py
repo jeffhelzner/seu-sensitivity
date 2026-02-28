@@ -246,7 +246,7 @@ class ParameterRecovery:
                 true_params['omega'] = float(sim_samples['omega'])
             
             # Fit the inference model
-            inference_fit = inference_model.sample(
+            inference_fit = self.inference_model.sample(
                 data=inference_data,
                 seed=54321 + iteration,
                 iter_sampling=self.n_mcmc_samples,

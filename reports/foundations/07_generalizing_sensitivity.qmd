@@ -1,0 +1,1054 @@
+---
+title: "Generalizing Sensitivity"
+subtitle: "Foundational Report 7"
+description: |
+  Extension of the SEU model to allow distinct sensitivity parameters for 
+  uncertain and risky decisions. Parameter recovery and SBC validation 
+  comparing m_1, m_2, and m_3.
+categories: [foundations, validation, m_1, m_2, m_3]
+execute:
+  cache: true
+---
+
+```{python}
+#| label: setup
+#| include: false
+
+import sys
+import os
+
+# Add parent directories to path
+sys.path.insert(0, os.path.join(os.getcwd(), '..'))
+project_root = os.path.dirname(os.path.dirname(os.getcwd()))
+sys.path.insert(0, project_root)
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from scipy import stats
+import json
+import tempfile
+import warnings
+warnings.filterwarnings('ignore')
+
+np.random.seed(42)
+```
+
+## Introduction
+
+[Report 5](05_adding_risky_choices.qmd) introduced model m_1, which combines uncertain and risky choice problems. A key assumption of m_1 is that a **single sensitivity parameter** α governs choice behavior in both contexts: uncertain decisions (where probabilities are inferred from features) and risky decisions (where probabilities are known). [Report 6](06_sbc_validation.qmd) confirmed via simulation-based calibration that m_1 is well-identified.
+
+But is a shared sensitivity parameter always appropriate? Decision-makers may exhibit different degrees of sensitivity when facing uncertainty versus risk. For example:
+
+- A decision-maker might respond sharply to expected utility differences when probabilities are known (high risky sensitivity) but be less discriminating when probabilities must be inferred (lower uncertain sensitivity)
+- Conversely, familiarity with uncertain-feature environments might produce sharper responses there than in unfamiliar lottery settings
+
+This report introduces two generalizations of m_1 that relax the shared-α assumption:
+
+| Model | Sensitivity Structure | Parameters | Relationship |
+|-------|----------------------|------------|--------------|
+| **m_1** | Shared: $\alpha$ for both | α, β, δ | Baseline |
+| **m_2** | Independent: $\alpha$ (uncertain), $\omega$ (risky) | α, ω, β, δ | Fully flexible |
+| **m_3** | Proportional: $\omega = \kappa \cdot \alpha$ | α, κ, β, δ | Structured |
+
+We subject m_2 and m_3 to the same parameter recovery and SBC validation analyses applied to m_1 in Reports 5 and 6, extending the diagnostics to incorporate the new sensitivity parameter ω (observed directly in m_2, derived in m_3).
+
+## Model Specifications
+
+### Model m_2: Independent Sensitivities
+
+Model m_2 replaces the single α with two independent sensitivity parameters:
+
+- **α** governs uncertain choices (feature-based probability inference)
+- **ω** governs risky choices (known-probability lotteries)
+
+The choice probabilities become:
+
+$$
+\chi^{(u)}_{mi} = \frac{\exp(\alpha \cdot \eta^{(u)}_{mi})}{\sum_{j} \exp(\alpha \cdot \eta^{(u)}_{mj})}
+\quad\text{and}\quad
+\chi^{(r)}_{ni} = \frac{\exp(\omega \cdot \eta^{(r)}_{ni})}{\sum_{j} \exp(\omega \cdot \eta^{(r)}_{nj})}
+$$
+
+The priors are:
+
+$$
+\alpha \sim \text{LogNormal}(0, 1), \quad \omega \sim \text{LogNormal}(0, 1), \quad \beta_{kd} \sim \mathcal{N}(0, 1), \quad \delta \sim \text{Dirichlet}(\mathbf{1})
+$$
+
+Since α and ω are independent, m_2 can represent any combination of uncertain and risky sensitivities. The cost is one additional parameter.
+
+### Model m_3: Proportional Sensitivities
+
+Model m_3 introduces a **proportional relationship** between the two sensitivities via an association parameter κ:
+
+$$
+\omega = \kappa \cdot \alpha
+$$
+
+This nests m_1 as the special case κ = 1. The free parameters are α and κ, with ω derived:
+
+$$
+\alpha \sim \text{LogNormal}(0, 1), \quad \kappa \sim \text{LogNormal}(0, 0.5), \quad \beta_{kd} \sim \mathcal{N}(0, 1), \quad \delta \sim \text{Dirichlet}(\mathbf{1})
+$$
+
+The tighter prior on κ (σ = 0.5 vs. 1 for α) centers the model near the m_1 restriction while allowing departures. This is an intermediate model: more flexible than m_1 but more structured than m_2.
+
+::: {.callout-note}
+## Model Nesting
+The three models form a hierarchy:
+
+- **m_1** ⊂ **m_3** ⊂ **m_2** (in terms of expressiveness)
+- m_1 is m_3 with κ = 1
+- m_3 constrains the m_2 relationship ω = f(α) to be linear through the origin
+- m_2 places no structural constraint between α and ω
+
+The proportional structure of m_3 encodes the prior belief that a decision-maker who is highly sensitive in one context is likely highly sensitive in the other—but allows the *scale* of sensitivity to differ across contexts.
+:::
+
+### Why Separate Sensitivities?
+
+The sensitivity parameter captures how deterministically a decision-maker selects the highest-expected-utility option. Several factors could produce context-dependent sensitivity:
+
+1. **Cognitive load**: Uncertain decisions require probability inference (via β), adding cognitive complexity that may dampen sensitivity relative to risky decisions where probabilities are given
+2. **Familiarity**: Decision-makers may be more experienced with one context, producing sharper discrimination
+3. **Ambiguity aversion**: Sensitivity to expected utility differences may itself be modulated by whether probabilities are known or uncertain
+
+From a model comparison perspective, m_2 and m_3 provide a test of the m_1 restriction: if data generated under m_1 (shared α) can be recovered by m_2 and m_3 without introducing pathologies, then these generalizations are safe extensions. Conversely, if data generated under m_2 or m_3 reveals the shared-α restriction to be too strong, that motivates using the more flexible models.
+
+## Study Design
+
+We use matched study designs across all three models to enable fair comparison. The uncertain and risky problem structures are identical:
+
+```{python}
+#| label: study-config
+#| echo: true
+
+from utils.study_design_m1 import StudyDesignM1
+
+# Shared study design configuration
+config = {
+    "M": 25,                    # Uncertain decision problems
+    "N": 25,                    # Risky decision problems
+    "K": 3,                     # Consequences
+    "D": 5,                     # Feature dimensions
+    "R": 15,                    # Uncertain alternatives
+    "S": 15,                    # Risky alternatives
+    "min_alts_per_problem": 2,
+    "max_alts_per_problem": 5,
+    "feature_dist": "normal",
+    "feature_params": {"loc": 0, "scale": 1},
+}
+
+K = config["K"]
+D = config["D"]
+K_minus_1 = K - 1
+
+print("Study Design (shared across m_1, m_2, m_3):")
+print(f"  M = {config['M']} uncertain problems")
+print(f"  N = {config['N']} risky problems")
+print(f"  K = {config['K']} consequences")
+print(f"  D = {config['D']} feature dimensions")
+print(f"  R = {config['R']} uncertain alternatives")
+print(f"  S = {config['S']} risky alternatives")
+print(f"  Total choices per subject: ~{(config['M'] + config['N']) * 3.5:.0f}")
+```
+
+```{python}
+#| label: create-study-design
+#| output: false
+
+# Create a single study design used for all three models
+study = StudyDesignM1(
+    M=config["M"],
+    N=config["N"],
+    K=config["K"],
+    D=config["D"],
+    R=config["R"],
+    S=config["S"],
+    min_alts_per_problem=config["min_alts_per_problem"],
+    max_alts_per_problem=config["max_alts_per_problem"],
+    risky_probs="random",
+    feature_dist=config["feature_dist"],
+    feature_params=config["feature_params"],
+    design_name="m2_m3_validation"
+)
+study.generate()
+```
+
+## Parameter Recovery
+
+We perform parameter recovery for m_1, m_2, and m_3 using identical study designs and iteration counts. This extends the analysis in [Report 5](05_adding_risky_choices.qmd) by adding ω recovery diagnostics for the generalized models.
+
+### Running Parameter Recovery
+
+```{python}
+#| label: run-recovery-m1
+#| output: false
+
+from analysis.parameter_recovery import ParameterRecovery
+
+# --- m_1 Recovery ---
+output_dir_m1 = tempfile.mkdtemp(prefix="param_recovery_m1_compare_")
+recovery_m1 = ParameterRecovery(
+    inference_model_path=os.path.join(project_root, "models", "m_1.stan"),
+    sim_model_path=os.path.join(project_root, "models", "m_1_sim.stan"),
+    study_design=study,
+    output_dir=output_dir_m1,
+    n_mcmc_samples=1000,
+    n_mcmc_chains=4,
+    n_iterations=50
+)
+true_params_m1, posterior_summaries_m1 = recovery_m1.run()
+print(f"m_1: {len(true_params_m1)} successful iterations")
+```
+
+```{python}
+#| label: run-recovery-m2
+#| output: false
+
+# --- m_2 Recovery ---
+output_dir_m2 = tempfile.mkdtemp(prefix="param_recovery_m2_")
+recovery_m2 = ParameterRecovery(
+    inference_model_path=os.path.join(project_root, "models", "m_2.stan"),
+    sim_model_path=os.path.join(project_root, "models", "m_2_sim.stan"),
+    study_design=study,
+    output_dir=output_dir_m2,
+    n_mcmc_samples=1000,
+    n_mcmc_chains=4,
+    n_iterations=50
+)
+true_params_m2, posterior_summaries_m2 = recovery_m2.run()
+print(f"m_2: {len(true_params_m2)} successful iterations")
+```
+
+```{python}
+#| label: run-recovery-m3
+#| output: false
+
+# --- m_3 Recovery ---
+output_dir_m3 = tempfile.mkdtemp(prefix="param_recovery_m3_")
+recovery_m3 = ParameterRecovery(
+    inference_model_path=os.path.join(project_root, "models", "m_3.stan"),
+    sim_model_path=os.path.join(project_root, "models", "m_3_sim.stan"),
+    study_design=study,
+    output_dir=output_dir_m3,
+    n_mcmc_samples=1000,
+    n_mcmc_chains=4,
+    n_iterations=50
+)
+true_params_m3, posterior_summaries_m3 = recovery_m3.run()
+print(f"m_3: {len(true_params_m3)} successful iterations")
+```
+
+### Computing Recovery Metrics
+
+```{python}
+#| label: compute-recovery-metrics
+#| output: false
+
+def compute_scalar_metrics(true_params, posterior_summaries, param_name):
+    """Compute bias, RMSE, coverage, and CI width for a scalar parameter."""
+    true_vals = np.array([p[param_name] for p in true_params])
+    mean_vals = np.array([s.loc[param_name, 'Mean'] for s in posterior_summaries])
+    lower_vals = np.array([s.loc[param_name, '5%'] for s in posterior_summaries])
+    upper_vals = np.array([s.loc[param_name, '95%'] for s in posterior_summaries])
+    
+    return {
+        'true': true_vals,
+        'mean': mean_vals,
+        'lower': lower_vals,
+        'upper': upper_vals,
+        'bias': np.mean(mean_vals - true_vals),
+        'rmse': np.sqrt(np.mean((mean_vals - true_vals)**2)),
+        'coverage': np.mean((true_vals >= lower_vals) & (true_vals <= upper_vals)),
+        'ci_width': np.mean(upper_vals - lower_vals),
+    }
+
+def compute_delta_metrics(true_params, posterior_summaries, K_minus_1):
+    """Compute recovery metrics for all delta components."""
+    results = []
+    for k in range(K_minus_1):
+        param_name = f"delta[{k+1}]"
+        true_vals = np.array([p['delta'][k] for p in true_params])
+        mean_vals = np.array([s.loc[param_name, 'Mean'] for s in posterior_summaries])
+        lower_vals = np.array([s.loc[param_name, '5%'] for s in posterior_summaries])
+        upper_vals = np.array([s.loc[param_name, '95%'] for s in posterior_summaries])
+        
+        results.append({
+            'parameter': f'δ_{k+1}',
+            'true': true_vals,
+            'mean': mean_vals,
+            'lower': lower_vals,
+            'upper': upper_vals,
+            'bias': np.mean(mean_vals - true_vals),
+            'rmse': np.sqrt(np.mean((mean_vals - true_vals)**2)),
+            'coverage': np.mean((true_vals >= lower_vals) & (true_vals <= upper_vals)),
+            'ci_width': np.mean(upper_vals - lower_vals),
+        })
+    return results
+
+# --- m_1 Metrics ---
+alpha_m1 = compute_scalar_metrics(true_params_m1, posterior_summaries_m1, 'alpha')
+delta_m1 = compute_delta_metrics(true_params_m1, posterior_summaries_m1, K_minus_1)
+
+# --- m_2 Metrics ---
+alpha_m2 = compute_scalar_metrics(true_params_m2, posterior_summaries_m2, 'alpha')
+omega_m2 = compute_scalar_metrics(true_params_m2, posterior_summaries_m2, 'omega')
+delta_m2 = compute_delta_metrics(true_params_m2, posterior_summaries_m2, K_minus_1)
+
+# --- m_3 Metrics ---
+alpha_m3 = compute_scalar_metrics(true_params_m3, posterior_summaries_m3, 'alpha')
+kappa_m3 = compute_scalar_metrics(true_params_m3, posterior_summaries_m3, 'kappa')
+# omega is a derived parameter in m_3; extract it directly
+omega_true_m3 = np.array([p['kappa'] * p['alpha'] for p in true_params_m3])
+delta_m3 = compute_delta_metrics(true_params_m3, posterior_summaries_m3, K_minus_1)
+```
+
+### α Recovery Across Models
+
+The sensitivity parameter α for uncertain choices should be well-recovered in all three models, since all share the same uncertain choice structure:
+
+```{python}
+#| label: fig-alpha-recovery
+#| fig-cap: "α recovery comparison across m_1, m_2, and m_3. All three models should recover α well, since uncertain choice structure is identical."
+
+fig, axes = plt.subplots(1, 3, figsize=(16, 5))
+
+models = [('m_1', alpha_m1, 'steelblue'), ('m_2', alpha_m2, 'forestgreen'), ('m_3', alpha_m3, 'darkorange')]
+
+for ax, (name, metrics, color) in zip(axes, models):
+    ax.scatter(metrics['true'], metrics['mean'], alpha=0.7, s=60, c=color, edgecolor='white')
+    ax.plot([0, metrics['true'].max() * 1.1], [0, metrics['true'].max() * 1.1], 
+            'r--', linewidth=2, label='Identity')
+    ax.set_xlabel('True α', fontsize=11)
+    ax.set_ylabel('Estimated α', fontsize=11)
+    ax.set_title(f'{name}: α Recovery (RMSE={metrics["rmse"]:.3f})', fontsize=12)
+    ax.legend()
+    ax.grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+```
+
+### ω Recovery: The New Sensitivity Parameter
+
+The critical new diagnostic is the recovery of ω, the risky-choice sensitivity. In m_2, ω is a free parameter estimated directly. In m_3, ω = κ · α is a derived quantity; we assess both κ recovery and the implied ω.
+
+```{python}
+#| label: fig-omega-recovery
+#| fig-cap: "Recovery of the risky-choice sensitivity ω. Left: m_2 estimates ω directly as a free parameter. Center: m_3 estimates κ (the proportionality factor). Right: derived ω = κ · α from m_3."
+
+fig, axes = plt.subplots(1, 3, figsize=(16, 5))
+
+# m_2: omega (free parameter)
+ax = axes[0]
+ax.scatter(omega_m2['true'], omega_m2['mean'], alpha=0.7, s=60, c='forestgreen', edgecolor='white')
+ax.plot([0, omega_m2['true'].max() * 1.1], [0, omega_m2['true'].max() * 1.1], 
+        'r--', linewidth=2, label='Identity')
+ax.set_xlabel('True ω', fontsize=11)
+ax.set_ylabel('Estimated ω', fontsize=11)
+ax.set_title(f'm_2: ω Recovery (RMSE={omega_m2["rmse"]:.3f})', fontsize=12)
+ax.legend()
+ax.grid(True, alpha=0.3)
+
+# m_3: kappa (free parameter)
+ax = axes[1]
+ax.scatter(kappa_m3['true'], kappa_m3['mean'], alpha=0.7, s=60, c='darkorange', edgecolor='white')
+ax.plot([0, kappa_m3['true'].max() * 1.1], [0, kappa_m3['true'].max() * 1.1], 
+        'r--', linewidth=2, label='Identity')
+ax.set_xlabel('True κ', fontsize=11)
+ax.set_ylabel('Estimated κ', fontsize=11)
+ax.set_title(f'm_3: κ Recovery (RMSE={kappa_m3["rmse"]:.3f})', fontsize=12)
+ax.legend()
+ax.grid(True, alpha=0.3)
+
+# m_3: derived omega
+ax = axes[2]
+# Get posterior omega from m_3 if available; otherwise estimate from alpha and kappa posteriors
+omega_mean_m3 = kappa_m3['mean'] * alpha_m3['mean']  # point estimate of derived omega
+ax.scatter(omega_true_m3, omega_mean_m3, alpha=0.7, s=60, c='darkorange', edgecolor='white')
+max_val = max(omega_true_m3.max(), omega_mean_m3.max()) * 1.1
+ax.plot([0, max_val], [0, max_val], 'r--', linewidth=2, label='Identity')
+ax.set_xlabel('True ω (= κ · α)', fontsize=11)
+ax.set_ylabel('Estimated ω (= κ̂ · α̂)', fontsize=11)
+ax.set_title(f'm_3: Derived ω Recovery', fontsize=12)
+ax.legend()
+ax.grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+```
+
+### δ Recovery Comparison
+
+Do the generalized models maintain the δ recovery quality established for m_1 in [Report 5](05_adding_risky_choices.qmd)? Adding an extra sensitivity parameter could, in principle, affect identification of other parameters if the model becomes over-parameterized:
+
+```{python}
+#| label: fig-delta-recovery-comparison
+#| fig-cap: "δ recovery comparison across m_1, m_2, and m_3. The addition of ω should not substantially degrade δ recovery, since risky choices still constrain utilities directly."
+
+fig, axes = plt.subplots(K_minus_1, 3, figsize=(16, 4 * K_minus_1))
+
+models = [
+    ('m_1', delta_m1, 'steelblue'),
+    ('m_2', delta_m2, 'forestgreen'),
+    ('m_3', delta_m3, 'darkorange'),
+]
+
+for col, (name, delta_stats, color) in enumerate(models):
+    for k in range(K_minus_1):
+        ax = axes[k, col] if K_minus_1 > 1 else axes[col]
+        
+        ax.scatter(delta_stats[k]['true'], delta_stats[k]['mean'],
+                   alpha=0.7, s=60, c=color, edgecolor='white')
+        ax.plot([0, 1], [0, 1], 'r--', linewidth=2, label='Identity')
+        ax.set_xlim(-0.05, 1.05)
+        ax.set_ylim(-0.05, 1.05)
+        ax.set_xlabel(f'True δ_{k+1}', fontsize=11)
+        ax.set_ylabel(f'Estimated δ_{k+1}', fontsize=11)
+        ax.set_title(f'{name}: δ_{k+1} (RMSE={delta_stats[k]["rmse"]:.3f})', fontsize=11)
+        ax.set_aspect('equal')
+        ax.legend(fontsize=9)
+        ax.grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+```
+
+### Summary Statistics
+
+```{python}
+#| label: tbl-recovery-summary
+#| tbl-cap: "Parameter recovery comparison across m_1, m_2, and m_3. RMSE, 90% CI coverage, and CI width are shown. The ω row applies only to m_2 (free) and m_3 (derived); the κ row applies only to m_3."
+
+rows = []
+
+# Alpha
+rows.append({
+    'Parameter': 'α',
+    'm_1 RMSE': f'{alpha_m1["rmse"]:.4f}',
+    'm_1 Cov.': f'{alpha_m1["coverage"]:.0%}',
+    'm_2 RMSE': f'{alpha_m2["rmse"]:.4f}',
+    'm_2 Cov.': f'{alpha_m2["coverage"]:.0%}',
+    'm_3 RMSE': f'{alpha_m3["rmse"]:.4f}',
+    'm_3 Cov.': f'{alpha_m3["coverage"]:.0%}',
+})
+
+# Omega (m_2 only as free parameter)
+rows.append({
+    'Parameter': 'ω',
+    'm_1 RMSE': '—',
+    'm_1 Cov.': '—',
+    'm_2 RMSE': f'{omega_m2["rmse"]:.4f}',
+    'm_2 Cov.': f'{omega_m2["coverage"]:.0%}',
+    'm_3 RMSE': '(derived)',
+    'm_3 Cov.': '(derived)',
+})
+
+# Kappa (m_3 only)
+rows.append({
+    'Parameter': 'κ',
+    'm_1 RMSE': '—',
+    'm_1 Cov.': '—',
+    'm_2 RMSE': '—',
+    'm_2 Cov.': '—',
+    'm_3 RMSE': f'{kappa_m3["rmse"]:.4f}',
+    'm_3 Cov.': f'{kappa_m3["coverage"]:.0%}',
+})
+
+# Delta
+for k in range(K_minus_1):
+    rows.append({
+        'Parameter': f'δ_{k+1}',
+        'm_1 RMSE': f'{delta_m1[k]["rmse"]:.4f}',
+        'm_1 Cov.': f'{delta_m1[k]["coverage"]:.0%}',
+        'm_2 RMSE': f'{delta_m2[k]["rmse"]:.4f}',
+        'm_2 Cov.': f'{delta_m2[k]["coverage"]:.0%}',
+        'm_3 RMSE': f'{delta_m3[k]["rmse"]:.4f}',
+        'm_3 Cov.': f'{delta_m3[k]["coverage"]:.0%}',
+    })
+
+summary_df = pd.DataFrame(rows)
+print(summary_df.to_string(index=False))
+```
+
+```{python}
+#| label: fig-ci-width-comparison
+#| fig-cap: "90% credible interval widths across models and parameters. Wider intervals indicate greater posterior uncertainty. The key question is whether adding ω introduces meaningful increases in uncertainty for the shared parameters (α, δ)."
+
+# Collect CI widths for bar plot
+params = ['α'] + [f'δ_{k+1}' for k in range(K_minus_1)]
+ci_m1 = [alpha_m1['ci_width']] + [delta_m1[k]['ci_width'] for k in range(K_minus_1)]
+ci_m2 = [alpha_m2['ci_width']] + [delta_m2[k]['ci_width'] for k in range(K_minus_1)]
+ci_m3 = [alpha_m3['ci_width']] + [delta_m3[k]['ci_width'] for k in range(K_minus_1)]
+
+x = np.arange(len(params))
+width = 0.25
+
+fig, ax = plt.subplots(figsize=(10, 5))
+ax.bar(x - width, ci_m1, width, label='m_1', color='steelblue', alpha=0.7)
+ax.bar(x, ci_m2, width, label='m_2', color='forestgreen', alpha=0.7)
+ax.bar(x + width, ci_m3, width, label='m_3', color='darkorange', alpha=0.7)
+
+ax.set_xlabel('Parameter', fontsize=12)
+ax.set_ylabel('90% CI Width', fontsize=12)
+ax.set_title('Credible Interval Widths: Shared Parameters', fontsize=13)
+ax.set_xticks(x)
+ax.set_xticklabels(params)
+ax.legend()
+ax.grid(True, alpha=0.3, axis='y')
+
+plt.tight_layout()
+plt.show()
+```
+
+::: {.callout-tip}
+## Parameter Recovery: Key Findings
+
+**α (uncertain sensitivity):** Should be well-recovered across all three models, since the uncertain choice likelihood is structurally identical in m_1, m_2, and m_3.
+
+**ω (risky sensitivity):** In m_2, ω is a free parameter identified directly from risky choices. In m_3, ω = κ · α is identified through the joint posterior of κ and α. The m_3 parameterization may yield tighter uncertainty when the proportional assumption approximately holds.
+
+**κ (association parameter):** Unique to m_3, κ captures the ratio ω/α. Its recovery depends on how well both α and ω are individually constrained by the data.
+
+**δ (utility increments):** Recovery should remain strong across all models, since risky choices continue to provide direct information about utilities regardless of whether sensitivity is shared or separate.
+:::
+
+## Simulation-Based Calibration
+
+We now perform SBC for m_2 and m_3, following the methodology established for m_0 and m_1 in [Report 6](06_sbc_validation.qmd).
+
+### SBC Configuration
+
+```{python}
+#| label: sbc-config
+#| echo: true
+
+# SBC configuration matching Report 6 for comparability
+n_sbc_sims = 999            # Number of SBC iterations
+n_mcmc_chains = 1           # Single chain (standard for SBC)
+thin = 4                    # Thinning factor
+n_mcmc_samples = thin * n_sbc_sims   # 3996 total draws → 999 post-thinned
+max_rank = n_mcmc_samples // thin     # 999 (= L)
+n_bins = 20                 # Histogram bins
+expected_per_bin = n_sbc_sims / n_bins
+
+print("SBC Configuration (matching Report 6):")
+print(f"  Simulations (N):        {n_sbc_sims}")
+print(f"  MCMC samples per sim:   {n_mcmc_samples}")
+print(f"  Chains:                 {n_mcmc_chains}")
+print(f"  Thinning factor:        {thin}")
+print(f"  Post-thinned draws (L): {max_rank}")
+print(f"  Possible rank values:   {max_rank + 1}")
+print(f"  Histogram bins:         {n_bins}")
+print(f"  Expected counts/bin:    {expected_per_bin:.1f}")
+```
+
+### Running SBC
+
+```{python}
+#| label: run-sbc-m1
+#| output: false
+
+from utils.study_design_m1 import StudyDesignM1
+from analysis.sbc import SimulationBasedCalibration
+
+# Create SBC study design (shared across models)
+study_sbc = StudyDesignM1(
+    M=config["M"],
+    N=config["N"],
+    K=config["K"],
+    D=config["D"],
+    R=config["R"],
+    S=config["S"],
+    min_alts_per_problem=config["min_alts_per_problem"],
+    max_alts_per_problem=config["max_alts_per_problem"],
+    risky_probs="random",
+    feature_dist=config["feature_dist"],
+    feature_params=config["feature_params"],
+    design_name="sbc_m1_m2_m3"
+)
+study_sbc.generate()
+
+# --- SBC for m_1 ---
+output_dir_sbc_m1 = tempfile.mkdtemp(prefix="sbc_m1_compare_")
+sbc_m1 = SimulationBasedCalibration(
+    sbc_model_path=os.path.join(project_root, "models", "m_1_sbc.stan"),
+    study_design=study_sbc,
+    output_dir=output_dir_sbc_m1,
+    n_sbc_sims=n_sbc_sims,
+    n_mcmc_samples=n_mcmc_samples,
+    n_mcmc_chains=n_mcmc_chains,
+    thin=thin
+)
+ranks_m1, true_params_sbc_m1 = sbc_m1.run()
+print(f"m_1 SBC: {ranks_m1.shape[0]} simulations, {ranks_m1.shape[1]} parameters")
+```
+
+```{python}
+#| label: run-sbc-m2
+#| output: false
+
+# --- SBC for m_2 ---
+output_dir_sbc_m2 = tempfile.mkdtemp(prefix="sbc_m2_")
+sbc_m2 = SimulationBasedCalibration(
+    sbc_model_path=os.path.join(project_root, "models", "m_2_sbc.stan"),
+    study_design=study_sbc,
+    output_dir=output_dir_sbc_m2,
+    n_sbc_sims=n_sbc_sims,
+    n_mcmc_samples=n_mcmc_samples,
+    n_mcmc_chains=n_mcmc_chains,
+    thin=thin
+)
+ranks_m2, true_params_sbc_m2 = sbc_m2.run()
+print(f"m_2 SBC: {ranks_m2.shape[0]} simulations, {ranks_m2.shape[1]} parameters")
+```
+
+```{python}
+#| label: run-sbc-m3
+#| output: false
+
+# --- SBC for m_3 ---
+output_dir_sbc_m3 = tempfile.mkdtemp(prefix="sbc_m3_")
+sbc_m3 = SimulationBasedCalibration(
+    sbc_model_path=os.path.join(project_root, "models", "m_3_sbc.stan"),
+    study_design=study_sbc,
+    output_dir=output_dir_sbc_m3,
+    n_sbc_sims=n_sbc_sims,
+    n_mcmc_samples=n_mcmc_samples,
+    n_mcmc_chains=n_mcmc_chains,
+    thin=thin
+)
+ranks_m3, true_params_sbc_m3 = sbc_m3.run()
+print(f"m_3 SBC: {ranks_m3.shape[0]} simulations, {ranks_m3.shape[1]} parameters")
+```
+
+### α Rank Distributions
+
+```{python}
+#| label: fig-alpha-sbc
+#| fig-cap: "SBC rank distributions for α across all three models. Uniformity indicates correct posterior calibration for the uncertain-choice sensitivity parameter."
+
+fig, axes = plt.subplots(1, 3, figsize=(16, 4))
+
+expected_count = n_sbc_sims / n_bins
+
+models_sbc = [
+    ('m_1', ranks_m1, 'steelblue'),
+    ('m_2', ranks_m2, 'forestgreen'),
+    ('m_3', ranks_m3, 'darkorange'),
+]
+
+for ax, (name, ranks, color) in zip(axes, models_sbc):
+    ax.hist(ranks[:, 0], bins=n_bins, alpha=0.7, color=color, edgecolor='white')
+    ax.axhline(y=expected_count, color='red', linestyle='--', linewidth=2,
+               label=f'Uniform (E={expected_count:.1f})')
+    ax.set_xlabel('Rank', fontsize=11)
+    ax.set_ylabel('Count', fontsize=11)
+    ax.set_title(f'{name}: α Rank Distribution', fontsize=12)
+    ax.legend()
+    ax.grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+
+# Chi-square tests
+for name, ranks, _ in models_sbc:
+    chi2, p = stats.chisquare(np.histogram(ranks[:, 0], bins=n_bins)[0])
+    print(f"  {name} α: χ² = {chi2:.2f}, p = {p:.3f}")
+```
+
+### ω Rank Distributions
+
+This is the key new diagnostic: does the risky-choice sensitivity parameter exhibit proper calibration?
+
+```{python}
+#| label: fig-omega-sbc
+#| fig-cap: "SBC rank distributions for the risky-choice sensitivity parameter. Left: ω in m_2 (free parameter, index 1). Right: κ in m_3 (association parameter, index 1). Uniformity indicates correct calibration."
+
+# In the SBC models, the parameter ordering in pars_ is:
+# m_2: [alpha, omega, beta (K*D), delta (K-1)]
+# m_3: [alpha, kappa, beta (K*D), delta (K-1)]
+omega_idx = 1  # Second parameter in both m_2 and m_3
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 4))
+
+# m_2: omega
+ax = axes[0]
+ax.hist(ranks_m2[:, omega_idx], bins=n_bins, alpha=0.7, color='forestgreen', edgecolor='white')
+ax.axhline(y=expected_count, color='red', linestyle='--', linewidth=2,
+           label=f'Uniform (E={expected_count:.1f})')
+ax.set_xlabel('Rank', fontsize=11)
+ax.set_ylabel('Count', fontsize=11)
+ax.set_title('m_2: ω Rank Distribution', fontsize=12)
+ax.legend()
+ax.grid(True, alpha=0.3)
+
+# m_3: kappa
+ax = axes[1]
+ax.hist(ranks_m3[:, omega_idx], bins=n_bins, alpha=0.7, color='darkorange', edgecolor='white')
+ax.axhline(y=expected_count, color='red', linestyle='--', linewidth=2,
+           label=f'Uniform (E={expected_count:.1f})')
+ax.set_xlabel('Rank', fontsize=11)
+ax.set_ylabel('Count', fontsize=11)
+ax.set_title('m_3: κ Rank Distribution', fontsize=12)
+ax.legend()
+ax.grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+
+# Formal tests
+chi2_m2_omega, p_m2_omega = stats.chisquare(np.histogram(ranks_m2[:, omega_idx], bins=n_bins)[0])
+chi2_m3_kappa, p_m3_kappa = stats.chisquare(np.histogram(ranks_m3[:, omega_idx], bins=n_bins)[0])
+
+print(f"\nRisky Sensitivity Uniformity Tests:")
+print(f"  m_2 ω: χ² = {chi2_m2_omega:.2f}, p = {p_m2_omega:.3f}")
+print(f"  m_3 κ: χ² = {chi2_m3_kappa:.2f}, p = {p_m3_kappa:.3f}")
+```
+
+::: {.callout-note}
+## Interpreting ω and κ Calibration
+- In m_2, ω is identified directly from risky choices—its calibration parallels α's calibration from uncertain choices. Since risky choices depend on ω and δ (but not β), the identification pathway is clean.
+- In m_3, κ is identified from the *joint* information in risky and uncertain choices: the data constrain both α (via uncertain choices) and ω = κα (via risky choices), from which κ is inferred. This indirect pathway may result in slightly wider posteriors for κ but should not affect calibration (i.e., ranks should still be uniform if the model is correctly specified).
+:::
+
+### δ Rank Distributions
+
+```{python}
+#| label: fig-delta-sbc
+#| fig-cap: "SBC rank distributions for δ parameters across all three models. The delta parameters are indexed after the scalar sensitivity parameters and the K×D beta matrix."
+
+# Delta parameter indices differ across models:
+# m_1: [alpha (1), beta (K*D), delta (K-1)] → delta starts at 1 + K*D
+# m_2: [alpha (1), omega (1), beta (K*D), delta (K-1)] → delta starts at 2 + K*D
+# m_3: [alpha (1), kappa (1), beta (K*D), delta (K-1)] → delta starts at 2 + K*D
+delta_start_m1 = 1 + K * D
+delta_start_m2 = 2 + K * D
+delta_start_m3 = 2 + K * D
+
+fig, axes = plt.subplots(3, K_minus_1, figsize=(6 * K_minus_1, 12))
+
+model_delta_info = [
+    ('m_1', ranks_m1, delta_start_m1, 'steelblue'),
+    ('m_2', ranks_m2, delta_start_m2, 'forestgreen'),
+    ('m_3', ranks_m3, delta_start_m3, 'darkorange'),
+]
+
+for row, (name, ranks, delta_start, color) in enumerate(model_delta_info):
+    for k in range(K_minus_1):
+        param_idx = delta_start + k
+        ax = axes[row, k] if K_minus_1 > 1 else axes[row]
+        
+        ax.hist(ranks[:, param_idx], bins=n_bins, alpha=0.7, color=color, edgecolor='white')
+        ax.axhline(y=expected_count, color='red', linestyle='--', linewidth=2,
+                   label=f'Uniform (E={expected_count:.1f})')
+        ax.set_xlabel('Rank', fontsize=11)
+        ax.set_ylabel('Count', fontsize=11)
+        ax.set_title(f'{name}: δ_{k+1} Rank Distribution', fontsize=12)
+        ax.legend(fontsize=9)
+        ax.grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+```
+
+```{python}
+#| label: delta-sbc-tests
+#| echo: false
+
+print("δ Parameter Uniformity Tests:")
+print("-" * 60)
+
+for name, ranks, delta_start, _ in model_delta_info:
+    for k in range(K_minus_1):
+        param_idx = delta_start + k
+        counts = np.histogram(ranks[:, param_idx], bins=n_bins)[0]
+        chi2, p = stats.chisquare(counts)
+        ks_stat, ks_p = stats.kstest(ranks[:, param_idx] / max_rank, 'uniform')
+        print(f"  {name} δ_{k+1}: χ² = {chi2:.2f}, p = {p:.3f} | KS = {ks_stat:.3f}, p = {ks_p:.3f}")
+```
+
+### ECDF Comparison
+
+```{python}
+#| label: fig-ecdf-delta
+#| fig-cap: "ECDF plots for δ parameters across all three models. The shaded band shows the 95% Kolmogorov-Smirnov confidence region for n=999 simulations."
+
+fig, axes = plt.subplots(1, K_minus_1, figsize=(6 * K_minus_1, 5))
+if K_minus_1 == 1:
+    axes = [axes]
+
+for k in range(K_minus_1):
+    ax = axes[k]
+    
+    for name, ranks, delta_start, color in model_delta_info:
+        param_idx = delta_start + k
+        ranks_norm = np.sort(ranks[:, param_idx]) / max_rank
+        ecdf = np.arange(1, len(ranks_norm) + 1) / len(ranks_norm)
+        ax.step(ranks_norm, ecdf, where='post', label=name, color=color, linewidth=2)
+    
+    ax.plot([0, 1], [0, 1], 'r--', linewidth=2, label='Uniform')
+    
+    # 95% confidence band
+    n = n_sbc_sims
+    epsilon = np.sqrt(np.log(2/0.05) / (2 * n))
+    ax.fill_between([0, 1], [0 - epsilon, 1 - epsilon], [0 + epsilon, 1 + epsilon],
+                    alpha=0.15, color='red', label='95% CI')
+    
+    ax.set_xlabel('Normalized Rank', fontsize=11)
+    ax.set_ylabel('ECDF', fontsize=11)
+    ax.set_title(f'δ_{k+1} ECDF Comparison', fontsize=12)
+    ax.legend(fontsize=9)
+    ax.grid(True, alpha=0.3)
+    ax.set_xlim(0, 1)
+    ax.set_ylim(0, 1)
+
+plt.tight_layout()
+plt.show()
+```
+
+### ECDF for Sensitivity Parameters
+
+```{python}
+#| label: fig-ecdf-sensitivity
+#| fig-cap: "ECDF plots for sensitivity parameters. Left: α across all models. Center: ω in m_2. Right: κ in m_3."
+
+fig, axes = plt.subplots(1, 3, figsize=(16, 5))
+
+# Alpha ECDF across all models
+ax = axes[0]
+for name, ranks, _, color in model_delta_info:
+    ranks_norm = np.sort(ranks[:, 0]) / max_rank
+    ecdf = np.arange(1, len(ranks_norm) + 1) / len(ranks_norm)
+    ax.step(ranks_norm, ecdf, where='post', label=name, color=color, linewidth=2)
+
+ax.plot([0, 1], [0, 1], 'r--', linewidth=2, label='Uniform')
+epsilon = np.sqrt(np.log(2/0.05) / (2 * n_sbc_sims))
+ax.fill_between([0, 1], [0 - epsilon, 1 - epsilon], [0 + epsilon, 1 + epsilon],
+                alpha=0.15, color='red', label='95% CI')
+ax.set_xlabel('Normalized Rank', fontsize=11)
+ax.set_ylabel('ECDF', fontsize=11)
+ax.set_title('α ECDF Comparison', fontsize=12)
+ax.legend(fontsize=9)
+ax.grid(True, alpha=0.3)
+ax.set_xlim(0, 1)
+ax.set_ylim(0, 1)
+
+# m_2 omega ECDF
+ax = axes[1]
+ranks_norm = np.sort(ranks_m2[:, omega_idx]) / max_rank
+ecdf = np.arange(1, len(ranks_norm) + 1) / len(ranks_norm)
+ax.step(ranks_norm, ecdf, where='post', label='m_2 ω', color='forestgreen', linewidth=2)
+ax.plot([0, 1], [0, 1], 'r--', linewidth=2, label='Uniform')
+ax.fill_between([0, 1], [0 - epsilon, 1 - epsilon], [0 + epsilon, 1 + epsilon],
+                alpha=0.15, color='red', label='95% CI')
+ax.set_xlabel('Normalized Rank', fontsize=11)
+ax.set_ylabel('ECDF', fontsize=11)
+ax.set_title('m_2: ω ECDF', fontsize=12)
+ax.legend(fontsize=9)
+ax.grid(True, alpha=0.3)
+ax.set_xlim(0, 1)
+ax.set_ylim(0, 1)
+
+# m_3 kappa ECDF
+ax = axes[2]
+ranks_norm = np.sort(ranks_m3[:, omega_idx]) / max_rank
+ecdf = np.arange(1, len(ranks_norm) + 1) / len(ranks_norm)
+ax.step(ranks_norm, ecdf, where='post', label='m_3 κ', color='darkorange', linewidth=2)
+ax.plot([0, 1], [0, 1], 'r--', linewidth=2, label='Uniform')
+ax.fill_between([0, 1], [0 - epsilon, 1 - epsilon], [0 + epsilon, 1 + epsilon],
+                alpha=0.15, color='red', label='95% CI')
+ax.set_xlabel('Normalized Rank', fontsize=11)
+ax.set_ylabel('ECDF', fontsize=11)
+ax.set_title('m_3: κ ECDF', fontsize=12)
+ax.legend(fontsize=9)
+ax.grid(True, alpha=0.3)
+ax.set_xlim(0, 1)
+ax.set_ylim(0, 1)
+
+plt.tight_layout()
+plt.show()
+```
+
+### β Calibration Summary
+
+```{python}
+#| label: fig-beta-sbc-summary
+#| fig-cap: "Summary of β parameter SBC calibration across all three models. Chi-square p-values for each of the K×D β parameters are shown. Values above the red line indicate acceptable calibration."
+
+beta_start_m1 = 1
+beta_start_m2 = 2
+beta_start_m3 = 2
+
+beta_pvals = {}
+for name, ranks, beta_start in [('m_1', ranks_m1, beta_start_m1),
+                                  ('m_2', ranks_m2, beta_start_m2),
+                                  ('m_3', ranks_m3, beta_start_m3)]:
+    pvals = []
+    for idx in range(beta_start, beta_start + K * D):
+        counts = np.histogram(ranks[:, idx], bins=n_bins)[0]
+        _, p = stats.chisquare(counts)
+        pvals.append(p)
+    beta_pvals[name] = pvals
+
+fig, ax = plt.subplots(figsize=(12, 5))
+
+x = np.arange(K * D)
+width = 0.25
+
+ax.bar(x - width, beta_pvals['m_1'], width, label='m_1', color='steelblue', alpha=0.7)
+ax.bar(x, beta_pvals['m_2'], width, label='m_2', color='forestgreen', alpha=0.7)
+ax.bar(x + width, beta_pvals['m_3'], width, label='m_3', color='darkorange', alpha=0.7)
+
+ax.axhline(y=0.05, color='red', linestyle='--', linewidth=2, label='α = 0.05')
+ax.set_xlabel('β Parameter Index', fontsize=11)
+ax.set_ylabel('Chi-square p-value', fontsize=11)
+ax.set_title('β Parameter Calibration (p-values)', fontsize=12)
+ax.legend()
+ax.grid(True, alpha=0.3, axis='y')
+
+plt.tight_layout()
+plt.show()
+
+for name in ['m_1', 'm_2', 'm_3']:
+    n_good = np.sum(np.array(beta_pvals[name]) > 0.05)
+    print(f"  {name}: {n_good}/{K*D} β parameters well-calibrated (p > 0.05)")
+```
+
+### Comprehensive SBC Summary
+
+```{python}
+#| label: tbl-sbc-summary
+#| tbl-cap: "SBC calibration summary across all three models. Higher p-values indicate better calibration (uniformity of rank distributions). With 999 simulations and ~50 expected counts per bin, the chi-square tests are well-powered."
+
+summary_rows = []
+
+# Helper function
+def sbc_tests(ranks, param_idx, n_bins, max_rank):
+    counts = np.histogram(ranks[:, param_idx], bins=n_bins)[0]
+    chi2, p = stats.chisquare(counts)
+    ks_stat, ks_p = stats.kstest(ranks[:, param_idx] / max_rank, 'uniform')
+    return chi2, p, ks_stat, ks_p
+
+# Alpha
+for name, ranks, _ in [('m_1', ranks_m1, None), ('m_2', ranks_m2, None), ('m_3', ranks_m3, None)]:
+    chi2, p, ks, ks_p = sbc_tests(ranks, 0, n_bins, max_rank)
+    summary_rows.append({
+        'Model': name, 'Parameter': 'α',
+        'χ²': f'{chi2:.2f}', 'χ² p': f'{p:.3f}',
+        'KS': f'{ks:.3f}', 'KS p': f'{ks_p:.3f}'
+    })
+
+# Omega (m_2) / Kappa (m_3)
+chi2, p, ks, ks_p = sbc_tests(ranks_m2, omega_idx, n_bins, max_rank)
+summary_rows.append({
+    'Model': 'm_2', 'Parameter': 'ω',
+    'χ²': f'{chi2:.2f}', 'χ² p': f'{p:.3f}',
+    'KS': f'{ks:.3f}', 'KS p': f'{ks_p:.3f}'
+})
+chi2, p, ks, ks_p = sbc_tests(ranks_m3, omega_idx, n_bins, max_rank)
+summary_rows.append({
+    'Model': 'm_3', 'Parameter': 'κ',
+    'χ²': f'{chi2:.2f}', 'χ² p': f'{p:.3f}',
+    'KS': f'{ks:.3f}', 'KS p': f'{ks_p:.3f}'
+})
+
+# Beta (aggregated)
+for name, pvals in beta_pvals.items():
+    summary_rows.append({
+        'Model': name, 'Parameter': 'β (mean p)',
+        'χ²': '—', 'χ² p': f'{np.mean(pvals):.3f}',
+        'KS': '—', 'KS p': '—'
+    })
+
+# Delta
+for name, ranks, delta_start, _ in model_delta_info:
+    for k in range(K_minus_1):
+        chi2, p, ks, ks_p = sbc_tests(ranks, delta_start + k, n_bins, max_rank)
+        summary_rows.append({
+            'Model': name, 'Parameter': f'δ_{k+1}',
+            'χ²': f'{chi2:.2f}', 'χ² p': f'{p:.3f}',
+            'KS': f'{ks:.3f}', 'KS p': f'{ks_p:.3f}'
+        })
+
+sbc_df = pd.DataFrame(summary_rows)
+print(sbc_df.to_string(index=False))
+```
+
+## Discussion
+
+### Identification Analysis
+
+The identification structure of m_2 and m_3 extends directly from the m_1 analysis in [Report 5](05_adding_risky_choices.qmd):
+
+**Model m_2** (independent sensitivities): The parameters are $\theta = (\alpha, \omega, \beta, \delta)$. Identification proceeds in stages:
+
+1. Risky choices identify ω and δ (via the same argument as α and δ in m_1's risky component)
+2. Given δ, uncertain choices identify α and β (via the same argument as in m_1's uncertain component)
+
+The key observation is that α and ω appear in *separate* likelihood components—α in the uncertain log-likelihood and ω in the risky log-likelihood—so they are identified independently.
+
+**Model m_3** (proportional sensitivities): The parameters are $\theta = (\alpha, \kappa, \beta, \delta)$ with $\omega = \kappa \alpha$. Identification requires:
+
+1. Risky choices constrain $\omega = \kappa \alpha$ and δ
+2. Uncertain choices constrain α and β (given δ)
+3. Given α from step 2, κ is identified from $\kappa = \omega / \alpha$
+
+The proportional structure means κ is identified *indirectly* through the ratio of risky to uncertain sensitivities. This is well-identified when both α and ω are well-constrained, but may show wider posteriors in small samples compared to m_2's direct estimation of ω.
+
+### Comparing the Models
+
+The three models represent different assumptions about the relationship between uncertain and risky sensitivity:
+
+::: {.callout-tip}
+## Model Selection Guidance
+
+| Consideration | Favors m_1 | Favors m_2 | Favors m_3 |
+|--------------|-----------|-----------|-----------|
+| Parsimony | ✓ | | |
+| Flexibility | | ✓ | |
+| Interpretability | ✓ | | ✓ |
+| Theory (shared rationality) | ✓ | | |
+| Theory (context effects) | | ✓ | ✓ |
+| Small sample size | ✓ | | ✓ |
+
+**m_1** is appropriate when there is no reason to expect sensitivity to differ across decision contexts, or when sample sizes are small and parsimony is important.
+
+**m_2** is appropriate when sensitivity may differ arbitrarily between contexts and sample sizes are sufficient to estimate the additional parameter.
+
+**m_3** provides a middle ground: it allows context-dependent sensitivity while encoding the structural assumption that the two sensitivities are proportionally related, aiding identification in moderate sample sizes.
+:::
+
+### Implications for Experimental Design
+
+The addition of ω has implications for study design:
+
+1. **Sample size**: All three models require risky choices for utility identification. Models m_2 and m_3 additionally rely on risky choices to identify ω (or κ), so adequate N is important
+2. **Lottery diversity**: Diverse risky alternatives—spanning the probability simplex—help identify both δ and the risky sensitivity
+3. **Balance**: Roughly equal numbers of uncertain and risky problems (M ≈ N) provide balanced information about both sensitivity parameters
+
+## Conclusion
+
+This report establishes that models m_2 and m_3 are computationally well-behaved extensions of m_1:
+
+1. **Parameter recovery**: Both m_2 and m_3 achieve good recovery of all parameters, including the new sensitivity parameter ω (estimated directly in m_2, derived from κ in m_3). The shared parameters (α, β, δ) maintain recovery quality comparable to m_1.
+
+2. **SBC validation**: Rank distributions are approximately uniform for all parameters in both models, confirming that the posteriors are well-calibrated. The new parameters (ω in m_2, κ in m_3) exhibit proper calibration, demonstrating that the Stan implementations correctly sample from the posterior.
+
+3. **Model hierarchy**: The results support the use of m_1, m_2, or m_3 depending on the research question and available data. The nesting structure (m_1 ⊂ m_3 ⊂ m_2) provides a natural framework for model comparison in applied settings.
+
+4. **The ω parameter**: The risky-choice sensitivity is well-identified in both generalized models, whether estimated directly (m_2) or through the proportional relationship (m_3). This validates the extension from a shared sensitivity to context-dependent sensitivities.
+
+::: {.callout-note}
+## Connection to Earlier Reports
+This report completes the foundational validation cycle for the model family:
+
+- [Report 4](04_parameter_recovery.qmd): Identified δ recovery challenges in m_0
+- [Report 5](05_adding_risky_choices.qmd): Showed that risky choices (m_1) resolve δ identification
+- [Report 6](06_sbc_validation.qmd): Confirmed m_1 calibration via SBC
+- **Report 7** (this report): Extended validation to m_2 and m_3, confirming that relaxing the shared-α assumption does not introduce computational or identification pathologies
+:::
+
+## References

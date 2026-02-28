@@ -190,7 +190,8 @@ def cmd_fit(args: argparse.Namespace) -> None:
 
     config = StudyConfig.from_yaml(args.config)
     runner = RiskyStudyRunner(config)
-    fit_results = runner.fit_only()
+    models = getattr(args, "models", None) or None
+    fit_results = runner.fit_only(models=models)
 
     if fit_results.get("skipped"):
         print(f"⚠️  Model fitting skipped: {fit_results['reason']}")
@@ -272,10 +273,16 @@ def main(argv: list[str] | None = None) -> None:
     # fit
     p_fit = sub.add_parser(
         "fit",
-        help="Fit m_1/m_2/m_3 on existing augmented Stan data files",
+        help="Fit models on existing augmented Stan data files (default: m_11, m_21, m_31)",
     )
     p_fit.add_argument(
         "-c", "--config", default=None, help="Path to YAML config"
+    )
+    p_fit.add_argument(
+        "-m", "--models",
+        nargs="+",
+        default=None,
+        help="Model names to fit (default: m_11 m_21 m_31)",
     )
     p_fit.set_defaults(func=cmd_fit)
 

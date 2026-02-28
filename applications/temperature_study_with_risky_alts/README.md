@@ -19,8 +19,11 @@ python -m applications.temperature_study_with_risky_alts run
 # 4. Prepare Stan data only (skip collection, use existing choices)
 python -m applications.temperature_study_with_risky_alts prepare
 
-# 5. Fit m_1, m_2, m_3 on previously prepared data
+# 5. Fit m_11, m_21, m_31 on previously prepared data
 python -m applications.temperature_study_with_risky_alts fit
+
+# 6. Fit specific models (e.g. the uncalibrated variants)
+python -m applications.temperature_study_with_risky_alts fit -m m_1 m_2 m_3
 ```
 
 ---
@@ -33,7 +36,7 @@ python -m applications.temperature_study_with_risky_alts fit
 | `estimate-cost` | Print API call count and estimated cost | `-c`, `-v` |
 | `run` | Full pipeline: generate → collect → merge (→ fit) | `--skip-collection`, `--skip-fitting`, `-c`, `-v` |
 | `prepare` | Merge existing risky + uncertain data into Stan JSON | `-c`, `-v` |
-| `fit` | Fit m_1, m_2, m_3 on prepared Stan data | `-c`, `-v` |
+| `fit` | Fit models on prepared Stan data (default: m_11, m_21, m_31) | `-c`, `-m`, `-v` |
 
 Global flags: `-c / --config` (custom YAML path), `-v / --verbose` (debug logging).
 

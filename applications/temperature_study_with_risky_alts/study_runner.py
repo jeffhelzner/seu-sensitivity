@@ -261,10 +261,17 @@ class RiskyStudyRunner:
     # Phase 4: Model Fitting (optional)
     # ------------------------------------------------------------------
 
+    _DEFAULT_MODELS = ["m_11", "m_21", "m_31"]
+
     def _run_phase4(
-        self, phase3_output: Dict[str, Any]
+        self,
+        phase3_output: Dict[str, Any],
+        models: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         logger.info("═══ Phase 4: Model Fitting ═══")
+
+        if models is None:
+            models = self._DEFAULT_MODELS
 
         try:
             from cmdstanpy import CmdStanModel
@@ -276,9 +283,9 @@ class RiskyStudyRunner:
             Path(__file__).resolve().parent.parent.parent / "models"
         )
 
-        # Fit m_1, m_2, m_3 on each temperature
+        # Fit specified models on each temperature
         fit_results: Dict[str, Any] = {}
-        for model_name in ["m_1", "m_2", "m_3"]:
+        for model_name in models:
             model_path = models_dir / f"{model_name}.stan"
             if not model_path.exists():
                 logger.warning(
@@ -377,7 +384,8 @@ class RiskyStudyRunner:
         Run Phase 4 (model fitting) on existing augmented Stan data files.
 
         Args:
-            models: List of model names to fit (default: ["m_1", "m_2", "m_3"]).
+            models: List of model names to fit
+                    (default: ["m_11", "m_21", "m_31"]).
 
         Returns:
             Dict with per-model per-temperature fit summaries.
@@ -400,7 +408,7 @@ class RiskyStudyRunner:
                 "augmented_stan_data": str(aug_path),
             }
 
-        return self._run_phase4(phase3_output)
+        return self._run_phase4(phase3_output, models=models)
 
     # ------------------------------------------------------------------
     # Loading helpers (for skip_collection mode)

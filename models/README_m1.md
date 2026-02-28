@@ -214,14 +214,15 @@ Random simplexes from Dirichlet(1, 1, ..., 1)
 
 ## Model Comparison
 
-| Feature | m_0 | m_01 | m_1 |
-|---------|-----|------|-----|
-| Uncertain choices | ✓ | ✓ | ✓ |
-| Risky choices | ✗ | ✗ | ✓ |
-| β identifiable | ✗ | ✗ | ✓ |
-| υ identifiable | ✗ | ✗ | ✓ |
-| α identifiable | ~ | ~ | ✓ |
-| Prior on δ | dirichlet(1) | dirichlet(5) | dirichlet(1) |
+| Feature | m_0 | m_01 | m_1 | m_11 |
+|---------|-----|------|-----|------|
+| Uncertain choices | ✓ | ✓ | ✓ | ✓ |
+| Risky choices | ✗ | ✗ | ✓ | ✓ |
+| β identifiable | ✗ | ✗ | ✓ | ✓ |
+| υ identifiable | ✗ | ✗ | ✓ | ✓ |
+| α identifiable | ~ | ~ | ✓ | ✓ |
+| Prior on α | lognormal(0,1) | lognormal(3.0,0.75) | lognormal(0,1) | lognormal(3.0,0.75) |
+| Prior on δ | dirichlet(1) | dirichlet(5) | dirichlet(1) | dirichlet(1) |
 
 ---
 

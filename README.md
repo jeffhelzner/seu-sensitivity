@@ -16,7 +16,7 @@ Current status:
 - ✅ Combined model (m_1) with risky and uncertain choice implemented and tested
 - ✅ Separate sensitivity model (m_2) implemented and tested
 - ✅ Proportional sensitivity model (m_3) implemented and tested
-- ✅ Calibrated prior variant (m_01) implemented
+- ✅ Calibrated prior variants (m_01, m_11, m_21, m_31) implemented
 - ✅ Study design tools functional (m_0 and m_1)
 - ✅ Analysis pipeline complete (parameter recovery, SBC, prior/posterior predictive)
 - ✅ Quarto-based documentation and reports
@@ -56,7 +56,8 @@ seu-sensitivity/
 │   │   ├── 03_prior_analysis.qmd         # Prior predictive analysis
 │   │   ├── 04_parameter_recovery.qmd     # Parameter recovery study
 │   │   ├── 05_adding_risky_choices.qmd   # m_1 model development
-│   │   └── 06_sbc_validation.qmd         # Simulation-based calibration
+│   │   ├── 06_sbc_validation.qmd         # Simulation-based calibration
+│   │   └── 07_generalizing_sensitivity.qmd # m_2 and m_3 model development
 │   ├── applications/       # Applied research reports
 │   │   ├── prompt_framing_study/
 │   │   └── temperature_study/
@@ -71,12 +72,15 @@ seu-sensitivity/
 │   ├── m_01_sbc.stan       # m_01 SBC model
 │   ├── m_01_sim.stan       # m_01 simulation model
 │   ├── m_1.stan            # Combined model (risky + uncertain, shared α)
+│   ├── m_11.stan           # m_1 with calibrated priors
 │   ├── m_1_sim.stan        # m_1 simulation model
 │   ├── m_1_sbc.stan        # m_1 SBC model
 │   ├── m_2.stan            # Separate sensitivity model (α for uncertain, ω for risky)
+│   ├── m_21.stan           # m_2 with calibrated priors
 │   ├── m_2_sim.stan        # m_2 simulation model
 │   ├── m_2_sbc.stan        # m_2 SBC model
 │   ├── m_3.stan            # Proportional sensitivity model (ω = κα)
+│   ├── m_31.stan           # m_3 with calibrated priors
 │   ├── m_3_sim.stan        # m_3 simulation model
 │   ├── m_3_sbc.stan        # m_3 SBC model
 │   └── README_m1.md        # m_1 implementation guide
@@ -103,7 +107,8 @@ seu-sensitivity/
 │   ├── run_model_estimation.py # Fit models
 │   ├── run_parameter_recovery.py # Run recovery analysis
 │   ├── run_prior_predictive.py # Prior predictive analysis
-│   ├── run_prior_predictive_grid.py # Prior predictive grid search
+│   ├── run_prior_predictive_grid.py # Prior predictive grid search (m_0)
+│   ├── run_prior_predictive_grid_augmented.py # Prior predictive grid search (m_1/m_2/m_3)
 │   ├── run_sbc.py          # SBC validation
 │   ├── run_sample_size_estimation.py # Sample size analysis
 │   ├── run_temperature_analysis.py # Temperature study analysis

@@ -63,9 +63,11 @@ class PosteriorPredictiveChecker:
         self.data = observed_data
         self.p_values = None
         
-        # Detect model type
+        # Detect model type based on data structure
+        # m_1, m_2, m_3 all share the same data structure with risky choices (N, z)
+        # and produce identical PPC variable names
         if 'N' in observed_data and 'z' in observed_data:
-            self.model_type = "m_1"
+            self.model_type = "m_1"  # covers m_1, m_2, m_3 (same PPC structure)
         else:
             self.model_type = "m_0"
     

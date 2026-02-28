@@ -45,6 +45,9 @@ import datetime
 # Add parent directory to path so we can import from utils
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.study_design import StudyDesign
+from utils import (
+    detect_model_name, get_model_sim_hyperparams, DEFAULT_PARAM_GENERATION
+)
 
 class PriorPredictiveAnalysis:
     """
@@ -139,13 +142,12 @@ class PriorPredictiveAnalysis:
         # Get data dictionary for Stan
         data = self.study_design.get_data_dict()
         
-        # Add parameter generation controls if not in data
-        if 'alpha_mean' not in data:
-            data['alpha_mean'] = 0.0  # lognormal location parameter
-        if 'alpha_sd' not in data:
-            data['alpha_sd'] = 0.5
-        if 'beta_sd' not in data:
-            data['beta_sd'] = 1.0
+        # Detect model name and add appropriate prior hyperparameters
+        model_name = detect_model_name(self.model_path)
+        required_hyperparams = get_model_sim_hyperparams(model_name)
+        for hp in required_hyperparams:
+            if hp not in data:
+                data[hp] = DEFAULT_PARAM_GENERATION.get(hp, 1.0)
         
         # Run multiple independent Stan simulations (different parameter values each time)
         all_samples = []
@@ -221,6 +223,47 @@ class PriorPredictiveAnalysis:
         plt.savefig(os.path.join(param_dir, 'alpha_dist.png'))
         plt.close()
         
+        # Plot omega distribution if present (m_2 or m_3)
+        if 'omega' in self.samples.columns:
+            omega = self.samples['omega']
+            plt.figure(figsize=(10, 6))
+            plt.hist(omega, bins=30, alpha=0.7)
+            plt.axvline(np.median(omega), color='red', linestyle='--', 
+                       label=f'Median: {np.median(omega):.2f}')
+            plt.title('Prior Distribution of Omega (Risky Sensitivity)')
+            plt.xlabel('Omega')
+            plt.ylabel('Frequency')
+            plt.legend()
+            plt.savefig(os.path.join(param_dir, 'omega_dist.png'))
+            plt.close()
+        
+        # Plot kappa distribution if present (m_3)
+        if 'kappa' in self.samples.columns:
+            kappa = self.samples['kappa']
+            plt.figure(figsize=(10, 6))
+            plt.hist(kappa, bins=30, alpha=0.7)
+            plt.axvline(np.median(kappa), color='red', linestyle='--', 
+                       label=f'Median: {np.median(kappa):.2f}')
+            plt.title('Prior Distribution of Kappa (Risk-Uncertainty Association)')
+            plt.xlabel('Kappa')
+            plt.ylabel('Frequency')
+            plt.legend()
+            plt.savefig(os.path.join(param_dir, 'kappa_dist.png'))
+            plt.close()
+            
+            # For m_3, also plot alpha vs omega scatter
+            if 'omega' in self.samples.columns:
+                plt.figure(figsize=(10, 6))
+                plt.scatter(self.samples['alpha'], self.samples['omega'], alpha=0.3, s=10)
+                plt.xlabel('Alpha')
+                plt.ylabel('Omega (= Kappa * Alpha)')
+                plt.title('Prior: Alpha vs Omega Relationship')
+                lims = [0, max(self.samples['alpha'].max(), self.samples['omega'].max())]
+                plt.plot(lims, lims, 'r--', alpha=0.5, label='omega = alpha (kappa=1)')
+                plt.legend()
+                plt.savefig(os.path.join(param_dir, 'alpha_vs_omega.png'))
+                plt.close()
+        
         # Extract and plot beta parameters
         K, D = self.study_design.K, self.study_design.D
         
@@ -274,9 +317,10 @@ class PriorPredictiveAnalysis:
             }
         }
         
-        # Add beta and delta summaries
+        # Add beta, delta, upsilon, omega, kappa summaries
         for col in self.samples.columns:
-            if col.startswith('beta[') or col.startswith('delta[') or col.startswith('upsilon['):
+            if (col.startswith('beta[') or col.startswith('delta[') or 
+                col.startswith('upsilon[') or col in ('omega', 'kappa')):
                 param_summary[col] = {
                     'mean': float(np.mean(self.samples[col])),
                     'std': float(np.std(self.samples[col])),

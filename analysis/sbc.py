@@ -54,6 +54,7 @@ from scipy import stats
 # Add parent directory to path so we can import from utils
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.study_design import StudyDesign
+from utils import detect_model_name, get_model_scalar_parameters, has_risky_data
 
 class SimulationBasedCalibration:
     """
@@ -166,20 +167,16 @@ class SimulationBasedCalibration:
         # Get data dictionary for Stan
         data = self.study_design.get_data_dict()
         
-        # Check if this is an m_1 model (has risky problems)
-        is_m1_model = 'N' in data
+        # Detect model name from the SBC model path
+        model_name = detect_model_name(self.sbc_model_path)
         
-        # Add parameter generation controls for SBC models
-        data.update({
-            'alpha_mean': 0.0,
-            'alpha_sd': 1.0,
-            'beta_sd': 1.0
-        })
-        
-        # Create parameter name list
+        # Create parameter name list dynamically based on model
         K = self.study_design.K
         D = self.study_design.D
-        param_names = ["alpha"]
+        
+        # Start with scalar parameters for this model
+        scalar_params = get_model_scalar_parameters(model_name)
+        param_names = list(scalar_params)  # e.g. ["alpha"] or ["alpha", "omega"] or ["alpha", "kappa"]
         
         # Add beta parameter names
         for k in range(1, K+1):

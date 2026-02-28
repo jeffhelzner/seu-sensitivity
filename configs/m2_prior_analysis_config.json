@@ -1,0 +1,28 @@
+{
+  "sim_model_path": "models/m_2_sim.stan",
+  "output_dir": "results/prior_predictive/m2_prior_analysis",
+  "n_simulations": 100,
+  "study_design_config": {
+    "M": 20,
+    "N": 20,
+    "K": 3,
+    "D": 2,
+    "R": 10,
+    "S": 8,
+    "min_alts_per_problem": 2,
+    "max_alts_per_problem": 4,
+    "risky_probs": "fixed",
+    "feature_dist": "normal",
+    "feature_params": {
+      "loc": 0,
+      "scale": 1
+    }
+  },
+  "parameter_priors": {
+    "alpha_mean": 0,
+    "alpha_sd": 1,
+    "omega_mean": 0,
+    "omega_sd": 1,
+    "beta_sd": 1
+  }
+}

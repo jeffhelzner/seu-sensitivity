@@ -1,0 +1,25 @@
+{
+  "sbc_model_path": "models/m_3_sbc.stan",
+  "study_design_path": null,
+  "output_dir": "results/sbc/m3_sbc",
+  "n_sbc_sims": 100,
+  "n_mcmc_samples": 1000,
+  "n_mcmc_chains": 1,
+  "thin": 3,
+  "study_design_config": {
+    "M": 20,
+    "N": 20,
+    "K": 3,
+    "D": 2,
+    "R": 10,
+    "S": 8,
+    "min_alts_per_problem": 2,
+    "max_alts_per_problem": 4,
+    "risky_probs": "fixed",
+    "feature_dist": "normal",
+    "feature_params": {
+      "loc": 0,
+      "scale": 1
+    }
+  }
+}

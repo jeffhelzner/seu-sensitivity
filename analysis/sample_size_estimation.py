@@ -38,6 +38,10 @@ import datetime
 from tqdm import tqdm
 
 from utils.study_design import StudyDesign
+from utils.study_design_m1 import StudyDesignM1
+from utils import (detect_model_name, get_model_sim_hyperparams,
+                   get_model_scalar_parameters, has_risky_data,
+                   DEFAULT_PARAM_GENERATION)
 
 class SampleSizeEstimator:
     """
@@ -66,6 +70,17 @@ class SampleSizeEstimator:
         self.output_dir = config.get("output_dir", "results/sample_size_estimation/custom_run")
         self.inference_model_path = config.get("inference_model_path", "models/m_0.stan")
         self.sim_model_path = config.get("sim_model_path", "models/m_0_sim.stan")
+
+        # Model detection for m_2/m_3 support
+        self.model_name = detect_model_name(self.inference_model_path)
+        self.is_risky = has_risky_data(self.model_name)
+        self.has_omega = self.model_name in ("m_2", "m_3")
+        self.has_kappa = self.model_name == "m_3"
+
+        # Risky problem parameters (for m_1/m_2/m_3)
+        self.N_risky = config.get("N", 20)
+        self.S = config.get("S", 8)
+
         os.makedirs(self.output_dir, exist_ok=True)
 
     def run(self):
@@ -88,21 +103,33 @@ class SampleSizeEstimator:
         else:
             # Generate a new base design
             print("No base design path provided, generating new alternatives...")
-            base_design = StudyDesign(
-                M=1,  # Dummy value
-                K=self.K, 
-                D=self.D, 
-                R=self.R,
-                min_alts_per_problem=2,
-                max_alts_per_problem=min(self.R, 6),
-                feature_dist="uniform",
-                feature_params={"low": -2, "high": 2},
-                design_name="base_design"
-            )
+            if self.is_risky:
+                base_design = StudyDesignM1(
+                    M=1, N=1,
+                    K=self.K, D=self.D, R=self.R, S=self.S,
+                    min_alts_per_problem=2,
+                    max_alts_per_problem=min(self.R, 6),
+                    feature_dist="uniform",
+                    feature_params={"low": -2, "high": 2},
+                    design_name="base_design"
+                )
+            else:
+                base_design = StudyDesign(
+                    M=1,  # Dummy value
+                    K=self.K, 
+                    D=self.D, 
+                    R=self.R,
+                    min_alts_per_problem=2,
+                    max_alts_per_problem=min(self.R, 6),
+                    feature_dist="uniform",
+                    feature_params={"low": -2, "high": 2},
+                    design_name="base_design"
+                )
             base_design.generate()
         
         # Extract the fixed alternatives
         fixed_w = base_design.w
+        fixed_x = base_design.x if self.is_risky and hasattr(base_design, 'x') else None
         
         # Save the base design with the fixed alternatives
         base_design_save_path = os.path.join(self.output_dir, "base_design.json")
@@ -117,29 +144,47 @@ class SampleSizeEstimator:
             "M_values": [],
             "alpha_data": [],
             "beta_data": {f"beta_{k}_{d}": [] for k in range(1, self.K+1) for d in range(1, self.D+1)},
-            "delta_data": {f"delta_{k}": [] for k in range(1, self.K)}
+            "delta_data": {f"delta_{k}": [] for k in range(1, self.K)},
+            "omega_data": [] if self.has_omega else None,
+            "kappa_data": [] if self.has_kappa else None,
         }
         
         for M in self.M_grid:
             print(f"\nEvaluating M={M}...")
             # Generate study design with FIXED alternatives but varying M
-            design = StudyDesign(
-                M=M, 
-                K=self.K, 
-                D=self.D, 
-                R=self.R,
-                min_alts_per_problem=2,
-                max_alts_per_problem=min(self.R, 6),
-                feature_dist="uniform",
-                feature_params={"low": -2, "high": 2},
-                design_name=f"M_{M}_K_{self.K}_D_{self.D}_R_{self.R}"
-            )
+            if self.is_risky:
+                design = StudyDesignM1(
+                    M=M, N=self.N_risky,
+                    K=self.K, D=self.D, R=self.R, S=self.S,
+                    min_alts_per_problem=2,
+                    max_alts_per_problem=min(self.R, 6),
+                    feature_dist="uniform",
+                    feature_params={"low": -2, "high": 2},
+                    design_name=f"M_{M}_K_{self.K}_D_{self.D}_R_{self.R}"
+                )
+            else:
+                design = StudyDesign(
+                    M=M, 
+                    K=self.K, 
+                    D=self.D, 
+                    R=self.R,
+                    min_alts_per_problem=2,
+                    max_alts_per_problem=min(self.R, 6),
+                    feature_dist="uniform",
+                    feature_params={"low": -2, "high": 2},
+                    design_name=f"M_{M}_K_{self.K}_D_{self.D}_R_{self.R}"
+                )
             
             # Override the alternatives with our fixed set
             design.w = fixed_w
             
             # Generate only the indicator matrix (I)
             design.I = design._generate_indicator_array()
+            
+            # For risky models, override risky alternatives and generate J
+            if self.is_risky and fixed_x is not None:
+                design.x = fixed_x
+                design.J = design._generate_risky_indicator_array()
             
             # Regenerate metadata with the fixed alternatives
             design.metadata = design._generate_metadata()
@@ -159,11 +204,20 @@ class SampleSizeEstimator:
             all_true_params = []
             all_posterior_summaries = []
             interval_widths = []
+            omega_interval_widths = [] if self.has_omega else None
+            kappa_interval_widths = [] if self.has_kappa else None
             
             for i in tqdm(range(self.n_iterations), desc=f"M={M}"):
                 # Simulate data
+                # Prepare simulation data with hyperparameters
+                sim_data = design.get_data_dict().copy()
+                sim_hyperparams = get_model_sim_hyperparams(self.model_name)
+                for key in sim_hyperparams:
+                    if key not in sim_data:
+                        sim_data[key] = DEFAULT_PARAM_GENERATION[key]
+
                 sim_fit = sim_model.sample(
-                    data=design.get_data_dict(),
+                    data=sim_data,
                     seed=12345 + i,
                     iter_sampling=1,
                     iter_warmup=0,
@@ -173,6 +227,9 @@ class SampleSizeEstimator:
                 )
                 sim_samples = sim_fit.draws_pd().iloc[0]
                 y = [int(sim_samples[f'y[{m+1}]']) for m in range(M)]
+                z = None
+                if self.is_risky:
+                    z = [int(sim_samples[f'z[{n+1}]']) for n in range(self.N_risky)]
                 
                 # Extract true parameters
                 true_params = {
@@ -183,10 +240,17 @@ class SampleSizeEstimator:
                     "delta": [float(sim_samples[f"delta[{k+1}]"]) 
                             for k in range(self.K-1)]
                 }
-                all_true_params.append(true_params)
-                
-                inference_data = design.get_data_dict().copy()
+                if self.has_omega and "omega" in sim_samples.index:
+                    true_params["omega"] = float(sim_samples["omega"])
+                if self.has_kappa and "kappa" in sim_samples.index:
+                    true_params["kappa"] = float(sim_samples["kappa"])
                 inference_data["y"] = y
+                if self.is_risky and z is not None:
+                    inference_data["z"] = z
+                # Remove simulation hyperparams not needed for inference
+                for key in list(inference_data.keys()):
+                    if key.endswith("_mean") or key.endswith("_sd"):
+                        del inference_data[key]
 
                 # Fit inference model
                 fit = inference_model.sample(
@@ -203,6 +267,13 @@ class SampleSizeEstimator:
                 alpha_upper = summary.loc["alpha", "95%"]
                 interval_widths.append(alpha_upper - alpha_lower)
 
+                if self.has_omega and "omega" in summary.index:
+                    omega_interval_widths.append(
+                        summary.loc["omega", "95%"] - summary.loc["omega", "5%"])
+                if self.has_kappa and "kappa" in summary.index:
+                    kappa_interval_widths.append(
+                        summary.loc["kappa", "95%"] - summary.loc["kappa", "5%"])
+
             # Generate coverage plots for this M
             self._create_coverage_plots(M, all_true_params, all_posterior_summaries, m_dir)
             
@@ -213,20 +284,41 @@ class SampleSizeEstimator:
             # Summarize for this M
             mean_width = float(np.mean(interval_widths))
             std_width = float(np.std(interval_widths))
-            results.append({
+            result_entry = {
                 "M": M,
                 "mean_interval_width": mean_width,
                 "std_interval_width": std_width,
                 "interval_widths": interval_widths
-            })
+            }
+            if self.has_omega and omega_interval_widths:
+                result_entry["omega_mean_width"] = float(np.mean(omega_interval_widths))
+                result_entry["omega_std_width"] = float(np.std(omega_interval_widths))
+            if self.has_kappa and kappa_interval_widths:
+                result_entry["kappa_mean_width"] = float(np.mean(kappa_interval_widths))
+                result_entry["kappa_std_width"] = float(np.std(kappa_interval_widths))
+            results.append(result_entry)
             print(f"  Mean interval width for alpha: {mean_width:.3f} (std: {std_width:.3f})")
+            if self.has_omega and omega_interval_widths:
+                print(f"  Mean interval width for omega: {result_entry['omega_mean_width']:.3f}")
+            if self.has_kappa and kappa_interval_widths:
+                print(f"  Mean interval width for kappa: {result_entry['kappa_mean_width']:.3f}")
 
         # Save results
-        results_df = pd.DataFrame([{
-            "M": r["M"],
-            "mean_interval_width": r["mean_interval_width"],
-            "std_interval_width": r["std_interval_width"]
-        } for r in results])
+        rows = []
+        for r in results:
+            row = {
+                "M": r["M"],
+                "mean_interval_width": r["mean_interval_width"],
+                "std_interval_width": r["std_interval_width"]
+            }
+            if self.has_omega:
+                row["omega_mean_width"] = r.get("omega_mean_width", np.nan)
+                row["omega_std_width"] = r.get("omega_std_width", np.nan)
+            if self.has_kappa:
+                row["kappa_mean_width"] = r.get("kappa_mean_width", np.nan)
+                row["kappa_std_width"] = r.get("kappa_std_width", np.nan)
+            rows.append(row)
+        results_df = pd.DataFrame(rows)
         results_df.to_csv(os.path.join(self.output_dir, "alpha_interval_widths.csv"), index=False)
 
         # Create cross-M comparison plots
@@ -236,11 +328,26 @@ class SampleSizeEstimator:
         plt.figure(figsize=(10, 6))
         plt.errorbar(
             results_df["M"], results_df["mean_interval_width"],
-            yerr=results_df["std_interval_width"], fmt='o-', capsize=5
+            yerr=results_df["std_interval_width"], fmt='o-', capsize=5,
+            label='alpha'
         )
+        if self.has_omega and "omega_mean_width" in results_df.columns:
+            plt.errorbar(
+                results_df["M"], results_df["omega_mean_width"],
+                yerr=results_df["omega_std_width"], fmt='s--', capsize=5,
+                label='omega', color='orange'
+            )
+        if self.has_kappa and "kappa_mean_width" in results_df.columns:
+            plt.errorbar(
+                results_df["M"], results_df["kappa_mean_width"],
+                yerr=results_df["kappa_std_width"], fmt='^:', capsize=5,
+                label='kappa', color='green'
+            )
         plt.xlabel("Number of Decision Problems (M)")
-        plt.ylabel("Mean 90% Posterior Interval Width for Alpha")
-        plt.title("Alpha Precision vs. Sample Size (M)")
+        plt.ylabel("Mean 90% Posterior Interval Width")
+        plt.title("Scalar Parameter Precision vs. Sample Size (M)")
+        if self.has_omega or self.has_kappa:
+            plt.legend()
         plt.grid(True, alpha=0.3)
         plt.tight_layout()
         plt.savefig(os.path.join(self.output_dir, "alpha_precision_vs_M.png"))
@@ -321,6 +428,52 @@ class SampleSizeEstimator:
             plt.grid(True, alpha=0.3)
             plt.savefig(os.path.join(output_dir, f"delta_{k+1}_coverage.png"))
             plt.close()
+        
+        # Omega coverage plot (m_2 and m_3)
+        if self.has_omega:
+            omega_true = [p["omega"] for p in all_true_params if "omega" in p]
+            if omega_true:
+                omega_mean = [s.loc["omega", "Mean"] for s in all_posterior_summaries]
+                omega_lower = [s.loc["omega", "5%"] for s in all_posterior_summaries]
+                omega_upper = [s.loc["omega", "95%"] for s in all_posterior_summaries]
+                omega_coverage = np.mean([(t >= l and t <= u) for t, l, u in zip(omega_true, omega_lower, omega_upper)])
+                
+                plt.figure(figsize=(12, 6))
+                for i in range(len(omega_true)):
+                    color = 'green' if (omega_true[i] >= omega_lower[i] and omega_true[i] <= omega_upper[i]) else 'red'
+                    plt.plot([i, i], [omega_lower[i], omega_upper[i]], color=color, linewidth=2, alpha=0.6)
+                    plt.scatter(i, omega_mean[i], color=color, s=30, zorder=3)
+                plt.scatter(range(len(omega_true)), omega_true, color='black', s=50, marker='x', label='True Value', zorder=4)
+                plt.xlabel("Iteration")
+                plt.ylabel("Omega Value")
+                plt.title(f"M={M}: Omega Coverage (Coverage = {omega_coverage:.1%})")
+                plt.legend()
+                plt.grid(True, alpha=0.3)
+                plt.savefig(os.path.join(output_dir, "omega_coverage.png"))
+                plt.close()
+        
+        # Kappa coverage plot (m_3 only)
+        if self.has_kappa:
+            kappa_true = [p["kappa"] for p in all_true_params if "kappa" in p]
+            if kappa_true:
+                kappa_mean = [s.loc["kappa", "Mean"] for s in all_posterior_summaries]
+                kappa_lower = [s.loc["kappa", "5%"] for s in all_posterior_summaries]
+                kappa_upper = [s.loc["kappa", "95%"] for s in all_posterior_summaries]
+                kappa_coverage = np.mean([(t >= l and t <= u) for t, l, u in zip(kappa_true, kappa_lower, kappa_upper)])
+                
+                plt.figure(figsize=(12, 6))
+                for i in range(len(kappa_true)):
+                    color = 'green' if (kappa_true[i] >= kappa_lower[i] and kappa_true[i] <= kappa_upper[i]) else 'red'
+                    plt.plot([i, i], [kappa_lower[i], kappa_upper[i]], color=color, linewidth=2, alpha=0.6)
+                    plt.scatter(i, kappa_mean[i], color=color, s=30, zorder=3)
+                plt.scatter(range(len(kappa_true)), kappa_true, color='black', s=50, marker='x', label='True Value', zorder=4)
+                plt.xlabel("Iteration")
+                plt.ylabel("Kappa Value")
+                plt.title(f"M={M}: Kappa Coverage (Coverage = {kappa_coverage:.1%})")
+                plt.legend()
+                plt.grid(True, alpha=0.3)
+                plt.savefig(os.path.join(output_dir, "kappa_coverage.png"))
+                plt.close()
     
     def _extract_recovery_data(self, M, all_true_params, all_posterior_summaries, all_recovery_data):
         """Extract recovery statistics for comparison across M values."""
@@ -385,6 +538,42 @@ class SampleSizeEstimator:
                 "rmse": float(np.sqrt(np.mean(delta_errors**2))),
                 "mae": float(np.mean(np.abs(delta_errors)))
             })
+        
+        # Omega (m_2 and m_3)
+        if self.has_omega and all_recovery_data["omega_data"] is not None:
+            omega_true = [p["omega"] for p in all_true_params if "omega" in p]
+            if omega_true:
+                omega_mean = [s.loc["omega", "Mean"] for s in all_posterior_summaries]
+                omega_lower = [s.loc["omega", "5%"] for s in all_posterior_summaries]
+                omega_upper = [s.loc["omega", "95%"] for s in all_posterior_summaries]
+                omega_errors = np.array(omega_mean) - np.array(omega_true)
+                
+                all_recovery_data["omega_data"].append({
+                    "M": M,
+                    "mean_ci_width": np.mean(np.array(omega_upper) - np.array(omega_lower)),
+                    "coverage": np.mean([(t >= l and t <= u) for t, l, u in zip(omega_true, omega_lower, omega_upper)]),
+                    "mean_error": float(np.mean(omega_errors)),
+                    "rmse": float(np.sqrt(np.mean(omega_errors**2))),
+                    "mae": float(np.mean(np.abs(omega_errors)))
+                })
+        
+        # Kappa (m_3 only)
+        if self.has_kappa and all_recovery_data["kappa_data"] is not None:
+            kappa_true = [p["kappa"] for p in all_true_params if "kappa" in p]
+            if kappa_true:
+                kappa_mean = [s.loc["kappa", "Mean"] for s in all_posterior_summaries]
+                kappa_lower = [s.loc["kappa", "5%"] for s in all_posterior_summaries]
+                kappa_upper = [s.loc["kappa", "95%"] for s in all_posterior_summaries]
+                kappa_errors = np.array(kappa_mean) - np.array(kappa_true)
+                
+                all_recovery_data["kappa_data"].append({
+                    "M": M,
+                    "mean_ci_width": np.mean(np.array(kappa_upper) - np.array(kappa_lower)),
+                    "coverage": np.mean([(t >= l and t <= u) for t, l, u in zip(kappa_true, kappa_lower, kappa_upper)]),
+                    "mean_error": float(np.mean(kappa_errors)),
+                    "rmse": float(np.sqrt(np.mean(kappa_errors**2))),
+                    "mae": float(np.mean(np.abs(kappa_errors)))
+                })
     
     def _create_comparison_plots(self, all_recovery_data):
         """Create plots comparing recovery quality across M values."""
@@ -396,10 +585,18 @@ class SampleSizeEstimator:
         
         # Alpha
         alpha_widths = [d["mean_ci_width"] for d in all_recovery_data["alpha_data"]]
-        axes[0].plot(M_values, alpha_widths, 'o-', linewidth=2, markersize=8)
+        axes[0].plot(M_values, alpha_widths, 'o-', linewidth=2, markersize=8, label='alpha')
+        if all_recovery_data["omega_data"]:
+            omega_widths = [d["mean_ci_width"] for d in all_recovery_data["omega_data"]]
+            axes[0].plot(M_values, omega_widths, 's--', linewidth=2, markersize=8, label='omega', color='orange')
+        if all_recovery_data["kappa_data"]:
+            kappa_widths = [d["mean_ci_width"] for d in all_recovery_data["kappa_data"]]
+            axes[0].plot(M_values, kappa_widths, '^:', linewidth=2, markersize=8, label='kappa', color='green')
         axes[0].set_xlabel("Number of Problems (M)")
         axes[0].set_ylabel("Mean 90% CI Width")
-        axes[0].set_title("Alpha: CI Width vs. M")
+        axes[0].set_title("Scalar Parameters: CI Width vs. M")
+        if all_recovery_data["omega_data"] or all_recovery_data["kappa_data"]:
+            axes[0].legend()
         axes[0].grid(True, alpha=0.3)
         
         # Beta (all parameters)
@@ -435,10 +632,18 @@ class SampleSizeEstimator:
         
         # Alpha
         alpha_rmse = [d["rmse"] for d in all_recovery_data["alpha_data"]]
-        axes[0].plot(M_values, alpha_rmse, 'o-', linewidth=2, markersize=8, color='darkblue')
+        axes[0].plot(M_values, alpha_rmse, 'o-', linewidth=2, markersize=8, color='darkblue', label='alpha')
+        if all_recovery_data["omega_data"]:
+            omega_rmse = [d["rmse"] for d in all_recovery_data["omega_data"]]
+            axes[0].plot(M_values, omega_rmse, 's--', linewidth=2, markersize=8, label='omega', color='orange')
+        if all_recovery_data["kappa_data"]:
+            kappa_rmse = [d["rmse"] for d in all_recovery_data["kappa_data"]]
+            axes[0].plot(M_values, kappa_rmse, '^:', linewidth=2, markersize=8, label='kappa', color='green')
         axes[0].set_xlabel("Number of Problems (M)")
         axes[0].set_ylabel("RMSE")
-        axes[0].set_title("Alpha: RMSE vs. M")
+        axes[0].set_title("Scalar Parameters: RMSE vs. M")
+        if all_recovery_data["omega_data"] or all_recovery_data["kappa_data"]:
+            axes[0].legend()
         axes[0].grid(True, alpha=0.3)
         
         # Beta (all parameters)
@@ -473,10 +678,18 @@ class SampleSizeEstimator:
         
         # Alpha
         alpha_mae = [d["mae"] for d in all_recovery_data["alpha_data"]]
-        axes[0].plot(M_values, alpha_mae, 'o-', linewidth=2, markersize=8, color='darkgreen')
+        axes[0].plot(M_values, alpha_mae, 'o-', linewidth=2, markersize=8, color='darkgreen', label='alpha')
+        if all_recovery_data["omega_data"]:
+            omega_mae = [d["mae"] for d in all_recovery_data["omega_data"]]
+            axes[0].plot(M_values, omega_mae, 's--', linewidth=2, markersize=8, label='omega', color='orange')
+        if all_recovery_data["kappa_data"]:
+            kappa_mae = [d["mae"] for d in all_recovery_data["kappa_data"]]
+            axes[0].plot(M_values, kappa_mae, '^:', linewidth=2, markersize=8, label='kappa', color='green')
         axes[0].set_xlabel("Number of Problems (M)")
         axes[0].set_ylabel("Mean Absolute Error")
-        axes[0].set_title("Alpha: MAE vs. M")
+        axes[0].set_title("Scalar Parameters: MAE vs. M")
+        if all_recovery_data["omega_data"] or all_recovery_data["kappa_data"]:
+            axes[0].legend()
         axes[0].grid(True, alpha=0.3)
         
         # Beta (all parameters)
@@ -511,11 +724,17 @@ class SampleSizeEstimator:
         
         # Alpha
         alpha_coverage = [d["coverage"] for d in all_recovery_data["alpha_data"]]
-        axes[0].plot(M_values, alpha_coverage, 'o-', linewidth=2, markersize=8)
+        axes[0].plot(M_values, alpha_coverage, 'o-', linewidth=2, markersize=8, label='alpha')
+        if all_recovery_data["omega_data"]:
+            omega_coverage = [d["coverage"] for d in all_recovery_data["omega_data"]]
+            axes[0].plot(M_values, omega_coverage, 's--', linewidth=2, markersize=8, label='omega', color='orange')
+        if all_recovery_data["kappa_data"]:
+            kappa_coverage = [d["coverage"] for d in all_recovery_data["kappa_data"]]
+            axes[0].plot(M_values, kappa_coverage, '^:', linewidth=2, markersize=8, label='kappa', color='green')
         axes[0].axhline(0.9, color='red', linestyle='--', label='Nominal 90%')
         axes[0].set_xlabel("Number of Problems (M)")
         axes[0].set_ylabel("Coverage Rate")
-        axes[0].set_title("Alpha: Coverage vs. M")
+        axes[0].set_title("Scalar Parameters: Coverage vs. M")
         axes[0].set_ylim([0, 1])
         axes[0].legend()
         axes[0].grid(True, alpha=0.3)
@@ -559,6 +778,18 @@ class SampleSizeEstimator:
             "alpha_mae": alpha_mae,
             "alpha_coverage": alpha_coverage
         }
+        
+        if all_recovery_data["omega_data"]:
+            summary_data["omega_ci_width"] = [d["mean_ci_width"] for d in all_recovery_data["omega_data"]]
+            summary_data["omega_rmse"] = [d["rmse"] for d in all_recovery_data["omega_data"]]
+            summary_data["omega_mae"] = [d["mae"] for d in all_recovery_data["omega_data"]]
+            summary_data["omega_coverage"] = [d["coverage"] for d in all_recovery_data["omega_data"]]
+        
+        if all_recovery_data["kappa_data"]:
+            summary_data["kappa_ci_width"] = [d["mean_ci_width"] for d in all_recovery_data["kappa_data"]]
+            summary_data["kappa_rmse"] = [d["rmse"] for d in all_recovery_data["kappa_data"]]
+            summary_data["kappa_mae"] = [d["mae"] for d in all_recovery_data["kappa_data"]]
+            summary_data["kappa_coverage"] = [d["coverage"] for d in all_recovery_data["kappa_data"]]
         
         for key in all_recovery_data["beta_data"].keys():
             summary_data[f"{key}_ci_width"] = [d["mean_ci_width"] for d in all_recovery_data["beta_data"][key]]

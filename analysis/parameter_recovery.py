@@ -51,6 +51,10 @@ from tqdm import tqdm
 # Add parent directory to path so we can import from utils
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.study_design import StudyDesign
+from utils import (
+    detect_model_name, get_model_sim_hyperparams, get_model_scalar_parameters,
+    has_risky_data, DEFAULT_PARAM_GENERATION
+)
 
 class ParameterRecovery:
     """
@@ -169,15 +173,16 @@ class ParameterRecovery:
         # Get data dictionary for Stan
         sim_data = self.study_design.get_data_dict()
         
-        # Check if this is an m_1 model (has risky problems)
+        # Detect model name from sim model path
+        model_name = detect_model_name(self.sim_model_path)
+        
+        # Check if this is a model with risky problems (m_1, m_2, m_3)
         is_m1_model = 'N' in sim_data
         
-        # Add parameter generation controls for simulation models
-        sim_data.update({
-            'alpha_mean': 0.0,
-            'alpha_sd': 1.0,
-            'beta_sd': 1.0
-        })
+        # Add parameter generation controls for simulation models (model-specific)
+        required_hyperparams = get_model_sim_hyperparams(model_name)
+        for hp in required_hyperparams:
+            sim_data[hp] = DEFAULT_PARAM_GENERATION.get(hp, 1.0)
         
         # Create structures to store results across iterations
         all_true_params = []
@@ -210,9 +215,8 @@ class ParameterRecovery:
             # Create inference data by adding the choices to the study design
             inference_data = sim_data.copy()
             # Remove parameter generation controls (not needed for inference)
-            inference_data.pop('alpha_mean', None)
-            inference_data.pop('alpha_sd', None)
-            inference_data.pop('beta_sd', None)
+            for hp in required_hyperparams:
+                inference_data.pop(hp, None)
             inference_data["y"] = y.tolist()
             
             # For m_1 models, also extract risky choices
@@ -232,14 +236,19 @@ class ParameterRecovery:
                           for k in range(self.study_design.K)]
             }
             
-            # Save the true parameters and data for this iteration
-            with open(os.path.join(iter_dir, "true_parameters.json"), 'w') as f:
-                json.dump(true_params, f, indent=2)
+            # Extract model-specific scalar parameters (omega for m_2, kappa for m_3)
+            scalar_params = get_model_scalar_parameters(model_name)
+            for sp in scalar_params:
+                if sp not in true_params and sp in sim_samples.index:
+                    true_params[sp] = float(sim_samples[sp])
+            # Also extract omega for m_3 (transformed, not free)
+            if model_name == 'm_3' and 'omega' in sim_samples.index:
+                true_params['omega'] = float(sim_samples['omega'])
             
-            # Fit the inference model to recover the parameters
-            inference_fit = self.inference_model.sample(
+            # Fit the inference model
+            inference_fit = inference_model.sample(
                 data=inference_data,
-                seed=54321 + iteration,  # Different seed for each iteration
+                seed=54321 + iteration,
                 iter_sampling=self.n_mcmc_samples,
                 iter_warmup=self.n_mcmc_samples // 2,
                 chains=self.n_mcmc_chains,
@@ -312,34 +321,59 @@ class ParameterRecovery:
         # Create a summary dictionary for all parameters
         recovery_stats = {}
         
-        # Analyze alpha recovery
+        # Detect model name for conditional analysis
+        model_name = detect_model_name(self.sim_model_path)
+        
+        # === Generic scalar parameter recovery (alpha, omega, kappa) ===
+        # Analyze all scalar parameters that exist in the true_params
+        scalar_params_to_analyze = ['alpha']  # always present
+        # Add model-specific scalars
+        extra_scalars = get_model_scalar_parameters(model_name)
+        for sp in extra_scalars:
+            if sp != 'alpha' and sp in all_true_params[0]:
+                scalar_params_to_analyze.append(sp)
+        
+        # Also analyze omega for m_3 as a transformed quantity
+        if model_name == 'm_3' and 'omega' in all_true_params[0]:
+            scalar_params_to_analyze.append('omega')
+        
+        for scalar_name in scalar_params_to_analyze:
+            scalar_true = [params[scalar_name] for params in all_true_params]
+            scalar_mean = [summary.loc[scalar_name, "Mean"] for summary in all_posterior_summaries]
+            scalar_lower = [summary.loc[scalar_name, "5%"] for summary in all_posterior_summaries]
+            scalar_upper = [summary.loc[scalar_name, "95%"] for summary in all_posterior_summaries]
+            
+            # Calculate recovery metrics
+            s_bias = np.mean(np.array(scalar_mean) - np.array(scalar_true))
+            s_rmse = np.sqrt(np.mean((np.array(scalar_mean) - np.array(scalar_true))**2))
+            s_coverage = np.mean([(t >= l) and (t <= u) for t, l, u in zip(scalar_true, scalar_lower, scalar_upper)])
+            s_ci_width = np.mean(np.array(scalar_upper) - np.array(scalar_lower))
+            
+            recovery_stats[scalar_name] = {
+                "bias": float(s_bias),
+                "rmse": float(s_rmse),
+                "coverage": float(s_coverage),
+                "ci_width": float(s_ci_width)
+            }
+            
+            # Plot recovery scatter
+            plt.figure(figsize=(12, 8))
+            plt.scatter(scalar_true, scalar_mean, alpha=0.7)
+            plt.plot([min(scalar_true), max(scalar_true)], [min(scalar_true), max(scalar_true)], 'r--')
+            plt.xlabel(f"True {scalar_name.capitalize()}")
+            plt.ylabel(f"Estimated {scalar_name.capitalize()}")
+            plt.title(f"{scalar_name.capitalize()} Recovery (Bias={s_bias:.3f}, RMSE={s_rmse:.3f}, Coverage={s_coverage:.1%})")
+            plt.savefig(os.path.join(recovery_dir, f"{scalar_name}_recovery.png"))
+            plt.close()
+        
+        # Keep local references for alpha (used in later plots)
         alpha_true = [params["alpha"] for params in all_true_params]
         alpha_mean = [summary.loc["alpha", "Mean"] for summary in all_posterior_summaries]
         alpha_lower = [summary.loc["alpha", "5%"] for summary in all_posterior_summaries]
         alpha_upper = [summary.loc["alpha", "95%"] for summary in all_posterior_summaries]
-        
-        # Calculate recovery metrics
-        alpha_bias = np.mean(np.array(alpha_mean) - np.array(alpha_true))
-        alpha_rmse = np.sqrt(np.mean((np.array(alpha_mean) - np.array(alpha_true))**2))
-        alpha_coverage = np.mean([(t >= l) and (t <= u) for t, l, u in zip(alpha_true, alpha_lower, alpha_upper)])
-        alpha_ci_width = np.mean(np.array(alpha_upper) - np.array(alpha_lower))
-        
-        recovery_stats["alpha"] = {
-            "bias": float(alpha_bias),
-            "rmse": float(alpha_rmse),
-            "coverage": float(alpha_coverage),
-            "ci_width": float(alpha_ci_width)
-        }
-        
-        # Plot alpha recovery
-        plt.figure(figsize=(12, 8))
-        plt.scatter(alpha_true, alpha_mean, alpha=0.7)
-        plt.plot([min(alpha_true), max(alpha_true)], [min(alpha_true), max(alpha_true)], 'r--')
-        plt.xlabel("True Alpha")
-        plt.ylabel("Estimated Alpha")
-        plt.title(f"Alpha Recovery (Bias={alpha_bias:.3f}, RMSE={alpha_rmse:.3f}, Coverage={alpha_coverage:.1%})")
-        plt.savefig(os.path.join(recovery_dir, "alpha_recovery.png"))
-        plt.close()
+        alpha_bias = recovery_stats["alpha"]["bias"]
+        alpha_rmse = recovery_stats["alpha"]["rmse"]
+        alpha_coverage = recovery_stats["alpha"]["coverage"]
         
         # Process beta parameters
         K, D = self.study_design.K, self.study_design.D
@@ -749,12 +783,14 @@ class ParameterRecovery:
             "CI Width": []
         }
         
-        # Add alpha
-        summary_table["Parameter"].append("alpha")
-        summary_table["Bias"].append(f"{alpha_bias:.3f}")
-        summary_table["RMSE"].append(f"{alpha_rmse:.3f}")
-        summary_table["Coverage"].append(f"{alpha_coverage:.1%}")
-        summary_table["CI Width"].append(f"{alpha_ci_width:.3f}")
+        # Add all scalar parameters
+        for scalar_name in scalar_params_to_analyze:
+            s = recovery_stats[scalar_name]
+            summary_table["Parameter"].append(scalar_name)
+            summary_table["Bias"].append(f"{s['bias']:.3f}")
+            summary_table["RMSE"].append(f"{s['rmse']:.3f}")
+            summary_table["Coverage"].append(f"{s['coverage']:.1%}")
+            summary_table["CI Width"].append(f"{s['ci_width']:.3f}")
         
         # Add beta summaries (average)
         beta_biases = [stats["bias"] for stats in beta_stats.values()]

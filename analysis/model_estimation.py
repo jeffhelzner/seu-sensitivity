@@ -254,6 +254,65 @@ class ModelEstimation:
         plt.savefig(os.path.join(posterior_dir, 'alpha_posterior.png'))
         plt.close()
         
+        # 1b. Analyze omega (risky sensitivity) if present (m_2 or m_3)
+        if 'omega' in self.posterior_samples.columns:
+            post_omega = self.posterior_samples['omega']
+            plt.figure(figsize=(10, 6))
+            plt.hist(post_omega, bins=30, density=True, alpha=0.7)
+            plt.axvline(
+                np.median(post_omega), color='red', linestyle='-',
+                label=f'Median: {np.median(post_omega):.2f}'
+            )
+            plt.axvline(
+                np.quantile(post_omega, 0.025), color='blue', linestyle='--',
+                label=f'95% CI: [{np.quantile(post_omega, 0.025):.2f}, {np.quantile(post_omega, 0.975):.2f}]'
+            )
+            plt.axvline(np.quantile(post_omega, 0.975), color='blue', linestyle='--')
+            plt.title('Posterior Distribution of Omega (Risky Sensitivity)')
+            plt.xlabel('Omega')
+            plt.ylabel('Density')
+            plt.legend()
+            plt.savefig(os.path.join(posterior_dir, 'omega_posterior.png'))
+            plt.close()
+        
+        # 1c. Analyze kappa (association parameter) if present (m_3)
+        if 'kappa' in self.posterior_samples.columns:
+            post_kappa = self.posterior_samples['kappa']
+            plt.figure(figsize=(10, 6))
+            plt.hist(post_kappa, bins=30, density=True, alpha=0.7)
+            plt.axvline(
+                np.median(post_kappa), color='red', linestyle='-',
+                label=f'Median: {np.median(post_kappa):.2f}'
+            )
+            plt.axvline(
+                np.quantile(post_kappa, 0.025), color='blue', linestyle='--',
+                label=f'95% CI: [{np.quantile(post_kappa, 0.025):.2f}, {np.quantile(post_kappa, 0.975):.2f}]'
+            )
+            plt.axvline(np.quantile(post_kappa, 0.975), color='blue', linestyle='--')
+            plt.axvline(1.0, color='green', linestyle=':', alpha=0.7, label='kappa=1 (m_1 assumption)')
+            plt.title('Posterior Distribution of Kappa (Risk-Uncertainty Association)')
+            plt.xlabel('Kappa')
+            plt.ylabel('Density')
+            plt.legend()
+            plt.savefig(os.path.join(posterior_dir, 'kappa_posterior.png'))
+            plt.close()
+            
+            # Alpha vs Omega scatter for m_3
+            if 'omega' in self.posterior_samples.columns:
+                plt.figure(figsize=(10, 6))
+                plt.scatter(
+                    self.posterior_samples['alpha'], self.posterior_samples['omega'],
+                    alpha=0.1, s=5
+                )
+                lims = [0, max(self.posterior_samples['alpha'].max(), self.posterior_samples['omega'].max())]
+                plt.plot(lims, lims, 'r--', alpha=0.5, label='omega = alpha (kappa=1)')
+                plt.xlabel('Alpha (Uncertain Sensitivity)')
+                plt.ylabel('Omega (Risky Sensitivity = Kappa * Alpha)')
+                plt.title('Posterior: Alpha vs Omega')
+                plt.legend()
+                plt.savefig(os.path.join(posterior_dir, 'alpha_vs_omega.png'))
+                plt.close()
+        
         # 2. Analyze utility parameters (upsilon)
         upsilon_cols = [f'upsilon[{k+1}]' for k in range(K)]
         if all(col in self.posterior_samples.columns for col in upsilon_cols):
@@ -334,10 +393,16 @@ class ModelEstimation:
         pairs_dir = os.path.join(self.output_dir, "pair_plots")
         os.makedirs(pairs_dir, exist_ok=True)
         
-        # 1. Create pair plot for alpha and delta parameters
+        # 1. Create pair plot for alpha (plus omega/kappa if present) and delta parameters
         delta_cols = [f'delta[{k+1}]' for k in range(K-1)]
         if all(col in self.posterior_samples.columns for col in delta_cols):
             pair_data = pd.DataFrame({'alpha': self.posterior_samples["alpha"]})
+            # Add omega if present (m_2 or m_3)
+            if 'omega' in self.posterior_samples.columns:
+                pair_data['omega'] = self.posterior_samples['omega']
+            # Add kappa if present (m_3)
+            if 'kappa' in self.posterior_samples.columns:
+                pair_data['kappa'] = self.posterior_samples['kappa']
             for k in range(K-1):
                 col = f'delta[{k+1}]'
                 pair_data[col] = self.posterior_samples[col]

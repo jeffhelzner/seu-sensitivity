@@ -14,10 +14,14 @@ Current status:
 - ✅ Core theoretical framework established
 - ✅ Base Stan model (m_0) for uncertain choice implemented and tested
 - ✅ Combined model (m_1) with risky and uncertain choice implemented and tested
+- ✅ Separate sensitivity model (m_2) implemented and tested
+- ✅ Proportional sensitivity model (m_3) implemented and tested
+- ✅ Calibrated prior variant (m_01) implemented
 - ✅ Study design tools functional (m_0 and m_1)
-- ✅ Analysis pipeline complete (parameter recovery, SBC, prior predictive)
+- ✅ Analysis pipeline complete (parameter recovery, SBC, prior/posterior predictive)
 - ✅ Quarto-based documentation and reports
 - 🔄 Prompt framing study application in progress
+- 🔄 Temperature study application in progress
 - 📝 Documentation being expanded
 - 🔬 Empirical validation ongoing
 
@@ -41,7 +45,10 @@ This framework implements a computational approach to understanding decision mak
 seu-sensitivity/
 ├── reports/                 # Quarto-based documentation and reports
 │   ├── _quarto.yml         # Quarto project configuration
+│   ├── _metadata.yml       # Shared metadata for reports
 │   ├── index.qmd           # Main documentation index
+│   ├── report_utils.py     # Shared Python utilities for reports
+│   ├── references.bib      # Bibliography
 │   ├── foundations/        # Foundational theoretical reports
 │   │   ├── 01_abstract_formulation.qmd   # Mathematical framework
 │   │   ├── 02_concrete_implementation.qmd # Implementation details
@@ -50,16 +57,27 @@ seu-sensitivity/
 │   │   ├── 05_adding_risky_choices.qmd   # m_1 model development
 │   │   └── 06_sbc_validation.qmd         # Simulation-based calibration
 │   ├── applications/       # Applied research reports
+│   │   ├── prompt_framing_study/
+│   │   └── temperature_study/
 │   ├── blog/               # Blog-style posts
+│   ├── styles/             # Custom CSS/SCSS styles
 │   └── legacy/             # Archived legacy reports
 ├── models/                  # Stan model implementations
 │   ├── m_0.stan            # Base SEU model (uncertain choice only)
 │   ├── m_0_sim.stan        # m_0 simulation model
 │   ├── m_0_sbc.stan        # m_0 SBC model
-│   ├── m_1.stan            # Combined model (risky + uncertain choice)
+│   ├── m_01.stan           # m_0 with calibrated priors
+│   ├── m_01_sbc.stan       # m_01 SBC model
+│   ├── m_01_sim.stan       # m_01 simulation model
+│   ├── m_1.stan            # Combined model (risky + uncertain, shared α)
 │   ├── m_1_sim.stan        # m_1 simulation model
 │   ├── m_1_sbc.stan        # m_1 SBC model
-│   ├── m_01.stan           # Intermediate model variant
+│   ├── m_2.stan            # Separate sensitivity model (α for uncertain, ω for risky)
+│   ├── m_2_sim.stan        # m_2 simulation model
+│   ├── m_2_sbc.stan        # m_2 SBC model
+│   ├── m_3.stan            # Proportional sensitivity model (ω = κα)
+│   ├── m_3_sim.stan        # m_3 simulation model
+│   ├── m_3_sbc.stan        # m_3 SBC model
 │   └── README_m1.md        # m_1 implementation guide
 ├── utils/                   # Core utilities
 │   ├── __init__.py         # Shared utilities, model detection
@@ -69,19 +87,28 @@ seu-sensitivity/
 ├── analysis/                # Analysis scripts
 │   ├── model_estimation.py # Model fitting utilities
 │   ├── parameter_recovery.py # Parameter recovery analysis
+│   ├── posterior_predictive_checks.py # Posterior predictive checks
 │   ├── prior_predictive.py # Prior predictive checks
 │   ├── sbc.py              # Simulation-based calibration
 │   └── sample_size_estimation.py # Sample size planning
 ├── applications/            # Applied research projects
 │   ├── prompt_framing_study/ # Prompt framing effects on LLM rationality
+│   ├── temperature_study/  # LLM temperature effects on sensitivity
 │   └── llm_rationality/    # Legacy LLM benchmarking (deprecated)
 ├── scripts/                 # Executable scripts
 │   ├── run_study_design.py # Generate study designs
+│   ├── run_m1_study_design.py # Generate m_1 study designs
 │   ├── run_model_estimation.py # Fit models
 │   ├── run_parameter_recovery.py # Run recovery analysis
 │   ├── run_prior_predictive.py # Prior predictive analysis
+│   ├── run_prior_predictive_grid.py # Prior predictive grid search
 │   ├── run_sbc.py          # SBC validation
-│   └── run_sample_size_estimation.py # Sample size analysis
+│   ├── run_sample_size_estimation.py # Sample size analysis
+│   ├── run_temperature_analysis.py # Temperature study analysis
+│   ├── refit_with_ppc.py   # Refit models with posterior predictive checks
+│   ├── copy_figures_for_report.py # Copy figures into reports
+│   ├── cleanup_temp_files.py # Clean up temporary files
+│   └── test_m1_model.py    # m_1 model tests
 ├── configs/                 # Configuration files for studies
 ├── results/                 # Generated results and outputs
 │   ├── designs/            # Study designs
@@ -89,7 +116,6 @@ seu-sensitivity/
 │   ├── prior_predictive/   # Prior predictive results
 │   ├── sample_size_estimation/ # Sample size results
 │   └── sbc/                # SBC results
-├── articles/                # Article drafts and plans
 ├── prompts/                 # LLM prompt templates
 ├── environment.yml          # Conda environment specification
 ├── requirements.txt         # Pip requirements (alternative)
@@ -236,7 +262,7 @@ python scripts/run_sbc.py --config configs/sbc_config.json
 python scripts/run_sample_size_estimation.py --config configs/sample_size_config.json
 ```
 
-For m_1 models, use the corresponding `m1_*` config files.
+For m_1, m_2, and m_3 models, use the corresponding `m1_*`, `m2_*`, and `m3_*` config files.
 
 ## Theoretical Background
 
@@ -297,6 +323,26 @@ The combined model (`models/m_1.stan`) extends m_0 by adding risky choice proble
 
 See [models/README_m1.md](models/README_m1.md) for detailed m_1 documentation.
 
+## Model m_2 Specification
+
+The separate-sensitivity model (`models/m_2.stan`) extends m_1 by allowing independent sensitivity parameters for uncertain and risky choices:
+
+- `alpha`: Sensitivity for uncertain choices
+- `omega`: Sensitivity for risky choices (independent of α)
+- Shared utility function across both choice types
+
+**Use Case:** Testing whether decision makers exhibit different levels of sensitivity when probabilities are known (risky) vs. derived from features (uncertain).
+
+## Model m_3 Specification
+
+The proportional-sensitivity model (`models/m_3.stan`) introduces a proportional relationship between sensitivities:
+
+- `alpha`: Sensitivity for uncertain choices
+- `kappa`: Association parameter (ω = κα)
+- `omega`: Sensitivity for risky choices (derived, not free)
+
+When κ = 1, m_3 reduces to m_1 (shared α). When κ ≠ 1, risky sensitivity differs proportionally from uncertain sensitivity.
+
 ## Study Design Tools
 
 The `utils/study_design.py` module provides comprehensive tools for creating experimental designs:
@@ -340,9 +386,22 @@ Investigate how prompt framing (rationality emphasis) affects an LLM's sensitivi
 
 See [applications/prompt_framing_study/README.md](applications/prompt_framing_study/README.md) for complete workflow.
 
+### Temperature Study
+
+Investigate how LLM sampling temperature affects estimated sensitivity (α) to expected utility maximization.
+
+**Research Question**: How does LLM temperature affect the rationality parameter α?
+
+**Key Features:**
+- Controlled experiment across multiple temperature levels (0.0, 0.3, 0.7, 1.0, 1.5)
+- Position counterbalancing and transparent NA handling
+- Deliberative embeddings
+
+See [applications/temperature_study/README.md](applications/temperature_study/README.md) for the full experimental design.
+
 ### Legacy: LLM Rationality Benchmarking (Deprecated)
 
-The original `llm_rationality` module provides basic LLM benchmarking capabilities. This module is being superseded by `prompt_framing_study` which offers improved methodology.
+The original `llm_rationality` module provides basic LLM benchmarking capabilities. This module is being superseded by `prompt_framing_study` and `temperature_study` which offer improved methodology.
 
 See [applications/llm_rationality/README.md](applications/llm_rationality/README.md) for legacy documentation.
 

@@ -1,8 +1,35 @@
 """
-Copy figures from analyses to reports directory.
+Copy Figures from Analyses to Reports Directory
 
-This script copies the relevant plots from analysis output directories
-to the reports/figures directory for inclusion in reports.
+This script copies selected plots and tables from analysis output directories
+into reports/figures/ so that Quarto reports can reference them in a stable
+location without hard-coding run-specific paths.
+
+Purpose:
+    - Decouple report rendering from specific result directory names
+    - Collect prior predictive, parameter recovery, and sample size figures
+    - Support both m_0 and m_01 parameter recovery results
+    - Support R=5 and R=15 sample size estimation results
+
+Usage:
+    python scripts/copy_figures_for_report.py [--analysis TYPE] [DIR OPTIONS]
+
+    --analysis: 'prior', 'recovery', 'recovery_m01', 'sample_size',
+                'sample_size_r15', or 'all' (default: 'all')
+
+Examples:
+    # Copy all figures using default directory names
+    python scripts/copy_figures_for_report.py
+
+    # Copy only prior predictive figures
+    python scripts/copy_figures_for_report.py --analysis prior
+
+    # Copy recovery figures from a specific run
+    python scripts/copy_figures_for_report.py --analysis recovery --recovery-dir my_run
+
+Outputs:
+    - Figures copied to reports/figures/
+    - CSV tables copied to reports/
 """
 import os
 import shutil

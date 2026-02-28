@@ -1,10 +1,54 @@
 #!/usr/bin/env python3
 """
-Script to generate and save study designs for m_1 model.
+Study Design Generation Script for m_1 Model
+
+This script creates experimental study designs for the combined risky + uncertain
+choice model (m_1). The m_1 model extends m_0 by pairing uncertain decision
+problems (feature-derived probabilities) with risky decision problems (known
+objective probabilities), enabling separate identification of utilities and
+subjective probability mappings.
+
+Purpose:
+    - Generate study designs with both uncertain (M) and risky (N) decision problems
+    - Configure feature spaces for uncertain alternatives and probability simplexes
+      for risky alternatives
+    - Analyze properties of the generated design
+    - Save designs in Stan-compatible format for downstream analyses
 
 Usage:
     python scripts/run_m1_study_design.py --config configs/m1_study_config.json
     python scripts/run_m1_study_design.py --M 30 --N 30 --output m1_test.json
+
+    The config file should be a JSON file with the following structure:
+    {
+        "M": 20,                   # Number of uncertain decision problems
+        "N": 20,                   # Number of risky decision problems
+        "K": 3,                    # Number of possible consequences
+        "D": 2,                    # Dimensions to describe uncertain alternatives
+        "R": 10,                   # Number of distinct uncertain alternatives
+        "S": 8,                    # Number of distinct risky alternatives
+        "min_alts_per_problem": 2, # Minimum alternatives per problem
+        "max_alts_per_problem": 5, # Maximum alternatives per problem
+        "risky_probs": "fixed",    # How to generate risky probabilities
+        "feature_dist": "normal",  # Distribution for uncertain features
+        "feature_params": {"loc": 0, "scale": 1},
+        "design_name": "m1_study"  # Name for the design
+    }
+
+Examples:
+    # Generate from config file
+    python scripts/run_m1_study_design.py --config configs/m1_study_config.json
+
+    # Generate from command-line arguments
+    python scripts/run_m1_study_design.py --M 30 --N 30 --K 4 --R 15 --S 10
+
+    # Custom output location without plots
+    python scripts/run_m1_study_design.py --M 20 --N 20 --output my_design.json --no-plots
+
+Outputs:
+    - Study design JSON file in results/designs/ (Stan-compatible)
+    - Visualization plots in results/designs/<name>_plots/ (unless --no-plots)
+    - Design summary printed to console
 """
 import os
 import sys

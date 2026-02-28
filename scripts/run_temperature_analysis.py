@@ -1,17 +1,38 @@
 """
 Temperature Study — Primary Analysis (DESIGN.md §6.1)
 
-Generates:
-  1. Forest plot of α posteriors by temperature
-  2. Overlaid density plot of α posteriors
-  3. Posterior probability of strict monotonic decrease
-  4. Estimated slope Δα per unit temperature increase (with 90% CI)
-  5. Summary table
+This script produces the main quantitative results and visualisations for the
+temperature study, which investigates how LLM sampling temperature affects the
+estimated sensitivity parameter α.
 
-All outputs are saved to the temperature study results directory.
+Prerequisites:
+    The temperature study pipeline must have been run first so that fitted
+    α posterior draws exist in the results directory:
+        applications/temperature_study/results/fit_T<temp>/alpha_draws.npz
+    See applications/temperature_study/README.md for the full collection workflow.
+
+Purpose:
+    - Load α posterior draws from each temperature condition
+    - Compute summary statistics (median, mean, SD, 90 %% CI)
+    - Test for monotonic decrease of α with temperature
+    - Compute pairwise P(α_i > α_j) comparisons
+    - Estimate linear slope Δα / ΔT with uncertainty
+    - Generate diagnostic plots (forest plot, density overlay)
 
 Usage:
     python scripts/run_temperature_analysis.py [--results-dir PATH]
+
+Examples:
+    # Run with default results directory
+    python scripts/run_temperature_analysis.py
+
+    # Point to an alternative results directory
+    python scripts/run_temperature_analysis.py --results-dir path/to/results
+
+Outputs (saved to the results directory):
+    - primary_analysis.json   — summary table, monotonicity, pairwise, slope
+    - forest_plot.png         — forest plot of α posteriors by temperature
+    - alpha_density_plot.png  — overlaid density curves
 """
 
 import argparse

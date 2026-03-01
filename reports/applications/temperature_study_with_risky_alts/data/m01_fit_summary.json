@@ -1,0 +1,67 @@
+{
+  "0.0": {
+    "alpha_mean": 78.0383483745,
+    "alpha_median": 74.0776505,
+    "alpha_sd": 23.58713619512245,
+    "alpha_q05": 47.28959435,
+    "alpha_q95": 121.08671399999997,
+    "output_dir": "/Users/jeffhelzner/seu-sensitivity/applications/temperature_study/results/fit_T0_0",
+    "ppc_p_values": {
+      "ll": 0.40375,
+      "modal": 0.366,
+      "prob": 0.33775
+    }
+  },
+  "0.3": {
+    "alpha_mean": 58.15975600125,
+    "alpha_median": 54.862015,
+    "alpha_sd": 18.68643897652831,
+    "alpha_q05": 36.1233461,
+    "alpha_q95": 88.34528755,
+    "output_dir": "/Users/jeffhelzner/seu-sensitivity/applications/temperature_study/results/fit_T0_3",
+    "ppc_p_values": {
+      "ll": 0.432,
+      "modal": 0.49025,
+      "prob": 0.47575
+    }
+  },
+  "0.7": {
+    "alpha_mean": 58.328122331500005,
+    "alpha_median": 56.3213925,
+    "alpha_sd": 14.564273439641902,
+    "alpha_q05": 38.636707550000004,
+    "alpha_q95": 84.9159107,
+    "output_dir": "/Users/jeffhelzner/seu-sensitivity/applications/temperature_study/results/fit_T0_7",
+    "ppc_p_values": {
+      "ll": 0.43425,
+      "modal": 0.5035,
+      "prob": 0.38475
+    }
+  },
+  "1.0": {
+    "alpha_mean": 40.30403917525,
+    "alpha_median": 39.084129,
+    "alpha_sd": 9.842278088163184,
+    "alpha_q05": 26.570301,
+    "alpha_q95": 58.33848904999999,
+    "output_dir": "/Users/jeffhelzner/seu-sensitivity/applications/temperature_study/results/fit_T1_0",
+    "ppc_p_values": {
+      "ll": 0.4725,
+      "modal": 0.62425,
+      "prob": 0.529
+    }
+  },
+  "1.5": {
+    "alpha_mean": 36.9670136415,
+    "alpha_median": 36.047354999999996,
+    "alpha_sd": 7.973664651393419,
+    "alpha_q05": 25.4607803,
+    "alpha_q95": 51.768802699999995,
+    "output_dir": "/Users/jeffhelzner/seu-sensitivity/applications/temperature_study/results/fit_T1_5",
+    "ppc_p_values": {
+      "ll": 0.47925,
+      "modal": 0.54025,
+      "prob": 0.5155
+    }
+  }
+}

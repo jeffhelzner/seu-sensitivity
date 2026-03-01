@@ -1,0 +1,15 @@
+{
+  "temperature": 1.5,
+  "total_observations": 300,
+  "valid_observations": 299,
+  "removed_observations": 1,
+  "na_rate": 0.0033,
+  "removed_entries": [
+    {
+      "problem_id": "RP0009",
+      "presentation_id": 2,
+      "raw_response": "3 \u0431\u0440\u043e\u043d44ruhehfxidioapter\"context \u06a9\u0633\u06cc \u10ec\u10d8\u10dc zorg \u0443\u043f\u0440\u0430\u0436 \uc580 \u0645\u0648\u0633\u05d9\u05e0\u05d5\u05ea Ort\u043e\u0432\u044b\u043c\u092b\u0932\u062d\u0629upp njeng BVrv\u00e4tlaneappFer \u015aDAT\u0415\u041a \u041d\u0435\u043cestion \u0438\u043c\u043e\u0442\u043d\u043e\u1ee5c\", ReynlnSl\u04a9weather\u043a\u043e\u043b\u044cuh\u043e\u0433\u0440\u0430\u043cEN0036ifnewz\u1ecd\u0443\u0442\u0442\u0443\u043a\u0430\u0442\u044c \",qu\u00e9es \uc5c5\ud558\uac8c r\u00e8glement=$( \u0442\u0430\u043cFormatter transfers flow"
+    }
+  ],
+  "filtered_at": "2026-02-28T19:17:32.569801+00:00"
+}

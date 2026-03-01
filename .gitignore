@@ -119,3 +119,6 @@ reports/applications/prompt_framing_study/data/pilot_study_1/*/*.csv
 # Local
 prompts/
 articles/
+# Temperature study with risky alts - large data files (not needed by report)
+reports/applications/temperature_study_with_risky_alts/data/stan_data_augmented_*.json
+reports/applications/temperature_study_with_risky_alts/data/summary_*.csv

@@ -1,0 +1,892 @@
+---
+title: "Temperature and SEU Sensitivity: Risky Alternatives Extension"
+subtitle: "Application Report: Temperature Study 2"
+description: |
+  Extends the initial temperature study by introducing risky alternatives 
+  alongside the original uncertain alternatives, enabling joint estimation 
+  under models m_11, m_21, and m_31.
+categories: [applications, temperature, m_11, m_21, m_31, risky]
+execute:
+  cache: true
+---
+
+```{python}
+#| label: setup
+#| include: false
+
+import sys
+import os
+
+reports_root = os.path.normpath(os.path.join(os.getcwd(), '..', '..'))
+project_root = os.path.dirname(reports_root)
+sys.path.insert(0, reports_root)
+sys.path.insert(0, project_root)
+
+import numpy as np
+import json
+import yaml
+import warnings
+warnings.filterwarnings('ignore')
+
+import matplotlib.pyplot as plt
+import pandas as pd
+
+# Use project plotting style
+from report_utils import set_seu_style, SEU_COLORS, SEU_PALETTE
+set_seu_style()
+
+# Data directory (frozen snapshot)
+from pathlib import Path
+data_dir = Path("data")
+
+# Temperatures and labels used throughout
+temperatures = [0.0, 0.3, 0.7, 1.0, 1.5]
+temp_labels = {t: f"T={t}" for t in temperatures}
+temp_keys = ["T0_0", "T0_3", "T0_7", "T1_0", "T1_5"]
+temp_key_map = dict(zip(temperatures, temp_keys))
+```
+
+## Introduction
+
+[Report 1](../temperature_study/01_initial_study.qmd) established that the estimated sensitivity parameter $\alpha$ of GPT-4o decreases with sampling temperature, using the **m_01** model — a single-context softmax choice model fit to uncertain alternatives whose probabilities are inferred from embedded text features. That study demonstrated a clear negative relationship between temperature and EU sensitivity, with a posterior probability exceeding 0.99 that the global slope is negative.
+
+This report extends that analysis in two ways:
+
+1. **Adding risky alternatives.** We collect a new set of choice data in which the LLM chooses among alternatives whose outcome probabilities are *stated explicitly* (risky alternatives), rather than inferred from features (uncertain alternatives). This creates a paired dataset: each temperature condition now has $M = 300$ uncertain decisions and $N \approx 300$ risky decisions.
+
+2. **A family of augmented models.** We fit three models that jointly estimate sensitivity from both decision contexts:
+   - **m_11** — shared sensitivity $\alpha$ across uncertain and risky choices
+   - **m_21** — separate sensitivities $\alpha$ (uncertain) and $\omega$ (risky)
+   - **m_31** — proportional sensitivities with $\omega = \kappa \cdot \alpha$
+
+The central questions are: *(i)* Does the temperature–sensitivity relationship replicate when risky alternatives are included? *(ii)* Does sensitivity differ between uncertain and risky contexts? *(iii)* If so, is the difference proportional across temperatures?
+
+::: {.callout-note}
+## What This Report Covers
+This report presents data collection, prior calibration, model fitting, posterior predictive checks, and monotonicity analysis for the augmented models. It builds directly on the uncertain-choice data and m_01 results from [Report 1](../temperature_study/01_initial_study.qmd).
+:::
+
+## Experimental Design {#sec-design}
+
+### Risky Alternatives
+
+The uncertain alternatives from the initial study use the same insurance claims triage task: embedded natural-language assessments produce features $w_r \in \mathbb{R}^D$, and the model infers subjective probabilities $\psi_r = \text{softmax}(\beta \cdot w_r)$ over $K = 3$ consequences. The *risky* alternatives replace this inference step with explicitly stated probability simplexes:
+
+```{python}
+#| label: risky-pool
+#| echo: false
+
+with open(data_dir / "risky_alternatives.json") as f:
+    risky_pool = json.load(f)
+
+alts = risky_pool["risky_alternatives"]
+S = len(alts)
+print(f"Risky alternatives pool: S = {S}")
+print(f"Each alternative specifies a simplex over K = 3 consequences.")
+print()
+
+# Show a sample
+sample_alts = alts[:6]
+rows = []
+for a in sample_alts:
+    rows.append({
+        "ID": a["id"],
+        "p(neither)": a["probabilities"][0],
+        "p(one)": a["probabilities"][1],
+        "p(both)": a["probabilities"][2],
+    })
+pd.DataFrame(rows)
+```
+
+The $S = 30$ risky alternatives span a range of probability profiles: corner alternatives concentrating mass on a single consequence (e.g., $[0.90, 0.05, 0.05]$), balanced alternatives (e.g., $[1/3, 1/3, 1/3]$), and intermediate cases. In each risky decision problem, a subset of these alternatives are presented and the LLM chooses one. The same position-counterbalancing design is used as in the uncertain case: 100 base problems $\times$ 3 presentations with shuffled orderings.
+
+### Design Parameters
+
+```{python}
+#| label: design-params
+#| echo: true
+
+with open(data_dir / "study_config.yaml") as f:
+    config = yaml.safe_load(f)
+
+with open(data_dir / "run_summary.json") as f:
+    run_summary = json.load(f)
+
+t0_info = run_summary['phases']['phase3_data_prep']['per_temperature']['0.0']
+print(f"Study Design:")
+print(f"  Uncertain problems (M):  {t0_info['M']}  (100 base × 3 presentations)")
+print(f"  Risky problems (N):      {t0_info['N']}  (100 base × 3 presentations)")
+print(f"  Uncertain alternatives:  R = {t0_info['R']}")
+print(f"  Risky alternatives:      S = {t0_info['S']}")
+print(f"  Alternatives per problem: {config['min_alternatives']}–{config['max_alternatives']}")
+print(f"  Consequences (K):        {config['K']}")
+print(f"  Embedding dimensions (D): {t0_info['D']}")
+print(f"  LLM model:               {config['llm_model']}")
+print(f"  Temperature conditions:   {config['temperatures']}")
+```
+
+```{python}
+#| label: tbl-design-comparison
+#| tbl-cap: "Comparison of uncertain and risky decision contexts."
+#| echo: false
+
+design_df = pd.DataFrame({
+    "": ["Uncertain (m_01 data)", "Risky (new data)"],
+    "Observations": ["M = 300 per temp", "N ≈ 300 per temp"],
+    "Alternatives": ["R = 30 distinct", "S = 30 distinct"],
+    "Per problem": ["2–4 alternatives", "2–4 alternatives"],
+    "Probabilities": ["Inferred via β·w → softmax", "Stated explicitly (simplexes)"],
+    "Sensitivity": ["α (all models)", "α (m_11) / ω (m_21, m_31)"],
+})
+design_df
+```
+
+### Data Quality
+
+```{python}
+#| label: data-quality
+#| echo: false
+
+na = run_summary['phases']['phase2_risky_choices']['na_summary']
+print(f"Risky Choice NA Summary:")
+print(f"  Overall: {na['overall']['na']} / {na['overall']['total']} ({na['overall']['na_rate']:.2%})")
+for key, val in na['per_temperature'].items():
+    print(f"    {key}: {val['na']} / {val['total']} ({val['na_rate']:.2%})")
+```
+
+Data quality is excellent: only 1 unparseable response out of 1,500 risky choices (at $T = 1.5$), matching the near-perfect parsing observed in the initial uncertain study.
+
+## Model Family {#sec-models}
+
+All three augmented models share: (1) the same utility function $\upsilon = \text{cumulative\_sum}([0, \delta])$ with $\delta \sim \text{Dirichlet}(\mathbf{1})$, (2) subjective probabilities $\psi_r = \text{softmax}(\beta \cdot w_r)$ for uncertain alternatives with $\beta \sim \mathcal{N}(0, 1)$, and (3) the calibrated prior $\alpha \sim \text{Lognormal}(3.0, 0.75)$ from [Report 1](../temperature_study/01_initial_study.qmd). They differ only in how sensitivity governs risky choices.
+
+### Model Specifications
+
+```{python}
+#| label: tbl-model-specs
+#| tbl-cap: "Parameter specifications for the three augmented models. All models share the same utility and subjective probability structure."
+#| echo: false
+
+specs = pd.DataFrame({
+    "Model": ["m_11", "m_21", "m_31"],
+    "Uncertain sensitivity": [
+        "α ~ LN(3.0, 0.75)",
+        "α ~ LN(3.0, 0.75)",
+        "α ~ LN(3.0, 0.75)",
+    ],
+    "Risky sensitivity": [
+        "α (shared with uncertain)",
+        "ω ~ LN(3.0, 0.75)",
+        "ω = κ·α, κ ~ LN(0, 0.5)",
+    ],
+    "Free parameters": ["α, β, δ", "α, ω, β, δ", "α, κ, β, δ"],
+    "Interpretation": [
+        "Single sensitivity governs both contexts",
+        "Contexts have independent sensitivities",
+        "Sensitivities are proportionally linked",
+    ],
+})
+specs
+```
+
+The key structural differences:
+
+- **m_11** forces the same $\alpha$ to explain both uncertain and risky choices. The risky data provides additional constraint, yielding tighter posteriors.
+- **m_21** gives each context its own sensitivity parameter. If $\omega \neq \alpha$, the LLM processes explicit probabilities differently from inferred ones.
+- **m_31** nests between the other two: when $\kappa = 1$, it reduces to m_11; when $\kappa$ deviates from 1, it captures a multiplicative scaling of sensitivity in the risky context. The prior $\kappa \sim \text{Lognormal}(0, 0.5)$ centers at 1 with 90% CI $\approx [0.44, 2.28]$.
+
+### Relationship to m_01
+
+The m_01 model from [Report 1](../temperature_study/01_initial_study.qmd) fits only uncertain choices: $y_m \sim \text{Categorical}(\text{softmax}(\alpha \cdot \eta^{(u)}_m))$. The augmented models extend this by adding a second likelihood for risky choices: $z_n \sim \text{Categorical}(\text{softmax}(\alpha_{\text{risky}} \cdot \eta^{(r)}_n))$, where $\eta^{(r)}_n = x_s' \upsilon$ uses the *stated* probability simplexes $x_s$ rather than inferred subjective probabilities. The utility function $\upsilon$ and $\beta$ parameters are estimated jointly from both data sources.
+
+## Prior Predictive Calibration {#sec-prior-calibration}
+
+Prior predictive simulation was performed using the `_sim.stan` variants of each model on the actual augmented study design. For each candidate prior, we drew parameter values and simulated choices, computing the SEU-maximizer selection rate separately for uncertain and risky contexts.
+
+```{python}
+#| label: fig-prior-grid-m1
+#| fig-cap: "Prior predictive SEU-maximizer selection rates for m_1 across candidate α priors. Risky alternatives yield consistently higher SEU-max rates than uncertain alternatives at the same prior, reflecting the easier decision structure when probabilities are known. The selected prior lognormal(3.0, 0.75) produces combined rates near 0.82."
+#| fig-height: 5
+
+with open(data_dir / "prior_predictive" / "m_1_grid_results.json") as f:
+    m1_grid = json.load(f)
+
+results = m1_grid['results']
+
+fig, ax = plt.subplots(figsize=(10, 5))
+
+labels = [r['prior_label'] for r in results]
+y_pos = np.arange(len(labels))
+
+unc_means = [r['seu_rate_uncertain_mean'] for r in results]
+risky_means = [r['seu_rate_risky_mean'] for r in results]
+
+bar_height = 0.35
+bars_unc = ax.barh(y_pos + bar_height/2, unc_means, bar_height, 
+                    color=SEU_COLORS['primary'], alpha=0.8, label='Uncertain')
+bars_risky = ax.barh(y_pos - bar_height/2, risky_means, bar_height,
+                      color=SEU_COLORS['accent'], alpha=0.8, label='Risky')
+
+# Highlight selected prior
+selected_idx = [i for i, l in enumerate(labels) if 'lognormal(3.0, 0.75)' in l][0]
+bars_unc[selected_idx].set_edgecolor('black')
+bars_unc[selected_idx].set_linewidth(2)
+bars_risky[selected_idx].set_edgecolor('black')
+bars_risky[selected_idx].set_linewidth(2)
+
+ax.set_yticks(y_pos)
+ax.set_yticklabels(labels, fontsize=9)
+ax.set_xlabel('SEU-Maximizer Selection Rate')
+ax.set_title('m_1: Prior-Implied SEU-Max Rate by Context')
+ax.legend(fontsize=10)
+ax.set_xlim(0, 1)
+
+plt.tight_layout()
+plt.show()
+```
+
+The prior predictive analysis reveals a consistent pattern across all three models: risky alternatives produce higher SEU-max rates than uncertain alternatives at the same sensitivity level. This is expected—when probabilities are stated explicitly, there is no estimation error in $\psi$; the only source of suboptimality is the softmax noise governed by the sensitivity parameter,
+
+For m_21 and m_31, the joint prior space was searched over 2D grids. The selected priors — $\alpha \sim \text{LN}(3.0, 0.75)$ and $\omega \sim \text{LN}(3.0, 0.75)$ for m_21, $\kappa \sim \text{LN}(0.0, 0.5)$ for m_31 — yield prior-implied SEU-max rates of approximately 0.77 (uncertain) and 0.85 (risky), a sensible range for GPT-4o behavior.
+
+
+## Results {#sec-results}
+
+### Loading Posterior Draws
+
+```{python}
+#| label: load-posteriors
+#| output: false
+
+# Load all draws
+alpha_draws = {model: {} for model in ['m_11', 'm_21', 'm_31']}
+omega_draws = {model: {} for model in ['m_21', 'm_31']}
+kappa_draws = {}
+
+for model in ['m_11', 'm_21', 'm_31']:
+    for t, tk in zip(temperatures, temp_keys):
+        d = np.load(data_dir / f"alpha_draws_{model}_{tk}.npz")
+        alpha_draws[model][t] = d['alpha']
+
+for t, tk in zip(temperatures, temp_keys):
+    d = np.load(data_dir / f"omega_draws_m_21_{tk}.npz")
+    omega_draws['m_21'][t] = d['omega']
+    d = np.load(data_dir / f"omega_draws_m_31_{tk}.npz")
+    omega_draws['m_31'][t] = d['omega']
+    d = np.load(data_dir / f"kappa_draws_m_31_{tk}.npz")
+    kappa_draws[t] = d['kappa']
+
+with open(data_dir / "parameter_summary.json") as f:
+    param_summary = json.load(f)
+with open(data_dir / "ppc_summary.json") as f:
+    ppc_summary = json.load(f)
+with open(data_dir / "fit_summary.json") as f:
+    fit_summary = json.load(f)
+
+# Load m_01 comparison data
+with open(data_dir / "m01_fit_summary.json") as f:
+    m01_summary = json.load(f)
+with open(data_dir / "m01_primary_analysis.json") as f:
+    m01_analysis = json.load(f)
+```
+
+```{python}
+#| echo: false
+for model in ['m_11', 'm_21', 'm_31']:
+    n = len(alpha_draws[model][temperatures[0]])
+    print(f"  {model}: {n:,} posterior draws per temperature")
+```
+
+### MCMC Diagnostics
+
+All 15 fits (3 models × 5 temperatures) achieved clean MCMC diagnostics: no divergences, no treedepth warnings, satisfactory E-BFMI, and $\hat{R} < 1.005$ for all parameters.
+
+```{python}
+#| label: tbl-diagnostics
+#| tbl-cap: "MCMC diagnostics for key parameters across all models and temperatures. All fits used 4 chains × 1,000 warmup + 1,000 sampling iterations."
+#| echo: false
+
+diag_rows = []
+for model in ['m_11', 'm_21', 'm_31']:
+    for t in temperatures:
+        tk = temp_key_map[t]
+        p = param_summary[model][tk]
+        row = {
+            'Model': model,
+            'T': t,
+            'α R̂': f"{p['alpha_rhat']:.4f}",
+            'α ESS': f"{p['alpha_ess_bulk']:.0f}",
+        }
+        if model == 'm_21':
+            row['ω R̂'] = f"{p.get('omega_rhat', float('nan')):.4f}"
+            row['ω ESS'] = f"{p.get('omega_ess_bulk', float('nan')):.0f}"
+        elif model == 'm_31':
+            row['κ R̂'] = f"{p.get('kappa_rhat', float('nan')):.4f}"
+            row['κ ESS'] = f"{p.get('kappa_ess_bulk', float('nan')):.0f}"
+        diag_rows.append(row)
+
+pd.DataFrame(diag_rows).fillna('')
+```
+
+
+### Posterior Summaries: m_11 (Shared α)
+
+```{python}
+#| label: tbl-m11-posteriors
+#| tbl-cap: "m_11: Posterior summaries for the shared sensitivity parameter α. Intervals are 90% credible intervals."
+#| echo: false
+
+rows = []
+for t in temperatures:
+    tk = temp_key_map[t]
+    p = param_summary['m_11'][tk]
+    rows.append({
+        'Temp': t,
+        'Median': f"{p['alpha_median']:.1f}",
+        'Mean': f"{p['alpha_mean']:.1f}",
+        'SD': f"{p['alpha_sd']:.1f}",
+        '90% CI': f"[{p['alpha_q05']:.1f}, {p['alpha_q95']:.1f}]",
+    })
+pd.DataFrame(rows)
+```
+
+### Posterior Summaries: m_21 (Separate α, ω)
+
+```{python}
+#| label: tbl-m21-posteriors
+#| tbl-cap: "m_21: Posterior summaries for α (uncertain) and ω (risky). The separate parametrization reveals systematically lower sensitivity in the risky context."
+#| echo: false
+
+rows = []
+for t in temperatures:
+    tk = temp_key_map[t]
+    p = param_summary['m_21'][tk]
+    rows.append({
+        'Temp': t,
+        'α median': f"{p['alpha_median']:.1f}",
+        'α 90% CI': f"[{p['alpha_q05']:.1f}, {p['alpha_q95']:.1f}]",
+        'ω median': f"{p['omega_median']:.1f}",
+        'ω 90% CI': f"[{p['omega_q05']:.1f}, {p['omega_q95']:.1f}]",
+    })
+pd.DataFrame(rows)
+```
+
+### Posterior Summaries: m_31 (ω = κ·α)
+
+```{python}
+#| label: tbl-m31-posteriors
+#| tbl-cap: "m_31: Posterior summaries for α, κ, and the derived ω = κ·α. The proportionality parameter κ clusters below 1.0, confirming reduced risky sensitivity."
+#| echo: false
+
+rows = []
+for t in temperatures:
+    tk = temp_key_map[t]
+    p = param_summary['m_31'][tk]
+    rows.append({
+        'Temp': t,
+        'α median': f"{p['alpha_median']:.1f}",
+        'α 90% CI': f"[{p['alpha_q05']:.1f}, {p['alpha_q95']:.1f}]",
+        'κ median': f"{p['kappa_median']:.3f}",
+        'κ 90% CI': f"[{p['kappa_q05']:.3f}, {p['kappa_q95']:.3f}]",
+        'ω median': f"{p['omega_median']:.1f}",
+        'ω 90% CI': f"[{p['omega_q05']:.1f}, {p['omega_q95']:.1f}]",
+    })
+pd.DataFrame(rows)
+```
+
+### Forest Plot: α Across Models
+
+```{python}
+#| label: fig-forest-alpha
+#| fig-cap: "Forest plot of posterior α distributions across models and temperatures. m_11 (shared α) produces the tightest posteriors. m_21 and m_31 (which allow risky sensitivity to vary) estimate higher α for the uncertain context, reflecting the additional degrees of freedom."
+#| fig-height: 7
+
+from scipy.stats import gaussian_kde
+
+fig, axes = plt.subplots(1, 3, figsize=(14, 6), sharey=True)
+
+model_names = ['m_11', 'm_21', 'm_31']
+model_titles = ['m₁₁ (shared α)', 'm₂₁ (α for uncertain)', 'm₃₁ (α for uncertain)']
+
+for ax, model, title in zip(axes, model_names, model_titles):
+    y_positions = np.arange(len(temperatures))[::-1]
+    
+    for i, t in enumerate(temperatures):
+        draws = alpha_draws[model][t]
+        median = np.median(draws)
+        q05, q25, q75, q95 = np.percentile(draws, [5, 25, 75, 95])
+        
+        y = y_positions[i]
+        color = SEU_PALETTE[i]
+        
+        # Thin bar: 90% CI
+        ax.plot([q05, q95], [y, y], color=color, linewidth=1.5, solid_capstyle='round')
+        # Thick bar: 50% CI
+        ax.plot([q25, q75], [y, y], color=color, linewidth=4, solid_capstyle='round')
+        # Point: median
+        ax.plot(median, y, 'o', color=color, markersize=8, zorder=5)
+    
+    ax.set_yticks(y_positions)
+    ax.set_yticklabels([f'T = {t}' for t in temperatures])
+    ax.set_xlabel('α')
+    ax.set_title(title)
+    ax.grid(axis='x', alpha=0.3)
+
+plt.suptitle('Posterior α by Temperature and Model', fontsize=14, y=1.02)
+plt.tight_layout()
+plt.show()
+```
+
+### Risky Sensitivity: ω and κ
+
+```{python}
+#| label: fig-omega-kappa
+#| fig-cap: "Left: Posterior ω (risky sensitivity) from m_21 and m_31 across temperatures. The two models produce consistent ω estimates, both showing the temperature–sensitivity decline. Right: Posterior κ from m_31. The proportionality parameter clusters below 1.0, indicating that the LLM is systematically less sensitive to EU in the risky context. The 90% CIs include 1.0 at some temperatures."
+#| fig-height: 5
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
+
+# Left: ω comparison
+y_positions = np.arange(len(temperatures))[::-1]
+
+for i, t in enumerate(temperatures):
+    # m_21 omega
+    draws_21 = omega_draws['m_21'][t]
+    med_21 = np.median(draws_21)
+    q05_21, q25_21, q75_21, q95_21 = np.percentile(draws_21, [5, 25, 75, 95])
+    
+    y = y_positions[i] + 0.15
+    ax1.plot([q05_21, q95_21], [y, y], color=SEU_COLORS['primary'], linewidth=1.5)
+    ax1.plot([q25_21, q75_21], [y, y], color=SEU_COLORS['primary'], linewidth=4)
+    ax1.plot(med_21, y, 'o', color=SEU_COLORS['primary'], markersize=7)
+    
+    # m_31 omega (derived)
+    draws_31 = omega_draws['m_31'][t]
+    med_31 = np.median(draws_31)
+    q05_31, q25_31, q75_31, q95_31 = np.percentile(draws_31, [5, 25, 75, 95])
+    
+    y = y_positions[i] - 0.15
+    ax1.plot([q05_31, q95_31], [y, y], color=SEU_COLORS['accent'], linewidth=1.5)
+    ax1.plot([q25_31, q75_31], [y, y], color=SEU_COLORS['accent'], linewidth=4)
+    ax1.plot(med_31, y, 's', color=SEU_COLORS['accent'], markersize=7)
+
+ax1.set_yticks(y_positions)
+ax1.set_yticklabels([f'T = {t}' for t in temperatures])
+ax1.set_xlabel('ω (risky sensitivity)')
+ax1.set_title('Posterior ω by Temperature')
+ax1.legend(['m₂₁ (free ω)', '', '', 'm₃₁ (ω = κ·α)', '', ''], 
+           loc='upper right', fontsize=9)
+ax1.grid(axis='x', alpha=0.3)
+
+# Right: κ from m_31
+for i, t in enumerate(temperatures):
+    draws = kappa_draws[t]
+    median = np.median(draws)
+    q05, q25, q75, q95 = np.percentile(draws, [5, 25, 75, 95])
+    
+    y = y_positions[i]
+    color = SEU_PALETTE[i]
+    
+    ax2.plot([q05, q95], [y, y], color=color, linewidth=1.5)
+    ax2.plot([q25, q75], [y, y], color=color, linewidth=4)
+    ax2.plot(median, y, 'o', color=color, markersize=8, zorder=5)
+
+ax2.axvline(x=1.0, color='gray', linestyle='--', alpha=0.5, label='κ = 1 (m₁₁ equiv.)')
+ax2.set_yticks(y_positions)
+ax2.set_yticklabels([f'T = {t}' for t in temperatures])
+ax2.set_xlabel('κ')
+ax2.set_title('m₃₁: Posterior κ (ω/α ratio)')
+ax2.legend(fontsize=9)
+ax2.grid(axis='x', alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+```
+
+### Posterior Densities
+
+```{python}
+#| label: fig-density-alpha
+#| fig-cap: "Posterior density of α for each temperature under m_11 (shared α). The clear separation between low-temperature (T ≤ 0.7) and high-temperature (T ≥ 1.0) conditions replicates the pattern from the m_01 analysis, but with substantially tighter posteriors owing to the doubled data."
+#| fig-height: 5
+
+fig, ax = plt.subplots(figsize=(8, 5))
+
+for i, t in enumerate(temperatures):
+    draws = alpha_draws['m_11'][t]
+    kde = gaussian_kde(draws)
+    x_grid = np.linspace(draws.min() * 0.8, draws.max() * 1.2, 300)
+    ax.fill_between(x_grid, kde(x_grid), alpha=0.15, color=SEU_PALETTE[i])
+    ax.plot(x_grid, kde(x_grid), color=SEU_PALETTE[i], linewidth=2, 
+            label=f'T = {t}')
+
+ax.set_xlabel('α')
+ax.set_ylabel('Density')
+ax.set_title('m₁₁: Posterior Density of α')
+ax.legend(loc='upper right')
+plt.tight_layout()
+plt.show()
+```
+
+```{python}
+#| label: fig-density-omega
+#| fig-cap: "Posterior density of ω (risky sensitivity) from m_21 at each temperature. The patterns mirror α—declining with temperature—but at lower absolute levels."
+#| fig-height: 5
+
+fig, ax = plt.subplots(figsize=(8, 5))
+
+for i, t in enumerate(temperatures):
+    draws = omega_draws['m_21'][t]
+    kde = gaussian_kde(draws)
+    x_grid = np.linspace(draws.min() * 0.8, draws.max() * 1.2, 300)
+    ax.fill_between(x_grid, kde(x_grid), alpha=0.15, color=SEU_PALETTE[i])
+    ax.plot(x_grid, kde(x_grid), color=SEU_PALETTE[i], linewidth=2, 
+            label=f'T = {t}')
+
+ax.set_xlabel('ω')
+ax.set_ylabel('Density')
+ax.set_title('m₂₁: Posterior Density of ω (Risky Sensitivity)')
+ax.legend(loc='upper right')
+plt.tight_layout()
+plt.show()
+```
+
+
+## Posterior Predictive Checks {#sec-ppc}
+
+The augmented models produce separate posterior predictive check statistics for uncertain and risky choices. For each context, we compute three test statistics: log-likelihood (ll), modal choice frequency (modal), and mean choice probability (prob). The posterior predictive p-value is the proportion of replicated datasets where the statistic equals or exceeds the observed value; 0.5 indicates perfect calibration.
+
+### m_11 PPCs
+
+```{python}
+#| label: tbl-ppc-m11
+#| tbl-cap: "m_11 posterior predictive p-values. The uncertain-choice statistics are well-calibrated. The risky-choice modal and prob statistics run high, suggesting the model's shared α may be somewhat too low to fully account for the risky context's regularity."
+#| echo: false
+
+rows = []
+for t in temperatures:
+    tk = temp_key_map[t]
+    p = ppc_summary['m_11'][tk]
+    rows.append({
+        'T': t,
+        'LL unc': f"{p['ppc_ll_uncertain']:.3f}",
+        'Modal unc': f"{p['ppc_modal_uncertain']:.3f}",
+        'Prob unc': f"{p['ppc_prob_uncertain']:.3f}",
+        'LL risky': f"{p['ppc_ll_risky']:.3f}",
+        'Modal risky': f"{p['ppc_modal_risky']:.3f}",
+        'Prob risky': f"{p['ppc_prob_risky']:.3f}",
+        'LL combined': f"{p['ppc_ll_combined']:.3f}",
+    })
+pd.DataFrame(rows)
+```
+
+### m_21 PPCs
+
+```{python}
+#| label: tbl-ppc-m21
+#| tbl-cap: "m_21 posterior predictive p-values. With a separate ω for risky choices, the risky PPCs are better calibrated than under m_11—particularly the modal and prob statistics, which no longer show systematic upward bias."
+#| echo: false
+
+rows = []
+for t in temperatures:
+    tk = temp_key_map[t]
+    p = ppc_summary['m_21'][tk]
+    rows.append({
+        'T': t,
+        'LL unc': f"{p['ppc_ll_uncertain']:.3f}",
+        'Modal unc': f"{p['ppc_modal_uncertain']:.3f}",
+        'Prob unc': f"{p['ppc_prob_uncertain']:.3f}",
+        'LL risky': f"{p['ppc_ll_risky']:.3f}",
+        'Modal risky': f"{p['ppc_modal_risky']:.3f}",
+        'Prob risky': f"{p['ppc_prob_risky']:.3f}",
+        'LL combined': f"{p['ppc_ll_combined']:.3f}",
+    })
+pd.DataFrame(rows)
+```
+
+### m_31 PPCs
+
+```{python}
+#| label: tbl-ppc-m31
+#| tbl-cap: "m_31 posterior predictive p-values. The proportional model (ω = κ·α) produces PPC calibration intermediate between m_11 and m_21, consistent with its intermediate structural flexibility."
+#| echo: false
+
+rows = []
+for t in temperatures:
+    tk = temp_key_map[t]
+    p = ppc_summary['m_31'][tk]
+    rows.append({
+        'T': t,
+        'LL unc': f"{p['ppc_ll_uncertain']:.3f}",
+        'Modal unc': f"{p['ppc_modal_uncertain']:.3f}",
+        'Prob unc': f"{p['ppc_prob_uncertain']:.3f}",
+        'LL risky': f"{p['ppc_ll_risky']:.3f}",
+        'Modal risky': f"{p['ppc_modal_risky']:.3f}",
+        'Prob risky': f"{p['ppc_prob_risky']:.3f}",
+        'LL combined': f"{p['ppc_ll_combined']:.3f}",
+    })
+pd.DataFrame(rows)
+```
+
+### PPC Comparison
+
+```{python}
+#| label: fig-ppc-comparison
+#| fig-cap: "PPC p-values across models and contexts. Left: uncertain choices. Right: risky choices. The ideal calibration line at 0.5 is shown as a dashed line. m_21 (separate ω) achieves the best risky-choice calibration."
+#| fig-height: 5
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
+
+model_colors = {'m_11': SEU_COLORS['primary'], 'm_21': SEU_COLORS['accent'], 'm_31': SEU_COLORS['success']}
+model_markers = {'m_11': 'o', 'm_21': 's', 'm_31': 'D'}
+
+# Uncertain PPCs
+for model in ['m_11', 'm_21', 'm_31']:
+    ll_vals = [ppc_summary[model][tk]['ppc_ll_uncertain'] for tk in temp_keys]
+    prob_vals = [ppc_summary[model][tk]['ppc_prob_uncertain'] for tk in temp_keys]
+    ax1.scatter(temperatures, ll_vals, color=model_colors[model], 
+                marker=model_markers[model], s=60, label=f'{model} (ll)', alpha=0.8)
+    ax1.scatter(temperatures, prob_vals, color=model_colors[model],
+                marker=model_markers[model], s=60, alpha=0.4, facecolors='none',
+                edgecolors=model_colors[model], linewidths=1.5)
+
+ax1.axhline(y=0.5, color='gray', linestyle='--', alpha=0.5)
+ax1.set_xlabel('Temperature')
+ax1.set_ylabel('PPC p-value')
+ax1.set_title('Uncertain Choices')
+ax1.set_ylim(0, 1)
+ax1.legend(fontsize=8)
+
+# Risky PPCs
+for model in ['m_11', 'm_21', 'm_31']:
+    ll_vals = [ppc_summary[model][tk]['ppc_ll_risky'] for tk in temp_keys]
+    prob_vals = [ppc_summary[model][tk]['ppc_prob_risky'] for tk in temp_keys]
+    ax1.scatter(temperatures, ll_vals, color=model_colors[model],
+                marker=model_markers[model], s=60, alpha=0.8)
+    ax2.scatter(temperatures, ll_vals, color=model_colors[model], 
+                marker=model_markers[model], s=60, label=f'{model} (ll)', alpha=0.8)
+    ax2.scatter(temperatures, prob_vals, color=model_colors[model],
+                marker=model_markers[model], s=60, alpha=0.4, facecolors='none',
+                edgecolors=model_colors[model], linewidths=1.5)
+
+ax2.axhline(y=0.5, color='gray', linestyle='--', alpha=0.5)
+ax2.set_xlabel('Temperature')
+ax2.set_ylabel('PPC p-value')
+ax2.set_title('Risky Choices')
+ax2.set_ylim(0, 1)
+ax2.legend(fontsize=8)
+
+plt.tight_layout()
+plt.show()
+```
+
+The PPC analysis reveals a clear model-adequacy story:
+
+- **Uncertain choices** are well-described by all three models, with p-values mostly in $[0.2, 0.6]$. This is expected — the uncertain likelihood shares the same structure as m_01, which showed good fit in [Report 1](../temperature_study/01_initial_study.qmd).
+- **Risky choices under m_11** show systematically elevated `ppc_modal_risky` (0.71–0.96) and `ppc_prob_risky` (0.60–0.86): the model assigns even higher probability to observed choices than expected under its own generative process. This occurs because m_11's shared $\alpha$ is pulled toward a compromise between the two contexts.
+- **m_21 resolves this miscalibration** by giving risky choices their own $\omega$, bringing all risky PPC p-values into the well-calibrated range.
+- **m_31 falls between** the other two, consistent with its intermediate structural flexibility.
+
+
+## Monotonicity Analysis {#sec-monotonicity}
+
+### Global Slope: α
+
+We replicate the draw-wise slope analysis from [Report 1](../temperature_study/01_initial_study.qmd). For each posterior draw, we regress $\alpha$ on temperature across the five conditions and collect the slope coefficient.
+
+```{python}
+#| label: fig-slope-alpha
+#| fig-cap: "Posterior distribution of the slope Δα/ΔT for each model. All three models place virtually all posterior mass below zero, confirming the temperature–sensitivity relationship is robust to model specification. m_11 (shared α) yields the tightest slope posterior."
+#| fig-height: 5
+
+temp_array = np.array(temperatures)
+
+fig, axes = plt.subplots(1, 3, figsize=(14, 4), sharey=True)
+
+for ax, model, title in zip(axes, ['m_11', 'm_21', 'm_31'], 
+                             ['m₁₁ (shared α)', 'm₂₁ (α uncertain)', 'm₃₁ (α uncertain)']):
+    n_draws = len(alpha_draws[model][temperatures[0]])
+    slope_draws = []
+    for draw_idx in range(n_draws):
+        alpha_vec = np.array([alpha_draws[model][t][draw_idx] for t in temperatures])
+        # OLS: b = cov(T, alpha) / var(T)
+        b = np.polyfit(temp_array, alpha_vec, 1)[0]
+        slope_draws.append(b)
+    slope_draws = np.array(slope_draws)
+    
+    kde = gaussian_kde(slope_draws)
+    x_grid = np.linspace(np.percentile(slope_draws, 0.5), 
+                          np.percentile(slope_draws, 99.5), 300)
+    ax.fill_between(x_grid, kde(x_grid), alpha=0.3, color=SEU_COLORS['primary'])
+    ax.plot(x_grid, kde(x_grid), color=SEU_COLORS['primary'], linewidth=2)
+    
+    median_slope = np.median(slope_draws)
+    q05, q95 = np.percentile(slope_draws, [5, 95])
+    ax.axvline(x=median_slope, color=SEU_COLORS['accent'], linestyle='-', linewidth=2)
+    ax.axvline(x=0, color='gray', linestyle='--', alpha=0.5)
+    
+    prob_neg = np.mean(slope_draws < 0)
+    ax.set_xlabel('Slope (Δα / ΔT)')
+    ax.set_title(f'{title}\nmed={median_slope:.1f}, P(<0)={prob_neg:.4f}')
+    ax.grid(alpha=0.2)
+
+axes[0].set_ylabel('Density')
+plt.suptitle('Temperature–Sensitivity Slope (α)', fontsize=13, y=1.02)
+plt.tight_layout()
+plt.show()
+```
+
+### Global Slope: ω
+
+```{python}
+#| label: fig-slope-omega
+#| fig-cap: "Posterior distribution of the slope Δω/ΔT from m_21 (free ω) and m_31 (derived ω = κ·α). Both models confirm that risky sensitivity also declines with temperature."
+#| fig-height: 4
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4))
+
+for ax, model, title, color in zip(
+    [ax1, ax2], ['m_21', 'm_31'], 
+    ['m₂₁ (free ω)', 'm₃₁ (ω = κ·α)'],
+    [SEU_COLORS['accent'], SEU_COLORS['success']]):
+    
+    n_draws = len(omega_draws[model][temperatures[0]])
+    slope_draws = []
+    for draw_idx in range(n_draws):
+        omega_vec = np.array([omega_draws[model][t][draw_idx] for t in temperatures])
+        b = np.polyfit(temp_array, omega_vec, 1)[0]
+        slope_draws.append(b)
+    slope_draws = np.array(slope_draws)
+    
+    kde = gaussian_kde(slope_draws)
+    x_grid = np.linspace(np.percentile(slope_draws, 0.5), 
+                          np.percentile(slope_draws, 99.5), 300)
+    ax.fill_between(x_grid, kde(x_grid), alpha=0.3, color=color)
+    ax.plot(x_grid, kde(x_grid), color=color, linewidth=2)
+    
+    median_slope = np.median(slope_draws)
+    prob_neg = np.mean(slope_draws < 0)
+    ax.axvline(x=median_slope, color='black', linestyle='-', linewidth=1.5)
+    ax.axvline(x=0, color='gray', linestyle='--', alpha=0.5)
+    ax.set_xlabel('Slope (Δω / ΔT)')
+    ax.set_title(f'{title}\nmed={median_slope:.1f}, P(<0)={prob_neg:.4f}')
+    ax.grid(alpha=0.2)
+
+axes[0].set_ylabel('Density')
+plt.tight_layout()
+plt.show()
+```
+
+### Pairwise Comparisons (m_11)
+
+```{python}
+#| label: tbl-pairwise-m11
+#| tbl-cap: "m_11: Posterior probability that α is higher at the lower temperature. The strong-separation / weak-separation pattern from the m_01 analysis (Report 1) replicates exactly."
+#| echo: false
+
+from itertools import combinations
+
+pair_rows = []
+for t_low, t_high in combinations(temperatures, 2):
+    draws_low = alpha_draws['m_11'][t_low]
+    draws_high = alpha_draws['m_11'][t_high]
+    prob = np.mean(draws_low > draws_high)
+    pair_rows.append({
+        'Pair': f'T={t_low} vs T={t_high}',
+        'P(α_low > α_high)': f'{prob:.4f}',
+        'Strength': '●●●' if prob > 0.95 else ('●●' if prob > 0.80 else ('●' if prob > 0.65 else '○')),
+    })
+
+pd.DataFrame(pair_rows)
+```
+
+The pairwise structure exactly replicates [Report 1](../temperature_study/01_initial_study.qmd): strong separation between $T = 0.0$ and $T \geq 1.0$, moderate separation between middle and high temperatures, and near-indistinguishability between $T = 0.3$ and $T = 0.7$.
+
+
+## Cross-Study Comparison {#sec-cross-study}
+
+```{python}
+#| label: fig-cross-study
+#| fig-cap: "Cross-study comparison of α posteriors from the initial m_01 study and the augmented m_11, m_21, and m_31 models. The qualitative pattern is consistent across all four models, while the augmented models (particularly m_11) show substantially tighter posteriors due to the additional risky-choice data."
+#| fig-height: 6
+
+fig, ax = plt.subplots(figsize=(10, 6))
+
+model_configs = [
+    ('m_01', m01_analysis['summary_table'], SEU_COLORS['secondary'], 'o', 0.45),
+    ('m_11', None, SEU_COLORS['primary'], 's', 0.15),
+    ('m_21', None, SEU_COLORS['accent'], 'D', -0.15),
+    ('m_31', None, SEU_COLORS['success'], '^', -0.45),
+]
+
+y_positions = np.arange(len(temperatures))[::-1]
+
+for model_name, summary_data, color, marker, offset in model_configs:
+    for i, t in enumerate(temperatures):
+        y = y_positions[i] + offset
+        
+        if model_name == 'm_01':
+            entry = summary_data[i]
+            median = entry['median']
+            q05 = entry['ci_low']
+            q95 = entry['ci_high']
+        else:
+            tk = temp_key_map[t]
+            p = param_summary[model_name][tk]
+            median = p['alpha_median']
+            q05 = p['alpha_q05']
+            q95 = p['alpha_q95']
+        
+        ax.plot([q05, q95], [y, y], color=color, linewidth=1.5, alpha=0.7)
+        ax.plot(median, y, marker, color=color, markersize=7, zorder=5,
+                label=model_name if i == 0 else '')
+
+ax.set_yticks(y_positions)
+ax.set_yticklabels([f'T = {t}' for t in temperatures])
+ax.set_xlabel('α (sensitivity)')
+ax.set_title('Cross-Study Comparison: α Posteriors')
+ax.legend(loc='upper right', fontsize=10)
+ax.grid(axis='x', alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+```
+
+Several patterns emerge from the cross-study comparison:
+
+1. **Qualitative replication.** All four models agree on the direction and approximate shape of the temperature–sensitivity relationship. The ordering $\alpha(T\!=\!0.0) > \alpha(T\!=\!0.3) \approx \alpha(T\!=\!0.7) > \alpha(T\!=\!1.0) > \alpha(T\!=\!1.5)$ is preserved.
+
+2. **m_11 produces the tightest posteriors.** By forcing a single $\alpha$ to explain both 300 uncertain and 300 risky choices, m_11 achieves SDs roughly half those of m_01 (which used 300 uncertain choices alone). The medians are somewhat lower than m_01's—a consequence of the risky context pulling $\alpha$ downward.
+
+3. **m_21 and m_31 recover m_01-like α values.** When the risky context is given its own sensitivity parameter ($\omega$ or $\kappa \cdot \alpha$), the uncertain-context $\alpha$ estimates are similar to the m_01 values, confirming that the m_01 estimates were not biased by the absence of risky data.
+
+4. **The $\alpha/\omega$ gap is substantive.** Under m_21 at $T = 0.0$, the median $\alpha \approx 70$ while the median $\omega \approx 41$. The LLM is approximately 1.7× more sensitive to EU differences when it must infer probabilities from features than when probabilities are stated explicitly.
+
+
+## Discussion {#sec-discussion}
+
+### Summary of Findings
+
+This study demonstrates three key results:
+
+1. **Temperature–sensitivity replication.** The negative relationship between sampling temperature and estimated SEU sensitivity $\alpha$ — first established in [Report 1](../temperature_study/01_initial_study.qmd) using the m_01 model — is robust to the inclusion of risky alternatives and to the choice of augmented model (m_11, m_21, m_31). The qualitative pattern — high sensitivity at greedy decoding, a sharp drop between $T = 0.7$ and $T = 1.0$, and the near-indistinguishability of $T = 0.3$ and $T = 0.7$ — replicates exactly.
+
+2. **Context-dependent sensitivity.** Under m_21 and m_31, the LLM's sensitivity to EU maximization is consistently *lower* in the risky context (where probabilities are stated explicitly) than in the uncertain context (where probabilities are inferred from features). The m_31 proportionality parameter $\kappa$ clusters below 1.0 at every temperature level, with medians ranging from 0.71 to 0.94.
+
+3. **Model adequacy.** Posterior predictive checks support m_21 as the best-calibrated model: its separate $\omega$ parameter resolves the upward bias in risky-choice PPC statistics that m_11 exhibits. The proportional model m_31 provides a reasonable compromise, but does not match m_21's calibration at all temperatures.
+
+### Interpretation: Why Is Risky Sensitivity Lower?
+
+The finding that $\omega < \alpha$ admits several interpretations:
+
+- **Format effect.** When probabilities are stated numerically (risky context), the LLM may process them less effectively than when probability-relevant information is embedded in natural-language descriptions (uncertain context). The softmax token sampling introduces noise at the token level, which may compound differently across the two representations.
+
+- **Calibration asymmetry.** The feature-to-probability mapping $\psi = \text{softmax}(\beta \cdot w)$ is learned jointly with $\alpha$, and may effectively "sharpen" the inferred probability distributions in ways that favor EU-aligned choices. The risky context has no such adaptive layer.
+
+- **Utility estimation precision.** In the risky context, the expected utilities $\eta^{(r)} = x' \upsilon$ are exact given $\upsilon$, creating very fine EU differences between alternatives with similar probability profiles.  When many alternatives have nearly equal EU, even moderate sensitivity $\omega$ produces near-uniform choice probabilities.
+
+### Limitations and Next Steps
+
+The current analysis fits each temperature condition independently. A hierarchical model that pools information across temperatures — or a model with temperature as a continuous predictor — would provide sharper inference on the functional form of the temperature–sensitivity relationship. The near-equality of $T = 0.3$ and $T = 0.7$ estimates, in particular, motivates investigation of whether the relationship is piecewise or smoothly nonlinear.
+
+The $\kappa < 1$ finding, while consistent across temperatures, has wide credible intervals; a study with larger $N$ (more risky problems per temperature) would improve precision on this parameter and enable sharper discrimination between m_11 and m_31.

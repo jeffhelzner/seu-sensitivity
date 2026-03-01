@@ -1,0 +1,167 @@
+{
+  "risky_alternatives": [
+    {
+      "id": "R01",
+      "probabilities": [0.90, 0.05, 0.05],
+      "description": "Forwarding this claim to the investigators has a 90% chance that neither investigator agrees it warrants investigation, a 5% chance that exactly one investigator agrees, and a 5% chance that both investigators agree."
+    },
+    {
+      "id": "R02",
+      "probabilities": [0.05, 0.90, 0.05],
+      "description": "Forwarding this claim to the investigators has a 5% chance that neither investigator agrees it warrants investigation, a 90% chance that exactly one investigator agrees, and a 5% chance that both investigators agree."
+    },
+    {
+      "id": "R03",
+      "probabilities": [0.05, 0.05, 0.90],
+      "description": "Forwarding this claim to the investigators has a 5% chance that neither investigator agrees it warrants investigation, a 5% chance that exactly one investigator agrees, and a 90% chance that both investigators agree."
+    },
+    {
+      "id": "R04",
+      "probabilities": [0.80, 0.10, 0.10],
+      "description": "Forwarding this claim to the investigators has an 80% chance that neither investigator agrees it warrants investigation, a 10% chance that exactly one investigator agrees, and a 10% chance that both investigators agree."
+    },
+    {
+      "id": "R05",
+      "probabilities": [0.10, 0.80, 0.10],
+      "description": "Forwarding this claim to the investigators has a 10% chance that neither investigator agrees it warrants investigation, an 80% chance that exactly one investigator agrees, and a 10% chance that both investigators agree."
+    },
+    {
+      "id": "R06",
+      "probabilities": [0.10, 0.10, 0.80],
+      "description": "Forwarding this claim to the investigators has a 10% chance that neither investigator agrees it warrants investigation, a 10% chance that exactly one investigator agrees, and an 80% chance that both investigators agree."
+    },
+    {
+      "id": "R07",
+      "probabilities": [0.05, 0.50, 0.45],
+      "description": "Forwarding this claim to the investigators has a 5% chance that neither investigator agrees it warrants investigation, a 50% chance that exactly one investigator agrees, and a 45% chance that both investigators agree."
+    },
+    {
+      "id": "R08",
+      "probabilities": [0.45, 0.50, 0.05],
+      "description": "Forwarding this claim to the investigators has a 45% chance that neither investigator agrees it warrants investigation, a 50% chance that exactly one investigator agrees, and a 5% chance that both investigators agree."
+    },
+    {
+      "id": "R09",
+      "probabilities": [0.50, 0.05, 0.45],
+      "description": "Forwarding this claim to the investigators has a 50% chance that neither investigator agrees it warrants investigation, a 5% chance that exactly one investigator agrees, and a 45% chance that both investigators agree."
+    },
+    {
+      "id": "R10",
+      "probabilities": [0.05, 0.45, 0.50],
+      "description": "Forwarding this claim to the investigators has a 5% chance that neither investigator agrees it warrants investigation, a 45% chance that exactly one investigator agrees, and a 50% chance that both investigators agree."
+    },
+    {
+      "id": "R11",
+      "probabilities": [0.45, 0.05, 0.50],
+      "description": "Forwarding this claim to the investigators has a 45% chance that neither investigator agrees it warrants investigation, a 5% chance that exactly one investigator agrees, and a 50% chance that both investigators agree."
+    },
+    {
+      "id": "R12",
+      "probabilities": [0.50, 0.45, 0.05],
+      "description": "Forwarding this claim to the investigators has a 50% chance that neither investigator agrees it warrants investigation, a 45% chance that exactly one investigator agrees, and a 5% chance that both investigators agree."
+    },
+    {
+      "id": "R13",
+      "probabilities": [0.60, 0.30, 0.10],
+      "description": "Forwarding this claim to the investigators has a 60% chance that neither investigator agrees it warrants investigation, a 30% chance that exactly one investigator agrees, and a 10% chance that both investigators agree."
+    },
+    {
+      "id": "R14",
+      "probabilities": [0.10, 0.60, 0.30],
+      "description": "Forwarding this claim to the investigators has a 10% chance that neither investigator agrees it warrants investigation, a 60% chance that exactly one investigator agrees, and a 30% chance that both investigators agree."
+    },
+    {
+      "id": "R15",
+      "probabilities": [0.30, 0.10, 0.60],
+      "description": "Forwarding this claim to the investigators has a 30% chance that neither investigator agrees it warrants investigation, a 10% chance that exactly one investigator agrees, and a 60% chance that both investigators agree."
+    },
+    {
+      "id": "R16",
+      "probabilities": [0.10, 0.30, 0.60],
+      "description": "Forwarding this claim to the investigators has a 10% chance that neither investigator agrees it warrants investigation, a 30% chance that exactly one investigator agrees, and a 60% chance that both investigators agree."
+    },
+    {
+      "id": "R17",
+      "probabilities": [0.60, 0.10, 0.30],
+      "description": "Forwarding this claim to the investigators has a 60% chance that neither investigator agrees it warrants investigation, a 10% chance that exactly one investigator agrees, and a 30% chance that both investigators agree."
+    },
+    {
+      "id": "R18",
+      "probabilities": [0.30, 0.60, 0.10],
+      "description": "Forwarding this claim to the investigators has a 30% chance that neither investigator agrees it warrants investigation, a 60% chance that exactly one investigator agrees, and a 10% chance that both investigators agree."
+    },
+    {
+      "id": "R19",
+      "probabilities": [0.25, 0.50, 0.25],
+      "description": "Forwarding this claim to the investigators has a 25% chance that neither investigator agrees it warrants investigation, a 50% chance that exactly one investigator agrees, and a 25% chance that both investigators agree."
+    },
+    {
+      "id": "R20",
+      "probabilities": [0.50, 0.25, 0.25],
+      "description": "Forwarding this claim to the investigators has a 50% chance that neither investigator agrees it warrants investigation, a 25% chance that exactly one investigator agrees, and a 25% chance that both investigators agree."
+    },
+    {
+      "id": "R21",
+      "probabilities": [0.25, 0.25, 0.50],
+      "description": "Forwarding this claim to the investigators has a 25% chance that neither investigator agrees it warrants investigation, a 25% chance that exactly one investigator agrees, and a 50% chance that both investigators agree."
+    },
+    {
+      "id": "R22",
+      "probabilities": [0.33, 0.34, 0.33],
+      "description": "Forwarding this claim to the investigators has a 33% chance that neither investigator agrees it warrants investigation, a 34% chance that exactly one investigator agrees, and a 33% chance that both investigators agree."
+    },
+    {
+      "id": "R23",
+      "probabilities": [0.40, 0.40, 0.20],
+      "description": "Forwarding this claim to the investigators has a 40% chance that neither investigator agrees it warrants investigation, a 40% chance that exactly one investigator agrees, and a 20% chance that both investigators agree."
+    },
+    {
+      "id": "R24",
+      "probabilities": [0.20, 0.40, 0.40],
+      "description": "Forwarding this claim to the investigators has a 20% chance that neither investigator agrees it warrants investigation, a 40% chance that exactly one investigator agrees, and a 40% chance that both investigators agree."
+    },
+    {
+      "id": "R25",
+      "probabilities": [0.40, 0.20, 0.40],
+      "description": "Forwarding this claim to the investigators has a 40% chance that neither investigator agrees it warrants investigation, a 20% chance that exactly one investigator agrees, and a 40% chance that both investigators agree."
+    },
+    {
+      "id": "R26",
+      "probabilities": [0.15, 0.70, 0.15],
+      "description": "Forwarding this claim to the investigators has a 15% chance that neither investigator agrees it warrants investigation, a 70% chance that exactly one investigator agrees, and a 15% chance that both investigators agree."
+    },
+    {
+      "id": "R27",
+      "probabilities": [0.70, 0.15, 0.15],
+      "description": "Forwarding this claim to the investigators has a 70% chance that neither investigator agrees it warrants investigation, a 15% chance that exactly one investigator agrees, and a 15% chance that both investigators agree."
+    },
+    {
+      "id": "R28",
+      "probabilities": [0.15, 0.15, 0.70],
+      "description": "Forwarding this claim to the investigators has a 15% chance that neither investigator agrees it warrants investigation, a 15% chance that exactly one investigator agrees, and a 70% chance that both investigators agree."
+    },
+    {
+      "id": "R29",
+      "probabilities": [0.35, 0.35, 0.30],
+      "description": "Forwarding this claim to the investigators has a 35% chance that neither investigator agrees it warrants investigation, a 35% chance that exactly one investigator agrees, and a 30% chance that both investigators agree."
+    },
+    {
+      "id": "R30",
+      "probabilities": [0.20, 0.60, 0.20],
+      "description": "Forwarding this claim to the investigators has a 20% chance that neither investigator agrees it warrants investigation, a 60% chance that exactly one investigator agrees, and a 20% chance that both investigators agree."
+    }
+  ],
+  "consequences": [
+    "Neither investigator agrees the claim warrants investigation",
+    "One investigator agrees the claim warrants investigation",
+    "Both investigators agree the claim warrants investigation"
+  ],
+  "metadata": {
+    "domain": "insurance_claims_triage",
+    "description": "Risky alternatives with objective probability distributions over K=3 investigator agreement outcomes",
+    "num_alternatives": 30,
+    "K": 3,
+    "created_at": "2026-02-28",
+    "design_notes": "30 probability simplexes systematically spanning the K=3 simplex. Groups: near-vertices (R01-R06), edge-concentrated (R07-R12), moderate asymmetry (R13-R18), interior/balanced (R19-R30). All probabilities sum to 1.0."
+  }
+}

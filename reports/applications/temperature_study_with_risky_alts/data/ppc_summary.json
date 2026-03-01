@@ -1,0 +1,143 @@
+{
+  "m_11": {
+    "T0_0": {
+      "ppc_ll_uncertain": 0.25925,
+      "ppc_modal_uncertain": 0.246,
+      "ppc_prob_uncertain": 0.19925,
+      "ppc_ll_risky": 0.74175,
+      "ppc_modal_risky": 0.95625,
+      "ppc_prob_risky": 0.86125,
+      "ppc_ll_combined": 0.47025
+    },
+    "T0_3": {
+      "ppc_ll_uncertain": 0.35325,
+      "ppc_modal_uncertain": 0.44025,
+      "ppc_prob_uncertain": 0.3965,
+      "ppc_ll_risky": 0.615,
+      "ppc_modal_risky": 0.887,
+      "ppc_prob_risky": 0.74775,
+      "ppc_ll_combined": 0.464
+    },
+    "T0_7": {
+      "ppc_ll_uncertain": 0.3155,
+      "ppc_modal_uncertain": 0.3855,
+      "ppc_prob_uncertain": 0.271,
+      "ppc_ll_risky": 0.6925,
+      "ppc_modal_risky": 0.92125,
+      "ppc_prob_risky": 0.82675,
+      "ppc_ll_combined": 0.471
+    },
+    "T1_0": {
+      "ppc_ll_uncertain": 0.429,
+      "ppc_modal_uncertain": 0.6075,
+      "ppc_prob_uncertain": 0.502,
+      "ppc_ll_risky": 0.57325,
+      "ppc_modal_risky": 0.85775,
+      "ppc_prob_risky": 0.7035,
+      "ppc_ll_combined": 0.5
+    },
+    "T1_5": {
+      "ppc_ll_uncertain": 0.4275,
+      "ppc_modal_uncertain": 0.4985,
+      "ppc_prob_uncertain": 0.46875,
+      "ppc_ll_risky": 0.62175,
+      "ppc_modal_risky": 0.7065,
+      "ppc_prob_risky": 0.5975,
+      "ppc_ll_combined": 0.50975
+    }
+  },
+  "m_21": {
+    "T0_0": {
+      "ppc_ll_uncertain": 0.418,
+      "ppc_modal_uncertain": 0.3605,
+      "ppc_prob_uncertain": 0.33725,
+      "ppc_ll_risky": 0.4645,
+      "ppc_modal_risky": 0.82525,
+      "ppc_prob_risky": 0.6125,
+      "ppc_ll_combined": 0.4055
+    },
+    "T0_3": {
+      "ppc_ll_uncertain": 0.44225,
+      "ppc_modal_uncertain": 0.5015,
+      "ppc_prob_uncertain": 0.48075,
+      "ppc_ll_risky": 0.46025,
+      "ppc_modal_risky": 0.7755,
+      "ppc_prob_risky": 0.59175,
+      "ppc_ll_combined": 0.4185
+    },
+    "T0_7": {
+      "ppc_ll_uncertain": 0.447,
+      "ppc_modal_uncertain": 0.503,
+      "ppc_prob_uncertain": 0.39225,
+      "ppc_ll_risky": 0.4665,
+      "ppc_modal_risky": 0.783,
+      "ppc_prob_risky": 0.615,
+      "ppc_ll_combined": 0.432
+    },
+    "T1_0": {
+      "ppc_ll_uncertain": 0.4535,
+      "ppc_modal_uncertain": 0.626,
+      "ppc_prob_uncertain": 0.52125,
+      "ppc_ll_risky": 0.489,
+      "ppc_modal_risky": 0.7985,
+      "ppc_prob_risky": 0.61025,
+      "ppc_ll_combined": 0.4435
+    },
+    "T1_5": {
+      "ppc_ll_uncertain": 0.47475,
+      "ppc_modal_uncertain": 0.5275,
+      "ppc_prob_uncertain": 0.51125,
+      "ppc_ll_risky": 0.48525,
+      "ppc_modal_risky": 0.596,
+      "ppc_prob_risky": 0.4735,
+      "ppc_ll_combined": 0.452
+    }
+  },
+  "m_31": {
+    "T0_0": {
+      "ppc_ll_uncertain": 0.36875,
+      "ppc_modal_uncertain": 0.32025,
+      "ppc_prob_uncertain": 0.28725,
+      "ppc_ll_risky": 0.60175,
+      "ppc_modal_risky": 0.8945,
+      "ppc_prob_risky": 0.743,
+      "ppc_ll_combined": 0.461
+    },
+    "T0_3": {
+      "ppc_ll_uncertain": 0.422,
+      "ppc_modal_uncertain": 0.49725,
+      "ppc_prob_uncertain": 0.46325,
+      "ppc_ll_risky": 0.55675,
+      "ppc_modal_risky": 0.83525,
+      "ppc_prob_risky": 0.68375,
+      "ppc_ll_combined": 0.4725
+    },
+    "T0_7": {
+      "ppc_ll_uncertain": 0.4105,
+      "ppc_modal_uncertain": 0.47225,
+      "ppc_prob_uncertain": 0.35875,
+      "ppc_ll_risky": 0.568,
+      "ppc_modal_risky": 0.85575,
+      "ppc_prob_risky": 0.71725,
+      "ppc_ll_combined": 0.46175
+    },
+    "T1_0": {
+      "ppc_ll_uncertain": 0.462,
+      "ppc_modal_uncertain": 0.623,
+      "ppc_prob_uncertain": 0.52575,
+      "ppc_ll_risky": 0.52775,
+      "ppc_modal_risky": 0.82975,
+      "ppc_prob_risky": 0.65525,
+      "ppc_ll_combined": 0.4795
+    },
+    "T1_5": {
+      "ppc_ll_uncertain": 0.47275,
+      "ppc_modal_uncertain": 0.53,
+      "ppc_prob_uncertain": 0.506,
+      "ppc_ll_risky": 0.54475,
+      "ppc_modal_risky": 0.631,
+      "ppc_prob_risky": 0.52125,
+      "ppc_ll_combined": 0.493
+    }
+  }
+}

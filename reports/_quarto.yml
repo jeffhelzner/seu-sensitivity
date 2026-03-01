@@ -32,6 +32,10 @@ website:
           - text: "Temperature Study"
           - text: "1. Initial Results"
             href: applications/temperature_study/01_initial_study.qmd
+          - text: "---"
+          - text: "Temperature Study: Risky Alternatives"
+          - text: "1. Risky Alternatives Extension"
+            href: applications/temperature_study_with_risky_alts/01_risky_alternatives_study.qmd
       - text: "Blog"
         href: blog/index.qmd
     right:

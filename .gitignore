@@ -104,7 +104,6 @@ README_files
 
 # Quarto outputs and caches
 reports/_output/
-reports/_freeze/
 reports/.quarto/
 reports/**/*.html
 reports/**/.jupyter_cache/

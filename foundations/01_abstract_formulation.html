@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Jeff Helzner">
-<meta name="dcterms.date" content="2026-02-27">
+<meta name="dcterms.date" content="2026-03-01">
 <meta name="description" content="A formal specification of the softmax choice model with sensitivity parameter α, including complete proofs of the three fundamental properties that characterize sensitivity to value maximization.">
 
 <title>Abstract Formulation of the SEU Sensitivity Model – SEU Sensitivity</title>
@@ -168,10 +168,10 @@ window.Quarto = {
 <link rel="stylesheet" href="../styles/seu-sensitivity.css">
 <meta name="citation_title" content="Abstract Formulation of the SEU Sensitivity Model">
 <meta name="citation_author" content="Jeff Helzner">
-<meta name="citation_publication_date" content="2026-02-27">
-<meta name="citation_cover_date" content="2026-02-27">
+<meta name="citation_publication_date" content="2026-03-01">
+<meta name="citation_cover_date" content="2026-03-01">
 <meta name="citation_year" content="2026">
-<meta name="citation_online_date" content="2026-02-27">
+<meta name="citation_online_date" content="2026-03-01">
 <meta name="citation_fulltext_html_url" content="https://jeffhelzner.github.io/seu-sensitivity/foundations/01_abstract_formulation.html">
 <meta name="citation_language" content="en">
 <meta name="citation_journal_title" content="SEU Sensitivity Project">
@@ -410,6 +410,10 @@ window.Quarto = {
     <a class="dropdown-item" href="../foundations/06_sbc_validation.html">
  <span class="dropdown-text">6. SBC Validation</span></a>
   </li>  
+        <li>
+    <a class="dropdown-item" href="../foundations/07_generalizing_sensitivity.html">
+ <span class="dropdown-text">7. Generalizing Sensitivity</span></a>
+  </li>  
     </ul>
   </li>
   <li class="nav-item dropdown ">
@@ -422,6 +426,12 @@ window.Quarto = {
         <li>
     <a class="dropdown-item" href="../applications/temperature_study/01_initial_study.html">
  <span class="dropdown-text">1. Initial Results</span></a>
+  </li>  
+        <li><hr class="dropdown-divider"></li>
+        <li class="dropdown-header">Temperature Study: Risky Alternatives</li>
+        <li>
+    <a class="dropdown-item" href="../applications/temperature_study_with_risky_alts/01_risky_alternatives_study.html">
+ <span class="dropdown-text">1. Risky Alternatives Extension</span></a>
   </li>  
     </ul>
   </li>
@@ -528,7 +538,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">February 27, 2026</p>
+      <p class="date">March 1, 2026</p>
     </div>
   </div>
   
@@ -630,7 +640,7 @@ P(\text{choose } r \mid \alpha, V) = \frac{\exp(\alpha \cdot V(r))}{\sum_{j \in 
 <li><strong>Monotonic in value</strong>: Higher-value alternatives are more likely to be chosen</li>
 <li><strong>Parameterized sensitivity</strong>: α controls how sharply choices concentrate on high-value alternatives</li>
 </ol>
-<div id="cell-fig-softmax-demo" class="cell" data-execution_count="2">
+<div id="cell-fig-softmax-demo" class="cell" data-execution_count="3">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Demonstrate softmax with varying alpha</span></span>
@@ -871,7 +881,7 @@ P(r) = \frac{1 + \alpha \cdot V(r) + O(\alpha^2)}{\sum_{j \in \mathcal{R}} (1 + 
 </section>
 <section id="summary-the-three-properties" class="level3" data-number="0.3.4">
 <h3 data-number="0.3.4" class="anchored" data-anchor-id="summary-the-three-properties"><span class="header-section-number">0.3.4</span> Summary: The Three Properties</h3>
-<div id="cell-fig-three-properties" class="cell" data-execution_count="3">
+<div id="cell-fig-three-properties" class="cell" data-execution_count="4">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">3</span>, figsize<span class="op">=</span>(<span class="dv">12</span>, <span class="dv">4</span>))</span>
@@ -1152,7 +1162,7 @@ P(\text{choose } r \mid \alpha, \tilde{\boldsymbol{\upsilon}}) = \frac{\exp(\alp
 <p><span class="math display">\[
 \log\left[\frac{\chi_{r}}{\chi_{s}}\right] = \alpha \cdot [\eta_r - \eta_s]
 \]</span></p>
-<div class="cell" data-execution_count="4">
+<div class="cell" data-execution_count="5">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
@@ -1172,7 +1182,7 @@ P(\text{choose } r \mid \alpha, \tilde{\boldsymbol{\upsilon}}) = \frac{\exp(\alp
 <span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pd.DataFrame(data)</span>
 <span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>df</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div id="tbl-alpha-interpretation" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="4">
+<div id="tbl-alpha-interpretation" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="5">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-alpha-interpretation-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;1: Interpretation of α for a one-unit expected utility difference (maximum possible difference with standardized utilities).
@@ -1434,13 +1444,13 @@ Simon, Herbert A. 1955. <span>“A Behavioral Model of Rational Choice.”</span
 <div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{helzner2026,
   author = {Helzner, Jeff},
   title = {Abstract {Formulation} of the {SEU} {Sensitivity} {Model}},
-  date = {2026-02-27},
+  date = {2026-03-01},
   url = {https://jeffhelzner.github.io/seu-sensitivity/foundations/01_abstract_formulation.html},
   langid = {en}
 }
 </code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-helzner2026" class="csl-entry quarto-appendix-citeas" role="listitem">
 Helzner, Jeff. 2026. <span>“Abstract Formulation of the SEU Sensitivity
-Model.”</span> SEU Sensitivity Project. February 27, 2026. <a href="https://jeffhelzner.github.io/seu-sensitivity/foundations/01_abstract_formulation.html">https://jeffhelzner.github.io/seu-sensitivity/foundations/01_abstract_formulation.html</a>.
+Model.”</span> SEU Sensitivity Project. March 1, 2026. <a href="https://jeffhelzner.github.io/seu-sensitivity/foundations/01_abstract_formulation.html">https://jeffhelzner.github.io/seu-sensitivity/foundations/01_abstract_formulation.html</a>.
 </div></div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {

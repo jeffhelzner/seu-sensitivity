@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Jeff Helzner">
-<meta name="dcterms.date" content="2026-02-27">
+<meta name="dcterms.date" content="2026-03-01">
 <meta name="description" content="An initial investigation of how LLM sampling temperature affects estimated sensitivity (α) to subjective expected utility maximization, using a calibrated prior and the m_01 model variant.">
 
 <title>Temperature and SEU Sensitivity: Initial Results – SEU Sensitivity</title>
@@ -167,10 +167,10 @@ window.Quarto = {
 <link rel="stylesheet" href="../../styles/seu-sensitivity.css">
 <meta name="citation_title" content="Temperature and SEU Sensitivity: Initial Results">
 <meta name="citation_author" content="Jeff Helzner">
-<meta name="citation_publication_date" content="2026-02-27">
-<meta name="citation_cover_date" content="2026-02-27">
+<meta name="citation_publication_date" content="2026-03-01">
+<meta name="citation_cover_date" content="2026-03-01">
 <meta name="citation_year" content="2026">
-<meta name="citation_online_date" content="2026-02-27">
+<meta name="citation_online_date" content="2026-03-01">
 <meta name="citation_fulltext_html_url" content="https://jeffhelzner.github.io/seu-sensitivity/applications/temperature_study/01_initial_study.html">
 <meta name="citation_language" content="en">
 <meta name="citation_journal_title" content="SEU Sensitivity Project">
@@ -409,6 +409,10 @@ window.Quarto = {
     <a class="dropdown-item" href="../../foundations/06_sbc_validation.html">
  <span class="dropdown-text">6. SBC Validation</span></a>
   </li>  
+        <li>
+    <a class="dropdown-item" href="../../foundations/07_generalizing_sensitivity.html">
+ <span class="dropdown-text">7. Generalizing Sensitivity</span></a>
+  </li>  
     </ul>
   </li>
   <li class="nav-item dropdown ">
@@ -421,6 +425,12 @@ window.Quarto = {
         <li>
     <a class="dropdown-item" href="../../applications/temperature_study/01_initial_study.html">
  <span class="dropdown-text">1. Initial Results</span></a>
+  </li>  
+        <li><hr class="dropdown-divider"></li>
+        <li class="dropdown-header">Temperature Study: Risky Alternatives</li>
+        <li>
+    <a class="dropdown-item" href="../../applications/temperature_study_with_risky_alts/01_risky_alternatives_study.html">
+ <span class="dropdown-text">1. Risky Alternatives Extension</span></a>
   </li>  
     </ul>
   </li>
@@ -531,7 +541,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">February 27, 2026</p>
+      <p class="date">March 1, 2026</p>
     </div>
   </div>
   
@@ -567,7 +577,7 @@ window.Quarto = {
 <h3 data-number="0.2.1" class="anchored" data-anchor-id="task-and-conditions"><span class="header-section-number">0.2.1</span> Task and Conditions</h3>
 <p>We use an insurance claims triage task in which GPT-4o selects which claim to forward for investigation from a set of alternatives. Each alternative (claim) can lead to one of <span class="math inline">\(K = 3\)</span> possible consequences, and there are <span class="math inline">\(R\)</span> distinct alternatives in the pool (see Design Parameters below). In each decision problem, the LLM is presented with a subset of these alternatives. The LLM first <em>assesses</em> each claim individually (producing text that is then embedded), and subsequently makes a <em>choice</em> among the alternatives in a given problem.</p>
 <p>Five temperature levels define the between-condition factor:</p>
-<div class="cell" data-execution_count="2">
+<div class="cell" data-execution_count="3">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
@@ -585,7 +595,7 @@ window.Quarto = {
 <span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>})</span>
 <span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>conditions</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div id="tbl-conditions" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="2">
+<div id="tbl-conditions" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="3">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-conditions-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;1: Experimental conditions. Each temperature level constitutes a separate model fit.
@@ -647,7 +657,7 @@ Table&nbsp;1: Experimental conditions. Each temperature level constitutes a sepa
 </section>
 <section id="design-parameters" class="level3" data-number="0.2.2">
 <h3 data-number="0.2.2" class="anchored" data-anchor-id="design-parameters"><span class="header-section-number">0.2.2</span> Design Parameters</h3>
-<div id="design-params" class="cell" data-execution_count="3">
+<div id="design-params" class="cell" data-execution_count="4">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load frozen study configuration</span></span>
@@ -685,7 +695,7 @@ Table&nbsp;1: Experimental conditions. Each temperature level constitutes a sepa
 <section id="feature-construction" class="level3" data-number="0.2.3">
 <h3 data-number="0.2.3" class="anchored" data-anchor-id="feature-construction"><span class="header-section-number">0.2.3</span> Feature Construction</h3>
 <p>Alternative features are constructed through a two-stage process. First, the LLM assesses each claim on its own merits at the relevant temperature, producing a natural-language evaluation. These assessments are embedded using <code>text-embedding-3-small</code>, yielding high-dimensional vectors. Second, all embeddings across temperature conditions are pooled and projected via PCA to <span class="math inline">\(D = 32\)</span> dimensions. Crucially, PCA is fit once on the pooled set and then applied to each condition separately, ensuring a shared coordinate system without privileging any single temperature.</p>
-<div id="pca-variance" class="cell" data-execution_count="4">
+<div id="pca-variance" class="cell" data-execution_count="5">
 <div class="cell-output cell-output-stdout">
 <pre><code>PCA Summary:
   Components retained: 32
@@ -697,7 +707,7 @@ Table&nbsp;1: Experimental conditions. Each temperature level constitutes a sepa
 </section>
 <section id="data-quality" class="level3" data-number="0.2.4">
 <h3 data-number="0.2.4" class="anchored" data-anchor-id="data-quality"><span class="header-section-number">0.2.4</span> Data Quality</h3>
-<div id="data-quality" class="cell" data-execution_count="5">
+<div id="data-quality" class="cell" data-execution_count="6">
 <div class="cell-output cell-output-stdout">
 <pre><code>NA Summary:
   Overall: 0 / 1500 (0.0%)
@@ -763,7 +773,7 @@ Table&nbsp;1: Experimental conditions. Each temperature level constitutes a sepa
 <li>Simulated choice data from <code>m_0_sim.stan</code> using the actual study design (<span class="math inline">\(M = 300\)</span>, <span class="math inline">\(K = 3\)</span>, <span class="math inline">\(D = 32\)</span>, <span class="math inline">\(R = 30\)</span>)</li>
 <li>Computed the <strong>SEU-maximizer selection rate</strong>: the fraction of problems in which the simulated agent chose the alternative with the highest expected utility</li>
 </ol>
-<div id="cell-fig-grid-search" class="cell" data-execution_count="6">
+<div id="cell-fig-grid-search" class="cell" data-execution_count="7">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> <span class="bu">open</span>(data_dir <span class="op">/</span> <span class="st">"grid_results.json"</span>) <span class="im">as</span> f:</span>
@@ -854,7 +864,7 @@ Figure&nbsp;1: Prior predictive grid search results. Each point represents a can
 <h2 data-number="0.4" class="anchored" data-anchor-id="sec-results"><span class="header-section-number">0.4</span> Results</h2>
 <section id="loading-posterior-draws" class="level3" data-number="0.4.1">
 <h3 data-number="0.4.1" class="anchored" data-anchor-id="loading-posterior-draws"><span class="header-section-number">0.4.1</span> Loading Posterior Draws</h3>
-<div id="load-posteriors" class="cell" data-execution_count="7">
+<div id="load-posteriors" class="cell" data-execution_count="8">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>temperatures <span class="op">=</span> [<span class="fl">0.0</span>, <span class="fl">0.3</span>, <span class="fl">0.7</span>, <span class="fl">1.0</span>, <span class="fl">1.5</span>]</span>
@@ -876,7 +886,7 @@ Figure&nbsp;1: Prior predictive grid search results. Each point represents a can
 <span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>    fit_summary <span class="op">=</span> json.load(f)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
-<div id="c70da061" class="cell" data-execution_count="8">
+<div id="979b4e99" class="cell" data-execution_count="9">
 <div class="cell-output cell-output-stdout">
 <pre><code>  T=0.0: 4,000 posterior draws loaded
   T=0.3: 4,000 posterior draws loaded
@@ -888,7 +898,7 @@ Figure&nbsp;1: Prior predictive grid search results. Each point represents a can
 </section>
 <section id="mcmc-diagnostics" class="level3" data-number="0.4.2">
 <h3 data-number="0.4.2" class="anchored" data-anchor-id="mcmc-diagnostics"><span class="header-section-number">0.4.2</span> MCMC Diagnostics</h3>
-<div class="cell" data-execution_count="9">
+<div class="cell" data-execution_count="10">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>diag_rows <span class="op">=</span> []</span>
@@ -919,7 +929,7 @@ Figure&nbsp;1: Prior predictive grid search results. Each point represents a can
 <span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a>pd.DataFrame(diag_rows)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div id="tbl-diagnostics" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="9">
+<div id="tbl-diagnostics" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="10">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-diagnostics-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;2: MCMC diagnostics for all five temperature conditions. All fits used 4 chains with 1,000 warmup and 1,000 sampling iterations each (4,000 post-warmup draws total).
@@ -994,7 +1004,7 @@ Table&nbsp;2: MCMC diagnostics for all five temperature conditions. All fits use
 </section>
 <section id="posterior-summaries" class="level3" data-number="0.4.3">
 <h3 data-number="0.4.3" class="anchored" data-anchor-id="posterior-summaries"><span class="header-section-number">0.4.3</span> Posterior Summaries</h3>
-<div class="cell" data-execution_count="10">
+<div class="cell" data-execution_count="11">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>summary <span class="op">=</span> analysis[<span class="st">'summary_table'</span>]</span>
@@ -1011,7 +1021,7 @@ Table&nbsp;2: MCMC diagnostics for all five temperature conditions. All fits use
 <span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>pd.DataFrame(rows)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div id="tbl-posteriors" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="10">
+<div id="tbl-posteriors" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="11">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-posteriors-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;3: Posterior summaries for the sensitivity parameter α at each temperature level. Intervals are 90% credible intervals.
@@ -1086,7 +1096,7 @@ Table&nbsp;3: Posterior summaries for the sensitivity parameter α at each tempe
 </section>
 <section id="forest-plot" class="level3" data-number="0.4.4">
 <h3 data-number="0.4.4" class="anchored" data-anchor-id="forest-plot"><span class="header-section-number">0.4.4</span> Forest Plot</h3>
-<div id="cell-fig-forest" class="cell" data-fig-height="5" data-execution_count="11">
+<div id="cell-fig-forest" class="cell" data-fig-height="5" data-execution_count="12">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">8</span>, <span class="dv">5</span>))</span>
@@ -1134,7 +1144,7 @@ Figure&nbsp;2: Forest plot of posterior α distributions across temperature cond
 </section>
 <section id="posterior-densities" class="level3" data-number="0.4.5">
 <h3 data-number="0.4.5" class="anchored" data-anchor-id="posterior-densities"><span class="header-section-number">0.4.5</span> Posterior Densities</h3>
-<div id="cell-fig-density" class="cell" data-fig-height="5" data-execution_count="12">
+<div id="cell-fig-density" class="cell" data-fig-height="5" data-execution_count="13">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy.stats <span class="im">import</span> gaussian_kde</span>
@@ -1180,7 +1190,7 @@ Figure&nbsp;3: Kernel density estimates of the posterior α distributions. The s
 <li><p><strong>Mean choice probability (prob).</strong> The average predicted probability of the actually chosen alternative, <span class="math inline">\(T_{\text{prob}} = M^{-1} \sum_{m=1}^{M} p(y_m \mid \theta)\)</span>. This measures whether the model’s confidence in the observed choices is well-calibrated on average.</p></li>
 </ul>
 <p>The posterior predictive p-value for each statistic is the proportion of replicated datasets in which the test statistic equals or exceeds the observed value. Values near 0.5 indicate good calibration; values near 0 or 1 signal systematic misfit.</p>
-<div class="cell" data-execution_count="13">
+<div class="cell" data-execution_count="14">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>ppc_rows <span class="op">=</span> []</span>
@@ -1199,7 +1209,7 @@ Figure&nbsp;3: Kernel density estimates of the posterior α distributions. The s
 <span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>pd.DataFrame(ppc_rows)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div id="tbl-ppc" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="13">
+<div id="tbl-ppc" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="14">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-ppc-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;4: Posterior predictive check p-values for each temperature condition. Values near 0.5 indicate good calibration; values near 0 or 1 indicate model misfit. Three test statistics are used: log-likelihood (ll), modal choice frequency (modal), and mean choice probability (prob).
@@ -1274,7 +1284,7 @@ Table&nbsp;4: Posterior predictive check p-values for each temperature condition
 <h3 data-number="0.5.1" class="anchored" data-anchor-id="global-slope"><span class="header-section-number">0.5.1</span> Global Slope</h3>
 <p>To summarize the overall direction and magnitude of the temperature–sensitivity relationship, we compute a posterior distribution over a linear slope coefficient. For each posterior draw <span class="math inline">\(s = 1, \ldots, S\)</span>, we have a vector of five <span class="math inline">\(\alpha\)</span> values—one per temperature condition. We fit a simple ordinary least squares regression <span class="math inline">\(\alpha^{(s)}(T) = a^{(s)} + b^{(s)} \cdot T\)</span> across the five temperature levels, yielding one slope <span class="math inline">\(b^{(s)}\)</span> per draw. The resulting <span class="math inline">\(S\)</span> slope values define a posterior distribution over <span class="math inline">\(b = \Delta\alpha / \Delta T\)</span>.</p>
 <p>This is <em>not</em> a regression model in the usual sense—it is a derived quantity computed from the joint posterior. The slope summarizes whether, on the whole, higher temperature is associated with lower sensitivity. A slope whose posterior mass lies entirely below zero provides evidence for the directional hypothesis that temperature reduces EU sensitivity:</p>
-<div id="cell-fig-slope" class="cell" data-execution_count="14">
+<div id="cell-fig-slope" class="cell" data-execution_count="15">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>slopes <span class="op">=</span> analysis[<span class="st">'slope'</span>]</span>
@@ -1348,7 +1358,7 @@ Figure&nbsp;4: Posterior distribution of the slope Δα/ΔT from a draw-wise lin
 <p>The global slope averages over all five conditions and may mask local structure (e.g., two adjacent temperatures that produce indistinguishable <span class="math inline">\(\alpha\)</span> values). To examine the ordering at finer resolution, we compute pairwise posterior probabilities. For each pair of temperature conditions <span class="math inline">\((T_i, T_j)\)</span> with <span class="math inline">\(T_i &lt; T_j\)</span>, we calculate <span class="math display">\[
 P\bigl(\alpha(T_i) &gt; \alpha(T_j) \mid \text{data}\bigr) = \frac{1}{S} \sum_{s=1}^{S} \mathbb{1}\bigl[\alpha^{(s)}(T_i) &gt; \alpha^{(s)}(T_j)\bigr],
 \]</span> where the indicator function is evaluated draw-by-draw from the <em>independent</em> posteriors at each temperature. Values near 1.0 indicate that the lower-temperature condition almost certainly yields higher sensitivity; values near 0.5 indicate that the two conditions are effectively indistinguishable.</p>
-<div class="cell" data-execution_count="15">
+<div class="cell" data-execution_count="16">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>pairs <span class="op">=</span> analysis[<span class="st">'pairwise_comparisons'</span>]</span>
@@ -1365,7 +1375,7 @@ P\bigl(\alpha(T_i) &gt; \alpha(T_j) \mid \text{data}\bigr) = \frac{1}{S} \sum_{s
 <span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>pd.DataFrame(pair_rows)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div id="tbl-pairwise" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="15">
+<div id="tbl-pairwise" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="16">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-pairwise-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;5: Posterior probability that α is higher at the lower temperature in each pair. Values above 0.95 indicate strong separation; values near 0.5 indicate indistinguishability.
@@ -1466,7 +1476,7 @@ Table&nbsp;5: Posterior probability that α is higher at the lower temperature i
 <p>The pairwise analysis examines each adjacent or non-adjacent pair in isolation. A stronger test asks whether the <em>entire</em> ordering <span class="math inline">\(\alpha(T = 0.0) &gt; \alpha(T = 0.3) &gt; \alpha(T = 0.7) &gt; \alpha(T = 1.0) &gt; \alpha(T = 1.5)\)</span> holds simultaneously. We estimate the joint probability of strict monotonicity by computing, for each posterior draw, whether the five <span class="math inline">\(\alpha\)</span> values are strictly decreasing: <span class="math display">\[
 P(\text{strict monotonicity} \mid \text{data}) = \frac{1}{S} \sum_{s=1}^{S} \prod_{j=1}^{4} \mathbb{1}\bigl[\alpha^{(s)}(T_j) &gt; \alpha^{(s)}(T_{j+1})\bigr].
 \]</span> Because this requires <em>every</em> adjacent pair to satisfy the ordering in the <em>same</em> draw, the joint probability is necessarily smaller than any single pairwise probability—a single weakly-ordered pair drives it down.</p>
-<div id="monotonicity" class="cell" data-execution_count="16">
+<div id="monotonicity" class="cell" data-execution_count="17">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># P(α(T=0.0) &gt; α(T=0.3) &gt; α(T=0.7) &gt; α(T=1.0) &gt; α(T=1.5)) — joint probability</span></span>
@@ -1486,7 +1496,7 @@ P(\text{strict monotonicity} \mid \text{data}) = \frac{1}{S} \sum_{s=1}^{S} \pro
 </div>
 </div>
 <p>The probability of <em>strict</em> monotonicity across all five levels is modest, at approximately 0.12. This is driven entirely by the near-equality of <span class="math inline">\(\alpha\)</span> at <span class="math inline">\(T = 0.3\)</span> and <span class="math inline">\(T = 0.7\)</span>, where the pairwise probability is essentially a coin flip (<span class="math inline">\(P = 0.48\)</span>). Collapsing these two levels yields a coarser ordering that holds with much higher confidence:</p>
-<div id="coarse-monotonicity" class="cell" data-execution_count="17">
+<div id="coarse-monotonicity" class="cell" data-execution_count="18">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Coarser test: α(T=0.0) &gt; mean(α(T=0.3), α(T=0.7)) &gt; α(T=1.0) &gt; α(T=1.5)</span></span>
@@ -1514,7 +1524,7 @@ P(\text{strict monotonicity} \mid \text{data}) = \frac{1}{S} \sum_{s=1}^{S} \pro
 <section id="summary-of-findings" class="level3" data-number="0.6.1">
 <h3 data-number="0.6.1" class="anchored" data-anchor-id="summary-of-findings"><span class="header-section-number">0.6.1</span> Summary of Findings</h3>
 <p>The results support the directional hypothesis: increasing LLM temperature decreases estimated sensitivity to expected utility maximization. The evidence is strongest at the global level—the posterior slope <span class="math inline">\(\Delta\alpha / \Delta T\)</span> is negative with high confidence—and weakest at fine-grained adjacent comparisons.</p>
-<div id="cell-fig-summary" class="cell" data-execution_count="18">
+<div id="cell-fig-summary" class="cell" data-execution_count="19">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">12</span>, <span class="dv">5</span>))</span>
@@ -1666,7 +1676,7 @@ Figure&nbsp;5: Summary of the temperature–sensitivity relationship. Left: Post
 <section id="refitting-from-source" class="level3" data-number="0.7.2">
 <h3 data-number="0.7.2" class="anchored" data-anchor-id="refitting-from-source"><span class="header-section-number">0.7.2</span> Refitting from Source</h3>
 <p>To reproduce the Stan fits from the included <code>stan_data_T*.json</code> files:</p>
-<div id="refit-example" class="cell" data-execution_count="19">
+<div id="refit-example" class="cell" data-execution_count="20">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Uncomment to refit from source data (requires CmdStanPy; ~30 min per condition)</span></span>
@@ -1712,13 +1722,13 @@ Figure&nbsp;5: Summary of the temperature–sensitivity relationship. Left: Post
 <div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{helzner2026,
   author = {Helzner, Jeff},
   title = {Temperature and {SEU} {Sensitivity:} {Initial} {Results}},
-  date = {2026-02-27},
+  date = {2026-03-01},
   url = {https://jeffhelzner.github.io/seu-sensitivity/applications/temperature_study/01_initial_study.html},
   langid = {en}
 }
 </code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-helzner2026" class="csl-entry quarto-appendix-citeas" role="listitem">
 Helzner, Jeff. 2026. <span>“Temperature and SEU Sensitivity: Initial
-Results.”</span> SEU Sensitivity Project. February 27, 2026. <a href="https://jeffhelzner.github.io/seu-sensitivity/applications/temperature_study/01_initial_study.html">https://jeffhelzner.github.io/seu-sensitivity/applications/temperature_study/01_initial_study.html</a>.
+Results.”</span> SEU Sensitivity Project. March 1, 2026. <a href="https://jeffhelzner.github.io/seu-sensitivity/applications/temperature_study/01_initial_study.html">https://jeffhelzner.github.io/seu-sensitivity/applications/temperature_study/01_initial_study.html</a>.
 </div></div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {

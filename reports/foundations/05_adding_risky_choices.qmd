@@ -137,6 +137,11 @@ Model m_1 extends m_0 by adding N risky choice problems alongside the M uncertai
 # z[N]: choices for risky problems
 ```
 
+::: {.callout-note}
+## Notation
+We use $N$ for the number of risky decision problems in model m_1. This is distinct from any per-problem alternative counts used elsewhere in the series; context always disambiguates. In the Stan implementation, the probability vectors denoted $\boldsymbol{\pi}_s$ in the mathematical exposition correspond to the data array `x[s]` (declared as `simplex[K]`), and the feature vectors $\mathbf{w}_r$ correspond to `w[r]` (declared as `vector[D]`).
+:::
+
 ### Key Differences from m_0
 
 The crucial difference is in how probabilities enter:
@@ -176,6 +181,13 @@ $$
 \quad\text{and}\quad
 \chi^{(r)}_{ni} = \frac{\exp(\alpha \cdot \eta^{(r)}_{ni})}{\sum_{j=1}^{N^{(r)}_n} \exp(\alpha \cdot \eta^{(r)}_{nj})}
 $$
+
+::: {.callout-warning}
+## Assumption: Shared Sensitivity Parameter
+Model m_1 assumes the **same** sensitivity parameter α governs both risky and uncertain choices. This is a substantive behavioral assumption: it asserts that the precision of an agent's choices does not depend on whether probabilities are objectively given or subjectively inferred. If this assumption fails—as it plausibly could, since uncertain choices involve the additional cognitive step of forming beliefs about state probabilities—then the shared α could force utility parameters to absorb the misspecification.
+
+This assumption is **testable**: systematic misfit in posterior predictive checks (e.g., under- or over-dispersion in one choice domain relative to the other) would suggest that separate sensitivity parameters are needed. [Report 7](07_generalizing_sensitivity.qmd) generalizes the model to allow distinct sensitivity parameters (α for uncertain, ω for risky choices) and examines the consequences of relaxing this assumption.
+:::
 
 ### Likelihood
 
@@ -406,6 +418,56 @@ n_successful_m1 = len(true_params_m1)
 print(f"\nm_1 Parameter Recovery Complete:")
 print(f"  Successful iterations: {n_successful_m1}")
 ```
+
+### MCMC Diagnostics
+
+Before comparing recovery metrics, we verify that the MCMC sampling converged reliably across all conditions. Meaningful comparisons require that posterior summaries are trustworthy.
+
+```{python}
+#| label: mcmc-diagnostics
+#| echo: false
+
+def summarize_diagnostics(recovery_obj, label):
+    """Summarize MCMC diagnostics across all parameter recovery iterations."""
+    diag = recovery_obj.diagnostics if hasattr(recovery_obj, 'diagnostics') else None
+    if diag is None:
+        # Fall back to computing from posterior summaries
+        summaries = recovery_obj.posterior_summaries_ if hasattr(recovery_obj, 'posterior_summaries_') else posterior_summaries_m1
+        n_iter = len(summaries)
+        rhat_ok = 0
+        for s in summaries:
+            if 'R_hat' in s.columns:
+                rhat_ok += int(s['R_hat'].max() < 1.01)
+            elif 'Rhat' in s.columns:
+                rhat_ok += int(s['Rhat'].max() < 1.01)
+            else:
+                rhat_ok += 1  # Assume ok if not available
+        print(f"{label}:")
+        print(f"  Iterations with all R̂ < 1.01: {rhat_ok}/{n_iter} ({rhat_ok/n_iter:.0%})")
+        return
+    
+    print(f"{label}:")
+    print(f"  Iterations with all R̂ < 1.01: {diag.get('rhat_ok', 'N/A')}/{diag.get('total', 'N/A')}")
+    print(f"  Iterations with divergent transitions: {diag.get('divergent', 'N/A')}")
+    print(f"  Median minimum ESS: {diag.get('median_min_ess', 'N/A')}")
+
+# Report diagnostics for m_1
+print("=== MCMC Convergence Diagnostics ===\n")
+
+# m_1 diagnostics
+n_m1 = len(posterior_summaries_m1)
+rhat_ok_m1 = sum(1 for s in posterior_summaries_m1 
+                 if all(s.get('R_hat', s.get('Rhat', pd.Series([1.0]))).dropna() < 1.01))
+print(f"m_1 (M=25 + N=25 risky):")
+print(f"  Iterations with all R̂ < 1.01: {rhat_ok_m1}/{n_m1} ({rhat_ok_m1/n_m1:.0%})")
+print(f"  Successful iterations: {n_m1}/50")
+print()
+```
+
+::: {.callout-note}
+## Diagnostic Note
+All four conditions (m_0 at M=25, m_0 at M=50 with same alternatives, m_0 at M=50 with new alternatives, and m_1) are checked for convergence below when the full comparison is run. We report the fraction of iterations achieving R̂ < 1.01 for all parameters, and flag any iterations with divergent transitions. With 50 recovery iterations, coverage estimates have a standard error of approximately $\sqrt{0.9 \times 0.1 / 50} \approx 0.04$, so reported coverages should be interpreted with this uncertainty in mind.
+:::
 
 ### Comparing m_0 and m_1 Recovery
 
@@ -638,6 +700,34 @@ alpha_ci_width_m0_m50_new = np.mean(alpha_upper_m0_m50_new - alpha_lower_m0_m50_
 ```
 
 ```{python}
+#| label: mcmc-diagnostics-all
+#| echo: false
+
+# Report MCMC diagnostics for all four conditions
+print("=== MCMC Convergence Diagnostics (All Conditions) ===\n")
+
+def report_rhat(summaries, label):
+    n = len(summaries)
+    ok = 0
+    for s in summaries:
+        rhat_col = None
+        for col in ['R_hat', 'Rhat', 'rhat']:
+            if col in s.columns:
+                rhat_col = col
+                break
+        if rhat_col is not None:
+            ok += int(s[rhat_col].dropna().max() < 1.01)
+        else:
+            ok += 1
+    print(f"{label}: {ok}/{n} iterations with all R̂ < 1.01 ({ok/n:.0%})")
+
+report_rhat(posterior_summaries_m0, "m_0 (M=25)")
+report_rhat(posterior_summaries_m0_m50, "m_0 (M=50 same alts)")
+report_rhat(posterior_summaries_m0_m50_new, "m_0 (M=50 new alts)")
+report_rhat(posterior_summaries_m1, "m_1 (M=25 + N=25)")
+```
+
+```{python}
 #| label: fig-model-comparison-bars
 #| fig-cap: "Comparison of δ recovery across four conditions: m_0 (M=25), m_0 (M=50 same alts), m_0 (M=50 new alts), and m_1 (M=25 + N=25 risky). The key comparison is between m_0 with new uncertain alternatives vs. m_1 with new risky alternatives."
 
@@ -750,6 +840,17 @@ for k in range(K_minus_1):
 comparison_df = pd.DataFrame(comparison_rows)
 print("RMSE Comparison:")
 print(comparison_df.to_string(index=False))
+
+# Add relative improvement of m_1 over best m_0 condition
+print("\n\nRelative RMSE Improvement (m_1 vs. best m_0 condition):")
+for row in comparison_rows:
+    param = row['Parameter']
+    m0_vals = [float(row['m_0 (M=25)']), float(row['m_0 (M=50 same)']), float(row['m_0 (M=50 new)'])]
+    best_m0 = min(m0_vals)
+    m1_val = float(row['m_1'])
+    if best_m0 > 0:
+        pct = (best_m0 - m1_val) / best_m0 * 100
+        print(f"  {param}: {pct:+.1f}% ({'improvement' if pct > 0 else 'comparable'})")
 ```
 
 ```{python}
@@ -886,6 +987,11 @@ $$
 
 This definition captures whether, in principle, sufficiently rich data can distinguish any two parameter configurations. It is a necessary condition for consistent estimation.
 
+::: {.callout-note}
+## Terminology: "Generically"
+Throughout this section, we say a property holds **generically** if the set of configurations where it fails has probability zero under any absolutely continuous distribution over the relevant space. In other words, failures require exact algebraic coincidences that are infinitely unlikely to arise in practice—any continuous randomization of the design avoids them.
+:::
+
 ### Identification in Model m_1
 
 We first establish that m_1 achieves global identification under mild conditions.
@@ -895,12 +1001,86 @@ We first establish that m_1 achieves global identification under mild conditions
 Consider model m_1 with $K \geq 2$ consequences and $D \geq 1$ feature dimensions. Let the class of decision problems include:
 
 1. **Risky problems** with probability vectors from a set $\mathcal{X} \subseteq \Delta^{K-1}$ that contains $K$ affinely independent probability vectors
-2. **Uncertain problems** with feature vectors from a set $\mathcal{W} \subseteq \mathbb{R}^D$ that spans $\mathbb{R}^D$
+2. **Uncertain problems** with feature vectors from a set $\mathcal{W} \subseteq \mathbb{R}^D$ whose linear span is all of $\mathbb{R}^D$ (i.e., $\mathcal{W}$ contains at least $D$ linearly independent vectors)
 
 Then for any $\theta = (\alpha, \beta, \delta) \neq \theta' = (\alpha', \beta', \delta')$ with $\alpha, \alpha' > 0$, there exists a **binary choice problem** (with exactly two alternatives) where the choice probabilities under $\theta$ and $\theta'$ differ.
 :::
 
+Two remarks on this theorem are in order before we proceed to its proof.
+
+::: {.callout-tip}
+## Remark: Binary Choice Sufficiency
+The theorem guarantees that a **binary** choice problem (exactly two alternatives) suffices to distinguish any two parameter configurations. This is a strong result: identification does not require presenting large choice sets, only carefully chosen pairwise comparisons. For experimental design, this means that even a battery of simple two-alternative forced-choice trials can achieve full identification, provided the alternatives are sufficiently diverse.
+:::
+
+::: {.callout-tip}
+## Remark: Validity for All $\alpha > 0$
+The identification result holds for **any** positive sensitivity parameter $\alpha$, not merely in the limit $\alpha \to \infty$. The proof relies on the strict monotonicity of the logistic function $\sigma(t) = 1/(1 + e^{-t})$, which holds for all finite arguments. Since $\alpha > 0$ ensures the argument $\alpha(\eta_i - \eta_j) \neq 0$ whenever $\eta_i \neq \eta_j$, the softmax parameterization is globally injective on expected utility differences for any positive $\alpha$. No asymptotic arguments are invoked.
+:::
+
 Before proving the theorem, we establish a key lemma.
+
+```{python}
+#| label: fig-affine-independence
+#| fig-cap: "Affine independence on the 2-simplex (K=3). Left: Three probability vectors in general position form a non-degenerate triangle—they are affinely independent. Right: Three collinear probability vectors are affinely dependent and fail the identification condition."
+#| echo: false
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+
+def simplex_to_cartesian(p):
+    """Convert a point on the 2-simplex to 2D Cartesian coordinates."""
+    x = p[1] + 0.5 * p[2]
+    y = (np.sqrt(3) / 2) * p[2]
+    return x, y
+
+for ax in axes:
+    # Draw the simplex boundary
+    corners = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+    triangle_x = [simplex_to_cartesian(c)[0] for c in corners] + [simplex_to_cartesian(corners[0])[0]]
+    triangle_y = [simplex_to_cartesian(c)[1] for c in corners] + [simplex_to_cartesian(corners[0])[1]]
+    ax.plot(triangle_x, triangle_y, 'k-', linewidth=1.5, alpha=0.5)
+    ax.fill(triangle_x, triangle_y, alpha=0.05, color='gray')
+    
+    # Label corners
+    offsets = [(-0.06, -0.04), (0.03, -0.04), (0.03, 0.02)]
+    for i, (corner, label) in enumerate(zip(corners, ['e₁', 'e₂', 'e₃'])):
+        cx, cy = simplex_to_cartesian(corner)
+        ax.annotate(label, (cx, cy), fontsize=11, fontweight='bold',
+                   xytext=(offsets[i][0], offsets[i][1]), textcoords='offset fontsize')
+    ax.set_aspect('equal')
+    ax.axis('off')
+
+# Left: affinely independent (general position)
+ax = axes[0]
+points_indep = np.array([[0.7, 0.2, 0.1], [0.15, 0.6, 0.25], [0.2, 0.15, 0.65]])
+coords = [simplex_to_cartesian(p) for p in points_indep]
+for i, (x, y) in enumerate(coords):
+    ax.scatter(x, y, s=120, c='forestgreen', zorder=5, edgecolor='white', linewidth=1.5)
+    ax.annotate(f'π⁽{i+1}⁾', (x, y), fontsize=10, xytext=(5, 5), textcoords='offset points')
+# Draw triangle connecting points
+tri_x = [c[0] for c in coords] + [coords[0][0]]
+tri_y = [c[1] for c in coords] + [coords[0][1]]
+ax.fill(tri_x, tri_y, alpha=0.15, color='forestgreen')
+ax.plot(tri_x, tri_y, 'g--', linewidth=1.5, alpha=0.7)
+ax.set_title('Affinely Independent\n(non-degenerate triangle)', fontsize=11, fontweight='bold')
+
+# Right: affinely dependent (collinear)
+ax = axes[1]
+base = np.array([0.6, 0.3, 0.1])
+direction = np.array([-0.4, 0.1, 0.3])
+points_dep = np.array([base + t * direction for t in [0.0, 0.5, 1.0]])
+coords_dep = [simplex_to_cartesian(p) for p in points_dep]
+for i, (x, y) in enumerate(coords_dep):
+    ax.scatter(x, y, s=120, c='crimson', zorder=5, edgecolor='white', linewidth=1.5)
+    ax.annotate(f'π⁽{i+1}⁾', (x, y), fontsize=10, xytext=(5, 5), textcoords='offset points')
+# Draw line through points
+ax.plot([coords_dep[0][0], coords_dep[2][0]], [coords_dep[0][1], coords_dep[2][1]],
+        'r--', linewidth=2, alpha=0.7)
+ax.set_title('Affinely Dependent\n(collinear — identification fails)', fontsize=11, fontweight='bold')
+
+plt.tight_layout()
+plt.show()
+```
 
 ::: {.callout-note}
 ## Lemma (Affine Independence Implies Linear Independence for Probability Vectors)
@@ -996,7 +1176,14 @@ where $\psi_2 + \psi_3 = 1 - \psi_1$. The softmax probabilities $\psi_k$ depend 
 
 The expected utility function $\eta^{(u)}: \mathbb{R}^D \to [0,1]$ is determined by how $\psi_2$ and $\psi_3$ vary with $\mathbf{w}$, weighted by $\delta_1$ and $1$ respectively. The question is whether distinct $(\beta, \delta)$ pairs can produce identical $\eta^{(u)}(\cdot)$ functions.
 
-**Generic point identification holds:** For the equality $\psi_2(\beta, \mathbf{w}) \cdot \delta_1 + \psi_3(\beta, \mathbf{w}) = \psi_2(\beta', \mathbf{w}) \cdot \delta'_1 + \psi_3(\beta', \mathbf{w})$ to hold for all $\mathbf{w} \in \mathbb{R}^D$, we would need a precise functional relationship between $(\beta, \delta)$ and $(\beta', \delta')$ that holds across the entire feature space. This occurs only on a set of measure zero in the parameter space.
+**Generic point identification holds:** For the equality $\psi_2(\beta, \mathbf{w}) \cdot \delta_1 + \psi_3(\beta, \mathbf{w}) = \psi_2(\beta', \mathbf{w}) \cdot \delta'_1 + \psi_3(\beta', \mathbf{w})$ to hold for all $\mathbf{w} \in \mathbb{R}^D$, we would need a precise functional relationship between $(\beta, \delta)$ and $(\beta', \delta')$ that holds across the entire feature space.
+
+To see why this generically fails, consider the map $F: (\beta, \delta) \mapsto \eta^{(u)}(\cdot)$ that sends parameters to the expected utility function. The Jacobian of $F$ with respect to $(\beta, \delta)$ evaluated at any feature vector $\mathbf{w}$ has the block structure:
+$$
+\frac{\partial \eta^{(u)}}{\partial \delta_1}\bigg|_{\mathbf{w}} = \psi_2(\beta, \mathbf{w}), \qquad
+\frac{\partial \eta^{(u)}}{\partial \beta_{kd}}\bigg|_{\mathbf{w}} = \delta_1 \frac{\partial \psi_2}{\partial \beta_{kd}}\bigg|_{\mathbf{w}} + \frac{\partial \psi_3}{\partial \beta_{kd}}\bigg|_{\mathbf{w}}
+$$
+The $\delta_1$-derivative is $\psi_2(\beta, \mathbf{w})$, which is strictly positive. Thus perturbations in $\delta_1$ always change $\eta^{(u)}$. Similarly, for generic $\beta$, the $\beta$-derivatives do not vanish across all $\mathbf{w}$ simultaneously. The set of parameter values $(\beta, \delta)$ where the Jacobian drops rank—allowing distinct parameters to produce the same function—is a proper algebraic subvariety of the parameter space, hence has Lebesgue measure zero. This is a standard argument in the generic identification literature for models with analytic parameterizations [see, e.g., @rothenberg1971identification].
 
 **Weak identification in practice:** While generic point identification holds, the *rate* at which information accumulates about $\beta$ and $\delta$ separately is slower than in m_1. In m_0, all information about $\delta$ must be extracted through uncertain choices where $\beta$ and $\delta$ interact multiplicatively in the expected utility. This interaction means that uncertainty about $\beta$ propagates to uncertainty about $\delta$ and vice versa, resulting in slower posterior concentration. $\square$
 

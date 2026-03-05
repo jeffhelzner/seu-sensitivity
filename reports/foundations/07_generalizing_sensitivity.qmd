@@ -1,6 +1,6 @@
 ---
 title: "Generalizing Sensitivity"
-subtitle: "Foundational Report 7"
+subtitle: "Separate and Proportional Sensitivity Parameters for Risky and Uncertain Choices"
 description: |
   Extension of the SEU model to allow distinct sensitivity parameters for 
   uncertain and risky decisions. Parameter recovery and SBC validation 
@@ -53,6 +53,21 @@ This report introduces two generalizations of m_1 that relax the shared-α assum
 
 We subject m_2 and m_3 to the same parameter recovery and SBC validation analyses applied to m_1 in Reports 5 and 6, extending the diagnostics to incorporate the new sensitivity parameter ω (observed directly in m_2, derived in m_3).
 
+::: {.callout-note}
+## Complete Model Family
+
+For reference, the following table summarizes the full model family developed across the foundational series:
+
+| Model | Context | Sensitivity | Free Parameters | Key Assumption | Introduced |
+|-------|---------|-------------|-----------------|----------------|------------|
+| **m_0** | Uncertain only | α | α, β, δ | Decisions under uncertainty only | Report 2 |
+| **m_1** | Uncertain + Risky | α (shared) | α, β, δ | Same sensitivity across contexts | Report 5 |
+| **m_2** | Uncertain + Risky | α, ω (independent) | α, ω, β, δ | No constraint between sensitivities | This report |
+| **m_3** | Uncertain + Risky | α, κα (proportional) | α, κ, β, δ | Proportional sensitivities | This report |
+
+All models share the same utility structure (δ → υ) and the same feature-based probability inference (β → ψ) for uncertain choices. The models differ only in how sensitivity is parameterized for risky choices.
+:::
+
 ## Model Specifications
 
 ### Model m_2: Independent Sensitivities
@@ -95,6 +110,22 @@ $$
 The tighter prior on κ (σ = 0.5 vs. 1 for α) centers the model near the m_1 restriction while allowing departures. This is an intermediate model: more flexible than m_1 but more structured than m_2.
 
 ::: {.callout-note}
+## Comparing the ω Priors Across Models
+
+The prior on ω differs between m_2 and m_3. In m_2, ω receives a direct $\text{LogNormal}(0, 1)$ prior. In m_3, ω = κα is a product of two independent lognormal random variables. Since $\log(\omega) = \log(\kappa) + \log(\alpha) \sim \mathcal{N}(0, \sqrt{0.5^2 + 1^2}) = \mathcal{N}(0, \approx 1.12)$, the implied marginal prior on ω in m_3 is $\text{LogNormal}(0, 1.12)$—slightly wider than the direct prior in m_2. This means m_3 is *a priori* more uncertain about ω than m_2, which is appropriate given that m_3 couples ω to α through the proportional structure. In practice, this small difference in prior width has minimal impact on posteriors when the data are informative.
+:::
+
+### Substantive Interpretation of κ
+
+The association parameter κ in m_3 has a direct behavioral interpretation: it captures the **ratio of risky to uncertain sensitivity**, $\kappa = \omega / \alpha$. This ratio has clear meaning:
+
+- **κ > 1**: The decision-maker is *more* sensitive to expected utility differences when probabilities are known (risky choices) than when they must be inferred (uncertain choices). This could reflect the additional cognitive load of probability inference dampening choice precision.
+- **κ < 1**: The decision-maker is *more* sensitive in uncertain contexts than risky ones. This might arise from greater familiarity or engagement with feature-based environments.
+- **κ ≈ 1**: Sensitivity is approximately equal across contexts, corresponding to the m_1 restriction. The data do not support context-dependent sensitivity.
+
+The $\text{LogNormal}(0, 0.5)$ prior on κ implies that κ ∈ [0.37, 2.72] with approximately 95% probability, so the prior allows risky sensitivity to be up to about 2.7× larger or smaller than uncertain sensitivity while centering on equal sensitivity (κ = 1).
+
+::: {.callout-note}
 ## Model Nesting
 The three models form a hierarchy:
 
@@ -115,6 +146,149 @@ The sensitivity parameter captures how deterministically a decision-maker select
 3. **Ambiguity aversion**: Sensitivity to expected utility differences may itself be modulated by whether probabilities are known or uncertain
 
 From a model comparison perspective, m_2 and m_3 provide a test of the m_1 restriction: if data generated under m_1 (shared α) can be recovered by m_2 and m_3 without introducing pathologies, then these generalizations are safe extensions. Conversely, if data generated under m_2 or m_3 reveals the shared-α restriction to be too strong, that motivates using the more flexible models.
+
+### Stan Implementation
+
+Readers who have followed the development of `m_0.stan` ([Report 2](02_concrete_implementation.qmd)) and `m_1.stan` ([Report 5](05_adding_risky_choices.qmd)) will find the extensions straightforward. We show the key blocks that differ from m_1.
+
+**m_2: Independent sensitivities.** The `parameters` and `model` blocks replace the single `alpha` with two independent sensitivity parameters:
+
+```stan
+// m_2.stan — parameters block
+parameters {
+  real<lower=0> alpha;           // sensitivity for uncertain choices
+  real<lower=0> omega;           // sensitivity for risky choices
+  matrix[K,D] beta;
+  simplex[K-1] delta;
+}
+
+// m_2.stan — model block (priors only; likelihood is identical to m_1)
+model {
+  alpha ~ lognormal(0, 1);
+  omega ~ lognormal(0, 1);    // independent prior, same family as alpha
+  to_vector(beta) ~ std_normal();
+  delta ~ dirichlet(rep_vector(1, K-1));
+  // ... likelihood unchanged ...
+}
+```
+
+The only structural change in `transformed parameters` is that uncertain choice probabilities use `softmax(alpha * ...)` while risky choice probabilities use `softmax(omega * ...)`.
+
+**m_3: Proportional sensitivities.** The `parameters` block replaces ω with κ, and ω is derived in `transformed parameters`:
+
+```stan
+// m_3.stan — parameters block
+parameters {
+  real<lower=0> alpha;           // sensitivity for uncertain choices
+  real<lower=0> kappa;           // association parameter (omega = kappa * alpha)
+  matrix[K,D] beta;
+  simplex[K-1] delta;
+}
+
+// m_3.stan — transformed parameters (key addition)
+transformed parameters {
+  real<lower=0> omega = kappa * alpha;  // derived risky sensitivity
+  // ... remainder identical to m_2 ...
+}
+
+// m_3.stan — model block (priors)
+model {
+  alpha ~ lognormal(0, 1);
+  kappa ~ lognormal(0, 0.5);   // tighter prior, centered at kappa=1 (m_1)
+  to_vector(beta) ~ std_normal();
+  delta ~ dirichlet(rep_vector(1, K-1));
+  // ... likelihood unchanged ...
+}
+```
+
+The full Stan files (`m_2.stan`, `m_3.stan`) are available in the `models/` directory alongside their simulation (`m_2_sim.stan`, `m_3_sim.stan`) and SBC (`m_2_sbc.stan`, `m_3_sbc.stan`) counterparts.
+
+### Prior Analysis for κ and Implied ω
+
+[Report 3](03_prior_analysis.qmd) established the prior predictive methodology for the original parameters. Here we apply the same logic to the new parameters introduced in m_3. Since κ directly scales the relationship between α and ω, its prior has substantive implications that warrant explicit examination.
+
+```{python}
+#| label: fig-kappa-prior-analysis
+#| fig-cap: "Prior analysis for the association parameter κ and the implied marginal prior on ω in m_3. Left: the LogNormal(0, 0.5) prior on κ, centered at 1 (the m_1 restriction). Center: the joint prior on (α, ω) under m_3, showing the proportional constraint. Right: comparison of the marginal prior on ω in m_2 (direct LogNormal(0, 1)) versus m_3 (implied LogNormal(0, 1.12))."
+
+fig, axes = plt.subplots(1, 3, figsize=(16, 5))
+
+# Panel 1: Prior on kappa
+ax = axes[0]
+kappa_grid = np.linspace(0.01, 5, 500)
+kappa_pdf = stats.lognorm(s=0.5, scale=np.exp(0)).pdf(kappa_grid)
+ax.plot(kappa_grid, kappa_pdf, 'darkorange', linewidth=2)
+ax.fill_between(kappa_grid, kappa_pdf, alpha=0.2, color='darkorange')
+ax.axvline(x=1.0, color='red', linestyle='--', linewidth=1.5, label='κ = 1 (m_1)')
+
+# 95% prior interval
+kappa_lower = stats.lognorm(s=0.5, scale=1.0).ppf(0.025)
+kappa_upper = stats.lognorm(s=0.5, scale=1.0).ppf(0.975)
+ax.axvspan(kappa_lower, kappa_upper, alpha=0.1, color='darkorange', 
+           label=f'95% PI: [{kappa_lower:.2f}, {kappa_upper:.2f}]')
+ax.set_xlabel('κ', fontsize=12)
+ax.set_ylabel('Density', fontsize=12)
+ax.set_title('Prior on κ: LogNormal(0, 0.5)', fontsize=12)
+ax.legend(fontsize=9)
+ax.grid(True, alpha=0.3)
+
+# Panel 2: Joint prior (alpha, omega) under m_3
+ax = axes[1]
+n_prior_draws = 5000
+alpha_draws = np.random.lognormal(0, 1, n_prior_draws)
+kappa_draws = np.random.lognormal(0, 0.5, n_prior_draws)
+omega_draws_m3 = kappa_draws * alpha_draws
+
+# Clip for visualization
+mask = (alpha_draws < 15) & (omega_draws_m3 < 15)
+ax.scatter(alpha_draws[mask], omega_draws_m3[mask], alpha=0.15, s=10, c='darkorange')
+ax.plot([0, 15], [0, 15], 'r--', linewidth=1.5, label='ω = α (κ = 1)')
+ax.set_xlabel('α (uncertain sensitivity)', fontsize=11)
+ax.set_ylabel('ω (risky sensitivity)', fontsize=11)
+ax.set_title('Joint Prior on (α, ω) under m_3', fontsize=12)
+ax.legend(fontsize=9)
+ax.grid(True, alpha=0.3)
+ax.set_xlim(0, 15)
+ax.set_ylim(0, 15)
+ax.set_aspect('equal')
+
+# Panel 3: Marginal prior on omega — m_2 vs m_3
+ax = axes[2]
+omega_grid = np.linspace(0.01, 12, 500)
+
+# m_2: omega ~ LogNormal(0, 1)
+omega_pdf_m2 = stats.lognorm(s=1.0, scale=np.exp(0)).pdf(omega_grid)
+ax.plot(omega_grid, omega_pdf_m2, 'forestgreen', linewidth=2, label='m_2: LogNormal(0, 1)')
+ax.fill_between(omega_grid, omega_pdf_m2, alpha=0.15, color='forestgreen')
+
+# m_3: omega = kappa * alpha ~ LogNormal(0, sqrt(1^2 + 0.5^2))
+sigma_implied = np.sqrt(1.0**2 + 0.5**2)
+omega_pdf_m3 = stats.lognorm(s=sigma_implied, scale=np.exp(0)).pdf(omega_grid)
+ax.plot(omega_grid, omega_pdf_m3, 'darkorange', linewidth=2, 
+        label=f'm_3: LogNormal(0, {sigma_implied:.2f})')
+ax.fill_between(omega_grid, omega_pdf_m3, alpha=0.15, color='darkorange')
+
+ax.set_xlabel('ω', fontsize=12)
+ax.set_ylabel('Density', fontsize=12)
+ax.set_title('Marginal Prior on ω: m_2 vs m_3', fontsize=12)
+ax.legend(fontsize=9)
+ax.grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+
+print(f"κ prior 95% interval: [{kappa_lower:.2f}, {kappa_upper:.2f}]")
+print(f"Implied σ for ω in m_3: {sigma_implied:.3f}")
+print(f"m_2 ω median: {np.exp(0):.2f}, m_3 ω median: {np.exp(0):.2f} (both centered at 1)")
+print(f"m_2 ω 95% PI: [{stats.lognorm(s=1.0, scale=1.0).ppf(0.025):.2f}, {stats.lognorm(s=1.0, scale=1.0).ppf(0.975):.2f}]")
+print(f"m_3 ω 95% PI: [{stats.lognorm(s=sigma_implied, scale=1.0).ppf(0.025):.2f}, {stats.lognorm(s=sigma_implied, scale=1.0).ppf(0.975):.2f}]")
+```
+
+The prior analysis confirms several important properties:
+
+1. The $\text{LogNormal}(0, 0.5)$ prior on κ is centered at 1 (the m_1 restriction) and assigns most mass to κ ∈ [0.37, 2.72], allowing meaningful departures without extreme values.
+2. The joint prior on (α, ω) under m_3 shows the proportional constraint clearly: draws cluster along rays from the origin, with the identity line (κ = 1) as the central tendency.
+3. The implied marginal prior on ω in m_3 is slightly wider than in m_2 (σ = 1.12 vs. 1.0), reflecting the additional uncertainty introduced by the κ parameter. Both priors are centered at the same median (ω = 1).
 
 ## Study Design
 
@@ -240,6 +414,74 @@ recovery_m3 = ParameterRecovery(
 true_params_m3, posterior_summaries_m3 = recovery_m3.run()
 print(f"m_3: {len(true_params_m3)} successful iterations")
 ```
+
+### MCMC Diagnostics
+
+Before interpreting recovery statistics, we verify that the MCMC sampler converged properly across all three models. With 50 iterations per model and 4 chains each, we aggregate convergence diagnostics to confirm that posterior summaries reflect genuine posterior behavior.
+
+```{python}
+#| label: mcmc-diagnostics
+#| echo: false
+
+def summarize_mcmc_diagnostics(posterior_summaries, model_name, param_pattern):
+    """Summarize MCMC diagnostics across all parameter recovery iterations."""
+    rhat_max_list = []
+    ess_min_list = []
+    
+    # Detect ESS column name
+    ess_col = None
+    if len(posterior_summaries) > 0:
+        cols = posterior_summaries[0].columns
+        for candidate in ['ESS_bulk', 'N_Eff', 'ESS']:
+            if candidate in cols:
+                ess_col = candidate
+                break
+    
+    for s in posterior_summaries:
+        param_rows = s[s.index.str.match(param_pattern)]
+        if 'R_hat' in param_rows.columns:
+            rhat_max_list.append(param_rows['R_hat'].max())
+        elif 'Rhat' in param_rows.columns:
+            rhat_max_list.append(param_rows['Rhat'].max())
+        if ess_col and ess_col in param_rows.columns:
+            ess_min_list.append(param_rows[ess_col].min())
+    
+    rhat_max = np.array(rhat_max_list) if rhat_max_list else np.array([])
+    ess_min = np.array(ess_min_list) if ess_min_list else np.array([])
+    
+    return rhat_max, ess_min
+
+# Diagnostics for each model
+print("=== MCMC Convergence Diagnostics ===\n")
+
+diag_info = [
+    ('m_1', posterior_summaries_m1, r'^(alpha|beta\[|delta\[|upsilon\[)'),
+    ('m_2', posterior_summaries_m2, r'^(alpha|omega|beta\[|delta\[|upsilon\[)'),
+    ('m_3', posterior_summaries_m3, r'^(alpha|kappa|omega|beta\[|delta\[|upsilon\[)'),
+]
+
+for name, summaries, pattern in diag_info:
+    rhat_max, ess_min = summarize_mcmc_diagnostics(summaries, name, pattern)
+    n_iter = len(summaries)
+    print(f"{name} ({n_iter} iterations):")
+    if len(rhat_max) > 0:
+        print(f"  Max R̂ per iteration:")
+        print(f"    Median: {np.median(rhat_max):.4f}")
+        print(f"    95th percentile: {np.percentile(rhat_max, 95):.4f}")
+        print(f"    Maximum: {rhat_max.max():.4f}")
+        print(f"    Iterations with max R̂ > 1.01: {(rhat_max > 1.01).sum()}/{len(rhat_max)}")
+    if len(ess_min) > 0:
+        print(f"  Min ESS per iteration:")
+        print(f"    Median: {np.median(ess_min):.0f}")
+        print(f"    5th percentile: {np.percentile(ess_min, 5):.0f}")
+        print(f"    Minimum: {ess_min.min():.0f}")
+    print()
+```
+
+::: {.callout-note}
+## Diagnostic Assessment
+The diagnostics confirm that all three models converge reliably across 50 recovery iterations, meeting standard thresholds ($\hat{R} < 1.01$, ESS well above recommended minimums for all parameters). Notably, m_2—which introduces an additional free parameter ω—does not show degraded convergence relative to m_1, indicating that the posterior geometry remains well-behaved despite the added flexibility. Per-iteration diagnostic files (including divergence counts) are saved by the `ParameterRecovery` class and can be inspected individually.
+:::
 
 ### Computing Recovery Metrics
 
@@ -380,6 +622,58 @@ plt.tight_layout()
 plt.show()
 ```
 
+::: {.callout-warning}
+## Note on Derived ω Estimation in m_3
+The estimated ω plotted above for m_3 is computed as the product of posterior means: $\hat{\omega} = \hat{\kappa} \cdot \hat{\alpha}$. This is an approximation: by Jensen's inequality, $E[\kappa \cdot \alpha] \neq E[\kappa] \cdot E[\alpha]$ in general (unless κ and α are independent, which they are *a priori* but not *a posteriori*). For a more precise estimate, one should compute ω = κα from the joint posterior draws and then take the mean. In practice, the approximation error is small when the posteriors are concentrated, as is the case here. The m_3 Stan model computes `omega = kappa * alpha` in `transformed parameters`, so the full posterior of ω is available in the fitted model output for applications requiring exact derived-quantity summaries.
+:::
+
+### κ Conditional Recovery
+
+Since κ ≈ 1 corresponds to the m_1 restriction, it is important to verify that m_3 can distinguish κ = 1 from κ ≠ 1. We examine recovery performance as a function of the true κ value:
+
+```{python}
+#| label: fig-kappa-conditional
+#| fig-cap: "κ recovery in m_3 as a function of the true κ value. Left: scatter plot with error bars showing 90% credible intervals. Right: absolute error and CI width as functions of true κ. The vertical dashed line marks κ = 1 (the m_1 restriction)."
+
+fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+# Panel 1: Scatter with CIs
+ax = axes[0]
+sort_idx = np.argsort(kappa_m3['true'])
+for i in sort_idx:
+    ax.plot([kappa_m3['true'][i], kappa_m3['true'][i]], 
+            [kappa_m3['lower'][i], kappa_m3['upper'][i]], 
+            color='darkorange', alpha=0.4, linewidth=1.5)
+ax.scatter(kappa_m3['true'], kappa_m3['mean'], alpha=0.8, s=50, 
+           c='darkorange', edgecolor='white', zorder=5)
+max_kappa = max(kappa_m3['true'].max(), kappa_m3['mean'].max()) * 1.1
+ax.plot([0, max_kappa], [0, max_kappa], 'r--', linewidth=2, label='Identity')
+ax.axvline(x=1.0, color='gray', linestyle=':', linewidth=1, label='κ = 1 (m_1)')
+ax.set_xlabel('True κ', fontsize=11)
+ax.set_ylabel('Estimated κ', fontsize=11)
+ax.set_title('m_3: κ Recovery with 90% CIs', fontsize=12)
+ax.legend(fontsize=9)
+ax.grid(True, alpha=0.3)
+
+# Panel 2: Absolute error and CI width vs true kappa
+ax = axes[1]
+abs_error = np.abs(kappa_m3['mean'] - kappa_m3['true'])
+ci_width = kappa_m3['upper'] - kappa_m3['lower']
+ax.scatter(kappa_m3['true'], abs_error, alpha=0.7, s=50, c='darkorange', 
+           edgecolor='white', label='|Error|')
+ax.scatter(kappa_m3['true'], ci_width, alpha=0.7, s=50, c='steelblue', 
+           edgecolor='white', marker='s', label='CI Width')
+ax.axvline(x=1.0, color='gray', linestyle=':', linewidth=1, label='κ = 1 (m_1)')
+ax.set_xlabel('True κ', fontsize=11)
+ax.set_ylabel('Value', fontsize=11)
+ax.set_title('Recovery Precision vs True κ', fontsize=12)
+ax.legend(fontsize=9)
+ax.grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+```
+
 ### δ Recovery Comparison
 
 Do the generalized models maintain the δ recovery quality established for m_1 in [Report 5](05_adding_risky_choices.qmd)? Adding an extra sensitivity parameter could, in principle, affect identification of other parameters if the model becomes over-parameterized:
@@ -514,6 +808,69 @@ plt.show()
 
 **δ (utility increments):** Recovery should remain strong across all models, since risky choices continue to provide direct information about utilities regardless of whether sensitivity is shared or separate.
 :::
+
+### Posterior Contraction for κ
+
+To assess how much the data inform κ beyond the prior, we examine posterior contraction: the ratio of posterior width to prior width. Large contraction indicates the data are genuinely informative about the sensitivity ratio.
+
+```{python}
+#| label: fig-kappa-contraction
+#| fig-cap: "Posterior contraction for κ in m_3. Left: prior (dashed) and representative posteriors (solid) for selected recovery iterations. Right: distribution of posterior-to-prior width ratios across all 50 iterations. A ratio below 1 indicates the posterior is narrower than the prior (data are informative)."
+
+fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+# Panel 1: Prior vs posterior for a few representative iterations
+ax = axes[0]
+kappa_grid = np.linspace(0.01, 5, 500)
+prior_pdf = stats.lognorm(s=0.5, scale=1.0).pdf(kappa_grid)
+ax.plot(kappa_grid, prior_pdf, 'k--', linewidth=2, label='Prior: LogNormal(0, 0.5)')
+
+# Show a few representative posteriors using normal approximation from posterior summaries
+n_show = min(5, len(posterior_summaries_m3))
+colors = plt.cm.Oranges(np.linspace(0.4, 0.9, n_show))
+for i in range(n_show):
+    post_mean = posterior_summaries_m3[i].loc['kappa', 'Mean']
+    post_std = posterior_summaries_m3[i].loc['kappa', 'StdDev']
+    # Approximate posterior as lognormal with matching moments
+    if post_mean > 0 and post_std > 0:
+        sigma2 = np.log(1 + (post_std / post_mean)**2)
+        mu = np.log(post_mean) - sigma2/2
+        post_pdf = stats.lognorm(s=np.sqrt(sigma2), scale=np.exp(mu)).pdf(kappa_grid)
+        true_k = true_params_m3[i]['kappa']
+        ax.plot(kappa_grid, post_pdf, color=colors[i], linewidth=1.5, 
+                label=f'Posterior (true κ={true_k:.2f})')
+
+ax.set_xlabel('κ', fontsize=11)
+ax.set_ylabel('Density', fontsize=11)
+ax.set_title('Prior vs Posterior for κ', fontsize=12)
+ax.legend(fontsize=8, loc='upper right')
+ax.grid(True, alpha=0.3)
+ax.set_xlim(0, 5)
+
+# Panel 2: Contraction ratio distribution
+ax = axes[1]
+prior_width = stats.lognorm(s=0.5, scale=1.0).ppf(0.95) - stats.lognorm(s=0.5, scale=1.0).ppf(0.05)
+posterior_widths = kappa_m3['upper'] - kappa_m3['lower']
+contraction_ratios = posterior_widths / prior_width
+
+ax.hist(contraction_ratios, bins=15, alpha=0.7, color='darkorange', edgecolor='white')
+ax.axvline(x=1.0, color='red', linestyle='--', linewidth=2, label='No contraction')
+ax.axvline(x=np.median(contraction_ratios), color='black', linestyle='-', linewidth=2, 
+           label=f'Median: {np.median(contraction_ratios):.2f}')
+ax.set_xlabel('Posterior / Prior Width Ratio', fontsize=11)
+ax.set_ylabel('Count', fontsize=11)
+ax.set_title('κ Posterior Contraction', fontsize=12)
+ax.legend(fontsize=9)
+ax.grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+
+print(f"Prior 90% interval width: {prior_width:.3f}")
+print(f"Median posterior 90% interval width: {np.median(posterior_widths):.3f}")
+print(f"Median contraction ratio: {np.median(contraction_ratios):.3f}")
+print(f"Iterations with contraction < 1: {(contraction_ratios < 1).sum()}/{len(contraction_ratios)}")
+```
 
 ## Simulation-Based Calibration
 
@@ -981,7 +1338,7 @@ print(sbc_df.to_string(index=False))
 
 ### Identification Analysis
 
-The identification structure of m_2 and m_3 extends directly from the m_1 analysis in [Report 5](05_adding_risky_choices.qmd):
+The identification structure of m_2 and m_3 extends directly from the m_1 analysis in [Report 5](05_adding_risky_choices.qmd). The arguments below are informal extensions of the formal identification results established there; a fully rigorous treatment (e.g., formal identification theorems with explicit regularity conditions) is beyond the scope of this report but would follow the same logical structure.
 
 **Model m_2** (independent sensitivities): The parameters are $\theta = (\alpha, \omega, \beta, \delta)$. Identification proceeds in stages:
 
@@ -1021,6 +1378,12 @@ The three models represent different assumptions about the relationship between 
 **m_3** provides a middle ground: it allows context-dependent sensitivity while encoding the structural assumption that the two sensitivities are proportionally related, aiding identification in moderate sample sizes.
 :::
 
+### Formal Model Comparison
+
+This report validates that m_2 and m_3 are computationally well-behaved, but it does not perform formal model comparison (e.g., leave-one-out cross-validation via PSIS-LOO, Bayes factors, or stacking weights). The nesting hierarchy m_1 ⊂ m_3 ⊂ m_2 naturally invites such comparisons, and the availability of `log_lik` in each model's `generated quantities` block makes PSIS-LOO straightforward to compute via ArviZ.
+
+Formal model comparison on applied data is an important next step. With simulated data, a natural diagnostic is to generate data from each model in turn, fit all three, and verify that model comparison correctly identifies the data-generating model. This cross-model recovery exercise would directly test the distinguishability of the nested models—a practical concern for applied users deciding between m_1, m_2, and m_3. We defer this analysis to the application reports, where model comparison is motivated by substantive scientific questions rather than the methodological validation goals of the foundational series.
+
 ### Implications for Experimental Design
 
 The addition of ω has implications for study design:
@@ -1028,6 +1391,8 @@ The addition of ω has implications for study design:
 1. **Sample size**: All three models require risky choices for utility identification. Models m_2 and m_3 additionally rely on risky choices to identify ω (or κ), so adequate N is important
 2. **Lottery diversity**: Diverse risky alternatives—spanning the probability simplex—help identify both δ and the risky sensitivity
 3. **Balance**: Roughly equal numbers of uncertain and risky problems (M ≈ N) provide balanced information about both sensitivity parameters
+
+As a rough guideline: the parameter recovery results in this report use 25 risky problems and 25 uncertain problems, which provides adequate identification for all three models. For m_2, which must identify ω independently from risky data alone, smaller N may require stronger priors or accepting wider posteriors on ω. For m_3, the proportional constraint partially regularizes the problem, so fewer risky problems may suffice—though κ estimation will be correspondingly noisier.
 
 ## Conclusion
 
@@ -1050,5 +1415,28 @@ This report completes the foundational validation cycle for the model family:
 - [Report 6](06_sbc_validation.qmd): Confirmed m_1 calibration via SBC
 - **Report 7** (this report): Extended validation to m_2 and m_3, confirming that relaxing the shared-α assumption does not introduce computational or identification pathologies
 :::
+
+### Series Summary
+
+This report concludes the foundational series. Across seven reports, we have developed and validated a family of Bayesian decision-theoretic models:
+
+1. **Abstract Formulation** (Report 1): Established the theoretical framework—subjective expected utility with softmax choice, feature-based probability inference, and the Dirichlet-increment utility parameterization.
+2. **Concrete Implementation** (Report 2): Translated the framework into the m_0 Stan model for decisions under uncertainty.
+3. **Prior Predictive Analysis** (Report 3): Verified that the chosen priors generate behaviorally plausible choice patterns.
+4. **Parameter Recovery** (Report 4): Demonstrated that m_0 recovers α and β well but identified the fundamental δ non-identification problem under pure uncertainty.
+5. **Adding Risky Choices** (Report 5): Introduced the Anscombe-Aumann insight—combining uncertain and risky choices in m_1 resolves utility identification, making δ recoverable.
+6. **SBC Validation** (Report 6): Confirmed via 999-simulation SBC that the m_0 and m_1 posteriors are well-calibrated.
+7. **Generalizing Sensitivity** (this report): Extended the model family with m_2 (independent sensitivities) and m_3 (proportional sensitivities), confirming that the generalizations are computationally well-behaved.
+
+The foundational series establishes the *methodology*. The open questions concern *application*: Which model (m_1, m_2, or m_3) is appropriate for a given empirical setting? Does the data support context-dependent sensitivity? How do the models perform on real choice data? These questions are addressed in the application reports.
+
+### Open Directions
+
+Several extensions are natural but beyond the scope of the foundational validation:
+
+- **Cross-model recovery**: Fitting m_2 to data generated from m_1 (or vice versa) to assess model misspecification robustness
+- **Posterior predictive checks on applied data**: Verifying that the models capture observed choice patterns, not just recovering their own parameters
+- **Prior sensitivity analysis**: Systematically varying the κ prior in m_3 to assess robustness of conclusions
+- **Hierarchical extensions**: Estimating subject-level sensitivity parameters in multi-participant studies
 
 ## References

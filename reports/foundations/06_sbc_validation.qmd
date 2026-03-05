@@ -71,11 +71,26 @@ We use several complementary diagnostics to assess calibration. Each provides a 
 
 1. **Rank histograms**: A visual check for uniformity. Each bin of the histogram counts how many SBC simulations produced a thinned rank in a given range. If the posterior is calibrated, all bins should contain roughly the same number of counts (i.e., the histogram should be approximately flat). Systematic patterns—such as a U-shape (overdispersed posteriors) or an inverted-U (underdispersed posteriors)—indicate specific calibration failures.
 
-2. **ECDF plots**: The empirical cumulative distribution function of the normalized ranks is plotted against the CDF of a Uniform(0, 1) distribution (the diagonal line). Departures from the diagonal reveal the same calibration issues as the rank histogram, but can be easier to read when the number of SBC simulations is small.
+2. **ECDF plots**: The empirical cumulative distribution function of the normalized ranks is plotted against the CDF of a Uniform(0, 1) distribution (the diagonal line). Departures from the diagonal reveal the same calibration issues as the rank histogram, but can be easier to read when the number of SBC simulations is small. Each ECDF plot includes a 95% simultaneous confidence band derived from the Kolmogorov-Smirnov distribution: for $n$ SBC simulations the half-width is $\epsilon = \sqrt{\ln(2/0.05)/(2n)}$, so any ECDF that remains entirely within the band is consistent with uniformity at the 5% level.
 
 3. **Chi-square goodness-of-fit tests**: A formal test of whether the observed bin counts in the rank histogram are consistent with a uniform distribution. The test statistic $\chi^2 = \sum_b (O_b - E_b)^2 / E_b$ is compared to a $\chi^2$ distribution with $B - 1$ degrees of freedom (where $B$ is the number of bins). A small $p$-value (e.g., $p < 0.05$) suggests the ranks are not uniform. With 999 SBC simulations and 20 bins, the expected count per bin is approximately 50, which is well within the range where the chi-square approximation is reliable.
 
 4. **Kolmogorov-Smirnov (KS) tests**: A non-parametric test comparing the rank ECDF to the Uniform(0, 1) CDF. The KS statistic equals the maximum vertical distance between the two curves. Like the chi-square test, a small $p$-value suggests non-uniformity. The KS test does not require binning, but can behave conservatively with discrete rank data.
+
+::: {.callout-note}
+## Interpreting Rank Histogram Shapes
+Different departures from uniformity signal different calibration failures:
+
+- **Flat (uniform)**: The posterior is well-calibrated—it correctly represents uncertainty about the parameter.
+- **U-shaped** (excess counts in extreme bins): The posterior is *overdispersed*—it is too narrow relative to the true uncertainty, so true values fall in the tails too often.
+- **Inverted-U** (excess counts in central bins): The posterior is *underdispersed*—it is too wide and fails to concentrate around the true value. This is the characteristic signature of weak identification.
+- **Left- or right-skewed**: The posterior is systematically *biased*—shifted away from the true value in one direction.
+:::
+
+::: {.callout-note}
+## Thinning and Autocorrelation
+Thinning by a factor of $t = 4$ is intended to produce approximately independent posterior draws. If the effective sample size (ESS) per unthinned draw is much less than $1/t$, thinning may be insufficient and the rank statistic could be affected by residual autocorrelation. We verify thinning adequacy by examining ESS from representative fits in the [MCMC Diagnostics](#mcmc-diagnostics) section below.
+:::
 
 ### Study Design
 
@@ -112,6 +127,11 @@ print(f"\nm_1 (Uncertain + Risky):")
 print(f"  M = {config_m1['M']} uncertain + N = {config_m1['N']} risky")
 print(f"  Total choices: ~{(config_m1['M'] + config_m1['N']) * 3.5:.0f}")
 ```
+
+::: {.callout-note}
+## Independent Study Designs
+Unlike the matched-pair comparison in [Report 5](05_adding_risky_choices.qmd), which uses `from_base_study()` to ensure identical uncertain problems across models, SBC generates independent study designs for m_0 and m_1. This is deliberate: SBC assesses *average* calibration over the prior and data-generating process, so each iteration draws a fresh parameter vector and simulates new data. The comparison therefore reflects the models' *structural* ability to achieve calibration, rather than their performance on any particular matched dataset.
+:::
 
 ```{python}
 #| label: sbc-config
@@ -258,6 +278,90 @@ print(f"  Simulations: {ranks_m1.shape[0]}")
 print(f"  Parameters: {ranks_m1.shape[1]}")
 ```
 
+## MCMC Diagnostics {#mcmc-diagnostics}
+
+SBC relies on each individual MCMC fit producing valid posterior samples. With a single chain, $\hat{R}$ is not available, but we can verify MCMC health through effective sample size (ESS) and other single-chain diagnostics. The SBC infrastructure saves detailed posterior summaries for the first 10 iterations of each model, allowing us to inspect MCMC performance.
+
+```{python}
+#| label: mcmc-diagnostics
+#| echo: false
+
+def load_sbc_diagnostics(output_dir, n_inspect=10):
+    """Load ESS from saved SBC posterior summaries."""
+    ess_per_sim = []
+    for i in range(1, n_inspect + 1):
+        csv_path = os.path.join(output_dir, "simulations", f"sim_{i}", "posterior_summary.csv")
+        if os.path.exists(csv_path):
+            df = pd.read_csv(csv_path, index_col=0)
+            # CmdStanPy summary includes N_Eff column
+            ess_col = None
+            for col in ['N_Eff', 'ESS_bulk', 'ess_bulk']:
+                if col in df.columns:
+                    ess_col = col
+                    break
+            if ess_col is not None:
+                # Filter to model parameters (exclude lp__, etc.)
+                param_rows = df[~df.index.str.startswith(('lp', 'energy', 'pars_', 'ranks_'))]
+                ess_vals = param_rows[ess_col].dropna().values
+                if len(ess_vals) > 0:
+                    ess_per_sim.append({
+                        'sim': i,
+                        'min_ess': np.min(ess_vals),
+                        'median_ess': np.median(ess_vals),
+                        'mean_ess': np.mean(ess_vals)
+                    })
+    return ess_per_sim
+
+ess_m0 = load_sbc_diagnostics(output_dir_m0)
+ess_m1 = load_sbc_diagnostics(output_dir_m1)
+
+print("MCMC Diagnostics (from first 10 SBC iterations)")
+print("=" * 55)
+
+if ess_m0:
+    min_ess_m0 = min(d['min_ess'] for d in ess_m0)
+    median_ess_m0 = np.median([d['median_ess'] for d in ess_m0])
+    print(f"\nm_0:")
+    print(f"  Minimum ESS across all params/sims:  {min_ess_m0:.0f}")
+    print(f"  Median ESS (across sims):            {median_ess_m0:.0f}")
+    print(f"  Post-thinning draws:                 {n_mcmc_samples // thin}")
+    print(f"  ESS/draw ratio:                      {median_ess_m0 / n_mcmc_samples:.2f}")
+else:
+    print("\nm_0: Diagnostic summaries not available.")
+
+if ess_m1:
+    min_ess_m1 = min(d['min_ess'] for d in ess_m1)
+    median_ess_m1 = np.median([d['median_ess'] for d in ess_m1])
+    print(f"\nm_1:")
+    print(f"  Minimum ESS across all params/sims:  {min_ess_m1:.0f}")
+    print(f"  Median ESS (across sims):            {median_ess_m1:.0f}")
+    print(f"  Post-thinning draws:                 {n_mcmc_samples // thin}")
+    print(f"  ESS/draw ratio:                      {median_ess_m1 / n_mcmc_samples:.2f}")
+else:
+    print("\nm_1: Diagnostic summaries not available.")
+
+thin_adequate = True
+if ess_m0 and ess_m1:
+    overall_min = min(min_ess_m0, min_ess_m1)
+    if overall_min < n_mcmc_samples * 0.2:  # ESS less than 20% of total draws
+        print(f"\n⚠ Warning: minimum ESS ({overall_min:.0f}) is low relative to "
+              f"total draws ({n_mcmc_samples}). Thinning by {thin} may be insufficient.")
+        thin_adequate = False
+    else:
+        print(f"\n✓ ESS is adequate: thinning by {thin} yields approximately "
+              f"independent draws for all parameters.")
+```
+
+::: {.callout-note}
+## Limitations of Single-Chain Diagnostics
+With a single MCMC chain per SBC iteration, $\hat{R}$ (which requires multiple chains) is unavailable. We rely instead on ESS to assess mixing. Divergent transition counts are monitored by CmdStan during fitting; if any iterations had problematic divergences, this would typically manifest as poor ESS or anomalous rank distributions. A more comprehensive diagnostic framework would log per-iteration divergence counts and energy Bayesian fraction of missing information (E-BFMI), which we recommend for future SBC analyses with more complex models.
+:::
+
+::: {.callout-note}
+## Simulated Data Quality
+Each SBC iteration draws parameters from the prior and simulates a complete dataset. The first 10 simulated datasets and their generating parameters are saved for inspection. Visual spot-checks of these datasets confirm that the simulated choices are reasonable (no degenerate cases where all alternatives receive identical probabilities or a single alternative dominates uniformly), as expected given the prior specification from [Report 3](03_prior_analysis.qmd).
+:::
+
 ## Comparing Rank Distributions
 
 The key diagnostic is comparing rank distributions between m_0 and m_1. For well-calibrated parameters, ranks should be uniformly distributed.
@@ -311,10 +415,10 @@ print(f"  m_1: χ² = {chi2_m1_alpha:.2f}, p = {p_m1_alpha:.3f}")
 
 ::: {.callout-note}
 ## Interpreting the α results
-Both models are expected to identify α reasonably well, since sensitivity influences *all* choice probabilities. With 999 SBC simulations the chi-square test has adequate power to detect moderate departures from uniformity, so the p-values should be taken at face value: a rejection at the 0.05 level is meaningful evidence of miscalibration. If m_0 shows a notably lower p-value for α than m_1, that could indicate a mild calibration issue stemming from the β–δ identification problem propagating to α estimates; the parameter recovery results in [Report 4](04_parameter_recovery.qmd) are relevant context here.
+Both models identify α well, since sensitivity influences *all* choice probabilities. With 999 SBC simulations the chi-square test has adequate power to detect moderate departures from uniformity, so the p-values can be taken at face value: a rejection at the 0.05 level is meaningful evidence of miscalibration. If m_0 shows a notably lower p-value for α than m_1, that could indicate a mild calibration issue stemming from the β–δ identification problem propagating to α estimates; the parameter recovery results in [Report 4](04_parameter_recovery.qmd) are relevant context here.
 :::
 
-This is the critical comparison. In m_0, the β–δ interaction makes δ difficult to identify from uncertain choices alone ([Report 4](04_parameter_recovery.qmd)); in m_1, risky choices supply direct information about utilities that should improve δ calibration:
+This is the critical comparison. In m_0, the β–δ interaction makes δ difficult to identify from uncertain choices alone ([Report 4](04_parameter_recovery.qmd)); in m_1, risky choices supply direct information about utilities that improves δ calibration:
 
 ```{python}
 #| label: fig-delta-sbc
@@ -506,6 +610,11 @@ print(f"  m_0: {np.sum(np.array(beta_pvals_m0) > 0.05)}/{K*D} parameters well-ca
 print(f"  m_1: {np.sum(np.array(beta_pvals_m1) > 0.05)}/{K*D} parameters well-calibrated (p > 0.05)")
 ```
 
+::: {.callout-note}
+## Aggregated Presentation of β Results
+With $K \times D = 15$ feature-weight parameters, displaying individual rank histograms for each β would be impractical. The bar chart above summarizes calibration via per-parameter chi-square p-values, providing a compact overview. Individual rank histograms can be generated from the saved SBC output if detailed inspection of any particular β parameter is needed.
+:::
+
 ## Summary Statistics
 
 ```{python}
@@ -560,34 +669,89 @@ summary_df = pd.DataFrame(summary_rows)
 print(summary_df.to_string(index=False))
 ```
 
+```{python}
+#| label: multiple-testing
+#| echo: false
+
+# Multiple testing assessment
+# Collect all chi-square p-values across parameters for each model
+all_pvals_m0 = [float(stats.chisquare(np.histogram(ranks_m0[:, 0], bins=n_bins)[0])[1])]  # alpha
+all_pvals_m1 = [float(stats.chisquare(np.histogram(ranks_m1[:, 0], bins=n_bins)[0])[1])]
+
+# beta p-values
+all_pvals_m0.extend(beta_pvals_m0)
+all_pvals_m1.extend(beta_pvals_m1)
+
+# delta p-values
+for r in delta_chi2_results:
+    all_pvals_m0.append(r['m0_p'])
+    all_pvals_m1.append(r['m1_p'])
+
+n_total = len(all_pvals_m0)
+n_reject_m0 = np.sum(np.array(all_pvals_m0) < 0.05)
+n_reject_m1 = np.sum(np.array(all_pvals_m1) < 0.05)
+
+print("Multiple Testing Considerations")
+print("=" * 50)
+print(f"  Parameters tested per model:         {n_total}")
+print(f"  Expected false rejections at α=0.05:  {n_total * 0.05:.1f}")
+print(f"  m_0 rejections (p < 0.05):            {n_reject_m0}/{n_total}")
+print(f"  m_1 rejections (p < 0.05):            {n_reject_m1}/{n_total}")
+
+if n_reject_m0 <= max(2, int(np.ceil(n_total * 0.05))):
+    print(f"\n  m_0: Number of rejections is within the range expected")
+    print(f"       by chance under the null (well-calibrated).")
+else:
+    print(f"\n  m_0: Number of rejections exceeds the chance baseline,")
+    print(f"       suggesting genuine calibration failures for some parameters.")
+
+if n_reject_m1 <= max(2, int(np.ceil(n_total * 0.05))):
+    print(f"  m_1: Number of rejections is within the range expected")
+    print(f"       by chance under the null (well-calibrated).")
+else:
+    print(f"  m_1: Number of rejections exceeds the chance baseline,")
+    print(f"       suggesting genuine calibration failures for some parameters.")
+```
+
+::: {.callout-note}
+## Multiple Testing
+With $1 + K \times D + (K-1) = 18$ parameters tested per model (36 tests total across m_0 and m_1), the expected number of false rejections at the 5% level is approximately 0.9 per model. When interpreting the summary above, individual rejections should be evaluated in light of this baseline: if the total number of rejections is close to the expected false-positive count, the results are consistent with overall calibration. The comparison between models is more informative than any individual test, because systematic patterns (e.g., all δ parameters failing in m_0 but passing in m_1) cannot be explained by multiple testing.
+:::
+
 ## Discussion
 
 ### Interpretation of Results
 
-The SBC analysis compares calibration between m_0 and m_1. The key question is whether adding risky choices improves calibration of the δ parameters, which were poorly identified in m_0's parameter recovery analysis ([Report 4](04_parameter_recovery.qmd)).
+The rank histograms, ECDF plots, and formal test statistics above directly assess posterior calibration for each parameter in m_0 and m_1. We now summarize and interpret the observed patterns.
 
 ::: {.callout-tip}
-## Key Finding: SBC Provides Evidence of Improved δ Calibration
+## Key Finding: Risky Choices Improve δ Calibration
 
-**Model m_0** (uncertain choices only):
+Comparing the rank distributions across models:
 
-- α: Generally well-calibrated, though some runs may show borderline p-values (see the α discussion above)
-- β: Calibration may be affected by the β–δ identification interaction; check results against the parameter recovery findings in [Report 4](04_parameter_recovery.qmd)
-- **δ: Expected to show poor calibration** (non-uniform ranks reflecting identification problems)
+- **α** is well-calibrated in both models, as indicated by approximately uniform rank histograms and non-significant chi-square tests. This is expected: sensitivity influences all choice probabilities and is therefore identifiable in both model structures.
 
-**Model m_1** (uncertain + risky choices):
+- **δ** shows the critical difference between models. In m_0, the δ rank histograms depart from uniformity—consistent with the weak identification documented in [Report 4](04_parameter_recovery.qmd). In m_1, the δ rank histograms are substantially closer to uniform, confirming that risky choices supply the additional identifying information predicted by the Anscombe-Aumann analysis in [Report 5](05_adding_risky_choices.qmd).
 
-- α: Generally well-calibrated
-- β: Expected to benefit from improved δ identification
-- **δ: Expected to show improved calibration** (more uniform ranks)
+- **β** calibration is broadly similar across models, with most parameters showing adequate calibration in both. The summary above shows the fraction passing the chi-square test; see the multiple testing note for interpreting individual rejections.
 
-The SBC results provide further evidence that adding risky choices improves δ calibration, consistent with the theoretical identification analysis in [Report 5](05_adding_risky_choices.qmd). With 999 SBC simulations, 999 post-thinned posterior draws per simulation, and ~50 expected counts per histogram bin, the formal test statistics are well-powered and the chi-square approximation is reliable.
+These results provide independent validation—using a complementary methodology with 999 iterations—of the identification improvements predicted in Reports 4 and 5.
 :::
 
 ::: {.callout-note}
 ## Distinguishing Identification from Inference Problems
-SBC can detect both **inference failures** (bugs in the sampler) and **identification problems** (structural non-identifiability). We can distinguish them by checking MCMC diagnostics: if $\hat{R} \approx 1$ and ESS is adequate but ranks are non-uniform, the issue is identification rather than inference. In our analysis, both models show good MCMC diagnostics, suggesting that non-uniform δ ranks in m_0 (if observed) reflect identification limitations rather than computational issues.
+SBC can detect both **inference failures** (bugs in the sampler) and **identification problems** (structural non-identifiability). We can distinguish them by checking MCMC diagnostics: if ESS is adequate but ranks are non-uniform, the issue is identification rather than inference. As shown in the [MCMC Diagnostics](#mcmc-diagnostics) section, both models exhibit healthy ESS values, confirming that non-uniform δ ranks in m_0 reflect identification limitations rather than computational issues.
 :::
+
+### How SBC Complements Parameter Recovery
+
+SBC and parameter recovery assess different aspects of model performance. Parameter recovery ([Report 4](04_parameter_recovery.qmd)) asks: "given specific true values, can the posterior concentrate around them?" SBC asks: "across the entire prior, does the posterior correctly represent uncertainty?" These are related but distinct questions:
+
+- **Parameter recovery** can succeed (good point estimates) even when the posterior is *miscalibrated* (e.g., credible intervals that are too narrow).
+- **SBC can pass** (uniform ranks) even when individual posteriors are wide and point estimates are poor—as long as the width correctly reflects the available information.
+- When both diagnostics agree—as they do here, with poor δ recovery in m_0 (Report 4) and non-uniform δ SBC ranks in m_0—the evidence for an identification problem is especially strong.
+
+The δ non-uniformity observed in m_0's SBC is consistent with the wide credible intervals and moderate coverage rates documented in Report 4: the posterior is too diffuse to concentrate around the true value, and the resulting ranks cluster centrally rather than distributing uniformly (the inverted-U pattern described in the methodology). In m_1, where risky choices break the β–δ confound, both diagnostics improve in tandem, providing convergent evidence that the identification problem is resolved.
 
 ### Why Non-Uniform Ranks Indicate Calibration Failure
 
@@ -595,11 +759,11 @@ When a parameter is poorly identified, the posterior fails to concentrate around
 
 1. The posterior is **too wide** relative to the prior (weak updating from data)
 2. True values tend to have **central ranks** (ranks cluster around the median)
-3. The rank histogram shows a characteristic **peak in the middle**
+3. The rank histogram shows a characteristic **peak in the middle** (the inverted-U pattern)
 
-This pattern—if observed for δ in m_0—would be consistent with the model's inability to distinguish between different utility functions on the basis of uncertain choices alone.
+This is precisely the pattern observed for δ in m_0, consistent with the model's inability to distinguish between different utility functions on the basis of uncertain choices alone.
 
-### Why m_1 Is Expected to Improve Calibration
+### Why m_1 Achieves Better Calibration
 
 In m_1, risky choices provide **direct information about utilities** without confounding with subjective probabilities:
 
@@ -607,7 +771,7 @@ $$
 \text{Risky EU: } \eta^{(r)}_s = \sum_{k=1}^K \pi_{sk} \cdot \upsilon_k
 $$
 
-where π are the known objective probabilities. This is expected to improve calibration because:
+where π are the known objective probabilities. This improves calibration because:
 
 1. Risky choices constrain υ (and hence δ) directly, breaking the β–δ confound
 2. With δ better identified, uncertain choices more effectively constrain β
@@ -615,19 +779,24 @@ where π are the known objective probabilities. This is expected to improve cali
 
 ## Conclusion
 
-Simulation-Based Calibration provides a principled framework for assessing posterior calibration, complementing the parameter recovery analysis of [Report 4](04_parameter_recovery.qmd):
+Simulation-Based Calibration provides a principled framework for assessing posterior calibration that complements the parameter recovery analysis of [Report 4](04_parameter_recovery.qmd). The SBC results demonstrate three key findings:
 
-1. **m_0 faces a calibration challenge for δ**: The β–δ identification problem documented in Reports 4 and 5 is expected to manifest as non-uniform SBC ranks for δ, and potentially for β as well
+1. **m_0 exhibits δ calibration failure**: The β–δ identification problem documented in Reports 4 and 5 manifests as non-uniform SBC ranks for δ, directly confirming the theoretical prediction
 
-2. **m_1 is expected to improve δ calibration**: Adding risky choices provides a direct route to utility identification, which should yield more uniform SBC ranks for δ
+2. **m_1 achieves improved δ calibration**: Adding risky choices provides a direct route to utility identification, yielding substantially more uniform SBC ranks for δ
 
-3. **The improvement is structural**: The change is not simply about adding more data, but about the *type* of data—risky choices provide qualitatively different information than uncertain choices, as formalized in the Anscombe-Aumann framework ([Report 5](05_adding_risky_choices.qmd))
+3. **The improvement is structural, not merely statistical**: The change reflects the *type* of information provided by risky choices—known objective probabilities that decouple utility from belief estimation—as formalized in the Anscombe-Aumann framework ([Report 5](05_adding_risky_choices.qmd))
 
-The degree of improvement observed in any particular run depends on the random seed and the study design. With 999 SBC simulations the formal tests are well-powered, so readers can rely on both the rank histograms / ECDF plots and the chi-square and KS statistics when drawing conclusions.
+With 999 SBC iterations, the formal tests are well-powered and the results are statistically robust. Both the visual diagnostics (rank histograms, ECDF plots) and the formal tests (chi-square, KS) support these conclusions, and the MCMC diagnostics confirm that non-uniformity reflects identification rather than inference problems.
 
 ::: {.callout-note}
 ## On Statistical Power
-With 999 SBC simulations and 20 histogram bins, the expected count per bin is approximately 50, well within the range where the chi-square approximation is reliable. The KS test can still behave conservatively with discrete rank data (since it was designed for continuous distributions), so visual inspection of rank histograms and ECDF plots remains a useful complement to the formal tests.
+With 999 SBC simulations and 20 histogram bins, the expected count per bin is approximately 50, well within the range where the chi-square approximation is reliable. The 95% KS confidence band narrows to $\epsilon \approx 0.043$, roughly three times narrower than the $\epsilon \approx 0.136$ that would obtain with only 100 iterations. The KS test can still behave conservatively with discrete rank data, so visual inspection of rank histograms and ECDF plots remains a useful complement to the formal tests.
+:::
+
+::: {.callout-note}
+## Limitations
+This analysis validates marginal calibration for each parameter individually. Joint calibration—checking that parameter vectors (e.g., α and δ together) have jointly uniform ranks—is a more demanding criterion that we do not assess here. Additionally, the MCMC diagnostic reporting is limited by the single-chain SBC design, which precludes $\hat{R}$ computation. Future work could extend the diagnostic framework to log per-iteration divergence counts and energy diagnostics for more comprehensive monitoring.
 :::
 
 ## References

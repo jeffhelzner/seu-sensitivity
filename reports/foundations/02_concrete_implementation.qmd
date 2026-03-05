@@ -92,6 +92,8 @@ The variables $R$, $K$, and $\alpha$ retain their meanings from Report 1.
 ::: {.callout-note}
 ## On "Distinct" Alternatives
 The variable `R` represents the number of distinct alternatives in the study design. "Distinct" here reflects a judgment by the study designer about how to individuate alternatives. Within the model, two alternatives with identical feature vectors $\mathbf{w}_r$ will have the same subjective probability distribution over consequences, and thus the same expected utility. The model itself has no notion of alternative identity beyond the feature representation.
+
+**Behavioral assumption:** When the same alternative $r$ appears in multiple decision problems (i.e., $I_{m_1,r} = I_{m_2,r} = 1$), the model assumes the same subjective probabilities $\boldsymbol{\psi}_r$ and expected utility $\eta_r$ but allows different choices across problems via the stochastic softmax. This reflects a decision-maker who has stable beliefs but whose choices are probabilistic given those beliefs.
 :::
 
 ### Transformed Data
@@ -125,6 +127,11 @@ transformed data {
 ```
 
 The key transformation is constructing `x`—a flattened array that lists the feature vectors for all alternatives across all problems, in order. This allows efficient vectorized computation in the transformed parameters block.
+
+::: {.callout-note}
+## Mapping x back to w
+The transformed data `x` contains $\sum_{m=1}^M N_m$ feature vectors—one for each alternative-in-problem combination. The mapping is: `x` is populated by iterating over problems $m = 1, \ldots, M$ and, within each problem, over alternatives $r$ where $I_{m,r} = 1$. Thus `x[pos]` corresponds to `w[r]` for whichever alternative $r$ is the `pos`-th entry in this nested iteration. Later code uses `segment(eta, pos, N[m])` to extract the expected utilities for problem $m$ from the flattened representation.
+:::
 
 ## Model Parameters
 
@@ -259,6 +266,18 @@ These extensions would require modifying the Stan model but preserve the overall
 The $\mathcal{N}(0, 1)$ prior places 95% of coefficients within $\pm 2$. In the softmax context, this corresponds to log-odds differences up to $\pm 2$, or probability ratios up to $e^2 \approx 7.4$ per unit feature change. This is moderately informative—it allows substantial feature effects while regularizing against extreme values. For applications where features are expected to have very strong effects on beliefs, a wider prior (e.g., $\mathcal{N}(0, 2)$) may be appropriate.
 :::
 
+::: {.callout-important}
+## Softmax Invariance and Parameter Identifiability
+The softmax function satisfies $\text{softmax}(\mathbf{v}) = \text{softmax}(\mathbf{v} + c \cdot \mathbf{1})$ for any scalar $c$. This means that adding a constant to all rows of $\boldsymbol{\beta}$ produces identical subjective probabilities $\boldsymbol{\psi}$. Consequently, the $K \times D$ matrix $\boldsymbol{\beta}$ has only $(K-1) \times D$ effective degrees of freedom, not $K \times D$.
+
+Two common approaches address this redundancy:
+
+1. **Reference category**: Fix one row of $\boldsymbol{\beta}$ to zero (analogous to multinomial logistic regression)
+2. **Prior regularization**: Place independent priors on all $K \times D$ elements and accept the resulting ridge of constant posterior density
+
+The m_0 model uses approach (2). The $\mathcal{N}(0, 1)$ prior on all elements provides sufficient regularization for Stan's HMC sampler to explore the posterior efficiently. However, when interpreting individual $\beta_{k,d}$ coefficients, remember that only *differences* between rows are identified—the absolute level is arbitrary. For this reason, posterior summaries should focus on contrasts such as $\beta_{k,d} - \beta_{j,d}$ or on the induced probabilities $\boldsymbol{\psi}$.
+:::
+
 ## Utility Parameterization
 
 The abstract formulation required utilities to satisfy:
@@ -364,7 +383,9 @@ The uniform Dirichlet prior is relatively uninformative—it expresses no prefer
 - **Dirichlet with larger concentration** (e.g., all 5's): Concentrates utilities more evenly
 - **Domain-specific**: If consequences have natural ordering with known approximate spacing
 
-The prior predictive analysis in Report 3 examines the implications of this default choice.
+**K-dependence:** While Dirichlet(1) is uniform over the simplex, the *marginal* distribution of individual utilities $\upsilon_k$ depends on $K$. As $K$ grows, the marginal distribution of each increment $\delta_k$ concentrates around $1/(K-1)$, causing interior utilities to cluster toward their expected spacing. For large $K$, a different concentration parameter may better express prior uncertainty about utility spacing.
+
+The prior predictive analysis in [Report 3](03_prior_analysis.qmd) examines the implications of this default choice, and sensitivity to prior specification is discussed there.
 :::
 
 ## Expected Utility and Choice Probabilities
@@ -419,7 +440,23 @@ transformed parameters {
 }
 ```
 
-The padding with zeros handles the ragged array structure—problems can have different numbers of alternatives, but Stan requires fixed array dimensions.
+::: {.callout-note}
+## On the Simplex Declaration with Padding
+The `chi` array is declared as `simplex[max(N)]`, but after padding with zeros, vectors for problems with fewer than `max(N)` alternatives technically violate the simplex constraint (they sum to 1 only over the first $N_m$ elements). Stan permits this because it does not enforce simplex constraints on transformed parameters during sampling—the constraint declaration serves primarily as documentation and for initialization.
+
+This design was chosen over Stan's ragged array features (using `segment()` throughout) for code clarity. The `categorical` distribution correctly handles the padded vectors because observations $y_m$ are validated to never exceed $N_m$ (see the bounds check in transformed data). An alternative implementation could use local vectors without the simplex declaration, but the current approach makes the probabilistic intent clearer.
+:::
+
+::: {.callout-tip}
+## Alternative: log_softmax for Numerical Stability
+For applications where $\alpha$ may be very large, Stan's `log_softmax` function avoids potential overflow. Combined with `categorical_logit`, this yields:
+
+```stan
+y[i] ~ categorical_logit(alpha * problem_eta);
+```
+
+This single statement replaces both the softmax computation and the categorical likelihood with a numerically stable combined operation. The m_0 model uses explicit softmax to expose the intermediate choice probabilities `chi` for posterior predictive checks and interpretability.
+:::
 
 ## Prior Distributions
 
@@ -464,6 +501,63 @@ Each element of the $K \times D$ matrix $\boldsymbol{\beta}$ receives an indepen
 ### Prior on $\boldsymbol{\delta}$: Symmetric Dirichlet
 
 As discussed above, `delta ~ dirichlet(rep_vector(1, K-1))` induces a uniform distribution over valid utility configurations.
+
+## Generated Quantities
+
+The `generated quantities` block computes outputs for model checking and comparison:
+
+```{.stan filename="m_0.stan (generated quantities)"}
+generated quantities {
+  // Log-likelihood for model comparison (LOO-CV)
+  vector[M] log_lik;
+  for (i in 1:M) {
+    log_lik[i] = categorical_lpmf(y[i] | chi[i]);
+  }
+  
+  // Posterior predictive samples
+  array[M] int y_pred;
+  for (i in 1:M) {
+    y_pred[i] = categorical_rng(chi[i]);
+  }
+  
+  // Posterior predictive check statistics
+  // ... (log-likelihood discrepancy, modal accuracy, sum of chosen probabilities)
+}
+```
+
+**Quantities computed:**
+
+- `log_lik`: Pointwise log-likelihood for each observation, used for approximate leave-one-out cross-validation (LOO-CV) via the `loo` package
+- `y_pred`: Posterior predictive samples—simulated choices under the fitted model
+- PPC statistics: Log-likelihood discrepancy, modal choice accuracy, and sum of chosen probabilities for calibration checking
+
+These quantities are used in [Report 6](06_sbc_validation.qmd) for simulation-based calibration and posterior predictive checks.
+
+## Computational Considerations
+
+For users adapting or extending the model, several computational aspects are worth noting.
+
+### Numerical Stability
+
+For very large $\alpha$, the softmax computation $\text{softmax}(\alpha \cdot \boldsymbol{\eta})$ can overflow. Stan's `log_softmax` function is numerically stable for such cases:
+
+```stan
+// Alternative: Use log_softmax for numerical stability
+vector[N[i]] log_chi = log_softmax(alpha * problem_eta);
+// Then use categorical_logit_lpmf in the model block
+```
+
+The `categorical_logit` distribution combines log-softmax with the categorical likelihood in a single stable computation. The current implementation uses standard softmax because typical posterior draws for $\alpha$ remain in a numerically safe range.
+
+### Scaling Properties
+
+- **Memory**: Linear in $M \cdot K + R \cdot D + K \cdot D$ (data plus parameters)
+- **Time per gradient**: Dominated by the $M$ loop over decision problems; each iteration involves softmax operations that scale as $O(K)$ and $O(N_m)$
+- **Overall**: For typical problem sizes ($M \sim 100$--$1000$, $K \sim 3$--$10$, $D \sim 2$--$10$), fitting takes seconds to minutes
+
+### Vectorization
+
+The current implementation uses loops for clarity. The softmax computations could potentially be vectorized for large $M$, but the gains are modest because Stan's autodiff is already efficient for simple loops. For very large datasets, consider working with sufficient statistics or subsampling approaches.
 
 ## Summary
 

@@ -81,6 +81,19 @@ print(f"  Distinct alternatives (R): {config['R']}")
 print(f"  Alternatives per problem: {config['min_alts_per_problem']}-{config['max_alts_per_problem']}")
 ```
 
+::: {.callout-note}
+## Design Rationale
+The dimensions are chosen purposefully:
+
+- **K=3 consequences**: The minimal interesting case for ordered utilities, allowing meaningful intermediate preferences
+- **D=5 features**: Provides sufficient variation for diverse feature-to-probability mappings without excessive dimensionality
+- **M=25 problems**: Represents a plausible small-study scenario with reasonable statistical power
+- **R=15 alternatives**: Creates varied choice sets while keeping computational burden manageable
+- **2–5 alternatives per problem**: Reflects realistic variation in typical behavioral experiments
+
+Note that prior predictive distributions depend on study design; different designs may yield different behavioral ranges. Report 4 examines whether this design supports accurate parameter recovery.
+:::
+
 ```{python}
 #| label: generate-study-design
 #| output: false
@@ -163,13 +176,20 @@ import tempfile
 # Create a temporary output directory for this analysis
 output_dir = tempfile.mkdtemp(prefix="prior_pred_")
 
+# Prior predictive configuration
+# - 200 parameter configurations: sufficient for central statistics (MC SE ≈ 0.04 at SD=1)
+# - 5 choice samples per config: captures choice variability given parameters
+# - Total: 1,000 samples for behavioral diagnostics
+n_param_samples = 200
+n_choice_samples = 5
+
 # Run prior predictive analysis using m_0_sim.stan
 analysis = PriorPredictiveAnalysis(
     model_path=None,  # Uses default m_0_sim.stan
     study_design=study,
     output_dir=output_dir,
-    n_param_samples=200,    # Number of parameter configurations
-    n_choice_samples=5      # Choice samples per parameter config
+    n_param_samples=n_param_samples,
+    n_choice_samples=n_choice_samples
 )
 
 # Run the analysis (this calls Stan)
@@ -225,9 +245,14 @@ axes[1].legend()
 plt.tight_layout()
 plt.show()
 
-print(f"\nAlpha summary statistics:")
-print(f"  Mean: {np.mean(alpha_samples):.2f}")
-print(f"  Median: {np.median(alpha_samples):.2f}")
+# Compute Monte Carlo standard errors
+n_alpha = len(alpha_samples)
+mc_se_mean = np.std(alpha_samples) / np.sqrt(n_alpha)
+mc_se_median = 1.253 * np.std(alpha_samples) / np.sqrt(n_alpha)  # Asymptotic SE for median
+
+print(f"\nAlpha summary statistics (n={n_alpha} samples):")
+print(f"  Mean: {np.mean(alpha_samples):.2f} (MC SE: {mc_se_mean:.2f})")
+print(f"  Median: {np.median(alpha_samples):.2f} (MC SE: {mc_se_median:.2f})")
 print(f"  Std: {np.std(alpha_samples):.2f}")
 print(f"  95% interval: [{np.percentile(alpha_samples, 2.5):.2f}, {np.percentile(alpha_samples, 97.5):.2f}]")
 ```
@@ -346,7 +371,7 @@ print(f"  Std: {np.std(all_betas):.3f}")
 print(f"  95% interval: [{np.percentile(all_betas, 2.5):.2f}, {np.percentile(all_betas, 97.5):.2f}]")
 ```
 
-The prior on $\boldsymbol{\beta}$ is deliberately uninformative—it does not favor any particular feature-consequence relationship. This allows the data to determine how features predict consequences.
+The prior on $\boldsymbol{\beta}$ is deliberately uninformative—it does not favor any particular feature-consequence relationship. This allows the data to determine how features predict consequences. See [Report 2](02_concrete_implementation.qmd) for the interpretation of the $\text{Normal}(0,1)$ prior in terms of odds ratios (log-odds differences up to $\pm 2$, corresponding to probability ratios up to $e^2 \approx 7.4$).
 
 ### Subjective Probabilities Over Consequences ($\boldsymbol{\psi}$)
 
@@ -718,6 +743,25 @@ The simulations confirm the three properties from Report 1:
 2. **Perfect rationality limit**: Very high $\alpha$ → near-deterministic SEU max selection ✓
 3. **Random choice limit**: Very low $\alpha$ → near-uniform choice ✓
 
+## Prior Hyperparameter Sensitivity
+
+::: {.callout-note}
+## Scope Limitation
+This report examines the prior predictive distribution under the **default** hyperparameters: $\text{Lognormal}(0, 1)$ for $\alpha$, $\text{Normal}(0, 1)$ for $\boldsymbol{\beta}$, and $\text{Dirichlet}(1, \ldots, 1)$ for $\boldsymbol{\delta}$. A complete prior sensitivity analysis—varying these hyperparameters to examine how the prior predictive distribution responds—is beyond scope here but is an important consideration for applied work.
+
+The most impactful hyperparameter is the scale of the lognormal prior on $\alpha$. Reducing the scale (e.g., $\text{Lognormal}(0, 0.5)$) would concentrate mass on moderate sensitivity and reduce the probability of extreme near-random or near-deterministic behaviors. Increasing the scale (e.g., $\text{Lognormal}(0, 2)$) would spread mass more widely, placing more probability on extreme behaviors. Practitioners should adjust this based on domain knowledge about the expected range of sensitivity in their application.
+:::
+
+## Detecting Prior-Data Conflict
+
+The prior predictive analysis establishes what behaviors are *a priori* plausible. When data arrives, we can check for **prior-data conflict**—situations where the observed data lies in a region assigned low prior predictive probability. Key indicators would include:
+
+- **SEU maximizer selection rate** outside the prior predictive 95% interval (approximately 20%–90% under default priors)
+- **Choice entropy** substantially higher or lower than the prior predictive range
+- **Observed $\hat{\alpha}$** falling in the extreme tails of the Lognormal(0,1) prior (e.g., $\alpha < 0.05$ or $\alpha > 20$)
+
+Such conflicts would suggest either (a) the priors are poorly calibrated for the application domain, or (b) the model is misspecified. Either warrants further investigation before trusting posterior inferences.
+
 ## Summary
 
 The prior predictive analysis using `m_0_sim.stan` reveals that the default priors for model m_0 produce a sensible range of choice behaviors:
@@ -749,10 +793,12 @@ The [next report](04_parameter_recovery.qmd) examines whether this design suppor
 
 # Clean up temporary directory
 import shutil
+import logging
+
 try:
     shutil.rmtree(output_dir)
-except:
-    pass
+except OSError as e:
+    logging.warning(f"Failed to clean up temporary directory {output_dir}: {e}")
 ```
 
 ## References

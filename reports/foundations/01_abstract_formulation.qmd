@@ -63,9 +63,16 @@ $$
 P(\text{choose } r \mid \alpha, V) = \frac{\exp(\alpha \cdot V(r))}{\sum_{j \in \mathcal{R}} \exp(\alpha \cdot V(j))}
 $$ {#eq-softmax}
 
-This functional form has historical precedents in several research traditions. Luce [@luce1959] derived a ratio-scale choice rule from axiomatic foundations, working with abstract "scale values" rather than utilities per se. McFadden [@mcfadden1974] arrived at the same functional form from random utility theory in econometrics. The rule also appears in statistical mechanics as the Boltzmann distribution, where the sensitivity parameter is called inverse temperature. We adopt the term "softmax" from machine learning, where this transformation is ubiquitous.
+This functional form has historical precedents in several research traditions. Luce [@luce1959] derived a ratio-scale choice rule from axiomatic foundations, working with abstract "scale values" rather than utilities per se—importantly, Luce's scale values are determined only up to a common multiplicative constant, a point that connects directly to the scale invariance discussed in @sec-scale-invariance. McFadden [@mcfadden1974] arrived at the same functional form from random utility theory in econometrics. The rule also appears in statistical mechanics as the Boltzmann distribution, where the sensitivity parameter is called inverse temperature. We adopt the term "softmax" from machine learning, where this transformation is ubiquitous.
 
 The sensitivity parameter $\alpha$ controls how deterministically choices track value differences.
+
+::: {.callout-note}
+## Parameter Space for α
+While the limiting behavior at $\alpha = 0$ yields uniform choice (Property 3), in practice $\alpha \in (0, \infty)$. The lognormal prior used in subsequent reports assigns probability zero to $\alpha = 0$, so uniform choice is a limiting behavior, not an attainable parameter value. The Stan constraint `real<lower=0> alpha` technically permits $\alpha = 0$, but the prior effectively restricts to strictly positive values.
+:::
+
+In statistical mechanics, the sensitivity parameter is called *inverse temperature*, often written as $\beta = 1/T$. The temperature parameterization $T \to \infty$ corresponds to $\alpha \to 0$ (high temperature = random choice), while $T \to 0$ corresponds to $\alpha \to \infty$ (low temperature = deterministic optimization). We adopt $\alpha$ rather than $T$ throughout this report series because higher $\alpha$ corresponds to higher sensitivity—a more intuitive direction for interpretation.
 
 In our Stan implementations, this corresponds to `chi[m] = softmax(alpha * eta_m)` where `eta_m` contains the expected utilities of alternatives available in problem $m$.
 
@@ -77,7 +84,7 @@ This rule has several appealing properties:
 
 ```{python}
 #| label: fig-softmax-demo
-#| fig-cap: "Softmax choice probabilities for three alternatives with values η = (0.2, 0.5, 0.8) as sensitivity α varies. In the m_0 model, these values represent expected utilities computed as η = ψᵀυ."
+#| fig-cap: "Softmax choice probabilities for three alternatives with values V = (0.2, 0.5, 0.8) as sensitivity α varies. When values represent subjective expected utilities (SEU), V = η = ψᵀυ."
 
 # Demonstrate softmax with varying alpha
 values = np.array([0.2, 0.5, 0.8])
@@ -86,7 +93,7 @@ alphas = np.linspace(0.01, 10, 100)
 probs = np.array([softmax(a * values) for a in alphas])
 
 fig, ax = plt.subplots(figsize=(8, 5))
-for i, label in enumerate(['η=0.2 (low)', 'η=0.5 (medium)', 'η=0.8 (high)']):
+for i, label in enumerate(['V=0.2 (low)', 'V=0.5 (medium)', 'V=0.8 (high)']):
     ax.plot(alphas, probs[:, i], label=label, linewidth=2)
 
 ax.axhline(y=1/3, color='gray', linestyle='--', alpha=0.5, label='Uniform (α→0)')
@@ -297,6 +304,8 @@ $$
 $$
 
 As $\alpha \to 0$: $\log P(r) \to -\log|\mathcal{R}|$, hence $P(r) \to 1/|\mathcal{R}|$. $\blacksquare$
+
+*Remark: The alternative derivation via logarithms uses the fact that $\log(\sum_j \exp(x_j))$ — the log-sum-exp function — is the cumulant generating function for a discrete uniform distribution, whose expansion near zero is well-characterized.*
 :::
 
 ### Summary: The Three Properties
@@ -383,7 +392,7 @@ $$
 \chi_{m,r} = \frac{\exp(\alpha \cdot \eta_r)}{\sum_{j: I_{m,j}=1} \exp(\alpha \cdot \eta_j)}
 $$
 
-where $I_{m,r} = 1$ indicates that alternative $r$ is available in problem $m$.
+where $I_{m,r} \in \{0, 1\}$ is an indicator variable: $I_{m,r} = 1$ if alternative $r$ is available in problem $m$, and $I_{m,r} = 0$ otherwise. This notation allows different choice problems to present different subsets of alternatives to the decision maker.
 :::
 
 **Key observation:** The expected utility $\eta_r$ serves as our value function $V(r) = \eta_r$. Therefore, all three properties proved above apply immediately.
@@ -402,6 +411,11 @@ Holding utilities $\boldsymbol{\upsilon}$ and beliefs $\boldsymbol{\psi}$ fixed,
 As $\alpha \to \infty$, the decision maker chooses uniformly among SEU-maximizing alternatives (those with highest $\eta$) with probability 1. When there is a unique maximizer, choice becomes deterministic.
 :::
 
+::: {.callout-note}
+## Remark on Ties
+The corollaries above handle the case of ties (multiple alternatives with equal maximal expected utility $\eta$). However, ties have measure zero under the continuous prior distributions used in subsequent reports. When utilities and beliefs are drawn from continuous distributions, the probability that two distinct alternatives yield exactly equal expected utility is zero. Thus, the single-maximizer case—where one alternative uniquely maximizes $\eta$—is generic.
+:::
+
 ::: {.callout-note appearance="minimal"}
 ## Corollary 3 (Random Choice)
 As $\alpha \to 0$, the decision maker chooses uniformly at random over available alternatives, independent of $\eta$ values.
@@ -417,7 +431,7 @@ While the mathematical properties of softmax choice hold for any value function,
 
 3. **Empirical predictions**: The model predicts that choices will track $\eta$, providing testable restrictions
 
-## Scale Invariance and Representation
+## Scale Invariance and Representation {#sec-scale-invariance}
 
 ### The Representation Problem
 
@@ -537,6 +551,8 @@ P(\text{choose } r \mid \alpha, V) = O\left(e^{-\alpha \Delta}\right) \quad \tex
 $$
 
 Convergence to the optimality limit is exponential with rate $\Delta$.
+
+*Remark: When $\mathcal{R}^* = \mathcal{R}$ (all alternatives have equal value), the set $\mathcal{R}^- = \mathcal{R} \setminus \mathcal{R}^*$ is empty, so $\Delta$ is undefined. In this trivial case, convergence is achieved instantly: $P(r) = 1/|\mathcal{R}|$ for all $\alpha$.*
 :::
 
 ::: {.callout-tip collapse="true"}
@@ -631,7 +647,7 @@ This is not a model of rational agents in the classical sense. SEU maximization�
 
 ### A Conceptual Lens: Commitment and Performance
 
-A useful conceptual lens comes from Isaac Levi's distinction between **commitment** and **performance** [@levi1980]. We may be committed to standards we fail to perform up to. Most of us are committed to the laws of arithmetic despite occasionally making calculation errors; the errors are failures of performance, not rejections of the standard.
+A useful conceptual lens comes from Isaac Levi's distinction between **commitment** and **performance** [@levi1980, Chapter 1]. We may be committed to standards we fail to perform up to. Most of us are committed to the laws of arithmetic despite occasionally making calculation errors; the errors are failures of performance, not rejections of the standard.
 
 If we take SEU theory as specifying the decision maker's normative commitments, then $\alpha$ measures their **tendency to perform in accordance with those commitments**. This framing preserves SEU as normatively fundamental while allowing systematic departures in observed behavior.
 
@@ -641,7 +657,7 @@ Our framework differs from Levi's in important ways:
 
 - **Probabilistic vs. algebraic theories.** Following Luce's [@luce1959] distinction, our framework is a *probabilistic* theory of choice—it specifies a probability distribution over choices given the decision problem. Levi's framework is more aligned with *algebraic* theories that characterize rational choice through axioms on preference orderings rather than stochastic choice rules.
 
-- **SEU as the normative standard.** Levi famously rejected subjective expected utility theory as the standard of rational choice, instead advocating for generalizations that accommodate indeterminate probabilities and utilities [@levi1980]. Our framework, by contrast, takes SEU maximization as the normative standard and models departures from it through the sensitivity parameter $\alpha$.
+- **SEU as the normative standard.** Levi famously rejected subjective expected utility theory as the standard of rational choice, instead advocating for generalizations that accommodate indeterminate probabilities and utilities [see @levi1986, for his critique of precise probability]. Our framework, by contrast, takes SEU maximization as the normative standard and models departures from it through the sensitivity parameter $\alpha$.
 
 ## Summary
 
@@ -659,6 +675,15 @@ Additionally, we characterized the rates at which these limits are approached:
 These properties hold for any value function $V$. When $V$ is taken to be subjective expected utility, the framework provides a model of decision-making that interpolates between random choice and SEU maximization, with $\alpha$ governing the degree of sensitivity to expected utility differences.
 
 The standardization of utilities to $[0,1]$ fixes a representation from the equivalence class of utility functions, making $\alpha$ interpretable as sensitivity to standardized expected utility differences.
+
+### Looking Ahead
+
+This report establishes the theoretical scaffolding for the series. Subsequent reports build on these foundations:
+
+- **Report 2 (Concrete Implementation)** translates this abstract framework into Stan code, specifying priors and the full generative model.
+- **Report 3 (Prior Predictive Analysis)** examines the implications of our prior choices before seeing data.
+- **Report 4 (Parameter Recovery)** tests whether the model can reliably recover known parameter values from simulated data.
+- **Reports 5–7** extend the framework to include risky alternatives, validate via simulation-based calibration, and generalize the sensitivity structure.
 
 ## References
 

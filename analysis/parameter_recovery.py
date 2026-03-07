@@ -86,7 +86,8 @@ class ParameterRecovery:
         output_dir=None,
         n_mcmc_samples=2000,
         n_mcmc_chains=4,
-        n_iterations=20  # Number of simulation-recovery iterations
+        n_iterations=20,  # Number of simulation-recovery iterations
+        sim_hyperparams=None  # Override default sim hyperparameters
     ):
         """
         Initialize the parameter recovery analysis.
@@ -103,6 +104,9 @@ class ParameterRecovery:
             n_mcmc_samples (int): Number of posterior samples to draw per chain.
             n_mcmc_chains (int): Number of MCMC chains to run.
             n_iterations (int): Number of simulation-recovery iterations to perform.
+            sim_hyperparams (dict, optional): Override default simulation hyperparameters
+                (e.g. {'alpha_mean': 3.0, 'alpha_sd': 0.75} for m_01).
+                Only keys present in the model's required hyperparameters are applied.
         """
         # Set default model paths if not provided
         if inference_model_path is None:
@@ -125,6 +129,7 @@ class ParameterRecovery:
         self.n_mcmc_samples = n_mcmc_samples
         self.n_mcmc_chains = n_mcmc_chains
         self.n_iterations = n_iterations
+        self.sim_hyperparams = sim_hyperparams or {}
         
         # Set default output directory if not provided
         if output_dir is None:
@@ -183,6 +188,10 @@ class ParameterRecovery:
         required_hyperparams = get_model_sim_hyperparams(model_name)
         for hp in required_hyperparams:
             sim_data[hp] = DEFAULT_PARAM_GENERATION.get(hp, 1.0)
+        # Apply caller-supplied overrides (e.g. m_01 calibrated prior)
+        for hp in required_hyperparams:
+            if hp in self.sim_hyperparams:
+                sim_data[hp] = self.sim_hyperparams[hp]
         
         # Create structures to store results across iterations
         all_true_params = []

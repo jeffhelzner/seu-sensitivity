@@ -229,6 +229,470 @@ The selected prior $\text{Lognormal}(3.0, 0.75)$ has the following properties:
 The m_0 prior $\text{Lognormal}(0, 1)$ was designed for generality in simulation studies. Its median of $\approx 1$ means most prior mass sits in a regime where choices are nearly random—appropriate for exploring model behavior, but a poor match for LLM data where we observe strong EU-alignment. With the actual study design ($M = 300$, $D = 32$), the foundational prior also places non-negligible mass on very large $\alpha$ values that cause numerical overflow in the softmax computation. The m_01 prior resolves both issues.
 :::
 
+## Model Validation {#sec-validation}
+
+Before fitting the model to empirical data, we validate that m_01's parameters are identifiable and its posterior is well-calibrated under the actual study design ($M = 300$, $K = 3$, $D = 32$, $R = 30$). The foundational reports ([Report 4](../../foundations/04_parameter_recovery.qmd), [Report 6](../../foundations/06_sbc_validation.qmd)) established these properties for m_0 with a smaller design ($M = 25$, $D = 5$); here we confirm they hold at the scale and prior specification used in this study.
+
+```{python}
+#| label: validation-setup
+#| output: false
+
+from utils.study_design import StudyDesign
+
+# Load the actual study design from stan_data (any temperature — the design is identical)
+with open(data_dir / "stan_data_T0_0.json") as f:
+    stan_data = json.load(f)
+
+# Construct a StudyDesign from the actual study data
+study = StudyDesign(
+    M=stan_data["M"],
+    K=stan_data["K"],
+    D=stan_data["D"],
+    R=stan_data["R"]
+)
+study.w = [np.array(w_vec) for w_vec in stan_data["w"]]
+study.I = np.array(stan_data["I"])
+
+print(f"Validation Study Design (from frozen data):")
+print(f"  Decision problems (M): {study.M}")
+print(f"  Consequences (K):      {study.K}")
+print(f"  Feature dimensions (D): {study.D}")
+print(f"  Distinct alternatives (R): {study.R}")
+```
+
+### Parameter Recovery {#sec-parameter-recovery}
+
+Parameter recovery asks: **can we recover known parameter values from simulated data?** We draw parameters from the m_01 prior, simulate choice data via `m_01_sim.stan`, fit `m_01.stan`, and compare posterior estimates to the true values across 20 iterations.
+
+```{python}
+#| label: run-param-recovery
+#| output: false
+
+from analysis.parameter_recovery import ParameterRecovery
+import tempfile
+
+recovery_dir = tempfile.mkdtemp(prefix="param_recovery_m01_")
+
+recovery = ParameterRecovery(
+    inference_model_path=os.path.join(project_root, "models", "m_01.stan"),
+    sim_model_path=os.path.join(project_root, "models", "m_01_sim.stan"),
+    study_design=study,
+    output_dir=recovery_dir,
+    n_mcmc_samples=1000,
+    n_mcmc_chains=4,
+    n_iterations=20,
+    sim_hyperparams={'alpha_mean': 3.0, 'alpha_sd': 0.75}
+)
+
+true_params_list, posterior_summaries = recovery.run()
+```
+
+```{python}
+#| label: recovery-summary
+#| echo: false
+
+n_successful = len(true_params_list)
+print(f"Parameter Recovery Complete:")
+print(f"  Successful iterations: {n_successful}")
+print(f"  Parameters per iteration:")
+print(f"    α (sensitivity): 1")
+print(f"    β (feature weights): {study.K} × {study.D} = {study.K * study.D}")
+print(f"    δ (utility increments): {study.K - 1}")
+```
+
+#### MCMC Diagnostics
+
+```{python}
+#| label: recovery-mcmc-diagnostics
+#| echo: false
+
+rhat_max_list = []
+ess_min_list = []
+
+ess_col = None
+sample_cols = posterior_summaries[0].columns
+for candidate in ['ESS_bulk', 'N_Eff', 'ESS']:
+    if candidate in sample_cols:
+        ess_col = candidate
+        break
+
+for s in posterior_summaries:
+    param_rows = s[s.index.str.match(r'^(alpha|beta\[|delta\[|upsilon\[)')]
+    if 'R_hat' in param_rows.columns:
+        rhat_max_list.append(param_rows['R_hat'].max())
+    if ess_col is not None and ess_col in param_rows.columns:
+        ess_min_list.append(param_rows[ess_col].min())
+
+rhat_max = np.array(rhat_max_list)
+ess_min = np.array(ess_min_list)
+
+print("MCMC Diagnostic Summary Across Recovery Iterations:")
+print(f"  Max R̂ per iteration:")
+print(f"    Median: {np.median(rhat_max):.4f}")
+print(f"    Maximum: {rhat_max.max():.4f}")
+print(f"    Iterations with max R̂ > 1.01: {(rhat_max > 1.01).sum()}/{len(rhat_max)}")
+if len(ess_min) > 0:
+    print(f"  Min ESS ({ess_col}) per iteration:")
+    print(f"    Median: {np.median(ess_min):.0f}")
+    print(f"    Minimum: {ess_min.min():.0f}")
+```
+
+#### α Recovery
+
+```{python}
+#| label: fig-alpha-recovery
+#| fig-cap: "Recovery of the sensitivity parameter α under the m_01 prior with the actual study design. Left: true vs. estimated values with identity line. Right: 90% credible intervals for each iteration, colored by whether they contain the true value."
+
+alpha_true = np.array([p['alpha'] for p in true_params_list])
+alpha_mean = np.array([s.loc['alpha', 'Mean'] for s in posterior_summaries])
+alpha_lower = np.array([s.loc['alpha', '5%'] for s in posterior_summaries])
+alpha_upper = np.array([s.loc['alpha', '95%'] for s in posterior_summaries])
+
+alpha_bias = np.mean(alpha_mean - alpha_true)
+alpha_rmse = np.sqrt(np.mean((alpha_mean - alpha_true)**2))
+alpha_coverage = np.mean((alpha_true >= alpha_lower) & (alpha_true <= alpha_upper))
+alpha_ci_width = np.mean(alpha_upper - alpha_lower)
+
+fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+# True vs Estimated
+ax = axes[0]
+ax.scatter(alpha_true, alpha_mean, alpha=0.7, s=60, c=SEU_COLORS['primary'], edgecolor='white')
+lims = [min(alpha_true.min(), alpha_mean.min()) * 0.9,
+        max(alpha_true.max(), alpha_mean.max()) * 1.1]
+ax.plot(lims, lims, 'r--', linewidth=2, label='Identity line')
+ax.set_xlim(lims)
+ax.set_ylim(lims)
+ax.set_xlabel('True α', fontsize=12)
+ax.set_ylabel('Estimated α (posterior mean)', fontsize=12)
+ax.set_title(f'α Recovery: Bias={alpha_bias:.2f}, RMSE={alpha_rmse:.2f}', fontsize=12)
+ax.legend()
+ax.set_aspect('equal')
+
+# Coverage plot
+ax = axes[1]
+for i in range(len(alpha_true)):
+    covered = (alpha_true[i] >= alpha_lower[i]) & (alpha_true[i] <= alpha_upper[i])
+    color = 'forestgreen' if covered else 'crimson'
+    ax.plot([i, i], [alpha_lower[i], alpha_upper[i]], color=color, linewidth=2, alpha=0.7)
+    ax.scatter(i, alpha_mean[i], color=color, s=40, zorder=3)
+
+ax.scatter(np.arange(len(alpha_true)), alpha_true, color='black', s=60, marker='x',
+           label='True value', zorder=4, linewidth=2)
+ax.set_xlabel('Iteration', fontsize=12)
+ax.set_ylabel('α', fontsize=12)
+ax.set_title(f'α: 90% Credible Intervals (Coverage = {alpha_coverage:.0%})', fontsize=12)
+ax.legend()
+ax.grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+```
+
+#### Recovery Metrics Summary
+
+```{python}
+#| label: tbl-recovery-metrics
+#| tbl-cap: "Parameter recovery metrics for m_01 with the actual study design (M=300, K=3, D=32, R=30). The primary parameter of interest is α."
+
+import pandas as pd
+
+K, D = study.K, study.D
+
+# Beta recovery
+all_beta_bias = []
+all_beta_rmse = []
+all_beta_coverage = []
+all_beta_ci_width = []
+
+for k in range(K):
+    for d in range(D):
+        param_name = f"beta[{k+1},{d+1}]"
+        bt = np.array([p['beta'][k][d] for p in true_params_list])
+        bm = np.array([s.loc[param_name, 'Mean'] for s in posterior_summaries])
+        bl = np.array([s.loc[param_name, '5%'] for s in posterior_summaries])
+        bu = np.array([s.loc[param_name, '95%'] for s in posterior_summaries])
+
+        all_beta_bias.append(np.mean(bm - bt))
+        all_beta_rmse.append(np.sqrt(np.mean((bm - bt)**2)))
+        all_beta_coverage.append(np.mean((bt >= bl) & (bt <= bu)))
+        all_beta_ci_width.append(np.mean(bu - bl))
+
+# Delta recovery
+all_delta_bias = []
+all_delta_rmse = []
+all_delta_coverage = []
+all_delta_ci_width = []
+
+for k in range(K - 1):
+    param_name = f"delta[{k+1}]"
+    dt = np.array([p['delta'][k] for p in true_params_list])
+    dm = np.array([s.loc[param_name, 'Mean'] for s in posterior_summaries])
+    dl = np.array([s.loc[param_name, '5%'] for s in posterior_summaries])
+    du = np.array([s.loc[param_name, '95%'] for s in posterior_summaries])
+
+    all_delta_bias.append(np.mean(dm - dt))
+    all_delta_rmse.append(np.sqrt(np.mean((dm - dt)**2)))
+    all_delta_coverage.append(np.mean((dt >= dl) & (dt <= du)))
+    all_delta_ci_width.append(np.mean(du - dl))
+
+metrics = pd.DataFrame([
+    {'Parameter': 'α', 'Bias': f'{alpha_bias:.3f}', 'RMSE': f'{alpha_rmse:.3f}',
+     'Coverage (90%)': f'{alpha_coverage:.0%}', 'Mean CI Width': f'{alpha_ci_width:.2f}'},
+    {'Parameter': f'β (mean over {K*D})', 'Bias': f'{np.mean(all_beta_bias):.3f}',
+     'RMSE': f'{np.mean(all_beta_rmse):.3f}',
+     'Coverage (90%)': f'{np.mean(all_beta_coverage):.0%}',
+     'Mean CI Width': f'{np.mean(all_beta_ci_width):.2f}'},
+    {'Parameter': f'δ (mean over {K-1})', 'Bias': f'{np.mean(all_delta_bias):.3f}',
+     'RMSE': f'{np.mean(all_delta_rmse):.3f}',
+     'Coverage (90%)': f'{np.mean(all_delta_coverage):.0%}',
+     'Mean CI Width': f'{np.mean(all_delta_ci_width):.2f}'},
+])
+metrics
+```
+
+::: {.callout-note}
+## Interpreting Recovery Results
+The primary parameter of interest is α (sensitivity). If α shows low bias, good RMSE, and approximately 90% coverage, the model is fit for purpose. The β–δ coupling issue documented in the foundational reports ([Report 4](../../foundations/04_parameter_recovery.qmd)) is expected to persist—δ recovery benefits from additional identifying information (e.g., risky choices) that is not present in m_01. Since this study focuses on α estimation, the weaker recovery of (β, δ) does not compromise the primary analysis.
+:::
+
+### Simulation-Based Calibration {#sec-sbc}
+
+SBC complements parameter recovery by asking whether the posterior **correctly represents uncertainty**. Rather than evaluating point estimates, SBC checks that the true parameter value occupies a *uniform* rank position within the posterior samples across many simulations. Non-uniformity indicates that the posterior is miscalibrated—too wide, too narrow, or biased.
+
+```{python}
+#| label: sbc-config
+#| echo: true
+
+# SBC configuration.
+# With M=300 and D=32 each fit is expensive, so we use 200 simulations
+# (vs 999 in the foundational reports). With 20 bins this gives ~10
+# expected counts per bin — sufficient for meaningful rank histograms
+# and KS tests, though chi-square power is modest.
+n_sbc_sims = 200
+n_sbc_chains = 1
+sbc_thin = 4
+n_sbc_samples = sbc_thin * n_sbc_sims   # 800 total draws → 200 post-thinned
+sbc_max_rank = n_sbc_samples // sbc_thin  # 200 (= L)
+sbc_n_bins = 20
+sbc_expected_per_bin = n_sbc_sims / sbc_n_bins
+
+print("SBC Configuration:")
+print(f"  Simulations (N):        {n_sbc_sims}")
+print(f"  MCMC samples per sim:   {n_sbc_samples}")
+print(f"  Chains:                 {n_sbc_chains}")
+print(f"  Thinning factor:        {sbc_thin}")
+print(f"  Post-thinned draws (L): {sbc_max_rank}")
+print(f"  Histogram bins:         {sbc_n_bins}")
+print(f"  Expected counts/bin:    {sbc_expected_per_bin:.1f}")
+```
+
+```{python}
+#| label: run-sbc
+#| output: false
+
+from analysis.sbc import SimulationBasedCalibration
+
+sbc_dir = tempfile.mkdtemp(prefix="sbc_m01_")
+
+sbc = SimulationBasedCalibration(
+    sbc_model_path=os.path.join(project_root, "models", "m_01_sbc.stan"),
+    study_design=study,
+    output_dir=sbc_dir,
+    n_sbc_sims=n_sbc_sims,
+    n_mcmc_samples=n_sbc_samples,
+    n_mcmc_chains=n_sbc_chains,
+    thin=sbc_thin
+)
+
+ranks, true_params_sbc = sbc.run()
+```
+
+```{python}
+#| label: sbc-summary
+#| echo: false
+
+print(f"SBC Complete:")
+print(f"  Simulations: {ranks.shape[0]}")
+print(f"  Parameters: {ranks.shape[1]}")
+```
+
+#### MCMC Diagnostics
+
+```{python}
+#| label: sbc-mcmc-diagnostics
+#| echo: false
+
+def load_sbc_diagnostics(output_dir, n_inspect=10):
+    """Load ESS from saved SBC posterior summaries."""
+    ess_per_sim = []
+    for i in range(1, n_inspect + 1):
+        csv_path = os.path.join(output_dir, "simulations", f"sim_{i}", "posterior_summary.csv")
+        if os.path.exists(csv_path):
+            df = pd.read_csv(csv_path, index_col=0)
+            ess_col = None
+            for col in ['N_Eff', 'ESS_bulk', 'ess_bulk']:
+                if col in df.columns:
+                    ess_col = col
+                    break
+            if ess_col is not None:
+                param_rows = df[~df.index.str.startswith(('lp', 'energy', 'pars_', 'ranks_'))]
+                ess_vals = param_rows[ess_col].dropna().values
+                if len(ess_vals) > 0:
+                    ess_per_sim.append({
+                        'sim': i,
+                        'min_ess': np.min(ess_vals),
+                        'median_ess': np.median(ess_vals),
+                    })
+    return ess_per_sim
+
+sbc_ess = load_sbc_diagnostics(sbc_dir)
+
+print("SBC MCMC Diagnostics (from first 10 iterations):")
+if sbc_ess:
+    min_ess = min(d['min_ess'] for d in sbc_ess)
+    median_ess = np.median([d['median_ess'] for d in sbc_ess])
+    print(f"  Minimum ESS across all params/sims: {min_ess:.0f}")
+    print(f"  Median ESS (across sims):           {median_ess:.0f}")
+    print(f"  Post-thinning draws:                {n_sbc_samples // sbc_thin}")
+    print(f"  ESS/draw ratio:                     {median_ess / n_sbc_samples:.2f}")
+else:
+    print("  Diagnostic summaries not available.")
+```
+
+#### α Rank Distribution
+
+```{python}
+#| label: fig-sbc-alpha
+#| fig-cap: "SBC rank histogram and ECDF for α under the m_01 prior with the actual study design. Left: rank histogram (uniform = well-calibrated). Right: ECDF with 95% KS confidence band."
+
+from scipy import stats
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 4.5))
+
+expected_count = n_sbc_sims / sbc_n_bins
+
+# Rank histogram
+ax = axes[0]
+ax.hist(ranks[:, 0], bins=sbc_n_bins, alpha=0.7, color=SEU_COLORS['primary'], edgecolor='white')
+ax.axhline(y=expected_count, color='red', linestyle='--', linewidth=2,
+           label=f'Uniform (E={expected_count:.1f})')
+ax.set_xlabel('Rank', fontsize=11)
+ax.set_ylabel('Count', fontsize=11)
+ax.set_title('α Rank Histogram', fontsize=12)
+ax.legend()
+ax.grid(True, alpha=0.3)
+
+# ECDF
+ax = axes[1]
+ranks_norm = np.sort(ranks[:, 0]) / sbc_max_rank
+ecdf = np.arange(1, len(ranks_norm) + 1) / len(ranks_norm)
+ax.step(ranks_norm, ecdf, where='post', color=SEU_COLORS['primary'], linewidth=2, label='m_01')
+ax.plot([0, 1], [0, 1], 'r--', linewidth=2, label='Uniform')
+
+n_ecdf = len(ecdf)
+epsilon = np.sqrt(np.log(2/0.05) / (2 * n_ecdf))
+ax.fill_between([0, 1], [0-epsilon, 1-epsilon], [0+epsilon, 1+epsilon],
+                alpha=0.15, color='red', label=f'95% KS band (ε={epsilon:.3f})')
+
+ax.set_xlabel('Normalized Rank', fontsize=11)
+ax.set_ylabel('ECDF', fontsize=11)
+ax.set_title('α ECDF', fontsize=12)
+ax.legend(fontsize=9)
+ax.set_xlim(0, 1)
+ax.set_ylim(0, 1)
+ax.grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+
+# Formal tests
+chi2_alpha, p_alpha = stats.chisquare(np.histogram(ranks[:, 0], bins=sbc_n_bins)[0])
+ks_alpha, ks_p_alpha = stats.kstest(ranks[:, 0] / sbc_max_rank, 'uniform')
+print(f"\nα Calibration Tests:")
+print(f"  Chi-square: χ² = {chi2_alpha:.2f}, p = {p_alpha:.3f}")
+print(f"  KS test:    D = {ks_alpha:.3f}, p = {ks_p_alpha:.3f}")
+```
+
+#### δ Rank Distributions
+
+```{python}
+#| label: fig-sbc-delta
+#| fig-cap: "SBC rank histograms for δ parameters. Departures from uniformity indicate calibration issues, typically reflecting the β–δ identification problem."
+
+K_val, D_val = study.K, study.D
+delta_start = 1 + K_val * D_val
+K_minus_1 = K_val - 1
+
+fig, axes = plt.subplots(1, K_minus_1, figsize=(6 * K_minus_1, 4.5))
+if K_minus_1 == 1:
+    axes = [axes]
+
+for k in range(K_minus_1):
+    param_idx = delta_start + k
+    ax = axes[k]
+    ax.hist(ranks[:, param_idx], bins=sbc_n_bins, alpha=0.7,
+            color=SEU_COLORS['secondary'], edgecolor='white')
+    ax.axhline(y=expected_count, color='red', linestyle='--', linewidth=2,
+               label=f'Uniform (E={expected_count:.1f})')
+    ax.set_xlabel('Rank', fontsize=11)
+    ax.set_ylabel('Count', fontsize=11)
+    ax.set_title(f'δ$_{k+1}$ Rank Histogram', fontsize=12)
+    ax.legend()
+    ax.grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+
+# Formal tests for delta
+print("δ Calibration Tests:")
+for k in range(K_minus_1):
+    param_idx = delta_start + k
+    chi2_d, p_d = stats.chisquare(np.histogram(ranks[:, param_idx], bins=sbc_n_bins)[0])
+    ks_d, ks_p_d = stats.kstest(ranks[:, param_idx] / sbc_max_rank, 'uniform')
+    print(f"  δ_{k+1}: χ² = {chi2_d:.2f}, p = {p_d:.3f} | KS D = {ks_d:.3f}, p = {ks_p_d:.3f}")
+```
+
+#### β Calibration Summary
+
+```{python}
+#| label: fig-sbc-beta
+#| fig-cap: "Chi-square p-values for β parameter calibration. Parameters above the dashed line (p > 0.05) are consistent with uniform rank distributions."
+
+beta_start = 1
+n_beta = K_val * D_val
+
+beta_pvals = []
+for idx in range(beta_start, beta_start + n_beta):
+    counts = np.histogram(ranks[:, idx], bins=sbc_n_bins)[0]
+    _, p_val = stats.chisquare(counts)
+    beta_pvals.append(p_val)
+
+fig, ax = plt.subplots(figsize=(10, 4.5))
+
+x = np.arange(n_beta)
+colors = [SEU_COLORS['primary'] if p > 0.05 else SEU_COLORS['accent'] for p in beta_pvals]
+ax.bar(x, beta_pvals, color=colors, alpha=0.7, edgecolor='white')
+ax.axhline(y=0.05, color='red', linestyle='--', linewidth=2, label='α = 0.05')
+ax.set_xlabel('β Parameter Index', fontsize=11)
+ax.set_ylabel('Chi-square p-value', fontsize=11)
+ax.set_title('β Parameter Calibration', fontsize=12)
+ax.legend()
+ax.grid(True, alpha=0.3, axis='y')
+
+plt.tight_layout()
+plt.show()
+
+n_well_cal = sum(1 for p in beta_pvals if p > 0.05)
+print(f"\nβ Calibration: {n_well_cal}/{n_beta} parameters well-calibrated (p > 0.05)")
+print(f"Expected false rejections at α=0.05: {n_beta * 0.05:.1f}")
+```
+
+::: {.callout-note}
+## SBC Interpretation
+With 200 SBC simulations the formal chi-square tests have modest power (~10 expected counts per bin), so visual inspection of rank histograms is as important as the p-values. The key question is whether α shows approximately uniform ranks—confirming that the m_01 posterior correctly represents uncertainty about sensitivity at this study scale. The β–δ identification pattern from the foundational reports ([Report 6](../../foundations/06_sbc_validation.qmd)) is expected to manifest here as well, since m_01 (like m_0) uses only uncertain choices. This does not affect the validity of α estimation for the primary analysis.
+:::
+
 ## Results {#sec-results}
 
 ### Loading Posterior Draws

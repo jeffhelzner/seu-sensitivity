@@ -8,8 +8,9 @@
 
 <meta name="author" content="Jeff Helzner">
 <meta name="dcterms.date" content="2026-03-08">
+<meta name="description" content="Tests whether explicitly instructing the LLM to maximize expected utility increases estimated sensitivity (α) compared to the base temperature study. Uses the same problems, assessments, and embeddings — only the choice prompt is modified to include an explicit EU-maximization instruction.">
 
-<title>Blog – SEU Sensitivity</title>
+<title>Temperature and SEU Sensitivity: EU-Prompt Variation – SEU Sensitivity</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -60,30 +61,28 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </style>
 
 
-<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
-<script src="../site_libs/quarto-nav/headroom.min.js"></script>
-<script src="../site_libs/clipboard/clipboard.min.js"></script>
-<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
-<script src="../site_libs/quarto-search/fuse.min.js"></script>
-<script src="../site_libs/quarto-search/quarto-search.js"></script>
-<meta name="quarto:offset" content="../">
-<script src="../site_libs/quarto-listing/list.min.js"></script>
-<script src="../site_libs/quarto-listing/quarto-listing.js"></script>
-<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
-<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
-<script src="../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
-<script src="../site_libs/quarto-html/popper.min.js"></script>
-<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
-<script src="../site_libs/quarto-html/anchor.min.js"></script>
-<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-4d9afe2b8d18ee9fa5d0d57b5ed4214d.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
-<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
-<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-8bffb863ba02556ae9cbd60282933685.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-b681a0ec939e67307781ecabf18bfad0.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-8bffb863ba02556ae9cbd60282933685.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark-4d9afe2b8d18ee9fa5d0d57b5ed4214d.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-8bffb863ba02556ae9cbd60282933685.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-dark-b681a0ec939e67307781ecabf18bfad0.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../site_libs/bootstrap/bootstrap-8bffb863ba02556ae9cbd60282933685.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -111,75 +110,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     "search-label": "Search"
   }
 }</script>
-<script>
-
-  window.document.addEventListener("DOMContentLoaded", function (_event) {
-    const listingTargetEl = window.document.querySelector('#listing-listing .list');
-    if (!listingTargetEl) {
-      // No listing discovered, do not attach.
-      return; 
-    }
-
-    const options = {
-      valueNames: ['listing-date','listing-title','listing-description','listing-categories','listing-reading-time',{ data: ['index'] },{ data: ['categories'] },{ data: ['listing-date-sort'] },{ data: ['listing-file-modified-sort'] }],
-      
-      searchColumns: ["listing-categories"],
-    };
-
-    window['quarto-listings'] = window['quarto-listings'] || {};
-    window['quarto-listings']['listing-listing'] = new List('listing-listing', options);
-
-    if (window['quarto-listing-loaded']) {
-      window['quarto-listing-loaded']();
-    }
-  });
-
-  window.addEventListener('hashchange',() => {
-    if (window['quarto-listing-loaded']) {
-      window['quarto-listing-loaded']();
-    }
-  })
-  </script>
 <style>html{ scroll-behavior: smooth; }</style>
 
-  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
-<script type="text/javascript">
-const typesetMath = (el) => {
-  if (window.MathJax) {
-    // MathJax Typeset
-    window.MathJax.typeset([el]);
-  } else if (window.katex) {
-    // KaTeX Render
-    var mathElements = el.getElementsByClassName("math");
-    var macros = [];
-    for (var i = 0; i < mathElements.length; i++) {
-      var texText = mathElements[i].firstChild;
-      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
-        window.katex.render(texText.data, mathElements[i], {
-          displayMode: mathElements[i].classList.contains('display'),
-          throwOnError: false,
-          macros: macros,
-          fleqn: false
-        });
-      }
-    }
-  }
-}
-window.Quarto = {
-  typesetMath
-};
-</script>
-
-<link rel="stylesheet" href="../styles/seu-sensitivity.css">
-<meta name="citation_title" content="Blog">
+<link rel="stylesheet" href="../../styles/seu-sensitivity.css">
+<meta name="citation_title" content="Temperature and SEU Sensitivity: EU-Prompt Variation">
 <meta name="citation_author" content="Jeff Helzner">
 <meta name="citation_publication_date" content="2026-03-08">
 <meta name="citation_cover_date" content="2026-03-08">
 <meta name="citation_year" content="2026">
 <meta name="citation_online_date" content="2026-03-08">
-<meta name="citation_fulltext_html_url" content="https://jeffhelzner.github.io/seu-sensitivity/blog/">
+<meta name="citation_fulltext_html_url" content="https://jeffhelzner.github.io/seu-sensitivity/applications/temperature_study_with_eu_prompt/01_eu_prompt_study.html">
 <meta name="citation_language" content="en">
 <meta name="citation_journal_title" content="SEU Sensitivity Project">
 <meta name="citation_reference" content="citation_title=Theory of games and economic behavior;,citation_author=John Neumann;,citation_author=Oskar Morgenstern;,citation_publication_date=1947;,citation_cover_date=1947;,citation_year=1947;">
@@ -372,11 +313,11 @@ window.Quarto = {
   </script>
 
 <div id="quarto-search-results"></div>
-  <header id="quarto-header" class="headroom fixed-top quarto-banner">
+  <header id="quarto-header" class="headroom fixed-top">
     <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
-    <a class="navbar-brand" href="../index.html">
+    <a class="navbar-brand" href="../../index.html">
     <span class="navbar-title">SEU Sensitivity</span>
     </a>
   </div>
@@ -387,7 +328,7 @@ window.Quarto = {
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
   <li class="nav-item">
-    <a class="nav-link" href="../index.html"> 
+    <a class="nav-link" href="../../index.html"> 
 <span class="menu-text">Home</span></a>
   </li>  
   <li class="nav-item dropdown ">
@@ -396,31 +337,31 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-foundations">    
         <li>
-    <a class="dropdown-item" href="../foundations/01_abstract_formulation.html">
+    <a class="dropdown-item" href="../../foundations/01_abstract_formulation.html">
  <span class="dropdown-text">1. Abstract Formulation</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../foundations/02_concrete_implementation.html">
+    <a class="dropdown-item" href="../../foundations/02_concrete_implementation.html">
  <span class="dropdown-text">2. Concrete Implementation</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../foundations/03_prior_analysis.html">
+    <a class="dropdown-item" href="../../foundations/03_prior_analysis.html">
  <span class="dropdown-text">3. Prior Analysis</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../foundations/04_parameter_recovery.html">
+    <a class="dropdown-item" href="../../foundations/04_parameter_recovery.html">
  <span class="dropdown-text">4. Parameter Recovery</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../foundations/05_adding_risky_choices.html">
+    <a class="dropdown-item" href="../../foundations/05_adding_risky_choices.html">
  <span class="dropdown-text">5. Adding Risky Choices</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../foundations/06_sbc_validation.html">
+    <a class="dropdown-item" href="../../foundations/06_sbc_validation.html">
  <span class="dropdown-text">6. SBC Validation</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../foundations/07_generalizing_sensitivity.html">
+    <a class="dropdown-item" href="../../foundations/07_generalizing_sensitivity.html">
  <span class="dropdown-text">7. Generalizing Sensitivity</span></a>
   </li>  
     </ul>
@@ -433,19 +374,19 @@ window.Quarto = {
         <li><hr class="dropdown-divider"></li>
         <li class="dropdown-header">Temperature Study</li>
         <li>
-    <a class="dropdown-item" href="../applications/temperature_study/01_initial_study.html">
+    <a class="dropdown-item" href="../../applications/temperature_study/01_initial_study.html">
  <span class="dropdown-text">1. Initial Results</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li class="dropdown-header">Temperature Study: Risky Alternatives</li>
         <li>
-    <a class="dropdown-item" href="../applications/temperature_study_with_risky_alts/01_risky_alternatives_study.html">
+    <a class="dropdown-item" href="../../applications/temperature_study_with_risky_alts/01_risky_alternatives_study.html">
  <span class="dropdown-text">1. Risky Alternatives Extension</span></a>
   </li>  
     </ul>
   </li>
   <li class="nav-item">
-    <a class="nav-link active" href="../blog/index.html" aria-current="page"> 
+    <a class="nav-link" href="../../blog/index.html"> 
 <span class="menu-text">Blog</span></a>
   </li>  
 </ul>
@@ -464,71 +405,204 @@ window.Quarto = {
     </nav>
 </header>
 <!-- content -->
-<header id="title-block-header" class="quarto-title-block default page-columns page-full">
-  <div class="quarto-title-banner page-columns page-full">
-    <div class="quarto-title column-page-left">
-      <div class="quarto-title-block"><div><h1 class="title">Blog</h1><button type="button" class="btn code-tools-button" id="quarto-code-tools-source"><i class="bi"></i> Code</button></div></div>
-            <p class="subtitle lead">Informal posts on the SEU Sensitivity project</p>
-                      </div>
-  </div>
-    
-  
-  <div class="quarto-title-meta column-page-left">
-
-      <div>
-      <div class="quarto-title-meta-heading">Author</div>
-      <div class="quarto-title-meta-contents">
-               <p><a href="https://github.com/jeffhelzner">Jeff Helzner</a> </p>
-            </div>
-    </div>
-      
-      <div>
-      <div class="quarto-title-meta-heading">Published</div>
-      <div class="quarto-title-meta-contents">
-        <p class="date">March 8, 2026</p>
-      </div>
-    </div>
-    
-      
-    </div>
-    
-  
-  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full page-navbar">
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        
-    <h5 class="quarto-listing-category-title">Categories</h5><div class="quarto-listing-category category-default"><div class="category" data-category="">All <span class="quarto-category-count">(0)</span></div></div></div>
+        <nav id="TOC" role="doc-toc" class="toc-active" data-toc-expanded="2">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction"><span class="header-section-number">0.1</span> Introduction</a></li>
+  <li><a href="#experimental-design" id="toc-experimental-design" class="nav-link" data-scroll-target="#experimental-design"><span class="header-section-number">0.2</span> Experimental Design</a>
+  <ul class="collapse">
+  <li><a href="#prompt-modification" id="toc-prompt-modification" class="nav-link" data-scroll-target="#prompt-modification"><span class="header-section-number">0.2.1</span> Prompt Modification</a></li>
+  <li><a href="#data-reuse" id="toc-data-reuse" class="nav-link" data-scroll-target="#data-reuse"><span class="header-section-number">0.2.2</span> Data Reuse</a></li>
+  </ul></li>
+  <li><a href="#results" id="toc-results" class="nav-link" data-scroll-target="#results"><span class="header-section-number">0.3</span> Results</a></li>
+  <li><a href="#cross-study-comparison" id="toc-cross-study-comparison" class="nav-link" data-scroll-target="#cross-study-comparison"><span class="header-section-number">0.4</span> Cross-Study Comparison</a></li>
+  <li><a href="#discussion" id="toc-discussion" class="nav-link" data-scroll-target="#discussion"><span class="header-section-number">0.5</span> Discussion</a></li>
+  <li><a href="#reproducibility" id="toc-reproducibility" class="nav-link" data-scroll-target="#reproducibility"><span class="header-section-number">0.6</span> Reproducibility</a>
+  <ul class="collapse">
+  <li><a href="#running-the-study" id="toc-running-the-study" class="nav-link" data-scroll-target="#running-the-study"><span class="header-section-number">0.6.1</span> Running the Study</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
 <!-- main -->
-<main class="content quarto-banner-title-block column-page-left" id="quarto-document-content">
+<main class="content" id="quarto-document-content">
 
 
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<div class="quarto-title-block"><div><h1 class="title">Temperature and SEU Sensitivity: EU-Prompt Variation</h1><button type="button" class="btn code-tools-button" id="quarto-code-tools-source"><i class="bi"></i> Code</button></div></div>
+<p class="subtitle lead">Application Report: Temperature Study 3</p>
+  <div class="quarto-categories">
+    <div class="quarto-category">applications</div>
+    <div class="quarto-category">temperature</div>
+    <div class="quarto-category">m_01</div>
+    <div class="quarto-category">eu-prompt</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    <p>Tests whether explicitly instructing the LLM to maximize expected utility increases estimated sensitivity (α) compared to the base temperature study. Uses the same problems, assessments, and embeddings — only the choice prompt is modified to include an explicit EU-maximization instruction.</p>
+  </div>
+</div>
 
 
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p><a href="https://github.com/jeffhelzner">Jeff Helzner</a> </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">March 8, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
 
 
-<p>Informal discussion of ideas, findings, and methodological reflections from the SEU Sensitivity project. For detailed technical content, see the <a href="../foundations/01_abstract_formulation.html">Foundations</a> and <a href="../applications/prompt_framing_study/01_background.html">Applications</a> reports.</p>
+</header>
 
+
+<section id="introduction" class="level2" data-number="0.1">
+<h2 data-number="0.1" class="anchored" data-anchor-id="introduction"><span class="header-section-number">0.1</span> Introduction</h2>
+<p>The <a href="../../applications/temperature_study/01_initial_study.html">initial temperature study</a> established that higher LLM sampling temperature systematically reduces estimated sensitivity (α) to subjective expected utility maximization. The global slope was Δα/ΔT ≈ −25, with strong pairwise separation at the extremes (T=0.0 vs T≥1.0) and near-equality at moderate levels (T=0.3 ≈ T=0.7).</p>
+<p>This study asks a complementary question: <strong>does explicitly telling the LLM to maximize expected utility increase α?</strong></p>
+<p>The intervention is minimal. The choice prompt is identical to the base study except for one added paragraph:</p>
+<blockquote class="blockquote">
+<p><em>Select the claim that maximizes your expected utility with respect to the three outcomes above. For each claim, consider the subjective probability you assign to each outcome and your utility for that outcome. Choose the claim for which the probability-weighted utility across the three outcomes is highest.</em></p>
+</blockquote>
+<p>Everything else is held constant:</p>
+<ul>
+<li>Same 100 problems × 3 presentations</li>
+<li>Same assessment texts (reused from the base study, not re-collected)</li>
+<li>Same PCA-reduced embeddings</li>
+<li>Same model: m_01 with Lognormal(3.0, 0.75) prior on α</li>
+<li>Same 5 temperature levels: 0.0, 0.3, 0.7, 1.0, 1.5</li>
+</ul>
+<p>This design isolates the prompt intervention to the <strong>decision rule</strong> while holding <strong>belief formation</strong> (assessments) constant — a clean decomposition of the two stages of SEU.</p>
+</section>
+<section id="experimental-design" class="level2" data-number="0.2">
+<h2 data-number="0.2" class="anchored" data-anchor-id="experimental-design"><span class="header-section-number">0.2</span> Experimental Design</h2>
+<section id="prompt-modification" class="level3" data-number="0.2.1">
+<h3 data-number="0.2.1" class="anchored" data-anchor-id="prompt-modification"><span class="header-section-number">0.2.1</span> Prompt Modification</h3>
+<p>The base study’s choice prompt presents three outcomes and asks the LLM to select a claim. The EU-prompt variant adds an explicit instruction to maximize expected utility with respect to those outcomes — referencing subjective probabilities, utilities, and probability-weighted utility.</p>
+<p>The assessment prompt is not modified. Assessments are reused directly from the base study, ensuring that the feature representation (w vectors) is identical.</p>
+</section>
+<section id="data-reuse" class="level3" data-number="0.2.2">
+<h3 data-number="0.2.2" class="anchored" data-anchor-id="data-reuse"><span class="header-section-number">0.2.2</span> Data Reuse</h3>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Component</th>
+<th>Base Study</th>
+<th>EU-Prompt Study</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Problems</td>
+<td>Generated</td>
+<td><strong>Reused</strong></td>
+</tr>
+<tr class="even">
+<td>Assessments</td>
+<td>Collected</td>
+<td><strong>Reused</strong></td>
+</tr>
+<tr class="odd">
+<td>Embeddings</td>
+<td>Computed</td>
+<td><strong>Reused</strong></td>
+</tr>
+<tr class="even">
+<td>Choices</td>
+<td>Collected</td>
+<td><strong>New</strong> (EU prompt)</td>
+</tr>
+<tr class="odd">
+<td>Model fitting</td>
+<td>m_01</td>
+<td>m_01 (same prior)</td>
+</tr>
+</tbody>
+</table>
+<p>This means the EU-prompt study required only 1,500 new API calls (choices), not the full ~3,150 of the base study.</p>
+</section>
+</section>
+<section id="results" class="level2" data-number="0.3">
+<h2 data-number="0.3" class="anchored" data-anchor-id="results"><span class="header-section-number">0.3</span> Results</h2>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Results will be populated after running the study pipeline.</p>
+</div>
+</div>
+</section>
+<section id="cross-study-comparison" class="level2" data-number="0.4">
+<h2 data-number="0.4" class="anchored" data-anchor-id="cross-study-comparison"><span class="header-section-number">0.4</span> Cross-Study Comparison</h2>
+<p>The primary comparison is per-temperature:</p>
+<ul>
+<li><strong>P(α_EU &gt; α_base)</strong>: Does the EU prompt increase sensitivity at each temperature?</li>
+<li><strong>Slope comparison</strong>: Is the temperature–sensitivity gradient preserved, attenuated, or amplified?</li>
+<li><strong>Interaction</strong>: Does the EU prompt help more at high temperatures (where baseline α is lowest)?</li>
+</ul>
+</section>
+<section id="discussion" class="level2" data-number="0.5">
+<h2 data-number="0.5" class="anchored" data-anchor-id="discussion"><span class="header-section-number">0.5</span> Discussion</h2>
+<p><em>To be completed after data collection and model fitting.</em></p>
+</section>
+<section id="reproducibility" class="level2" data-number="0.6">
+<h2 data-number="0.6" class="anchored" data-anchor-id="reproducibility"><span class="header-section-number">0.6</span> Reproducibility</h2>
+<section id="running-the-study" class="level3" data-number="0.6.1">
+<h3 data-number="0.6.1" class="anchored" data-anchor-id="running-the-study"><span class="header-section-number">0.6.1</span> Running the Study</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Validate configuration and base study data availability</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> applications.temperature_study_with_eu_prompt validate</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Estimate API costs (choices only)</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> applications.temperature_study_with_eu_prompt estimate-cost</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Run choice collection (skip model fitting for now)</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> applications.temperature_study_with_eu_prompt run <span class="at">--skip-fitting</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Fit models on collected data</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> applications.temperature_study_with_eu_prompt fit</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
 
 <!-- -->
 
+</section>
+</section>
 
-<div class="quarto-listing quarto-listing-container-default" id="listing-listing">
-<div class="list quarto-listing-default">
-
-</div>
-<div class="listing-no-matching d-none">No matching items</div>
-</div><div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{helzner2026,
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{helzner2026,
   author = {Helzner, Jeff},
-  title = {Blog},
+  title = {Temperature and {SEU} {Sensitivity:} {EU-Prompt} {Variation}},
   date = {2026-03-08},
-  url = {https://jeffhelzner.github.io/seu-sensitivity/blog/},
+  url = {https://jeffhelzner.github.io/seu-sensitivity/applications/temperature_study_with_eu_prompt/01_eu_prompt_study.html},
   langid = {en}
 }
 </code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-helzner2026" class="csl-entry quarto-appendix-citeas" role="listitem">
-Helzner, Jeff. 2026. <span>“Blog.”</span> SEU Sensitivity Project. March
-8, 2026. <a href="https://jeffhelzner.github.io/seu-sensitivity/blog/">https://jeffhelzner.github.io/seu-sensitivity/blog/</a>.
+Helzner, Jeff. 2026. <span>“Temperature and SEU Sensitivity: EU-Prompt
+Variation.”</span> SEU Sensitivity Project. March 8, 2026. <a href="https://jeffhelzner.github.io/seu-sensitivity/applications/temperature_study_with_eu_prompt/01_eu_prompt_study.html">https://jeffhelzner.github.io/seu-sensitivity/applications/temperature_study_with_eu_prompt/01_eu_prompt_study.html</a>.
 </div></div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
@@ -994,27 +1068,140 @@ Helzner, Jeff. 2026. <span>“Blog.”</span> SEU Sensitivity Project. March
     }
   });
   </script><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "Blog"</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="an">subtitle:</span><span class="co"> "Informal posts on the SEU Sensitivity project"</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="an">listing:</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co">  contents: posts</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co">  sort: "date desc"</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co">  type: default</span></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co">  categories: true</span></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co">  sort-ui: false</span></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co">  filter-ui: false</span></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="co">  fields: [date, title, description, categories, reading-time]</span></span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="an">page-layout:</span><span class="co"> full</span></span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="an">title-block-banner:</span><span class="co"> true</span></span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>Informal discussion of ideas, findings, and methodological reflections from the SEU Sensitivity project. For detailed technical content, see the <span class="co">[</span><span class="ot">Foundations</span><span class="co">](../foundations/01_abstract_formulation.qmd)</span> and <span class="co">[</span><span class="ot">Applications</span><span class="co">](../applications/prompt_framing_study/01_background.qmd)</span> reports.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "Temperature and SEU Sensitivity: EU-Prompt Variation"</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="an">subtitle:</span><span class="co"> "Application Report: Temperature Study 3"</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="an">description:</span><span class="co"> |</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co">  Tests whether explicitly instructing the LLM to maximize expected utility</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="co">  increases estimated sensitivity (α) compared to the base temperature study.</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co">  Uses the same problems, assessments, and embeddings — only the choice prompt</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co">  is modified to include an explicit EU-maximization instruction.</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="an">categories:</span><span class="co"> [applications, temperature, m_01, eu-prompt]</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="an">execute:</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="co">  cache: true</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: setup</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="co">#| include: false</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> sys</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>reports_root <span class="op">=</span> os.path.normpath(os.path.join(os.getcwd(), <span class="st">'..'</span>, <span class="st">'..'</span>))</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>project_root <span class="op">=</span> os.path.dirname(reports_root)</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>sys.path.insert(<span class="dv">0</span>, reports_root)</span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>sys.path.insert(<span class="dv">0</span>, project_root)</span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> json</span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> yaml</span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> warnings</span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>warnings.filterwarnings(<span class="st">'ignore'</span>)</span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pathlib <span class="im">import</span> Path</span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a><span class="co"># Data directory for this report (frozen snapshots)</span></span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>data_dir <span class="op">=</span> Path(<span class="st">"data"</span>)</span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a><span class="fu">## Introduction</span></span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a>The <span class="co">[</span><span class="ot">initial temperature study</span><span class="co">](../temperature_study/01_initial_study.qmd)</span> established</span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a>that higher LLM sampling temperature systematically reduces estimated sensitivity (α)</span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a>to subjective expected utility maximization. The global slope was Δα/ΔT ≈ −25, with</span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a>strong pairwise separation at the extremes (T=0.0 vs T≥1.0) and near-equality at</span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a>moderate levels (T=0.3 ≈ T=0.7).</span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a>This study asks a complementary question: **does explicitly telling the LLM to maximize</span>
+<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a>expected utility increase α?**</span>
+<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a>The intervention is minimal. The choice prompt is identical to the base study except for</span>
+<span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a>one added paragraph:</span>
+<span id="cb2-53"><a href="#cb2-53" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; *Select the claim that maximizes your expected utility with respect to the three</span></span>
+<span id="cb2-55"><a href="#cb2-55" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; outcomes above. For each claim, consider the subjective probability you assign to</span></span>
+<span id="cb2-56"><a href="#cb2-56" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; each outcome and your utility for that outcome. Choose the claim for which the</span></span>
+<span id="cb2-57"><a href="#cb2-57" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; probability-weighted utility across the three outcomes is highest.*</span></span>
+<span id="cb2-58"><a href="#cb2-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-59"><a href="#cb2-59" aria-hidden="true" tabindex="-1"></a>Everything else is held constant:</span>
+<span id="cb2-60"><a href="#cb2-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-61"><a href="#cb2-61" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Same 100 problems × 3 presentations</span>
+<span id="cb2-62"><a href="#cb2-62" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Same assessment texts (reused from the base study, not re-collected)</span>
+<span id="cb2-63"><a href="#cb2-63" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Same PCA-reduced embeddings</span>
+<span id="cb2-64"><a href="#cb2-64" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Same model: m_01 with Lognormal(3.0, 0.75) prior on α</span>
+<span id="cb2-65"><a href="#cb2-65" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Same 5 temperature levels: 0.0, 0.3, 0.7, 1.0, 1.5</span>
+<span id="cb2-66"><a href="#cb2-66" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-67"><a href="#cb2-67" aria-hidden="true" tabindex="-1"></a>This design isolates the prompt intervention to the **decision rule** while holding</span>
+<span id="cb2-68"><a href="#cb2-68" aria-hidden="true" tabindex="-1"></a>**belief formation** (assessments) constant — a clean decomposition of the two stages</span>
+<span id="cb2-69"><a href="#cb2-69" aria-hidden="true" tabindex="-1"></a>of SEU.</span>
+<span id="cb2-70"><a href="#cb2-70" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-71"><a href="#cb2-71" aria-hidden="true" tabindex="-1"></a><span class="fu">## Experimental Design</span></span>
+<span id="cb2-72"><a href="#cb2-72" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-73"><a href="#cb2-73" aria-hidden="true" tabindex="-1"></a><span class="fu">### Prompt Modification</span></span>
+<span id="cb2-74"><a href="#cb2-74" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-75"><a href="#cb2-75" aria-hidden="true" tabindex="-1"></a>The base study's choice prompt presents three outcomes and asks the LLM to select a</span>
+<span id="cb2-76"><a href="#cb2-76" aria-hidden="true" tabindex="-1"></a>claim. The EU-prompt variant adds an explicit instruction to maximize expected utility</span>
+<span id="cb2-77"><a href="#cb2-77" aria-hidden="true" tabindex="-1"></a>with respect to those outcomes — referencing subjective probabilities, utilities, and</span>
+<span id="cb2-78"><a href="#cb2-78" aria-hidden="true" tabindex="-1"></a>probability-weighted utility.</span>
+<span id="cb2-79"><a href="#cb2-79" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-80"><a href="#cb2-80" aria-hidden="true" tabindex="-1"></a>The assessment prompt is not modified. Assessments are reused directly from the base</span>
+<span id="cb2-81"><a href="#cb2-81" aria-hidden="true" tabindex="-1"></a>study, ensuring that the feature representation (w vectors) is identical.</span>
+<span id="cb2-82"><a href="#cb2-82" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-83"><a href="#cb2-83" aria-hidden="true" tabindex="-1"></a><span class="fu">### Data Reuse</span></span>
+<span id="cb2-84"><a href="#cb2-84" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-85"><a href="#cb2-85" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Component <span class="pp">|</span> Base Study <span class="pp">|</span> EU-Prompt Study <span class="pp">|</span></span>
+<span id="cb2-86"><a href="#cb2-86" aria-hidden="true" tabindex="-1"></a><span class="pp">|-----------|-----------|-----------------|</span></span>
+<span id="cb2-87"><a href="#cb2-87" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Problems <span class="pp">|</span> Generated <span class="pp">|</span> **Reused** <span class="pp">|</span></span>
+<span id="cb2-88"><a href="#cb2-88" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Assessments <span class="pp">|</span> Collected <span class="pp">|</span> **Reused** <span class="pp">|</span></span>
+<span id="cb2-89"><a href="#cb2-89" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Embeddings <span class="pp">|</span> Computed <span class="pp">|</span> **Reused** <span class="pp">|</span></span>
+<span id="cb2-90"><a href="#cb2-90" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Choices <span class="pp">|</span> Collected <span class="pp">|</span> **New** (EU prompt) <span class="pp">|</span></span>
+<span id="cb2-91"><a href="#cb2-91" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Model fitting <span class="pp">|</span> m_01 <span class="pp">|</span> m_01 (same prior) <span class="pp">|</span></span>
+<span id="cb2-92"><a href="#cb2-92" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-93"><a href="#cb2-93" aria-hidden="true" tabindex="-1"></a>This means the EU-prompt study required only 1,500 new API calls (choices),</span>
+<span id="cb2-94"><a href="#cb2-94" aria-hidden="true" tabindex="-1"></a>not the full ~3,150 of the base study.</span>
+<span id="cb2-95"><a href="#cb2-95" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-96"><a href="#cb2-96" aria-hidden="true" tabindex="-1"></a><span class="fu">## Results</span></span>
+<span id="cb2-97"><a href="#cb2-97" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-98"><a href="#cb2-98" aria-hidden="true" tabindex="-1"></a>::: {.callout-note}</span>
+<span id="cb2-99"><a href="#cb2-99" aria-hidden="true" tabindex="-1"></a>Results will be populated after running the study pipeline.</span>
+<span id="cb2-100"><a href="#cb2-100" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb2-101"><a href="#cb2-101" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-102"><a href="#cb2-102" aria-hidden="true" tabindex="-1"></a><span class="fu">## Cross-Study Comparison</span></span>
+<span id="cb2-103"><a href="#cb2-103" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-104"><a href="#cb2-104" aria-hidden="true" tabindex="-1"></a>The primary comparison is per-temperature:</span>
+<span id="cb2-105"><a href="#cb2-105" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-106"><a href="#cb2-106" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**P(α_EU &gt; α_base)**: Does the EU prompt increase sensitivity at each temperature?</span>
+<span id="cb2-107"><a href="#cb2-107" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Slope comparison**: Is the temperature–sensitivity gradient preserved, attenuated, or amplified?</span>
+<span id="cb2-108"><a href="#cb2-108" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Interaction**: Does the EU prompt help more at high temperatures (where baseline α is lowest)?</span>
+<span id="cb2-109"><a href="#cb2-109" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-110"><a href="#cb2-110" aria-hidden="true" tabindex="-1"></a><span class="fu">## Discussion</span></span>
+<span id="cb2-111"><a href="#cb2-111" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-112"><a href="#cb2-112" aria-hidden="true" tabindex="-1"></a>*To be completed after data collection and model fitting.*</span>
+<span id="cb2-113"><a href="#cb2-113" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-114"><a href="#cb2-114" aria-hidden="true" tabindex="-1"></a><span class="fu">## Reproducibility</span></span>
+<span id="cb2-115"><a href="#cb2-115" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-116"><a href="#cb2-116" aria-hidden="true" tabindex="-1"></a><span class="fu">### Running the Study</span></span>
+<span id="cb2-117"><a href="#cb2-117" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-118"><a href="#cb2-118" aria-hidden="true" tabindex="-1"></a><span class="in">```bash</span></span>
+<span id="cb2-119"><a href="#cb2-119" aria-hidden="true" tabindex="-1"></a><span class="co"># Validate configuration and base study data availability</span></span>
+<span id="cb2-120"><a href="#cb2-120" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> applications.temperature_study_with_eu_prompt validate</span>
+<span id="cb2-121"><a href="#cb2-121" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-122"><a href="#cb2-122" aria-hidden="true" tabindex="-1"></a><span class="co"># Estimate API costs (choices only)</span></span>
+<span id="cb2-123"><a href="#cb2-123" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> applications.temperature_study_with_eu_prompt estimate-cost</span>
+<span id="cb2-124"><a href="#cb2-124" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-125"><a href="#cb2-125" aria-hidden="true" tabindex="-1"></a><span class="co"># Run choice collection (skip model fitting for now)</span></span>
+<span id="cb2-126"><a href="#cb2-126" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> applications.temperature_study_with_eu_prompt run <span class="at">--skip-fitting</span></span>
+<span id="cb2-127"><a href="#cb2-127" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-128"><a href="#cb2-128" aria-hidden="true" tabindex="-1"></a><span class="co"># Fit models on collected data</span></span>
+<span id="cb2-129"><a href="#cb2-129" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> applications.temperature_study_with_eu_prompt fit</span>
+<span id="cb2-130"><a href="#cb2-130" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+</code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 
 
 
 
-<script src="../site_libs/quarto-html/zenscroll-min.js"></script>
+<script src="../../site_libs/quarto-html/zenscroll-min.js"></script>
 </body></html>

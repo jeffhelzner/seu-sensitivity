@@ -60,7 +60,9 @@ seu-sensitivity/
 │   │   └── 07_generalizing_sensitivity.qmd # m_2 and m_3 model development
 │   ├── applications/       # Applied research reports
 │   │   ├── prompt_framing_study/
-│   │   └── temperature_study/
+│   │   ├── temperature_study/
+│   │   ├── temperature_study_with_eu_prompt/
+│   │   └── temperature_study_with_risky_alts/
 │   ├── blog/               # Blog-style posts
 │   ├── styles/             # Custom CSS/SCSS styles
 │   └── legacy/             # Archived legacy reports
@@ -99,6 +101,7 @@ seu-sensitivity/
 ├── applications/            # Applied research projects
 │   ├── prompt_framing_study/ # Prompt framing effects on LLM rationality
 │   ├── temperature_study/  # LLM temperature effects on sensitivity
+│   ├── temperature_study_with_eu_prompt/ # Temperature study with EU-maximization prompt
 │   ├── temperature_study_with_risky_alts/ # Risky choice collection for m_1/m_2/m_3
 │   └── llm_rationality/    # Legacy LLM benchmarking (deprecated)
 ├── scripts/                 # Executable scripts
@@ -113,6 +116,8 @@ seu-sensitivity/
 │   ├── run_sample_size_estimation.py # Sample size analysis
 │   ├── run_temperature_analysis.py # Temperature study analysis
 │   ├── refit_with_ppc.py   # Refit models with posterior predictive checks
+│   ├── extract_report_data.py # Extract parameter draws for reports
+│   ├── freeze_eu_prompt_report_data.py # Snapshot EU prompt study outputs
 │   ├── copy_figures_for_report.py # Copy figures into reports
 │   ├── cleanup_temp_files.py # Clean up temporary files
 │   └── test_m1_model.py    # m_1 model tests
@@ -141,7 +146,7 @@ seu-sensitivity/
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/seu-sensitivity.git
+git clone <repository-url>
 cd seu-sensitivity
 
 # Create environment from environment.yml
@@ -158,7 +163,7 @@ python -c "import cmdstanpy; cmdstanpy.install_cmdstan()"
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/seu-sensitivity.git
+git clone <repository-url>
 cd seu-sensitivity
 
 # Create virtual environment
@@ -405,6 +410,19 @@ Investigate how LLM sampling temperature affects estimated sensitivity (α) to e
 - Deliberative embeddings
 
 See [applications/temperature_study/README.md](applications/temperature_study/README.md) for the full experimental design.
+
+### Temperature Study with EU Prompt
+
+Extend the temperature study by adding an explicit expected utility maximization instruction to the choice prompts. This tests whether explicitly framing decisions in EU terms changes estimated sensitivity, interacting with temperature effects.
+
+**Research Question**: Does adding an explicit EU-maximization instruction to the prompt change estimated α, and does this interact with temperature?
+
+**Key Features:**
+- Reuses problems, assessments, and embeddings from the base temperature study
+- Only collects new choices under the EU-framing prompt — minimal additional API cost
+- Fits the m_0 model separately at each temperature for comparison with the base study
+
+See [applications/temperature_study_with_eu_prompt/](applications/temperature_study_with_eu_prompt/) for module details.
 
 ### Temperature Study with Risky Alternatives
 

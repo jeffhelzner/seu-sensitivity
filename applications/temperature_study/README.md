@@ -231,7 +231,7 @@ Prompt templates live in `configs/prompts.yaml` and use `{claims_list}`, `{targe
 ## Testing
 
 ```bash
-# Run all 122 tests
+# Run all 125 tests
 python -m pytest applications/temperature_study/tests/ -v
 
 # Run a specific test file
@@ -243,14 +243,14 @@ Test coverage by module:
 | Test file | Module under test | Tests |
 |-----------|-------------------|-------|
 | `test_problem_generator.py` | Problem generation & formatting | 23 |
-| `test_deliberation_collector.py` | Deliberation collection | 7 |
+| `test_assessment_collector.py` | Assessment collection & embedding | 10 |
 | `test_choice_collector.py` | Choice collection & NA handling | 15 |
 | `test_data_preparation.py` | PCA, filtering, Stan data | 21 |
 | `test_study_runner.py` | End-to-end pipeline integration | 8 |
 | `test_position_analysis.py` | Position bias statistics | 12 |
 | `test_consistency_analysis.py` | Unanimity & agreement metrics | 12 |
-| `test_na_analysis.py` | NA rates, concentration, imputation | 11 |
-| `test_visualization.py` | Plots & posterior summaries | 13 |
+| `test_na_analysis.py` | NA rates, concentration, imputation | 13 |
+| `test_visualization.py` | Plots & posterior summaries | 11 |
 
 All tests use mock LLM clients — no API keys required.
 

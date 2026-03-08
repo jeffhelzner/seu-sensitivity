@@ -39,15 +39,10 @@ llm_rationality/
 ## Installation
 
 ```bash
-# Create a conda environment
-conda create -n llm-rationality python=3.8
-conda activate llm-rationality
+# Use the project's conda environment (recommended)
+conda activate seu-sensitivity
 
-# Install required packages
-conda install -c conda-forge scikit-learn numpy
-pip install openai python-dotenv
-
-# Set your OpenAI API key
+# Or set up API keys separately
 echo "OPENAI_API_KEY=your-api-key-here" > .env
 ```
 

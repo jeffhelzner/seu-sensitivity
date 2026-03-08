@@ -124,6 +124,12 @@ python -m prompt_framing_study.cli run
 # Resume interrupted study
 python -m prompt_framing_study.cli resume --checkpoint latest
 
+# Fit Stan models on collected data
+python -m prompt_framing_study.cli fit
+
+# Run robustness analysis
+python -m prompt_framing_study.cli robustness
+
 # Generate visualizations
 python -m prompt_framing_study.cli visualize
 ```

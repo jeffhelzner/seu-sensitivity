@@ -1,0 +1,67 @@
+{
+  "0.0": {
+    "alpha_mean": 59.64335163525,
+    "alpha_median": 56.987961,
+    "alpha_sd": 15.981934150039539,
+    "alpha_q05": 38.578182,
+    "alpha_q95": 89.68586864999999,
+    "output_dir": "/Users/jeffhelzner/seu-sensitivity/applications/temperature_study_with_eu_prompt/results/fit_T0_0",
+    "ppc_p_values": {
+      "ll": 0.4325,
+      "modal": 0.45625,
+      "prob": 0.42325
+    }
+  },
+  "0.3": {
+    "alpha_mean": 54.94429786175,
+    "alpha_median": 52.764482,
+    "alpha_sd": 15.41490493160404,
+    "alpha_q05": 34.0678045,
+    "alpha_q95": 83.597175,
+    "output_dir": "/Users/jeffhelzner/seu-sensitivity/applications/temperature_study_with_eu_prompt/results/fit_T0_3",
+    "ppc_p_values": {
+      "ll": 0.43775,
+      "modal": 0.67,
+      "prob": 0.53075
+    }
+  },
+  "0.7": {
+    "alpha_mean": 56.937855682249996,
+    "alpha_median": 54.720082500000004,
+    "alpha_sd": 14.241014693139922,
+    "alpha_q05": 38.2573729,
+    "alpha_q95": 83.27503399999999,
+    "output_dir": "/Users/jeffhelzner/seu-sensitivity/applications/temperature_study_with_eu_prompt/results/fit_T0_7",
+    "ppc_p_values": {
+      "ll": 0.453,
+      "modal": 0.54375,
+      "prob": 0.49775
+    }
+  },
+  "1.0": {
+    "alpha_mean": 44.734110295,
+    "alpha_median": 43.2940445,
+    "alpha_sd": 10.538400160082185,
+    "alpha_q05": 30.3615527,
+    "alpha_q95": 64.19984964999999,
+    "output_dir": "/Users/jeffhelzner/seu-sensitivity/applications/temperature_study_with_eu_prompt/results/fit_T1_0",
+    "ppc_p_values": {
+      "ll": 0.45175,
+      "modal": 0.49025,
+      "prob": 0.4765
+    }
+  },
+  "1.5": {
+    "alpha_mean": 27.08921269125,
+    "alpha_median": 26.305678999999998,
+    "alpha_sd": 5.934309278868007,
+    "alpha_q05": 18.94555535,
+    "alpha_q95": 37.88705594999999,
+    "output_dir": "/Users/jeffhelzner/seu-sensitivity/applications/temperature_study_with_eu_prompt/results/fit_T1_5",
+    "ppc_p_values": {
+      "ll": 0.4945,
+      "modal": 0.5665,
+      "prob": 0.50625
+    }
+  }
+}

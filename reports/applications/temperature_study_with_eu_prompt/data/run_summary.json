@@ -1,0 +1,132 @@
+{
+  "config": {
+    "temperatures": [
+      0.0,
+      0.3,
+      0.7,
+      1.0,
+      1.5
+    ],
+    "K": 3,
+    "target_dim": 32,
+    "stan_model": "m_01",
+    "llm_model": "gpt-4o",
+    "provider": "openai",
+    "seed": 42,
+    "prompts_file": "/Users/jeffhelzner/seu-sensitivity/applications/temperature_study_with_eu_prompt/configs/prompts.yaml",
+    "fit_models": false,
+    "max_retries": 3,
+    "retry_delay": 2.0,
+    "results_dir": "/Users/jeffhelzner/seu-sensitivity/applications/temperature_study_with_eu_prompt/results",
+    "base_study_results_dir": "/Users/jeffhelzner/seu-sensitivity/applications/temperature_study/results"
+  },
+  "started_at": "2026-03-08T00:15:10.976082+00:00",
+  "phases": {
+    "choice_collection": {
+      "temperatures": [
+        0.0,
+        0.3,
+        0.7,
+        1.0,
+        1.5
+      ],
+      "na_summary": {
+        "per_temperature": {
+          "T=0.0": {
+            "valid": 300,
+            "na": 0,
+            "total": 300,
+            "na_rate": 0.0
+          },
+          "T=0.3": {
+            "valid": 300,
+            "na": 0,
+            "total": 300,
+            "na_rate": 0.0
+          },
+          "T=0.7": {
+            "valid": 300,
+            "na": 0,
+            "total": 300,
+            "na_rate": 0.0
+          },
+          "T=1.0": {
+            "valid": 300,
+            "na": 0,
+            "total": 300,
+            "na_rate": 0.0
+          },
+          "T=1.5": {
+            "valid": 299,
+            "na": 1,
+            "total": 300,
+            "na_rate": 0.0033
+          }
+        },
+        "overall": {
+          "valid": 1499,
+          "na": 1,
+          "total": 1500,
+          "na_rate": 0.0007
+        }
+      }
+    },
+    "data_preparation": {
+      "per_temperature": {
+        "0.0": {
+          "stan_data": "/Users/jeffhelzner/seu-sensitivity/applications/temperature_study_with_eu_prompt/results/stan_data_T0_0.json",
+          "na_log": "/Users/jeffhelzner/seu-sensitivity/applications/temperature_study_with_eu_prompt/results/na_removal_log_T0_0.json",
+          "M": 300,
+          "R": 30,
+          "D": 32,
+          "na_removed": 0
+        },
+        "0.3": {
+          "stan_data": "/Users/jeffhelzner/seu-sensitivity/applications/temperature_study_with_eu_prompt/results/stan_data_T0_3.json",
+          "na_log": "/Users/jeffhelzner/seu-sensitivity/applications/temperature_study_with_eu_prompt/results/na_removal_log_T0_3.json",
+          "M": 300,
+          "R": 30,
+          "D": 32,
+          "na_removed": 0
+        },
+        "0.7": {
+          "stan_data": "/Users/jeffhelzner/seu-sensitivity/applications/temperature_study_with_eu_prompt/results/stan_data_T0_7.json",
+          "na_log": "/Users/jeffhelzner/seu-sensitivity/applications/temperature_study_with_eu_prompt/results/na_removal_log_T0_7.json",
+          "M": 300,
+          "R": 30,
+          "D": 32,
+          "na_removed": 0
+        },
+        "1.0": {
+          "stan_data": "/Users/jeffhelzner/seu-sensitivity/applications/temperature_study_with_eu_prompt/results/stan_data_T1_0.json",
+          "na_log": "/Users/jeffhelzner/seu-sensitivity/applications/temperature_study_with_eu_prompt/results/na_removal_log_T1_0.json",
+          "M": 300,
+          "R": 30,
+          "D": 32,
+          "na_removed": 0
+        },
+        "1.5": {
+          "stan_data": "/Users/jeffhelzner/seu-sensitivity/applications/temperature_study_with_eu_prompt/results/stan_data_T1_5.json",
+          "na_log": "/Users/jeffhelzner/seu-sensitivity/applications/temperature_study_with_eu_prompt/results/na_removal_log_T1_5.json",
+          "M": 299,
+          "R": 30,
+          "D": 32,
+          "na_removed": 1
+        }
+      }
+    }
+  },
+  "base_study": {
+    "results_dir": "/Users/jeffhelzner/seu-sensitivity/applications/temperature_study/results",
+    "num_problems": 100,
+    "temperatures": [
+      0.0,
+      0.3,
+      0.7,
+      1.0,
+      1.5
+    ]
+  },
+  "finished_at": "2026-03-08T00:48:59.215426+00:00",
+  "duration_seconds": 2028.239344
+}

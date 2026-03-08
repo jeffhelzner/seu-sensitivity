@@ -1,0 +1,20 @@
+Checking sampler transitions treedepth.
+Treedepth satisfactory for all transitions.
+
+Checking sampler transitions for divergences.
+1 of 4000 (0.03%) transitions ended with a divergence.
+These divergent transitions indicate that HMC is not fully able to explore the posterior distribution.
+Try increasing adapt delta closer to 1.
+If this doesn't remove all divergences, try to reparameterize the model.
+
+Checking E-BFMI - sampler transitions HMC potential energy.
+E-BFMI satisfactory.
+
+Rank-normalized split effective sample size satisfactory for all parameters.
+
+The following parameters had rank-normalized split R-hat greater than 1.01:
+  delta[1], delta[2], upsilon[2], eta[15], eta[16], eta[19], eta[20], eta[23], eta[24], eta[25], eta[27], eta[29], eta[31], eta[33], eta[35], eta[61], eta[62], eta[65], eta[66], eta[69], eta[70], eta[73], eta[76], eta[79], eta[84], eta[88], eta[92], eta[95], eta[97], eta[99], eta[131], eta[135], eta[139], eta[142], eta[143], eta[144], eta[145], eta[146], eta[147], eta[148], eta[150], eta[151], eta[152], eta[154], eta[155], eta[156], eta[158], eta[159], eta[163], eta[167], eta[171], eta[173], eta[177], eta[181], eta[202], eta[206], eta[210], eta[220], eta[221], eta[222], eta[223], eta[224], eta[225], eta[226], eta[227], eta[228], eta[229], eta[231], eta[233], eta[236], eta[240], eta[244], eta[250], eta[254], eta[258], eta[261], eta[264], eta[267], eta[290], eta[292], eta[294], eta[349], eta[351], eta[353], eta[355], eta[357], eta[359], eta[361], eta[363], eta[365], eta[369], eta[372], eta[375], eta[397], eta[400], eta[403], eta[407], eta[411], eta[415], eta[425], eta[428], eta[431], eta[445], eta[446], eta[448], eta[449], eta[451], eta[452], eta[455], eta[459], eta[463], eta[467], eta[470], eta[473], eta[477], eta[478], eta[481], eta[482], eta[485], eta[486], eta[541], eta[542], eta[545], eta[546], eta[549], eta[550], eta[554], eta[557], eta[560], eta[562], eta[564], eta[566], eta[580], eta[584], eta[588], eta[602], eta[603], eta[604], eta[606], eta[607], eta[608], eta[610], eta[611], eta[612], eta[613], eta[616], eta[617], eta[620], eta[621], eta[624], eta[631], eta[632], eta[635], eta[636], eta[639], eta[640], eta[643], eta[644], eta[645], eta[646], eta[647], eta[648], eta[658], eta[659], eta[660], eta[661], eta[662], eta[663], eta[664], eta[667], eta[670], eta[688], eta[691], eta[692], eta[695], eta[696], eta[699], eta[700], eta[702], eta[704], eta[706], eta[709], eta[710], eta[713], eta[714], eta[717], eta[740], eta[743], eta[746], eta[749], eta[753], eta[757], eta[760], eta[761], eta[762], eta[763], eta[764], eta[765], eta[773], eta[775], eta[777], eta[778], eta[781], eta[784], eta[789], eta[793], eta[797], eta[799], eta[800], eta[801], eta[802], eta[803], eta[804], eta[807], eta[810], eta[813], eta[815], eta[818], eta[821], eta[829], eta[832], eta[835], eta[840], eta[844], eta[848], eta[850], eta[852], eta[854], eta[856], eta[857], eta[859], eta[860], eta[862], eta[863], eta[867], eta[868], eta[871], eta[872], eta[875], eta[876], eta[884], eta[885], eta[887], eta[888], eta[890], eta[891]
+Such high values indicate incomplete mixing and biased estimation.
+You should consider regularizing your model with additional prior information or a more effective parameterization.
+
+Processing complete.

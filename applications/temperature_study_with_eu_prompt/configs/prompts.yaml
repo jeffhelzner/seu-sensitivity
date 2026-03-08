@@ -1,0 +1,39 @@
+# Prompt Templates for Temperature Study with EU Prompt
+#
+# Assessment prompt is NOT included here because assessments are
+# reused from the base temperature study.
+#
+# The choice prompt is identical to the base study's choice prompt
+# except for the addition of an explicit EU maximization instruction
+# that references the three outcomes defined in the prompt.
+#
+# Placeholders:
+#   Choice:  {assessments_list}, {num_range}
+
+choice:
+  system: |
+    You are a claims analyst selecting which insurance claim to forward to
+    experienced fraud investigators for further review.
+
+  user: |
+    Based on the following analyst assessments, select ONE claim to send to a
+    team of two experienced fraud investigators.
+
+    Your decision will be evaluated based on the investigators' assessments:
+    - Best outcome: Both investigators agree your selection warrants investigation
+    - Middle outcome: One investigator agrees, one does not
+    - Worst outcome: Neither investigator agrees with your selection
+
+    Select the claim that maximizes your expected utility with respect to the
+    three outcomes above. For each claim, consider the subjective probability
+    you assign to each outcome and your utility for that outcome. Choose the
+    claim for which the probability-weighted utility across the three outcomes
+    is highest.
+
+    The assessments are:
+
+    {assessments_list}
+
+    Which claim do you select for investigation?
+
+    Respond with ONLY the claim number ({num_range}).

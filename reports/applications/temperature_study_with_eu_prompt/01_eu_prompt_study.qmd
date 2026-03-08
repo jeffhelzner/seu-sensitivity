@@ -1,0 +1,128 @@
+---
+title: "Temperature and SEU Sensitivity: EU-Prompt Variation"
+subtitle: "Application Report: Temperature Study 3"
+description: |
+  Tests whether explicitly instructing the LLM to maximize expected utility
+  increases estimated sensitivity (α) compared to the base temperature study.
+  Uses the same problems, assessments, and embeddings — only the choice prompt
+  is modified to include an explicit EU-maximization instruction.
+categories: [applications, temperature, m_01, eu-prompt]
+execute:
+  cache: true
+---
+
+```{python}
+#| label: setup
+#| include: false
+
+import sys
+import os
+
+reports_root = os.path.normpath(os.path.join(os.getcwd(), '..', '..'))
+project_root = os.path.dirname(reports_root)
+sys.path.insert(0, reports_root)
+sys.path.insert(0, project_root)
+
+import numpy as np
+import json
+import yaml
+import warnings
+warnings.filterwarnings('ignore')
+
+from pathlib import Path
+
+# Data directory for this report (frozen snapshots)
+data_dir = Path("data")
+```
+
+## Introduction
+
+The [initial temperature study](../temperature_study/01_initial_study.qmd) established
+that higher LLM sampling temperature systematically reduces estimated sensitivity (α)
+to subjective expected utility maximization. The global slope was Δα/ΔT ≈ −25, with
+strong pairwise separation at the extremes (T=0.0 vs T≥1.0) and near-equality at
+moderate levels (T=0.3 ≈ T=0.7).
+
+This study asks a complementary question: **does explicitly telling the LLM to maximize
+expected utility increase α?**
+
+The intervention is minimal. The choice prompt is identical to the base study except for
+one added paragraph:
+
+> *Select the claim that maximizes your expected utility with respect to the three
+> outcomes above. For each claim, consider the subjective probability you assign to
+> each outcome and your utility for that outcome. Choose the claim for which the
+> probability-weighted utility across the three outcomes is highest.*
+
+Everything else is held constant:
+
+- Same 100 problems × 3 presentations
+- Same assessment texts (reused from the base study, not re-collected)
+- Same PCA-reduced embeddings
+- Same model: m_01 with Lognormal(3.0, 0.75) prior on α
+- Same 5 temperature levels: 0.0, 0.3, 0.7, 1.0, 1.5
+
+This design isolates the prompt intervention to the **decision rule** while holding
+**belief formation** (assessments) constant — a clean decomposition of the two stages
+of SEU.
+
+## Experimental Design
+
+### Prompt Modification
+
+The base study's choice prompt presents three outcomes and asks the LLM to select a
+claim. The EU-prompt variant adds an explicit instruction to maximize expected utility
+with respect to those outcomes — referencing subjective probabilities, utilities, and
+probability-weighted utility.
+
+The assessment prompt is not modified. Assessments are reused directly from the base
+study, ensuring that the feature representation (w vectors) is identical.
+
+### Data Reuse
+
+| Component | Base Study | EU-Prompt Study |
+|-----------|-----------|-----------------|
+| Problems | Generated | **Reused** |
+| Assessments | Collected | **Reused** |
+| Embeddings | Computed | **Reused** |
+| Choices | Collected | **New** (EU prompt) |
+| Model fitting | m_01 | m_01 (same prior) |
+
+This means the EU-prompt study required only 1,500 new API calls (choices),
+not the full ~3,150 of the base study.
+
+## Results
+
+::: {.callout-note}
+Results will be populated after running the study pipeline.
+:::
+
+## Cross-Study Comparison
+
+The primary comparison is per-temperature:
+
+- **P(α_EU > α_base)**: Does the EU prompt increase sensitivity at each temperature?
+- **Slope comparison**: Is the temperature–sensitivity gradient preserved, attenuated, or amplified?
+- **Interaction**: Does the EU prompt help more at high temperatures (where baseline α is lowest)?
+
+## Discussion
+
+*To be completed after data collection and model fitting.*
+
+## Reproducibility
+
+### Running the Study
+
+```bash
+# Validate configuration and base study data availability
+python -m applications.temperature_study_with_eu_prompt validate
+
+# Estimate API costs (choices only)
+python -m applications.temperature_study_with_eu_prompt estimate-cost
+
+# Run choice collection (skip model fitting for now)
+python -m applications.temperature_study_with_eu_prompt run --skip-fitting
+
+# Fit models on collected data
+python -m applications.temperature_study_with_eu_prompt fit
+```

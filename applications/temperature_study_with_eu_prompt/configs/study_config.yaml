@@ -1,0 +1,30 @@
+# Temperature Study with EU Prompt — Configuration
+#
+# Identical to the base temperature study except:
+# - Choice prompt explicitly instructs EU maximization
+# - Problems, assessments, and embeddings are reused from the base study
+# - Only Phase 2b (choice collection) and Phase 4 (fitting) involve new work
+
+# ── Temperature conditions (must match the original temperature study) ──
+temperatures: [0.0, 0.3, 0.7, 1.0, 1.5]
+
+# ── Model parameters ──
+K: 3                       # Consequences (both agree / one agrees / neither)
+target_dim: 32             # PCA target dimensions (must match base study)
+stan_model: "m_01"         # Same model and prior as base study
+
+# ── API settings ──
+llm_model: "gpt-4o"
+provider: "openai"
+seed: 42
+
+# ── Pipeline control ──
+fit_models: false           # Whether to fit Stan models after data collection
+
+# ── Paths ──
+# Path to the existing temperature study results (for problems, assessments, embeddings)
+base_study_results_dir: null  # Set at runtime; defaults to ../temperature_study/results
+
+# ── API robustness ──
+max_retries: 3
+retry_delay: 2.0

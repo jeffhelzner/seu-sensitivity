@@ -36,6 +36,10 @@ website:
           - text: "Temperature Study: Risky Alternatives"
           - text: "1. Risky Alternatives Extension"
             href: applications/temperature_study_with_risky_alts/01_risky_alternatives_study.qmd
+          - text: "---"
+          - text: "Ellsberg Study"
+          - text: "1. Ellsberg Study"
+            href: applications/ellsberg_study/01_ellsberg_study.qmd
       - text: "Blog"
         href: blog/index.qmd
     right:

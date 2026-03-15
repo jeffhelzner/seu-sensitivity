@@ -1,0 +1,67 @@
+{
+  "0.0": {
+    "alpha_mean": 87.96586687124999,
+    "alpha_median": 85.39877949999999,
+    "alpha_sd": 21.29882829129646,
+    "alpha_q05": 58.8527219,
+    "alpha_q95": 127.221845,
+    "output_dir": "/Users/jeffhelzner/seu-sensitivity/applications/ellsberg_study/results/fit_T0_0",
+    "ppc_p_values": {
+      "ll": 0.45675,
+      "modal": 0.3185,
+      "prob": 0.3165
+    }
+  },
+  "0.2": {
+    "alpha_mean": 57.992428522000004,
+    "alpha_median": 56.0838855,
+    "alpha_sd": 14.147920531227332,
+    "alpha_q05": 38.1698952,
+    "alpha_q95": 84.13200989999997,
+    "output_dir": "/Users/jeffhelzner/seu-sensitivity/applications/ellsberg_study/results/fit_T0_2",
+    "ppc_p_values": {
+      "ll": 0.477,
+      "modal": 0.4695,
+      "prob": 0.411
+    }
+  },
+  "0.5": {
+    "alpha_mean": 86.66997575575,
+    "alpha_median": 82.25922399999999,
+    "alpha_sd": 26.37942370534798,
+    "alpha_q05": 52.330475799999995,
+    "alpha_q95": 135.2547899999999,
+    "output_dir": "/Users/jeffhelzner/seu-sensitivity/applications/ellsberg_study/results/fit_T0_5",
+    "ppc_p_values": {
+      "ll": 0.46075,
+      "modal": 0.59275,
+      "prob": 0.5175
+    }
+  },
+  "0.8": {
+    "alpha_mean": 55.0624307035,
+    "alpha_median": 53.025301999999996,
+    "alpha_sd": 13.885021726565396,
+    "alpha_q05": 35.97429415,
+    "alpha_q95": 80.48668049999999,
+    "output_dir": "/Users/jeffhelzner/seu-sensitivity/applications/ellsberg_study/results/fit_T0_8",
+    "ppc_p_values": {
+      "ll": 0.47025,
+      "modal": 0.591,
+      "prob": 0.51625
+    }
+  },
+  "1.0": {
+    "alpha_mean": 68.65011834500001,
+    "alpha_median": 66.449225,
+    "alpha_sd": 17.204083636292395,
+    "alpha_q05": 45.2912888,
+    "alpha_q95": 99.79928724999999,
+    "output_dir": "/Users/jeffhelzner/seu-sensitivity/applications/ellsberg_study/results/fit_T1_0",
+    "ppc_p_values": {
+      "ll": 0.47425,
+      "modal": 0.488,
+      "prob": 0.4135
+    }
+  }
+}

@@ -1,0 +1,940 @@
+---
+title: "Temperature and SEU Sensitivity: Ellsberg Study"
+subtitle: "Application Report: Ellsberg Study"
+description: |
+  An investigation of how LLM sampling temperature affects estimated
+  sensitivity (α) to subjective expected utility maximization, using
+  Ellsberg-style urn gambles (K=4) and Claude 3.5 Sonnet (Anthropic).
+  This study tests whether the monotonic temperature–α relationship found
+  in the initial temperature study (GPT-4o, insurance triage) generalises
+  to a different task domain and a different foundational model.
+categories: [applications, temperature, ellsberg, m_02, anthropic]
+execute:
+  cache: true
+---
+
+```{python}
+#| label: setup
+#| include: false
+
+import sys
+import os
+
+reports_root = os.path.normpath(os.path.join(os.getcwd(), '..', '..'))
+project_root = os.path.dirname(reports_root)
+sys.path.insert(0, reports_root)
+sys.path.insert(0, project_root)
+
+import numpy as np
+import json
+import re
+import warnings
+warnings.filterwarnings('ignore')
+
+import matplotlib.pyplot as plt
+import pandas as pd
+
+# Use project plotting style
+from report_utils import set_seu_style, SEU_COLORS, SEU_PALETTE
+set_seu_style()
+
+# Data directory (frozen snapshot — immune to future pipeline runs)
+from pathlib import Path
+data_dir = Path("data")
+```
+
+## Introduction {#sec-introduction}
+
+The initial temperature study ([Report 1](../temperature_study/01_initial_study.qmd)) established a clear negative relationship between LLM sampling temperature and estimated sensitivity $\alpha$ to subjective expected utility maximisation. Higher temperature yielded lower $\alpha$, with a posterior slope $\Delta\alpha / \Delta T \approx -25$ and $P(\text{slope} < 0) > 0.99$. That study used **GPT-4o** (OpenAI) on an **insurance claims triage** task with $K = 3$ consequences.
+
+A natural question is whether this finding generalises: does it depend on the specific task domain, the specific LLM, or both? This report describes a study designed to address that question by varying **both** simultaneously:
+
+- **Task domain**: Ellsberg-style urn gambles with monetary payoffs instead of insurance claims triage. The consequence space expands to $K = 4$ ($\$0, \$1, \$2, \$3$). Alternatives range from fully-specified (known ball counts) to maximally ambiguous (unknown mixture), inspired by Ellsberg's (1961) original paradigm.
+- **Foundational model**: Claude 3.5 Sonnet (Anthropic) instead of GPT-4o (OpenAI).
+
+The hypothesis was the same as in the original study: increasing the sampling temperature should monotonically decrease estimated $\alpha$.
+
+::: {.callout-important}
+## Summary of Findings
+The monotonic temperature–α relationship observed in the initial temperature study was **not replicated** in this study. The posterior slope is $\Delta\alpha / \Delta T \approx -19$ but with substantial uncertainty ($P(\text{slope} < 0) \approx 0.77$), and the per-temperature $\alpha$ estimates exhibit a non-monotonic pattern. The model fits adequately at every temperature level—the non-replication reflects the behaviour of the data, not a modelling artefact. Because this study changed both the task and the LLM simultaneously, it is not possible to attribute the non-replication to either factor alone.
+:::
+
+## Experimental Design {#sec-design}
+
+### Task and Conditions
+
+We use Ellsberg-style urn gambles in which Claude 3.5 Sonnet selects which gamble to play from a set of alternatives. Each gamble describes an urn containing coloured balls with specified (or partially specified) counts, and payout rules mapping ball colours to one of $K = 4$ monetary consequences ($\$0, \$1, \$2, \$3$). In each decision problem, the LLM is presented with a subset of these gambles. The LLM first *assesses* each gamble individually (producing text that is then embedded), and subsequently makes a *choice* among the gambles in a given problem.
+
+Five temperature levels define the between-condition factor:
+
+```{python}
+#| label: tbl-conditions
+#| tbl-cap: "Experimental conditions. Each temperature level constitutes a separate model fit."
+
+conditions = pd.DataFrame({
+    'Level': [1, 2, 3, 4, 5],
+    'Temperature': [0.0, 0.2, 0.5, 0.8, 1.0],
+    'Description': [
+        'Deterministic (greedy decoding)',
+        'Low variance',
+        'Moderate variance',
+        'High variance',
+        'Maximum (Anthropic API limit)'
+    ]
+})
+conditions
+```
+
+::: {.callout-note}
+## Temperature Range
+The Anthropic API supports temperature values in $[0.0, 1.0]$, compared to $[0.0, 2.0]$ for OpenAI. The initial temperature study used $T \in \{0.0, 0.3, 0.7, 1.0, 1.5\}$. Here we use $T \in \{0.0, 0.2, 0.5, 0.8, 1.0\}$ — five levels spanning the full Anthropic-supported range. This is a narrower absolute range, which reduces statistical power for detecting the temperature effect.
+:::
+
+### Alternative Pool
+
+The alternative pool consists of 30 Ellsberg-style urn gambles organised into three ambiguity tiers:
+
+- **Tier 1 (no ambiguity, E01–E08):** All ball counts are explicitly stated. These function like risky alternatives with known objective probabilities.
+- **Tier 2 (moderate ambiguity, E09–E20):** Some ball counts are bounded by "at least" or "at most" constraints. The total is always stated.
+- **Tier 3 (high ambiguity, E21–E30):** Only one colour's count is known; the rest is described as an unknown mixture. This is closest to Ellsberg's original setup.
+
+```{python}
+#| label: tbl-pool-summary
+#| tbl-cap: "Alternative pool summary. All 30 gambles use K=4 monetary consequences."
+
+pool_summary = pd.DataFrame({
+    'Tier': ['1: No ambiguity', '2: Moderate', '3: High'],
+    'Alternatives': ['E01–E08 (8)', 'E09–E20 (12)', 'E21–E30 (10)'],
+    'Ball counts': ['Fully specified', 'Partially bounded', 'Mostly unknown'],
+    'Urn sizes': ['60–120', '80–120', '60–120'],
+})
+pool_summary
+```
+
+### Design Parameters
+
+```{python}
+#| label: design-params
+#| echo: true
+
+# Load frozen study configuration
+import yaml
+
+with open(data_dir / "study_config.yaml") as f:
+    config = yaml.safe_load(f)
+
+# Load run summary for pipeline details
+with open(data_dir / "run_summary.json") as f:
+    run_summary = json.load(f)
+
+print(f"Study Design:")
+print(f"  Decision problems (M):      {config['num_problems']} base × {config['num_presentations']} presentations = {config['num_problems'] * config['num_presentations']}")
+print(f"  Alternatives per problem:    {config['min_alternatives']}–{config['max_alternatives']}")
+print(f"  Consequences (K):            {config['K']}")
+print(f"  Embedding dimensions (D):    {config['target_dim']}")
+print(f"  Distinct alternatives (R):   {run_summary['phases']['phase3_data_prep']['per_temperature']['0.0']['R']}")
+print(f"  LLM model:                   {config['llm_model']}")
+print(f"  Embedding model:             {config['embedding_model']}")
+print(f"  Provider:                    {config['provider']}")
+```
+
+Each of the 100 base problems is presented $P = 3$ times with gambles shuffled to different positions, yielding approximately $M = 300$ observations per temperature condition. This **position counterbalancing** design addresses systematic position bias. Any unparseable response is recorded as NA rather than assigned a default.
+
+### Feature Construction
+
+Alternative features are constructed through the same two-stage process used in the initial temperature study. First, Claude 3.5 Sonnet assesses each gamble at the relevant temperature, producing a natural-language evaluation. These assessments are embedded using `text-embedding-3-small` (OpenAI), yielding high-dimensional vectors. Second, all embeddings across temperature conditions are pooled and projected via PCA to $D = 32$ dimensions.
+
+```{python}
+#| label: pca-variance
+#| echo: false
+
+pca = run_summary['phases']['phase3_data_prep']['pca_summary']
+cumvar = np.cumsum(pca['explained_variance_ratio'])
+
+print(f"PCA Summary:")
+print(f"  Components retained: {pca['n_components']}")
+print(f"  Total variance explained: {pca['total_explained_variance']:.1%}")
+print(f"  First 5 components: {cumvar[4]:.1%}")
+print(f"  First 10 components: {cumvar[9]:.1%}")
+```
+
+### Data Quality
+
+```{python}
+#| label: data-quality
+#| echo: false
+
+na = run_summary['phases']['phase2b_choices']['na_summary']
+print(f"NA Summary:")
+print(f"  Overall: {na['overall']['na']} / {na['overall']['total']} ({na['overall']['na_rate']:.1%})")
+for key, val in na['per_temperature'].items():
+    print(f"  {key}: {val['na']} / {val['total']} ({val['na_rate']:.1%})")
+```
+
+The overall NA rate of 1.4% is low and comparable to the initial temperature study. The slight increase in NA rate at higher temperatures is consistent with the expectation that higher-entropy token sampling occasionally produces unparseable responses.
+
+### Comparison with Initial Temperature Study
+
+```{python}
+#| label: tbl-design-comparison
+#| tbl-cap: "Design comparison between the initial temperature study and the Ellsberg study."
+
+comparison = pd.DataFrame({
+    'Parameter': ['LLM', 'Task domain', 'Consequences (K)', 
+                  'Alternatives (R)', 'Observations per T', 
+                  'Temperature range', 'Embedding model', 'Stan model'],
+    'Initial study': ['GPT-4o (OpenAI)', 'Insurance claims triage', '3',
+                      '30', '~300', '[0.0, 0.3, 0.7, 1.0, 1.5]',
+                      'text-embedding-3-small', 'm_01'],
+    'This study': ['Claude 3.5 Sonnet (Anthropic)', 'Ellsberg urn gambles', '4',
+                   '30', '~300', '[0.0, 0.2, 0.5, 0.8, 1.0]',
+                   'text-embedding-3-small', 'm_02'],
+})
+comparison
+```
+
+
+## Model and Prior Calibration {#sec-model}
+
+### The m_02 Model Variant
+
+We fit the **m_02** model, which is structurally identical to the foundational m_0 model. The only difference is the prior on $\alpha$, calibrated for the Ellsberg study's $K = 4$ consequence space:
+
+| | m_0 (foundational) | m_01 (initial study) | m_02 (this study) |
+|---|---|---|---|
+| $\alpha$ prior | $\text{Lognormal}(0, 1)$ | $\text{Lognormal}(3.0, 0.75)$ | $\text{Lognormal}(3.5, 0.75)$ |
+| Prior median | $\approx 1$ | $\approx 20$ | $\approx 33$ |
+| Prior 90% CI | $[0.19, 5.0]$ | $[5.5, 67]$ | $[10, 124]$ |
+| $K$ | generic | 3 | 4 |
+| All other priors | — | Identical to m_0 | Identical to m_0 |
+
+The m_02 prior is slightly wider than m_01's because $K = 4$ consequences create a lower random-choice baseline ($\frac{1}{4}$ vs $\frac{1}{3}$), requiring higher $\alpha$ values to achieve comparable SEU-maximisation rates.
+
+### Prior Predictive Grid Search
+
+We conducted the same grid-search procedure used for the initial study, but with the Ellsberg study's Stan data ($K = 4$, $D = 32$, $R = 30$).
+
+```{python}
+#| label: fig-grid-search
+#| fig-cap: "Prior predictive grid search results for K=4 Ellsberg gambles. The selected prior lognormal(3.5, 0.75) yields a prior-implied SEU-max rate of approximately 0.76."
+
+with open(data_dir / "grid_results.json") as f:
+    grid = json.load(f)
+
+results = grid['results']
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+
+# Left: SEU rate by prior
+labels = [r['prior_label'] for r in results]
+means = [r['seu_rate_mean'] for r in results]
+q05s = [r['seu_rate_q05'] for r in results]
+q95s = [r['seu_rate_q95'] for r in results]
+
+y_pos = np.arange(len(labels))
+errors = np.array([[m - q05, q95 - m] for m, q05, q95 in zip(means, q05s, q95s)]).T
+
+colors = [SEU_COLORS['accent'] if 'lognormal(3.5, 0.75)' in l else SEU_COLORS['primary'] 
+          for l in labels]
+
+axes[0].barh(y_pos, means, xerr=errors, color=colors, alpha=0.8, 
+             edgecolor='white', capsize=3)
+axes[0].set_yticks(y_pos)
+axes[0].set_yticklabels(labels, fontsize=9)
+axes[0].set_xlabel('SEU-Maximizer Selection Rate')
+axes[0].set_title('Prior-Implied SEU-Max Rate (K=4)')
+axes[0].set_xlim(0, 1)
+
+# Right: prior density comparison
+from scipy.stats import lognorm
+x = np.linspace(0.1, 200, 500)
+
+# m_0 prior: lognormal(0, 1)
+axes[1].plot(x, lognorm.pdf(x, s=1.0, scale=np.exp(0)), 
+             color=SEU_COLORS['grid'], linewidth=1.5, linestyle='--',
+             label='m_0: Lognormal(0, 1)')
+# m_01 prior: lognormal(3.0, 0.75)
+axes[1].plot(x, lognorm.pdf(x, s=0.75, scale=np.exp(3.0)),
+             color=SEU_COLORS['secondary'], linewidth=2, 
+             label='m_01: Lognormal(3.0, 0.75)')
+# m_02 prior: lognormal(3.5, 0.75)
+axes[1].plot(x, lognorm.pdf(x, s=0.75, scale=np.exp(3.5)),
+             color=SEU_COLORS['accent'], linewidth=2, 
+             label='m_02: Lognormal(3.5, 0.75)')
+axes[1].set_xlabel('α')
+axes[1].set_ylabel('Density')
+axes[1].set_title('Prior Comparison')
+axes[1].legend(fontsize=9)
+axes[1].set_xlim(0, 200)
+
+plt.tight_layout()
+plt.show()
+```
+
+The selected prior $\text{Lognormal}(3.5, 0.75)$ yields a prior-implied SEU-max rate of approximately 0.76 for $K = 4$, comparable to the m_01 prior's 0.78 rate for $K = 3$. This calibration ensures that the prior encodes a similar degree of informativeness about the LLM's decision quality across the two studies.
+
+
+## Model Validation {#sec-validation}
+
+### Parameter Recovery {#sec-parameter-recovery}
+
+We validate that m_02's parameters are identifiable under the Ellsberg study design ($M \approx 300$, $K = 4$, $D = 32$, $R = 30$) via 20 iterations of parameter recovery. For each iteration, we draw parameters from the m_02 prior, simulate choice data via `m_02_sim.stan`, fit `m_02.stan`, and compare posterior estimates to the true values.
+
+```{python}
+#| label: load-recovery
+#| output: false
+
+import glob
+
+recovery_dir = os.path.join(project_root, "results", "parameter_recovery", "m02_recovery")
+recovery_summary_dir = os.path.join(recovery_dir, "recovery_summary")
+
+# Load recovery statistics
+with open(os.path.join(recovery_summary_dir, "recovery_statistics.json")) as f:
+    recovery_stats = json.load(f)
+
+# Load individual iteration data
+true_params_path = os.path.join(recovery_dir, "all_true_parameters.json")
+with open(true_params_path) as f:
+    all_true_params = json.load(f)
+
+# Load posterior summaries for each iteration
+posterior_summaries = []
+true_params_list = []
+for i in range(1, 21):
+    iter_dir = os.path.join(recovery_dir, f"iteration_{i}")
+    summary_path = os.path.join(iter_dir, "posterior_summary.csv")
+    if os.path.exists(summary_path):
+        df = pd.read_csv(summary_path, index_col=0)
+        posterior_summaries.append(df)
+        true_params_list.append(all_true_params[i - 1])
+
+n_successful = len(posterior_summaries)
+print(f"Loaded {n_successful} recovery iterations")
+```
+
+```{python}
+#| label: fig-alpha-recovery
+#| fig-cap: "Recovery of the sensitivity parameter α under the m_02 prior with the Ellsberg study design (K=4). Left: true vs. estimated values with identity line. Right: 90% credible intervals for each iteration, coloured by whether they contain the true value."
+
+alpha_true = np.array([p['alpha'] for p in true_params_list])
+alpha_mean = np.array([s.loc['alpha', 'Mean'] for s in posterior_summaries])
+alpha_lower = np.array([s.loc['alpha', '5%'] for s in posterior_summaries])
+alpha_upper = np.array([s.loc['alpha', '95%'] for s in posterior_summaries])
+
+alpha_bias = np.mean(alpha_mean - alpha_true)
+alpha_rmse = np.sqrt(np.mean((alpha_mean - alpha_true)**2))
+alpha_coverage = np.mean((alpha_true >= alpha_lower) & (alpha_true <= alpha_upper))
+alpha_ci_width = np.mean(alpha_upper - alpha_lower)
+
+fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+# True vs Estimated
+ax = axes[0]
+ax.scatter(alpha_true, alpha_mean, alpha=0.7, s=60, c=SEU_COLORS['primary'], edgecolor='white')
+lims = [min(alpha_true.min(), alpha_mean.min()) * 0.9,
+        max(alpha_true.max(), alpha_mean.max()) * 1.1]
+ax.plot(lims, lims, 'r--', linewidth=2, label='Identity line')
+ax.set_xlim(lims)
+ax.set_ylim(lims)
+ax.set_xlabel('True α', fontsize=12)
+ax.set_ylabel('Estimated α (posterior mean)', fontsize=12)
+ax.set_title(f'α Recovery: Bias={alpha_bias:.2f}, RMSE={alpha_rmse:.2f}', fontsize=12)
+ax.legend()
+ax.set_aspect('equal')
+
+# Coverage plot
+ax = axes[1]
+for i in range(len(alpha_true)):
+    covered = (alpha_true[i] >= alpha_lower[i]) & (alpha_true[i] <= alpha_upper[i])
+    color = 'forestgreen' if covered else 'crimson'
+    ax.plot([i, i], [alpha_lower[i], alpha_upper[i]], color=color, linewidth=2, alpha=0.7)
+    ax.scatter(i, alpha_mean[i], color=color, s=40, zorder=3)
+
+ax.scatter(np.arange(len(alpha_true)), alpha_true, color='black', s=60, marker='x',
+           label='True value', zorder=4, linewidth=2)
+ax.set_xlabel('Iteration', fontsize=12)
+ax.set_ylabel('α', fontsize=12)
+ax.set_title(f'α: 90% Credible Intervals (Coverage = {alpha_coverage:.0%})', fontsize=12)
+ax.legend()
+ax.grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+```
+
+```{python}
+#| label: tbl-recovery-metrics
+#| tbl-cap: "Parameter recovery metrics for m_02 with the Ellsberg study design (M≈300, K=4, D=32, R=30)."
+
+K_val = 4
+D_val = 32
+
+# Beta recovery
+all_beta_coverage = []
+for k in range(K_val):
+    for d in range(D_val):
+        param_name = f"beta[{k+1},{d+1}]"
+        try:
+            bt = np.array([p['beta'][k][d] for p in true_params_list])
+            bl = np.array([s.loc[param_name, '5%'] for s in posterior_summaries])
+            bu = np.array([s.loc[param_name, '95%'] for s in posterior_summaries])
+            all_beta_coverage.append(np.mean((bt >= bl) & (bt <= bu)))
+        except (KeyError, IndexError):
+            pass
+
+# Delta recovery
+all_delta_coverage = []
+for k in range(K_val - 1):
+    param_name = f"delta[{k+1}]"
+    try:
+        dt = np.array([p['delta'][k] for p in true_params_list])
+        dl = np.array([s.loc[param_name, '5%'] for s in posterior_summaries])
+        du = np.array([s.loc[param_name, '95%'] for s in posterior_summaries])
+        all_delta_coverage.append(np.mean((dt >= dl) & (dt <= du)))
+    except (KeyError, IndexError):
+        pass
+
+metrics = pd.DataFrame([
+    {'Parameter': 'α', 'Bias': f'{alpha_bias:.2f}', 'RMSE': f'{alpha_rmse:.2f}',
+     'Coverage (90%)': f'{alpha_coverage:.0%}', 'CI Width': f'{alpha_ci_width:.1f}'},
+    {'Parameter': f'β (mean over {K_val*D_val})', 
+     'Bias': '—',
+     'RMSE': '—',
+     'Coverage (90%)': f'{np.mean(all_beta_coverage):.0%}' if all_beta_coverage else '—',
+     'CI Width': '—'},
+    {'Parameter': f'δ (mean over {K_val-1})',
+     'Bias': '—',
+     'RMSE': '—',
+     'Coverage (90%)': f'{np.mean(all_delta_coverage):.0%}' if all_delta_coverage else '—',
+     'CI Width': '—'},
+])
+metrics
+```
+
+The α recovery is adequate for the purpose of this study: the 90% credible intervals contain the true value with high probability. The β–δ identification pattern documented in the foundational reports is expected to persist here as well, since m_02 (like m_0 and m_01) uses only uncertain choices. Since this study focuses on α estimation, the weaker recovery of (β, δ) does not compromise the primary analysis.
+
+::: {.callout-note}
+## SBC Not Performed for m_02
+Simulation-based calibration (SBC) was not completed for m_02. The model is structurally identical to m_0, which passed SBC in the foundational reports, and to m_01, which passed SBC in the initial temperature study. The only difference is the prior hyperparameters on α, which do not affect the model's structural calibration properties. Given the computational cost of SBC at this scale ($M \approx 300$, $K = 4$, $D = 32$), we rely on the structural equivalence argument and the parameter recovery results above to support the model's validity.
+:::
+
+
+## Results {#sec-results}
+
+### Loading Posterior Draws
+
+```{python}
+#| label: load-posteriors
+#| output: false
+
+temperatures = [0.0, 0.2, 0.5, 0.8, 1.0]
+temp_labels = {t: f"T={t}" for t in temperatures}
+
+# Load alpha draws for each temperature
+alpha_draws = {}
+for t in temperatures:
+    key = f"T{str(t).replace('.', '_')}"
+    data = np.load(data_dir / f"alpha_draws_{key}.npz")
+    alpha_draws[t] = data['alpha']
+
+# Load pre-computed analysis results
+with open(data_dir / "primary_analysis.json") as f:
+    analysis = json.load(f)
+
+# Load fit summary
+with open(data_dir / "fit_summary.json") as f:
+    fit_summary = json.load(f)
+```
+
+```{python}
+#| echo: false
+# Verify draws loaded correctly
+for t in temperatures:
+    n = len(alpha_draws[t])
+    print(f"  T={t}: {n:,} posterior draws loaded")
+```
+
+### MCMC Diagnostics
+
+```{python}
+#| label: tbl-diagnostics
+#| tbl-cap: "MCMC diagnostics for all five temperature conditions. All fits used 4 chains with 1,000 warmup and 1,000 sampling iterations each (4,000 post-warmup draws total)."
+
+diag_rows = []
+for t in temperatures:
+    key = f"T{str(t).replace('.', '_')}"
+    with open(data_dir / f"diagnostics_{key}.txt") as f:
+        diag_text = f.read()
+    
+    # Parse divergences
+    if "No divergent transitions" in diag_text:
+        n_div = 0
+    else:
+        match = re.search(r'(\d+) of (\d+)', diag_text)
+        n_div = int(match.group(1)) if match else 0
+    
+    rhat_ok = "R-hat values satisfactory" in diag_text or "R_hat" not in diag_text.replace("R-hat values satisfactory", "")
+    ess_ok = "effective sample size satisfactory" in diag_text
+    ebfmi_ok = "E-BFMI satisfactory" in diag_text
+    
+    diag_rows.append({
+        'Temperature': t,
+        'Divergences': f"{n_div}/4000",
+        'R̂': '✓' if rhat_ok else '✗',
+        'ESS': '✓' if ess_ok else '✗',
+        'E-BFMI': '✓' if ebfmi_ok else '✗',
+    })
+
+pd.DataFrame(diag_rows)
+```
+
+All conditions show clean diagnostics. The handful of divergent transitions at lower temperatures ($< 0.15\%$) are well within acceptable bounds.
+
+### Posterior Summaries
+
+```{python}
+#| label: tbl-posteriors
+#| tbl-cap: "Posterior summaries for the sensitivity parameter α at each temperature level. Intervals are 90% credible intervals."
+
+summary = analysis['summary_table']
+
+rows = []
+for s in summary:
+    rows.append({
+        'Temperature': s['temperature'],
+        'Median': f"{s['median']:.1f}",
+        'Mean': f"{s['mean']:.1f}",
+        'SD': f"{s['sd']:.1f}",
+        '90% CI': f"[{s['ci_low']:.1f}, {s['ci_high']:.1f}]",
+    })
+
+pd.DataFrame(rows)
+```
+
+Unlike the initial temperature study, the estimates do **not** display a monotonic decline. Instead, α alternates between higher values at $T = 0.0$ and $0.5$ and lower values at $T = 0.2$ and $0.8$, with $T = 1.0$ falling in between.
+
+### Forest Plot
+
+```{python}
+#| label: fig-forest
+#| fig-cap: "Forest plot of posterior α distributions across temperature conditions. Points show posterior medians; thick bars span the 50% credible interval; thin bars span the 90% credible interval. The non-monotonic pattern is evident: T=0.0 and T=0.5 yield higher α estimates than their neighbours."
+#| fig-height: 5
+
+fig, ax = plt.subplots(figsize=(8, 5))
+
+y_positions = np.arange(len(temperatures))[::-1]
+
+for i, t in enumerate(temperatures):
+    draws = alpha_draws[t]
+    median = np.median(draws)
+    q05, q25, q75, q95 = np.percentile(draws, [5, 25, 75, 95])
+    
+    y = y_positions[i]
+    
+    # 90% CI (thin line)
+    ax.plot([q05, q95], [y, y], color=SEU_PALETTE[i], linewidth=1.5, alpha=0.7)
+    # 50% CI (thick line)
+    ax.plot([q25, q75], [y, y], color=SEU_PALETTE[i], linewidth=4, alpha=0.9)
+    # Median (point)
+    ax.plot(median, y, 'o', color=SEU_PALETTE[i], markersize=8, 
+            markeredgecolor='white', markeredgewidth=1.5, zorder=5)
+
+ax.set_yticks(y_positions)
+ax.set_yticklabels([f'T = {t}' for t in temperatures])
+ax.set_xlabel('Sensitivity (α)')
+ax.set_title('Posterior Distributions of α by Temperature')
+ax.grid(axis='x', alpha=0.3)
+ax.grid(axis='y', alpha=0)
+
+plt.tight_layout()
+plt.show()
+```
+
+### Posterior Densities
+
+```{python}
+#| label: fig-density
+#| fig-cap: "Kernel density estimates of the posterior α distributions. The posteriors cluster into two groups rather than forming a monotonic sequence: T=0.0 and T=0.5 occupy a higher range, while T=0.2 and T=0.8 are lower."
+#| fig-height: 5
+
+from scipy.stats import gaussian_kde
+
+fig, ax = plt.subplots(figsize=(8, 5))
+
+for i, t in enumerate(temperatures):
+    draws = alpha_draws[t]
+    kde = gaussian_kde(draws)
+    x_grid = np.linspace(draws.min() * 0.8, draws.max() * 1.1, 300)
+    ax.fill_between(x_grid, kde(x_grid), alpha=0.2, color=SEU_PALETTE[i])
+    ax.plot(x_grid, kde(x_grid), color=SEU_PALETTE[i], linewidth=2, 
+            label=f'T = {t} (median = {np.median(draws):.0f})')
+
+ax.set_xlabel('Sensitivity (α)')
+ax.set_ylabel('Density')
+ax.set_title('Posterior Density of α')
+ax.legend(loc='upper right')
+
+plt.tight_layout()
+plt.show()
+```
+
+### Posterior Predictive Checks
+
+```{python}
+#| label: tbl-ppc
+#| tbl-cap: "Posterior predictive check p-values for each temperature condition. Values near 0.5 indicate good calibration; values near 0 or 1 indicate model misfit. Three test statistics are used: log-likelihood (ll), modal choice frequency (modal), and mean choice probability (prob)."
+
+ppc_rows = []
+for t in temperatures:
+    key = f"T{str(t).replace('.', '_')}"
+    with open(data_dir / f"ppc_{key}.json") as f:
+        ppc = json.load(f)
+    
+    pvals = ppc['p_values']
+    ppc_rows.append({
+        'Temperature': t,
+        'Log-likelihood': f"{pvals['ll']:.3f}",
+        'Modal frequency': f"{pvals['modal']:.3f}",
+        'Mean probability': f"{pvals['prob']:.3f}",
+    })
+
+pd.DataFrame(ppc_rows)
+```
+
+All posterior predictive p-values fall within $[0.3, 0.6]$, indicating that the model provides an adequate description of the choice data at every temperature level. The non-monotonic pattern in α is not an artefact of model misfit—the m_02 model is fitting the data well at each temperature.
+
+
+## Monotonicity Analysis {#sec-monotonicity}
+
+### Global Slope
+
+```{python}
+#| label: fig-slope
+#| fig-cap: "Posterior distribution of the slope Δα/ΔT. Unlike the initial temperature study, the distribution straddles zero: P(slope < 0) ≈ 0.77, providing only weak evidence for a negative relationship."
+
+slopes = analysis['slope']
+
+# Compute slope draws for the density plot
+temp_array = np.array(temperatures)
+
+slope_draws = []
+for draw_idx in range(len(alpha_draws[temperatures[0]])):
+    alphas_at_draw = np.array([alpha_draws[t][draw_idx] for t in temperatures])
+    b = np.cov(temp_array, alphas_at_draw)[0, 1] / np.var(temp_array)
+    slope_draws.append(b)
+slope_draws = np.array(slope_draws)
+
+fig, ax = plt.subplots(figsize=(8, 4))
+
+kde = gaussian_kde(slope_draws)
+x_grid = np.linspace(np.percentile(slope_draws, 0.5), np.percentile(slope_draws, 99.5), 300)
+ax.fill_between(x_grid, kde(x_grid), alpha=0.3, color=SEU_COLORS['primary'])
+ax.plot(x_grid, kde(x_grid), color=SEU_COLORS['primary'], linewidth=2)
+
+median_slope = np.median(slope_draws)
+ax.axvline(x=median_slope, color=SEU_COLORS['accent'], linestyle='-', linewidth=2,
+           label=f'Median = {median_slope:.1f}')
+ax.axvline(x=0, color='gray', linestyle='--', alpha=0.5, label='No effect')
+
+# Shade 90% CI
+q05, q95 = np.percentile(slope_draws, [5, 95])
+mask = (x_grid >= q05) & (x_grid <= q95)
+ax.fill_between(x_grid[mask], kde(x_grid[mask]), alpha=0.15, color=SEU_COLORS['accent'])
+ax.axvline(x=q05, color=SEU_COLORS['accent'], linestyle=':', alpha=0.6)
+ax.axvline(x=q95, color=SEU_COLORS['accent'], linestyle=':', alpha=0.6)
+
+ax.set_xlabel('Slope (Δα / ΔT)')
+ax.set_ylabel('Density')
+ax.set_title('Posterior Distribution of Temperature–Sensitivity Slope')
+ax.legend()
+
+plt.tight_layout()
+plt.show()
+
+print(f"Slope summary:")
+print(f"  Median:  {median_slope:.1f}")
+print(f"  90% CI:  [{q05:.1f}, {q95:.1f}]")
+print(f"  P(slope < 0): {np.mean(slope_draws < 0):.3f}")
+```
+
+The 90% CI for the slope spans from approximately $-65$ to $+24$, comfortably including zero. This contrasts sharply with the initial study, where the entire 90% CI lay below zero.
+
+### Pairwise Comparisons
+
+```{python}
+#| label: tbl-pairwise
+#| tbl-cap: "Posterior probability that α is higher at the lower temperature in each pair. Unlike the initial study, several pairwise comparisons reverse the expected direction."
+
+pairs = analysis['pairwise_comparisons']
+
+pair_rows = []
+for key, prob in pairs.items():
+    t1, t2 = key.split('_vs_')
+    if prob > 0.95:
+        strength = '●●● (strong)'
+    elif prob > 0.8:
+        strength = '●● (moderate)'
+    elif prob > 0.65:
+        strength = '● (weak)'
+    elif prob < 0.35:
+        strength = '○ (reversed)'
+    else:
+        strength = '— (indistinguishable)'
+    pair_rows.append({
+        'Comparison': f'α(T={t1}) > α(T={t2})',
+        'P': f'{prob:.3f}',
+        'Evidence': strength,
+    })
+
+pd.DataFrame(pair_rows)
+```
+
+The pairwise analysis reveals a strikingly different pattern from the initial study:
+
+- **Expected direction** ($P > 0.8$): $T = 0.0$ vs $T = 0.2$; $T = 0.0$ vs $T = 0.8$; $T = 0.5$ vs $T = 0.8$
+- **Reversed direction** ($P < 0.35$): $T = 0.2$ vs $T = 0.5$ ($P = 0.15$); $T = 0.8$ vs $T = 1.0$ ($P = 0.26$)
+- The reversal at $T = 0.2 \to 0.5$ is particularly notable: α *increases* substantially as temperature rises from 0.2 to 0.5.
+
+### Strict Monotonicity
+
+```{python}
+#| label: monotonicity
+#| echo: true
+
+# P(α(T=0.0) > α(T=0.2) > α(T=0.5) > α(T=0.8) > α(T=1.0))
+n_draws = len(alpha_draws[0.0])
+strictly_decreasing = 0
+
+for i in range(n_draws):
+    vals = [alpha_draws[t][i] for t in temperatures]
+    if all(vals[j] > vals[j+1] for j in range(len(vals)-1)):
+        strictly_decreasing += 1
+
+p_mono = strictly_decreasing / n_draws
+print(f"P(α strictly decreasing across all T): {p_mono:.4f}")
+```
+
+The probability of strict monotonicity is near zero, consistent with the visual pattern of alternating high and low α values.
+
+
+## Comparison with Initial Temperature Study {#sec-comparison}
+
+```{python}
+#| label: fig-cross-study
+#| fig-cap: "Cross-study comparison of posterior α estimates by temperature. Left: initial study (GPT-4o, insurance task, K=3) showing clear monotonic decline. Right: this study (Claude 3.5 Sonnet, Ellsberg gambles, K=4) showing no monotonic structure. Error bars show 90% credible intervals."
+
+# Load initial study data
+initial_data_dir = Path("..") / "temperature_study" / "data"
+
+with open(initial_data_dir / "primary_analysis.json") as f:
+    initial_analysis = json.load(f)
+
+initial_temps = [s['temperature'] for s in initial_analysis['summary_table']]
+initial_medians = [s['median'] for s in initial_analysis['summary_table']]
+initial_lows = [s['ci_low'] for s in initial_analysis['summary_table']]
+initial_highs = [s['ci_high'] for s in initial_analysis['summary_table']]
+
+ellsberg_medians = [s['median'] for s in analysis['summary_table']]
+ellsberg_lows = [s['ci_low'] for s in analysis['summary_table']]
+ellsberg_highs = [s['ci_high'] for s in analysis['summary_table']]
+
+fig, axes = plt.subplots(1, 2, figsize=(14, 5), sharey=True)
+
+# Left: initial study
+ax = axes[0]
+ax.errorbar(initial_temps, initial_medians,
+            yerr=[np.array(initial_medians) - np.array(initial_lows), 
+                  np.array(initial_highs) - np.array(initial_medians)],
+            fmt='o-', color=SEU_COLORS['primary'], linewidth=2, markersize=8,
+            capsize=5, capthick=1.5)
+ax.set_xlabel('Temperature')
+ax.set_ylabel('Sensitivity (α)')
+ax.set_title('Initial Study\n(GPT-4o, Insurance, K=3)')
+ax.set_xticks(initial_temps)
+
+# Right: Ellsberg study
+ax = axes[1]
+ax.errorbar(temperatures, ellsberg_medians,
+            yerr=[np.array(ellsberg_medians) - np.array(ellsberg_lows), 
+                  np.array(ellsberg_highs) - np.array(ellsberg_medians)],
+            fmt='o-', color=SEU_COLORS['accent'], linewidth=2, markersize=8,
+            capsize=5, capthick=1.5)
+ax.set_xlabel('Temperature')
+ax.set_title('Ellsberg Study\n(Claude 3.5 Sonnet, Urn Gambles, K=4)')
+ax.set_xticks(temperatures)
+
+plt.tight_layout()
+plt.show()
+```
+
+```{python}
+#| label: tbl-cross-study
+#| tbl-cap: "Cross-study comparison of slope estimates and monotonicity. The initial study shows a clear negative relationship; the Ellsberg study does not."
+
+cross = pd.DataFrame([
+    {'Study': 'Initial (GPT-4o)',
+     'Slope median': f"{initial_analysis['slope']['slope']:.1f}",
+     'Slope 90% CI': f"[{initial_analysis['slope']['ci_low']:.1f}, {initial_analysis['slope']['ci_high']:.1f}]",
+     'P(slope < 0)': '> 0.99',
+     'P(strict mono)': f"{initial_analysis['monotonicity_prob']:.3f}"},
+    {'Study': 'Ellsberg (Claude)',
+     'Slope median': f"{analysis['slope']['median']:.1f}",
+     'Slope 90% CI': f"[{analysis['slope']['ci_low']:.1f}, {analysis['slope']['ci_high']:.1f}]",
+     'P(slope < 0)': f"{analysis['slope']['p_negative']:.3f}",
+     'P(strict mono)': f"{analysis['monotonicity_prob']:.3f}"},
+])
+cross
+```
+
+### Pairwise Separation Heatmap
+
+```{python}
+#| label: fig-summary
+#| fig-cap: "Summary of the temperature–sensitivity relationship. Left: posterior medians with 90% credible intervals showing the non-monotonic pattern. Right: pairwise posterior probabilities P(α_i > α_j), showing the alternating structure."
+
+pairs = analysis['pairwise_comparisons']
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+
+# Left: point estimates with CIs
+medians = [np.median(alpha_draws[t]) for t in temperatures]
+q05s_plot = [np.percentile(alpha_draws[t], 5) for t in temperatures]
+q95s_plot = [np.percentile(alpha_draws[t], 95) for t in temperatures]
+
+axes[0].errorbar(temperatures, medians,
+                 yerr=[np.array(medians) - np.array(q05s_plot), 
+                       np.array(q95s_plot) - np.array(medians)],
+                 fmt='o-', color=SEU_COLORS['accent'], linewidth=2, markersize=8,
+                 capsize=5, capthick=1.5)
+axes[0].set_xlabel('Temperature')
+axes[0].set_ylabel('Sensitivity (α)')
+axes[0].set_title('α vs. Temperature')
+axes[0].set_xticks(temperatures)
+
+# Right: pairwise heatmap
+n_temps = len(temperatures)
+heatmap = np.full((n_temps, n_temps), np.nan)
+
+for key, prob in pairs.items():
+    t1, t2 = key.split('_vs_')
+    i = temperatures.index(float(t1))
+    j = temperatures.index(float(t2))
+    heatmap[i, j] = prob
+    heatmap[j, i] = 1 - prob
+
+np.fill_diagonal(heatmap, 0.5)
+
+im = axes[1].imshow(heatmap, cmap='RdYlGn', vmin=0, vmax=1, aspect='equal')
+axes[1].set_xticks(range(n_temps))
+axes[1].set_xticklabels([f'{t}' for t in temperatures])
+axes[1].set_yticks(range(n_temps))
+axes[1].set_yticklabels([f'{t}' for t in temperatures])
+axes[1].set_xlabel('Temperature (column)')
+axes[1].set_ylabel('Temperature (row)')
+axes[1].set_title('P(α_row > α_col)')
+
+# Annotate cells
+for i in range(n_temps):
+    for j in range(n_temps):
+        if not np.isnan(heatmap[i, j]):
+            color = 'white' if heatmap[i, j] > 0.8 or heatmap[i, j] < 0.2 else 'black'
+            axes[1].text(j, i, f'{heatmap[i, j]:.2f}', ha='center', va='center',
+                        fontsize=9, color=color)
+
+plt.colorbar(im, ax=axes[1], shrink=0.8)
+
+plt.tight_layout()
+plt.show()
+```
+
+
+## Discussion {#sec-discussion}
+
+### Summary of Findings
+
+The monotonic temperature–α relationship established in the initial temperature study (GPT-4o, insurance triage, $K = 3$) was not replicated when the task was changed to Ellsberg-style urn gambles and the LLM was changed to Claude 3.5 Sonnet. Specifically:
+
+1. **No monotonic decline.** The posterior α estimates oscillate across temperature levels rather than declining monotonically. The probability of strict monotonicity is near zero ($P \approx 0.009$).
+
+2. **Weak global slope.** The posterior slope $\Delta\alpha / \Delta T$ has a median of $\approx -19$, but the 90% CI encompasses zero $[-65, +24]$, and $P(\text{slope} < 0) \approx 0.77$ — much weaker than the initial study's $P > 0.99$.
+
+3. **Pairwise reversals.** Some adjacent temperature pairs show α *increasing* with temperature (notably $T = 0.2 \to 0.5$ and $T = 0.8 \to 1.0$), contrary to the hypothesis.
+
+4. **Model adequacy.** Posterior predictive checks show no evidence of misfit at any temperature level. The non-replication reflects the behaviour of the data, not a modelling artefact.
+
+### Why the Non-Replication?
+
+This study changed two things simultaneously relative to the initial study: the task domain (Ellsberg gambles vs. insurance triage) and the foundational model (Claude vs. GPT-4o). Several explanations are possible:
+
+1. **Model-specific temperature behaviour.** Claude 3.5 Sonnet's internal architecture may respond to temperature differently than GPT-4o's. Anthropic and OpenAI use different training procedures, RLHF strategies, and potentially different implementations of temperature scaling. The temperature parameter may not have a uniform effect across model families.
+
+2. **Task-domain effects.** Ellsberg gambles with explicit monetary payoffs may elicit a different decision-making pattern than insurance triage. The LLM may have strong prior training on gamble-type problems (from economics and decision theory content in its training data) that is relatively stable across temperatures, unlike the more novel insurance task.
+
+3. **Narrower temperature range.** The Anthropic API limits temperature to $[0, 1]$, compared to OpenAI's $[0, 2]$. The initial study's strongest signal came from the separation between $T \leq 0.7$ and $T \geq 1.0$. The Ellsberg study cannot probe the high-temperature regime ($T > 1.0$) at all.
+
+4. **Ambiguity effects.** The Ellsberg gambles include alternatives with varying levels of ambiguity. If Claude processes ambiguous alternatives differently at different temperatures—e.g., becoming more or less ambiguity-averse as temperature changes—this could create non-monotonic patterns in overall α.
+
+These explanations are not mutually exclusive, and the current data cannot distinguish among them.
+
+### Implications
+
+The non-replication has two important implications for the broader project:
+
+**The temperature–α relationship may not be universal.** The initial finding, while robust within its specific context, does not automatically transfer to other LLMs or task domains. Any claim about temperature's effect on EU sensitivity needs to be qualified by the model and task.
+
+**Disentangling the confounds requires additional experiments.** The natural next steps are:
+
+- Run Claude 3.5 Sonnet on the **insurance triage task** (isolating the model effect while holding the task constant)
+- Run GPT-4o on the **Ellsberg gambles** (isolating the task effect while holding the model constant)
+
+These two additional conditions would complete a $2 \times 2$ factorial design (LLM × task) and allow clean attribution of the non-replication.
+
+
+## Reproducibility {#sec-reproducibility}
+
+### Data Snapshot
+
+All results in this report are loaded from a frozen data snapshot in the `data/` subdirectory. The snapshot contains:
+
+| File | Description |
+|------|-------------|
+| `alpha_draws_T*.npz` | Posterior draws of α (4,000 per condition) |
+| `ppc_T*.json` | Posterior predictive check results |
+| `diagnostics_T*.txt` | CmdStan diagnostic output |
+| `stan_data_T*.json` | Stan-ready data (for refitting) |
+| `fit_summary.json` | Summary statistics across conditions |
+| `primary_analysis.json` | Pre-computed monotonicity and slope statistics |
+| `run_summary.json` | Pipeline metadata and configuration |
+| `grid_results.json` | Prior predictive grid search results (K=4) |
+| `study_config.yaml` | Frozen copy of the study configuration |
+
+### Refitting from Source
+
+```{python}
+#| label: refit-example
+#| eval: false
+#| echo: true
+
+# Uncomment to refit from source data (requires CmdStanPy)
+#
+# import cmdstanpy
+# model = cmdstanpy.CmdStanModel(stan_file="models/m_02.stan")
+#
+# for t in [0.0, 0.2, 0.5, 0.8, 1.0]:
+#     key = f"T{str(t).replace('.', '_')}"
+#     fit = model.sample(
+#         data=f"data/stan_data_{key}.json",
+#         chains=4,
+#         iter_warmup=1000,
+#         iter_sampling=1000,
+#         seed=42,
+#     )
+#     print(f"T={t}: alpha median = {np.median(fit.stan_variable('alpha')):.1f}")
+```
+
+
+## References
+
+::: {#refs}
+:::

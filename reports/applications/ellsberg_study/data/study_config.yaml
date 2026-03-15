@@ -1,0 +1,35 @@
+# Ellsberg Study Configuration
+# Ellsberg-style urn gambles × Claude 3.5 Sonnet × temperature variation
+
+# ── Temperature conditions ──
+# NOTE: Anthropic's API supports temperature in [0.0, 1.0].
+# Temperature 1.5 is NOT supported for Claude models.
+# Using 5 levels spanning the full Anthropic-supported range.
+temperatures: [0.0, 0.2, 0.5, 0.8, 1.0]
+
+# ── Problem parameters ──
+num_problems: 100          # Base decision problems
+min_alternatives: 2        # Minimum gambles per problem
+max_alternatives: 4        # Maximum gambles per problem
+num_presentations: 3       # P: shuffled orderings per problem
+
+# ── Model parameters ──
+K: 4                       # Consequences ($0, $1, $2, $3)
+target_dim: 32             # PCA target dimensions for embeddings
+
+# ── API settings ──
+llm_model: "claude-sonnet-4-20250514"
+embedding_model: "text-embedding-3-small"
+provider: "anthropic"
+seed: 42
+
+# ── Pipeline control ──
+fit_models: false           # Fit Stan models after data collection
+stan_model: "m_0"           # Initially m_0; becomes m_02 after prior calibration
+
+# ── Storage ──
+save_raw_embeddings: true
+
+# ── API robustness ──
+max_retries: 3
+retry_delay: 2.0

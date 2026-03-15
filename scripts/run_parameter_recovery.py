@@ -129,7 +129,8 @@ def run_from_config(config_path):
         output_dir=output_dir,
         n_mcmc_samples=n_mcmc_samples,
         n_mcmc_chains=n_mcmc_chains,
-        n_iterations=n_iterations
+        n_iterations=n_iterations,
+        sim_hyperparams=config.get('sim_hyperparams', None)
     )
     
     # Run the analysis

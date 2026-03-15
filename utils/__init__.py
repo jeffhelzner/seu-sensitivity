@@ -24,6 +24,7 @@ DEFAULT_PARAM_GENERATION = {
 MODEL_PARAMETERS = {
     'm_0': ['alpha', 'beta', 'delta'],
     'm_01': ['alpha', 'beta', 'delta'],
+    'm_02': ['alpha', 'beta', 'delta'],
     'm_1': ['alpha', 'beta', 'delta'],
     'm_2': ['alpha', 'omega', 'beta', 'delta'],
     'm_3': ['alpha', 'kappa', 'beta', 'delta'],
@@ -33,6 +34,7 @@ MODEL_PARAMETERS = {
 MODEL_SCALAR_PARAMETERS = {
     'm_0': ['alpha'],
     'm_01': ['alpha'],
+    'm_02': ['alpha'],
     'm_1': ['alpha'],
     'm_2': ['alpha', 'omega'],
     'm_3': ['alpha', 'kappa'],
@@ -42,6 +44,7 @@ MODEL_SCALAR_PARAMETERS = {
 MODEL_SIM_HYPERPARAMS = {
     'm_0': ['alpha_mean', 'alpha_sd', 'beta_sd'],
     'm_01': ['alpha_mean', 'alpha_sd', 'beta_sd'],
+    'm_02': ['alpha_mean', 'alpha_sd', 'beta_sd'],
     'm_1': ['alpha_mean', 'alpha_sd', 'beta_sd'],
     'm_2': ['alpha_mean', 'alpha_sd', 'omega_mean', 'omega_sd', 'beta_sd'],
     'm_3': ['alpha_mean', 'alpha_sd', 'kappa_mean', 'kappa_sd', 'beta_sd'],
@@ -51,6 +54,7 @@ MODEL_SIM_HYPERPARAMS = {
 MODEL_TRANSFORMED_MONITORS = {
     'm_0': ['upsilon'],
     'm_01': ['upsilon'],
+    'm_02': ['upsilon'],
     'm_1': ['upsilon'],
     'm_2': ['upsilon'],
     'm_3': ['omega', 'upsilon'],

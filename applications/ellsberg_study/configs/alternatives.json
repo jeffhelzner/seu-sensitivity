@@ -1,0 +1,261 @@
+{
+  "alternatives": [
+    {
+      "id": "E01",
+      "description": "An urn contains 100 balls. Exactly 40 are red, 30 are blue, 20 are green, and 10 are white. One ball will be drawn at random. If it is red, you receive $3. If it is blue, you receive $1. If it is green, you receive $2. If it is white, you receive $0.",
+      "ambiguity_level": "none",
+      "urn_size": 100,
+      "num_colors": 4,
+      "payoffs_mentioned": [0, 1, 2, 3]
+    },
+    {
+      "id": "E02",
+      "description": "An urn contains 90 balls. Exactly 30 are red, 30 are black, and 30 are yellow. One ball will be drawn at random. If it is red, you receive $0. If it is black, you receive $1. If it is yellow, you receive $3.",
+      "ambiguity_level": "none",
+      "urn_size": 90,
+      "num_colors": 3,
+      "payoffs_mentioned": [0, 1, 3]
+    },
+    {
+      "id": "E03",
+      "description": "An urn contains 60 balls. Exactly 20 are orange, 15 are purple, 15 are blue, and 10 are green. One ball will be drawn at random. If it is orange, you receive $2. If it is purple, you receive $3. If it is blue, you receive $0. If it is green, you receive $1.",
+      "ambiguity_level": "none",
+      "urn_size": 60,
+      "num_colors": 4,
+      "payoffs_mentioned": [0, 1, 2, 3]
+    },
+    {
+      "id": "E04",
+      "description": "An urn contains 120 balls. Exactly 60 are red, 30 are blue, 20 are green, and 10 are white. One ball will be drawn at random. If it is red, you receive $1. If it is blue, you receive $3. If it is green, you receive $2. If it is white, you receive $0.",
+      "ambiguity_level": "none",
+      "urn_size": 120,
+      "num_colors": 4,
+      "payoffs_mentioned": [0, 1, 2, 3]
+    },
+    {
+      "id": "E05",
+      "description": "An urn contains 80 balls. Exactly 10 are red, 10 are black, 30 are yellow, and 30 are blue. One ball will be drawn at random. If it is red, you receive $3. If it is black, you receive $2. If it is yellow, you receive $0. If it is blue, you receive $1.",
+      "ambiguity_level": "none",
+      "urn_size": 80,
+      "num_colors": 4,
+      "payoffs_mentioned": [0, 1, 2, 3]
+    },
+    {
+      "id": "E06",
+      "description": "An urn contains 90 balls. Exactly 45 are orange, 30 are purple, and 15 are green. One ball will be drawn at random. If it is orange, you receive $2. If it is purple, you receive $3. If it is green, you receive $0.",
+      "ambiguity_level": "none",
+      "urn_size": 90,
+      "num_colors": 3,
+      "payoffs_mentioned": [0, 2, 3]
+    },
+    {
+      "id": "E07",
+      "description": "An urn contains 100 balls. Exactly 25 are red, 25 are blue, 25 are green, and 25 are white. One ball will be drawn at random. If it is red, you receive $3. If it is blue, you receive $2. If it is green, you receive $1. If it is white, you receive $0.",
+      "ambiguity_level": "none",
+      "urn_size": 100,
+      "num_colors": 4,
+      "payoffs_mentioned": [0, 1, 2, 3]
+    },
+    {
+      "id": "E08",
+      "description": "An urn contains 60 balls. Exactly 30 are black, 20 are yellow, and 10 are red. One ball will be drawn at random. If it is black, you receive $0. If it is yellow, you receive $2. If it is red, you receive $3.",
+      "ambiguity_level": "none",
+      "urn_size": 60,
+      "num_colors": 3,
+      "payoffs_mentioned": [0, 2, 3]
+    },
+    {
+      "id": "E09",
+      "description": "An urn contains 90 balls. Exactly 30 are red. Of the remaining 60, at least 15 are black and at least 15 are yellow, but the exact split is unknown. One ball will be drawn at random. If it is red, you receive $3. If it is black, you receive $1. If it is yellow, you receive $0.",
+      "ambiguity_level": "moderate",
+      "urn_size": 90,
+      "num_colors": 3,
+      "payoffs_mentioned": [0, 1, 3]
+    },
+    {
+      "id": "E10",
+      "description": "An urn contains 100 balls. Exactly 25 are red. Of the remaining 75, at least 20 are blue and at most 50 are blue; the rest are split between green and white in unknown proportions. One ball will be drawn at random. If it is red, you receive $0. If it is blue, you receive $2. If it is green, you receive $1. If it is white, you receive $3.",
+      "ambiguity_level": "moderate",
+      "urn_size": 100,
+      "num_colors": 4,
+      "payoffs_mentioned": [0, 1, 2, 3]
+    },
+    {
+      "id": "E11",
+      "description": "An urn contains 80 balls. Exactly 20 are orange and exactly 20 are purple. The remaining 40 are some mixture of blue and green, but the exact numbers are not known. One ball will be drawn at random. If it is orange, you receive $3. If it is purple, you receive $0. If it is blue, you receive $2. If it is green, you receive $1.",
+      "ambiguity_level": "moderate",
+      "urn_size": 80,
+      "num_colors": 4,
+      "payoffs_mentioned": [0, 1, 2, 3]
+    },
+    {
+      "id": "E12",
+      "description": "An urn contains 120 balls. Exactly 40 are red. Of the remaining 80, at least 30 are black and at least 10 are yellow, but the exact split is unknown. One ball will be drawn at random. If it is red, you receive $1. If it is black, you receive $3. If it is yellow, you receive $0.",
+      "ambiguity_level": "moderate",
+      "urn_size": 120,
+      "num_colors": 3,
+      "payoffs_mentioned": [0, 1, 3]
+    },
+    {
+      "id": "E13",
+      "description": "An urn contains 90 balls. Exactly 30 are blue and exactly 15 are white. The remaining 45 are some mixture of red and green, but the exact numbers are not known. One ball will be drawn at random. If it is blue, you receive $2. If it is white, you receive $0. If it is red, you receive $3. If it is green, you receive $1.",
+      "ambiguity_level": "moderate",
+      "urn_size": 90,
+      "num_colors": 4,
+      "payoffs_mentioned": [0, 1, 2, 3]
+    },
+    {
+      "id": "E14",
+      "description": "An urn contains 100 balls. Exactly 50 are green. Of the remaining 50, at least 10 are red and at most 40 are red; the rest are blue. One ball will be drawn at random. If it is green, you receive $1. If it is red, you receive $3. If it is blue, you receive $0.",
+      "ambiguity_level": "moderate",
+      "urn_size": 100,
+      "num_colors": 3,
+      "payoffs_mentioned": [0, 1, 3]
+    },
+    {
+      "id": "E15",
+      "description": "An urn contains 60 balls. Exactly 15 are black. Of the remaining 45, at least 10 are orange and at least 10 are purple, with the rest being yellow, but the exact split among the three colors is unknown. One ball will be drawn at random. If it is black, you receive $2. If it is orange, you receive $3. If it is purple, you receive $0. If it is yellow, you receive $1.",
+      "ambiguity_level": "moderate",
+      "urn_size": 60,
+      "num_colors": 4,
+      "payoffs_mentioned": [0, 1, 2, 3]
+    },
+    {
+      "id": "E16",
+      "description": "An urn contains 80 balls. Exactly 40 are red and exactly 10 are white. The remaining 30 are some mixture of blue and yellow, but the exact numbers are unknown. One ball will be drawn at random. If it is red, you receive $0. If it is white, you receive $3. If it is blue, you receive $2. If it is yellow, you receive $1.",
+      "ambiguity_level": "moderate",
+      "urn_size": 80,
+      "num_colors": 4,
+      "payoffs_mentioned": [0, 1, 2, 3]
+    },
+    {
+      "id": "E17",
+      "description": "An urn contains 120 balls. Exactly 30 are purple. Of the remaining 90, at least 20 are green and at most 60 are green; the rest are orange. One ball will be drawn at random. If it is purple, you receive $3. If it is green, you receive $0. If it is orange, you receive $2.",
+      "ambiguity_level": "moderate",
+      "urn_size": 120,
+      "num_colors": 3,
+      "payoffs_mentioned": [0, 2, 3]
+    },
+    {
+      "id": "E18",
+      "description": "An urn contains 90 balls. Exactly 20 are yellow and exactly 25 are blue. The remaining 45 are split between red and green in unknown proportions. One ball will be drawn at random. If it is yellow, you receive $1. If it is blue, you receive $3. If it is red, you receive $0. If it is green, you receive $2.",
+      "ambiguity_level": "moderate",
+      "urn_size": 90,
+      "num_colors": 4,
+      "payoffs_mentioned": [0, 1, 2, 3]
+    },
+    {
+      "id": "E19",
+      "description": "An urn contains 100 balls. Exactly 35 are black. Of the remaining 65, at least 15 are white and at least 15 are red, but the exact split is unknown. One ball will be drawn at random. If it is black, you receive $2. If it is white, you receive $0. If it is red, you receive $3.",
+      "ambiguity_level": "moderate",
+      "urn_size": 100,
+      "num_colors": 3,
+      "payoffs_mentioned": [0, 2, 3]
+    },
+    {
+      "id": "E20",
+      "description": "An urn contains 80 balls. Exactly 20 are green and exactly 20 are orange. The remaining 40 are split between red and purple in unknown proportions. One ball will be drawn at random. If it is green, you receive $0. If it is orange, you receive $1. If it is red, you receive $2. If it is purple, you receive $3.",
+      "ambiguity_level": "moderate",
+      "urn_size": 80,
+      "num_colors": 4,
+      "payoffs_mentioned": [0, 1, 2, 3]
+    },
+    {
+      "id": "E21",
+      "description": "An urn contains 90 balls. Exactly 30 are red. The remaining 60 are an unknown mixture of black and yellow balls. One ball will be drawn at random. If it is red, you receive $3. If it is black, you receive $1. If it is yellow, you receive $0.",
+      "ambiguity_level": "high",
+      "urn_size": 90,
+      "num_colors": 3,
+      "payoffs_mentioned": [0, 1, 3]
+    },
+    {
+      "id": "E22",
+      "description": "An urn contains 100 balls. Exactly 20 are blue. The remaining 80 are an unknown mixture of red, green, and white balls. One ball will be drawn at random. If it is blue, you receive $0. If it is red, you receive $3. If it is green, you receive $2. If it is white, you receive $1.",
+      "ambiguity_level": "high",
+      "urn_size": 100,
+      "num_colors": 4,
+      "payoffs_mentioned": [0, 1, 2, 3]
+    },
+    {
+      "id": "E23",
+      "description": "An urn contains 120 balls. Exactly 40 are yellow. The remaining 80 are an unknown mixture of blue and red balls. One ball will be drawn at random. If it is yellow, you receive $1. If it is blue, you receive $3. If it is red, you receive $0.",
+      "ambiguity_level": "high",
+      "urn_size": 120,
+      "num_colors": 3,
+      "payoffs_mentioned": [0, 1, 3]
+    },
+    {
+      "id": "E24",
+      "description": "An urn contains 80 balls. Exactly 15 are green. The remaining 65 are an unknown mixture of orange, purple, and black balls. One ball will be drawn at random. If it is green, you receive $3. If it is orange, you receive $2. If it is purple, you receive $1. If it is black, you receive $0.",
+      "ambiguity_level": "high",
+      "urn_size": 80,
+      "num_colors": 4,
+      "payoffs_mentioned": [0, 1, 2, 3]
+    },
+    {
+      "id": "E25",
+      "description": "An urn contains 90 balls. Exactly 45 are orange. The remaining 45 are an unknown mixture of white and red balls. One ball will be drawn at random. If it is orange, you receive $0. If it is white, you receive $2. If it is red, you receive $3.",
+      "ambiguity_level": "high",
+      "urn_size": 90,
+      "num_colors": 3,
+      "payoffs_mentioned": [0, 2, 3]
+    },
+    {
+      "id": "E26",
+      "description": "An urn contains 60 balls. Exactly 10 are purple. The remaining 50 are an unknown mixture of red, blue, and yellow balls. One ball will be drawn at random. If it is purple, you receive $2. If it is red, you receive $0. If it is blue, you receive $3. If it is yellow, you receive $1.",
+      "ambiguity_level": "high",
+      "urn_size": 60,
+      "num_colors": 4,
+      "payoffs_mentioned": [0, 1, 2, 3]
+    },
+    {
+      "id": "E27",
+      "description": "An urn contains 100 balls. Exactly 30 are black. The remaining 70 are an unknown mixture of green and orange balls. One ball will be drawn at random. If it is black, you receive $3. If it is green, you receive $1. If it is orange, you receive $0.",
+      "ambiguity_level": "high",
+      "urn_size": 100,
+      "num_colors": 3,
+      "payoffs_mentioned": [0, 1, 3]
+    },
+    {
+      "id": "E28",
+      "description": "An urn contains 80 balls. Exactly 25 are white. The remaining 55 are an unknown mixture of red, blue, and green balls. One ball will be drawn at random. If it is white, you receive $1. If it is red, you receive $3. If it is blue, you receive $0. If it is green, you receive $2.",
+      "ambiguity_level": "high",
+      "urn_size": 80,
+      "num_colors": 4,
+      "payoffs_mentioned": [0, 1, 2, 3]
+    },
+    {
+      "id": "E29",
+      "description": "An urn contains 120 balls. Exactly 20 are red. The remaining 100 are an unknown mixture of yellow and purple balls. One ball will be drawn at random. If it is red, you receive $2. If it is yellow, you receive $0. If it is purple, you receive $3.",
+      "ambiguity_level": "high",
+      "urn_size": 120,
+      "num_colors": 3,
+      "payoffs_mentioned": [0, 2, 3]
+    },
+    {
+      "id": "E30",
+      "description": "An urn contains 90 balls. Exactly 30 are blue. The remaining 60 are an unknown mixture of black, orange, and white balls. One ball will be drawn at random. If it is blue, you receive $2. If it is black, you receive $3. If it is orange, you receive $0. If it is white, you receive $1.",
+      "ambiguity_level": "high",
+      "urn_size": 90,
+      "num_colors": 4,
+      "payoffs_mentioned": [0, 1, 2, 3]
+    }
+  ],
+  "consequences": [
+    "You receive $0",
+    "You receive $1",
+    "You receive $2",
+    "You receive $3"
+  ],
+  "metadata": {
+    "domain": "ellsberg_urn_gambles",
+    "description": "Ellsberg-style urn gambles with varying ambiguity levels and K=4 monetary consequences",
+    "num_alternatives": 30,
+    "K": 4,
+    "ambiguity_tiers": {
+      "none_or_low": "E01-E08",
+      "moderate": "E09-E20",
+      "high": "E21-E30"
+    }
+  }
+}

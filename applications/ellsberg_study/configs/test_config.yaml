@@ -1,0 +1,24 @@
+# Dry-run test config — minimal settings to verify end-to-end flow
+# Expected cost: ~$0.02
+
+temperatures: [0.0]
+
+num_problems: 5
+min_alternatives: 2
+max_alternatives: 3
+num_presentations: 1
+
+K: 4
+target_dim: 8   # small dim for test
+
+llm_model: "claude-sonnet-4-20250514"
+embedding_model: "text-embedding-3-small"
+provider: "anthropic"
+seed: 42
+
+fit_models: false
+stan_model: "m_0"
+
+save_raw_embeddings: true
+max_retries: 3
+retry_delay: 2.0

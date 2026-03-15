@@ -254,15 +254,26 @@ class ParameterRecovery:
             if model_name == 'm_3' and 'omega' in sim_samples.index:
                 true_params['omega'] = float(sim_samples['omega'])
             
+            # Save true parameters for this iteration
+            with open(os.path.join(iter_dir, "true_parameters.json"), 'w') as f:
+                json.dump(true_params, f, indent=2)
+            
             # Fit the inference model
-            inference_fit = self.inference_model.sample(
-                data=inference_data,
-                seed=54321 + iteration,
-                iter_sampling=self.n_mcmc_samples,
-                iter_warmup=self.n_mcmc_samples // 2,
-                chains=self.n_mcmc_chains,
-                show_console=False
-            )
+            try:
+                inference_fit = self.inference_model.sample(
+                    data=inference_data,
+                    seed=54321 + iteration,
+                    iter_sampling=self.n_mcmc_samples,
+                    iter_warmup=self.n_mcmc_samples // 2,
+                    chains=self.n_mcmc_chains,
+                    show_console=False
+                )
+            except RuntimeError as e:
+                print(f"\n  Warning: Iteration {iteration+1} sampling failed: {str(e)[:200]}")
+                print(f"  Skipping this iteration and continuing...")
+                with open(os.path.join(iter_dir, "error.txt"), 'w') as f:
+                    f.write(f"Sampling error: {str(e)}\n")
+                continue
             
             # Get posterior summary statistics (no need to save all samples)
             try:

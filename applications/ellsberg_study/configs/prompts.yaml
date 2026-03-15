@@ -1,0 +1,51 @@
+# Prompt Templates for Ellsberg Study
+# Ellsberg-style urn gambles with K=4 monetary consequences ($0, $1, $2, $3).
+#
+# Placeholders:
+#   Assessment:   {alternative_description}
+#   Choice:       {assessments_list}, {num_range}
+
+assessment:
+  system: |
+    You are an analyst evaluating gambles involving urns of colored balls
+    with monetary payoffs. Your evaluations will help determine which
+    gambles are most attractive.
+
+  user: |
+    Evaluate the following gamble:
+
+    {alternative_description}
+
+    Consider:
+    1. What can you determine or infer about the probability of each
+       possible monetary outcome ($0, $1, $2, $3)?
+    2. How attractive is this gamble overall? What is your sense of the
+       expected value, and how confident are you in that estimate?
+    3. How much uncertainty or ambiguity is there about the actual
+       probabilities?
+
+    Provide a brief analysis (2-4 sentences).
+
+choice:
+  system: |
+    You are selecting a gamble to play. Your goal is to choose the gamble
+    that you find most attractive.
+
+  user: |
+    You must select ONE of the following gambles to play.
+
+    Each gamble involves drawing a ball from an urn. Depending on the color
+    of the ball drawn, you will receive one of four possible monetary
+    outcomes:
+    - $0 (worst outcome)
+    - $1
+    - $2
+    - $3 (best outcome)
+
+    The gambles are:
+
+    {assessments_list}
+
+    Which gamble do you select?
+
+    Respond with ONLY the gamble number ({num_range}).

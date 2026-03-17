@@ -19,12 +19,39 @@ These reports establish the theoretical and methodological foundations:
 4. **[Parameter Recovery](foundations/04_parameter_recovery.qmd)** — Validation that parameters can be recovered from data
 5. **[Adding Risky Choices](foundations/05_adding_risky_choices.qmd)** — Extension to model m_1 for utility identification
 6. **[SBC Validation](foundations/06_sbc_validation.qmd)** — Simulation-based calibration results
+7. **[Generalizing Sensitivity](foundations/07_generalizing_sensitivity.qmd)** — Generalized models m_2 and m_3
 
 ### Application Reports
 
 #### Temperature Study
 
 1. **[Initial Results](applications/temperature_study/01_initial_study.qmd)** — How LLM temperature affects estimated SEU sensitivity
+
+#### Temperature Study: EU Prompt
+
+1. **[EU Prompt Study](applications/temperature_study_with_eu_prompt/01_eu_prompt_study.qmd)** — Effect of explicit EU-maximization framing on sensitivity
+
+#### Temperature Study: Risky Alternatives
+
+1. **[Risky Alternatives Extension](applications/temperature_study_with_risky_alts/01_risky_alternatives_study.qmd)** — Risky choice data for utility identification across temperatures
+
+#### Ellsberg Study
+
+1. **[Ellsberg Study](applications/ellsberg_study/01_ellsberg_study.qmd)** — Claude 3.5 Sonnet on Ellsberg urn gambles
+
+#### Factorial Cells
+
+- **[Claude × Insurance](applications/claude_insurance_study/01_claude_insurance_study.qmd)** — Claude 3.5 Sonnet on insurance claims triage
+- **[GPT-4o × Ellsberg](applications/gpt4o_ellsberg_study/01_gpt4o_ellsberg_study.qmd)** — GPT-4o on Ellsberg urn gambles
+
+#### Factorial Synthesis
+
+1. **[2×2 Factorial Analysis](applications/factorial_synthesis/01_factorial_synthesis.qmd)** — Cross-LLM × cross-task synthesis
+
+#### Prompt Framing Study
+
+1. **[Background](applications/prompt_framing_study/01_background.qmd)** — Rationality cues in LLM prompts
+2. **[Pilot Study 1](applications/prompt_framing_study/02_pilot_study_1.qmd)** — Initial pilot results
 
 ## Key Insights
 
@@ -55,6 +82,6 @@ See the [GitHub repository](https://github.com/jeffhelzner/seu-sensitivity) for 
 If you use this work, please cite:
 
 ```
-Helzner, J. (2025). SEU Sensitivity: A Bayesian Framework for Modeling 
+Helzner, J. (2026). SEU Sensitivity: A Bayesian Framework for Modeling 
 Decision-Making Sensitivity. https://github.com/jeffhelzner/seu-sensitivity
 ```

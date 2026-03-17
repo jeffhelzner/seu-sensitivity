@@ -16,14 +16,19 @@ Current status:
 - ✅ Combined model (m_1) with risky and uncertain choice implemented and tested
 - ✅ Separate sensitivity model (m_2) implemented and tested
 - ✅ Proportional sensitivity model (m_3) implemented and tested
-- ✅ Calibrated prior variants (m_01, m_11, m_21, m_31) implemented
+- ✅ Calibrated prior variants (m_01, m_02, m_11, m_21, m_31) implemented
 - ✅ Study design tools functional (m_0 and m_1)
 - ✅ Analysis pipeline complete (parameter recovery, SBC, prior/posterior predictive)
 - ✅ Quarto-based documentation and reports
+- ✅ Temperature study application complete
+- ✅ Temperature study with EU prompt complete
+- ✅ Temperature study with risky alternatives complete
+- ✅ Ellsberg study (Claude 3.5 Sonnet) complete
+- ✅ Claude insurance study complete
+- ✅ GPT-4o Ellsberg study complete
+- ✅ 2×2 factorial synthesis complete
 - 🔄 Prompt framing study application in progress
-- 🔄 Temperature study application in progress
-- � Temperature study with risky alternatives in progress
-- �📝 Documentation being expanded
+- 📝 Documentation being expanded
 - 🔬 Empirical validation ongoing
 
 **Note for users**: While the core functionality is stable, API and features may change as the project evolves. Feedback and contributions are welcome!
@@ -62,7 +67,11 @@ seu-sensitivity/
 │   │   ├── prompt_framing_study/
 │   │   ├── temperature_study/
 │   │   ├── temperature_study_with_eu_prompt/
-│   │   └── temperature_study_with_risky_alts/
+│   │   ├── temperature_study_with_risky_alts/
+│   │   ├── ellsberg_study/
+│   │   ├── claude_insurance_study/
+│   │   ├── gpt4o_ellsberg_study/
+│   │   └── factorial_synthesis/
 │   ├── blog/               # Blog-style posts
 │   ├── styles/             # Custom CSS/SCSS styles
 │   └── legacy/             # Archived legacy reports
@@ -73,6 +82,9 @@ seu-sensitivity/
 │   ├── m_01.stan           # m_0 with calibrated priors
 │   ├── m_01_sbc.stan       # m_01 SBC model
 │   ├── m_01_sim.stan       # m_01 simulation model
+│   ├── m_02.stan           # m_0 with calibrated priors for Ellsberg (K=4)
+│   ├── m_02_sbc.stan       # m_02 SBC model
+│   ├── m_02_sim.stan       # m_02 simulation model
 │   ├── m_1.stan            # Combined model (risky + uncertain, shared α)
 │   ├── m_11.stan           # m_1 with calibrated priors
 │   ├── m_1_sim.stan        # m_1 simulation model
@@ -103,6 +115,9 @@ seu-sensitivity/
 │   ├── temperature_study/  # LLM temperature effects on sensitivity
 │   ├── temperature_study_with_eu_prompt/ # Temperature study with EU-maximization prompt
 │   ├── temperature_study_with_risky_alts/ # Risky choice collection for m_1/m_2/m_3
+│   ├── ellsberg_study/     # Claude 3.5 Sonnet on Ellsberg urn gambles
+│   ├── claude_insurance_study/ # Claude 3.5 Sonnet on insurance claims triage
+│   ├── gpt4o_ellsberg_study/ # GPT-4o on Ellsberg urn gambles
 │   └── llm_rationality/    # Legacy LLM benchmarking (deprecated)
 ├── scripts/                 # Executable scripts
 │   ├── run_study_design.py # Generate study designs
@@ -115,9 +130,13 @@ seu-sensitivity/
 │   ├── run_sbc.py          # SBC validation
 │   ├── run_sample_size_estimation.py # Sample size analysis
 │   ├── run_temperature_analysis.py # Temperature study analysis
+│   ├── run_ellsberg_study.py # Ellsberg study entry point
 │   ├── refit_with_ppc.py   # Refit models with posterior predictive checks
 │   ├── extract_report_data.py # Extract parameter draws for reports
+│   ├── freeze_report_data.py # Snapshot factorial cell data for reports
 │   ├── freeze_eu_prompt_report_data.py # Snapshot EU prompt study outputs
+│   ├── generate_primary_analysis.py # Generate primary analysis JSON for factorial cells
+│   ├── generate_ellsberg_primary_analysis.py # Generate primary analysis for Ellsberg study
 │   ├── copy_figures_for_report.py # Copy figures into reports
 │   ├── cleanup_temp_files.py # Clean up temporary files
 │   └── test_m1_model.py    # m_1 model tests
@@ -320,6 +339,13 @@ The base model (`models/m_0.stan`) implements a softmax choice model for uncerta
 - `I`: Indicator array (which alternatives in which problems)
 - `y`: Observed choices
 
+## Calibrated Prior Variants
+
+- **m_01** (`models/m_01.stan`): Calibrated for K=3 insurance triage — α ~ lognormal(3.0, 0.75)
+- **m_02** (`models/m_02.stan`): Calibrated for K=4 Ellsberg gambles — α ~ lognormal(3.5, 0.75)
+
+These are structurally identical to m_0 but use priors calibrated via prior predictive analysis for their respective task domains. Corresponding calibrated variants exist for m_1 (m_11), m_2 (m_21), and m_3 (m_31).
+
 ## Model m_1 Specification
 
 The combined model (`models/m_1.stan`) extends m_0 by adding risky choice problems with known objective probabilities:
@@ -437,6 +463,39 @@ Extend the temperature study by collecting risky choice data — decisions among
 - Produces augmented Stan data for m_1 (shared α), m_2 (separate α and ω), and m_3 (proportional κ·α)
 
 See [applications/temperature_study_with_risky_alts/README.md](applications/temperature_study_with_risky_alts/README.md) for the full design and CLI reference.
+
+### Ellsberg Study
+
+Study how temperature affects SEU sensitivity using Ellsberg-style urn gambles (K=4) with Claude 3.5 Sonnet. Tests whether the GPT-4o temperature–α relationship generalizes to a different LLM and task domain.
+
+**Research Question**: Does the temperature–sensitivity relationship observed with GPT-4o on insurance triage replicate with Claude on Ellsberg gambles?
+
+**Key Features:**
+- Claude 3.5 Sonnet with temperature range [0.0, 0.2, 0.5, 0.8, 1.0]
+- K=4 consequences (Ellsberg urn gambles)
+- Uses m_02 model variant with Lognormal(3.5, 0.75) prior on α
+
+### Claude Insurance Study
+
+Part of the 2×2 factorial design (Claude × Insurance cell). Tests Claude 3.5 Sonnet on the same insurance claims triage task as the initial temperature study, isolating the LLM effect.
+
+**Research Question**: Does Claude exhibit a temperature–sensitivity relationship on insurance triage?
+
+**Key Features:**
+- Claude 3.5 Sonnet on insurance claims triage (K=3)
+- Same m_01 model and prior as initial temperature study
+- Enables LLM × task factorial comparison
+
+### GPT-4o Ellsberg Study
+
+Part of the 2×2 factorial design (GPT-4o × Ellsberg cell). Tests GPT-4o on Ellsberg urn gambles, isolating the task effect.
+
+**Research Question**: Does GPT-4o's temperature–sensitivity relationship generalize to the Ellsberg task domain?
+
+**Key Features:**
+- GPT-4o on Ellsberg urn gambles (K=4)
+- Uses m_02 model variant with Lognormal(3.5, 0.75) prior
+- Completes the 2×2 factorial design with the other three cells
 
 ### Legacy: LLM Rationality Benchmarking (Deprecated)
 

@@ -19,7 +19,9 @@ The `__init__.py` module provides common utilities used across analysis scripts:
 ```python
 from utils import DEFAULT_PARAM_GENERATION
 
-# Returns: {'alpha_mean': 0.0, 'alpha_sd': 1.0, 'beta_sd': 1.0}
+# Returns: {'alpha_mean': 0.0, 'alpha_sd': 1.0, 'beta_sd': 1.0,
+#           'omega_mean': 0.0, 'omega_sd': 1.0,
+#           'kappa_mean': 0.0, 'kappa_sd': 0.5}
 print(DEFAULT_PARAM_GENERATION)
 ```
 

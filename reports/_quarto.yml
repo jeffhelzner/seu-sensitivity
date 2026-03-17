@@ -33,6 +33,10 @@ website:
           - text: "1. Initial Results"
             href: applications/temperature_study/01_initial_study.qmd
           - text: "---"
+          - text: "Temperature Study: EU Prompt"
+          - text: "1. EU Prompt Study"
+            href: applications/temperature_study_with_eu_prompt/01_eu_prompt_study.qmd
+          - text: "---"
           - text: "Temperature Study: Risky Alternatives"
           - text: "1. Risky Alternatives Extension"
             href: applications/temperature_study_with_risky_alts/01_risky_alternatives_study.qmd
@@ -50,6 +54,12 @@ website:
           - text: "Factorial Synthesis"
           - text: "2×2 Factorial Analysis"
             href: applications/factorial_synthesis/01_factorial_synthesis.qmd
+          - text: "---"
+          - text: "Prompt Framing Study"
+          - text: "1. Background"
+            href: applications/prompt_framing_study/01_background.qmd
+          - text: "2. Pilot Study 1"
+            href: applications/prompt_framing_study/02_pilot_study_1.qmd
       - text: "Blog"
         href: blog/index.qmd
     right:

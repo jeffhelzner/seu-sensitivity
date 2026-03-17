@@ -1,0 +1,67 @@
+{
+  "0.0": {
+    "alpha_mean": 74.09780571450001,
+    "alpha_median": 70.5364905,
+    "alpha_sd": 21.61169408384025,
+    "alpha_q05": 44.5740697,
+    "alpha_q95": 113.41896199999994,
+    "output_dir": "/Users/jeffhelzner/seu-sensitivity/applications/claude_insurance_study/results/fit_T0_0",
+    "ppc_p_values": {
+      "ll": 0.39325,
+      "modal": 0.5955,
+      "prob": 0.45125
+    }
+  },
+  "0.2": {
+    "alpha_mean": 54.876969429999995,
+    "alpha_median": 52.557104499999994,
+    "alpha_sd": 14.892028029419786,
+    "alpha_q05": 35.7547121,
+    "alpha_q95": 81.40572944999998,
+    "output_dir": "/Users/jeffhelzner/seu-sensitivity/applications/claude_insurance_study/results/fit_T0_2",
+    "ppc_p_values": {
+      "ll": 0.438,
+      "modal": 0.6565,
+      "prob": 0.5415
+    }
+  },
+  "0.5": {
+    "alpha_mean": 77.2161886215,
+    "alpha_median": 73.20288,
+    "alpha_sd": 23.14235897569025,
+    "alpha_q05": 47.00170765,
+    "alpha_q95": 121.47713749999997,
+    "output_dir": "/Users/jeffhelzner/seu-sensitivity/applications/claude_insurance_study/results/fit_T0_5",
+    "ppc_p_values": {
+      "ll": 0.397,
+      "modal": 0.5665,
+      "prob": 0.443
+    }
+  },
+  "0.8": {
+    "alpha_mean": 73.95410922100001,
+    "alpha_median": 70.5583975,
+    "alpha_sd": 22.030918408550193,
+    "alpha_q05": 45.106524750000005,
+    "alpha_q95": 115.31048449999996,
+    "output_dir": "/Users/jeffhelzner/seu-sensitivity/applications/claude_insurance_study/results/fit_T0_8",
+    "ppc_p_values": {
+      "ll": 0.4075,
+      "modal": 0.63275,
+      "prob": 0.4855
+    }
+  },
+  "1.0": {
+    "alpha_mean": 57.379658123,
+    "alpha_median": 55.492149999999995,
+    "alpha_sd": 14.243565334756717,
+    "alpha_q05": 37.001220100000005,
+    "alpha_q95": 83.74410789999997,
+    "output_dir": "/Users/jeffhelzner/seu-sensitivity/applications/claude_insurance_study/results/fit_T1_0",
+    "ppc_p_values": {
+      "ll": 0.43925,
+      "modal": 0.57175,
+      "prob": 0.5035
+    }
+  }
+}

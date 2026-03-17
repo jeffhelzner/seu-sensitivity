@@ -1,0 +1,186 @@
+{
+  "config": {
+    "temperatures": [
+      0.0,
+      0.3,
+      0.7,
+      1.0,
+      1.5
+    ],
+    "num_problems": 100,
+    "min_alternatives": 2,
+    "max_alternatives": 4,
+    "num_presentations": 3,
+    "K": 4,
+    "target_dim": 32,
+    "llm_model": "gpt-4o",
+    "embedding_model": "text-embedding-3-small",
+    "provider": "openai",
+    "seed": 42,
+    "alternatives_file": "/Users/jeffhelzner/seu-sensitivity/applications/ellsberg_study/configs/alternatives.json",
+    "prompts_file": "/Users/jeffhelzner/seu-sensitivity/applications/ellsberg_study/configs/prompts.yaml",
+    "fit_models": false,
+    "stan_model": "m_02",
+    "max_retries": 3,
+    "retry_delay": 2.0,
+    "save_raw_embeddings": true,
+    "results_dir": "/Users/jeffhelzner/seu-sensitivity/applications/gpt4o_ellsberg_study/results"
+  },
+  "started_at": "2026-03-15T19:04:57.363345+00:00",
+  "phases": {
+    "phase1": {
+      "num_problems": 100,
+      "output": "/Users/jeffhelzner/seu-sensitivity/applications/gpt4o_ellsberg_study/results/problems.json"
+    },
+    "phase2a_assessment": {
+      "temperatures": [
+        0.0,
+        0.3,
+        0.7,
+        1.0,
+        1.5
+      ],
+      "assessments_per_temp": {
+        "0.0": 30,
+        "0.3": 30,
+        "0.7": 30,
+        "1.0": 30,
+        "1.5": 30
+      }
+    },
+    "phase2b_choices": {
+      "temperatures": [
+        0.0,
+        0.3,
+        0.7,
+        1.0,
+        1.5
+      ],
+      "na_summary": {
+        "per_temperature": {
+          "T=0.0": {
+            "valid": 300,
+            "na": 0,
+            "total": 300,
+            "na_rate": 0.0
+          },
+          "T=0.3": {
+            "valid": 300,
+            "na": 0,
+            "total": 300,
+            "na_rate": 0.0
+          },
+          "T=0.7": {
+            "valid": 300,
+            "na": 0,
+            "total": 300,
+            "na_rate": 0.0
+          },
+          "T=1.0": {
+            "valid": 300,
+            "na": 0,
+            "total": 300,
+            "na_rate": 0.0
+          },
+          "T=1.5": {
+            "valid": 299,
+            "na": 1,
+            "total": 300,
+            "na_rate": 0.0033
+          }
+        },
+        "overall": {
+          "valid": 1499,
+          "na": 1,
+          "total": 1500,
+          "na_rate": 0.0007
+        }
+      }
+    },
+    "phase3_data_prep": {
+      "per_temperature": {
+        "0.0": {
+          "stan_data": "/Users/jeffhelzner/seu-sensitivity/applications/gpt4o_ellsberg_study/results/stan_data_T0_0.json",
+          "na_log": "/Users/jeffhelzner/seu-sensitivity/applications/gpt4o_ellsberg_study/results/na_removal_log_T0_0.json",
+          "M": 300,
+          "R": 30,
+          "D": 32,
+          "na_removed": 0
+        },
+        "0.3": {
+          "stan_data": "/Users/jeffhelzner/seu-sensitivity/applications/gpt4o_ellsberg_study/results/stan_data_T0_3.json",
+          "na_log": "/Users/jeffhelzner/seu-sensitivity/applications/gpt4o_ellsberg_study/results/na_removal_log_T0_3.json",
+          "M": 300,
+          "R": 30,
+          "D": 32,
+          "na_removed": 0
+        },
+        "0.7": {
+          "stan_data": "/Users/jeffhelzner/seu-sensitivity/applications/gpt4o_ellsberg_study/results/stan_data_T0_7.json",
+          "na_log": "/Users/jeffhelzner/seu-sensitivity/applications/gpt4o_ellsberg_study/results/na_removal_log_T0_7.json",
+          "M": 300,
+          "R": 30,
+          "D": 32,
+          "na_removed": 0
+        },
+        "1.0": {
+          "stan_data": "/Users/jeffhelzner/seu-sensitivity/applications/gpt4o_ellsberg_study/results/stan_data_T1_0.json",
+          "na_log": "/Users/jeffhelzner/seu-sensitivity/applications/gpt4o_ellsberg_study/results/na_removal_log_T1_0.json",
+          "M": 300,
+          "R": 30,
+          "D": 32,
+          "na_removed": 0
+        },
+        "1.5": {
+          "stan_data": "/Users/jeffhelzner/seu-sensitivity/applications/gpt4o_ellsberg_study/results/stan_data_T1_5.json",
+          "na_log": "/Users/jeffhelzner/seu-sensitivity/applications/gpt4o_ellsberg_study/results/na_removal_log_T1_5.json",
+          "M": 299,
+          "R": 30,
+          "D": 32,
+          "na_removed": 1
+        }
+      },
+      "pca_summary": {
+        "fitted": true,
+        "n_components": 32,
+        "explained_variance_ratio": [
+          0.15226111806181963,
+          0.14628271157696382,
+          0.07440729317089276,
+          0.0583927070695351,
+          0.04246649162874303,
+          0.03956505350262309,
+          0.03264364228649708,
+          0.02767976823297929,
+          0.02500160509586802,
+          0.022774095667151658,
+          0.02055180868897411,
+          0.01694279240882904,
+          0.015695607259838245,
+          0.015027236139564287,
+          0.014375959395981821,
+          0.012665854641248753,
+          0.011606319884178236,
+          0.011243528254206776,
+          0.009749013921136706,
+          0.009325757249822528,
+          0.008771589376544953,
+          0.008295898825828388,
+          0.007772457673896016,
+          0.007515461170426493,
+          0.007140182082730831,
+          0.0068186970265964415,
+          0.006424771134277146,
+          0.006109352921239094,
+          0.006005198089340145,
+          0.005902773624050219,
+          0.005617242067117227,
+          0.00556581924517835
+        ],
+        "total_explained_variance": 0.8405978073740792
+      }
+    }
+  },
+  "finished_at": "2026-03-15T19:44:48.395035+00:00",
+  "duration_seconds": 2391.03169
+}

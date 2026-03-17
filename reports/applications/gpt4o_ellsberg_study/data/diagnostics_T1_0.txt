@@ -1,0 +1,17 @@
+Checking sampler transitions treedepth.
+Treedepth satisfactory for all transitions.
+
+Checking sampler transitions for divergences.
+No divergent transitions found.
+
+Checking E-BFMI - sampler transitions HMC potential energy.
+E-BFMI satisfactory.
+
+Rank-normalized split effective sample size satisfactory for all parameters.
+
+The following parameters had rank-normalized split R-hat greater than 1.01:
+  beta[1,1], psi[142,1], psi[144,1], psi[146,1], psi[445,1], psi[448,1], psi[451,1], psi[467,1], psi[470,1], psi[473,1], psi[580,1], psi[584,1], psi[588,1], psi[643,1], psi[645,1], psi[647,1], psi[658,1], psi[660,1], psi[662,1], psi[700,1], psi[702,1], psi[704,1], psi[799,1], psi[801,1], psi[803,1], psi[38,2], psi[40,2], psi[42,2], psi[102,2], psi[106,2], psi[110,2], psi[142,2], psi[144,2], psi[146,2], psi[186,2], psi[190,2], psi[194,2], psi[204,2], psi[208,2], psi[212,2], psi[304,2], psi[306,2], psi[308,2], psi[383,2], psi[386,2], psi[389,2], psi[445,2], psi[447,2], psi[448,2], psi[450,2], psi[451,2], psi[453,2], psi[467,2], psi[470,2], psi[473,2], psi[580,2], psi[584,2], psi[588,2], psi[633,2], psi[637,2], psi[641,2], psi[643,2], psi[645,2], psi[647,2], psi[658,2], psi[660,2], psi[662,2], psi[680,2], psi[683,2], psi[686,2], psi[700,2], psi[702,2], psi[704,2], psi[779,2], psi[782,2], psi[785,2], psi[799,2], psi[801,2], psi[803,2]
+Such high values indicate incomplete mixing and biased estimation.
+You should consider regularizing your model with additional prior information or a more effective parameterization.
+
+Processing complete.

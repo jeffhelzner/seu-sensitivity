@@ -1,0 +1,186 @@
+{
+  "config": {
+    "temperatures": [
+      0.0,
+      0.2,
+      0.5,
+      0.8,
+      1.0
+    ],
+    "num_problems": 100,
+    "min_alternatives": 2,
+    "max_alternatives": 4,
+    "num_presentations": 3,
+    "K": 3,
+    "target_dim": 32,
+    "llm_model": "claude-sonnet-4-20250514",
+    "embedding_model": "text-embedding-3-small",
+    "provider": "anthropic",
+    "seed": 42,
+    "claims_file": "/Users/jeffhelzner/seu-sensitivity/applications/temperature_study/data/claims.json",
+    "prompts_file": "/Users/jeffhelzner/seu-sensitivity/applications/temperature_study/configs/prompts.yaml",
+    "fit_models": false,
+    "stan_model": "m_01",
+    "max_retries": 3,
+    "retry_delay": 2.0,
+    "save_raw_embeddings": true,
+    "results_dir": "/Users/jeffhelzner/seu-sensitivity/applications/claude_insurance_study/results"
+  },
+  "started_at": "2026-03-15T17:13:59.111860+00:00",
+  "phases": {
+    "phase1": {
+      "num_problems": 100,
+      "output": "/Users/jeffhelzner/seu-sensitivity/applications/claude_insurance_study/results/problems.json"
+    },
+    "phase2a_assessment": {
+      "temperatures": [
+        0.0,
+        0.2,
+        0.5,
+        0.8,
+        1.0
+      ],
+      "assessments_per_temp": {
+        "0.0": 30,
+        "0.2": 30,
+        "0.5": 30,
+        "0.8": 30,
+        "1.0": 30
+      }
+    },
+    "phase2b_choices": {
+      "temperatures": [
+        0.0,
+        0.2,
+        0.5,
+        0.8,
+        1.0
+      ],
+      "na_summary": {
+        "per_temperature": {
+          "T=0.0": {
+            "valid": 297,
+            "na": 3,
+            "total": 300,
+            "na_rate": 0.01
+          },
+          "T=0.2": {
+            "valid": 295,
+            "na": 5,
+            "total": 300,
+            "na_rate": 0.0167
+          },
+          "T=0.5": {
+            "valid": 297,
+            "na": 3,
+            "total": 300,
+            "na_rate": 0.01
+          },
+          "T=0.8": {
+            "valid": 296,
+            "na": 4,
+            "total": 300,
+            "na_rate": 0.0133
+          },
+          "T=1.0": {
+            "valid": 298,
+            "na": 2,
+            "total": 300,
+            "na_rate": 0.0067
+          }
+        },
+        "overall": {
+          "valid": 1483,
+          "na": 17,
+          "total": 1500,
+          "na_rate": 0.0113
+        }
+      }
+    },
+    "phase3_data_prep": {
+      "per_temperature": {
+        "0.0": {
+          "stan_data": "/Users/jeffhelzner/seu-sensitivity/applications/claude_insurance_study/results/stan_data_T0_0.json",
+          "na_log": "/Users/jeffhelzner/seu-sensitivity/applications/claude_insurance_study/results/na_removal_log_T0_0.json",
+          "M": 297,
+          "R": 30,
+          "D": 32,
+          "na_removed": 3
+        },
+        "0.2": {
+          "stan_data": "/Users/jeffhelzner/seu-sensitivity/applications/claude_insurance_study/results/stan_data_T0_2.json",
+          "na_log": "/Users/jeffhelzner/seu-sensitivity/applications/claude_insurance_study/results/na_removal_log_T0_2.json",
+          "M": 295,
+          "R": 30,
+          "D": 32,
+          "na_removed": 5
+        },
+        "0.5": {
+          "stan_data": "/Users/jeffhelzner/seu-sensitivity/applications/claude_insurance_study/results/stan_data_T0_5.json",
+          "na_log": "/Users/jeffhelzner/seu-sensitivity/applications/claude_insurance_study/results/na_removal_log_T0_5.json",
+          "M": 297,
+          "R": 30,
+          "D": 32,
+          "na_removed": 3
+        },
+        "0.8": {
+          "stan_data": "/Users/jeffhelzner/seu-sensitivity/applications/claude_insurance_study/results/stan_data_T0_8.json",
+          "na_log": "/Users/jeffhelzner/seu-sensitivity/applications/claude_insurance_study/results/na_removal_log_T0_8.json",
+          "M": 296,
+          "R": 30,
+          "D": 32,
+          "na_removed": 4
+        },
+        "1.0": {
+          "stan_data": "/Users/jeffhelzner/seu-sensitivity/applications/claude_insurance_study/results/stan_data_T1_0.json",
+          "na_log": "/Users/jeffhelzner/seu-sensitivity/applications/claude_insurance_study/results/na_removal_log_T1_0.json",
+          "M": 298,
+          "R": 30,
+          "D": 32,
+          "na_removed": 2
+        }
+      },
+      "pca_summary": {
+        "fitted": true,
+        "n_components": 32,
+        "explained_variance_ratio": [
+          0.11937498788432847,
+          0.07293980040501095,
+          0.0589829792358964,
+          0.05736138943588099,
+          0.051878695578222465,
+          0.04636805453485426,
+          0.03815659932259358,
+          0.03610848163696514,
+          0.03176845055732675,
+          0.030060390837258782,
+          0.028031613143641096,
+          0.023954981299659867,
+          0.023050573451331338,
+          0.02114357575773036,
+          0.020516032408929352,
+          0.019524168344763695,
+          0.018511694860943177,
+          0.01769192621294972,
+          0.01599020811065909,
+          0.015246165505613472,
+          0.013552777073622135,
+          0.013113006282478787,
+          0.01176797851019821,
+          0.011198609628942225,
+          0.010403336231782094,
+          0.009953709750957596,
+          0.009165372928397,
+          0.008639850205962751,
+          0.007935274295724744,
+          0.007510901261427734,
+          0.006966296354747084,
+          0.006501349453054946
+        ],
+        "total_explained_variance": 0.8633692305018541
+      }
+    }
+  },
+  "finished_at": "2026-03-15T18:39:08.741903+00:00",
+  "duration_seconds": 5109.630043
+}

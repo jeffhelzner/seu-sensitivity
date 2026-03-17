@@ -1,0 +1,23 @@
+{
+  "inference_model_path": "models/m_01.stan",
+  "sim_model_path": "models/m_01_sim.stan",
+  "output_dir": "results/parameter_recovery/claude_insurance_recovery",
+  "n_mcmc_samples": 2000,
+  "n_mcmc_chains": 4,
+  "n_iterations": 20,
+  "sim_hyperparams": {
+    "alpha_mean": 3.0,
+    "alpha_sd": 0.75,
+    "beta_sd": 1.0
+  },
+  "study_design_config": {
+    "M": 300,
+    "K": 3,
+    "D": 32,
+    "R": 30,
+    "min_alts_per_problem": 2,
+    "max_alts_per_problem": 4,
+    "feature_dist": "normal",
+    "feature_params": {"loc": 0, "scale": 1}
+  }
+}

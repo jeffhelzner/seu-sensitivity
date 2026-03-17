@@ -1,0 +1,742 @@
+---
+title: "2×2 Factorial Synthesis: LLM × Task"
+subtitle: "Cross-Study Analysis of Temperature–Sensitivity Effects"
+description: |
+  A synthesis report for the 2×2 factorial design crossing LLM
+  (GPT-4o vs Claude 3.5 Sonnet) with Task (Insurance triage K=3
+  vs Ellsberg gambles K=4). Isolates the main effects of LLM and
+  task on the temperature–α relationship.
+categories: [applications, temperature, factorial, synthesis]
+execute:
+  cache: true
+---
+
+```{python}
+#| label: setup
+#| include: false
+
+import sys
+import os
+
+reports_root = os.path.normpath(os.path.join(os.getcwd(), '..', '..'))
+project_root = os.path.dirname(reports_root)
+sys.path.insert(0, reports_root)
+sys.path.insert(0, project_root)
+
+import numpy as np
+import json
+import warnings
+warnings.filterwarnings('ignore')
+
+import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
+import pandas as pd
+from scipy.stats import gaussian_kde
+
+from report_utils import set_seu_style, SEU_COLORS, SEU_PALETTE
+set_seu_style()
+
+from pathlib import Path
+```
+
+```{python}
+#| label: load-all-cells
+#| include: false
+
+# --- Cell definitions ---
+CELLS = {
+    '(1,1)': {
+        'label': 'GPT-4o × Insurance',
+        'llm': 'GPT-4o', 'task': 'Insurance',
+        'K': 3, 'model': 'm_01',
+        'temps': [0.0, 0.3, 0.7, 1.0, 1.5],
+        'data_dir': Path('..') / 'temperature_study' / 'data',
+    },
+    '(1,2)': {
+        'label': 'GPT-4o × Ellsberg',
+        'llm': 'GPT-4o', 'task': 'Ellsberg',
+        'K': 4, 'model': 'm_02',
+        'temps': [0.0, 0.3, 0.7, 1.0, 1.5],
+        'data_dir': Path('..') / 'gpt4o_ellsberg_study' / 'data',
+    },
+    '(2,1)': {
+        'label': 'Claude × Insurance',
+        'llm': 'Claude', 'task': 'Insurance',
+        'K': 3, 'model': 'm_01',
+        'temps': [0.0, 0.2, 0.5, 0.8, 1.0],
+        'data_dir': Path('..') / 'claude_insurance_study' / 'data',
+    },
+    '(2,2)': {
+        'label': 'Claude × Ellsberg',
+        'llm': 'Claude', 'task': 'Ellsberg',
+        'K': 4, 'model': 'm_02',
+        'temps': [0.0, 0.2, 0.5, 0.8, 1.0],
+        'data_dir': Path('..') / 'ellsberg_study' / 'data',
+    },
+}
+
+# --- Load data for each cell ---
+for cell_id, cell in CELLS.items():
+    ddir = cell['data_dir']
+
+    # Primary analysis
+    with open(ddir / 'primary_analysis.json') as f:
+        cell['analysis'] = json.load(f)
+
+    # Alpha draws per temperature
+    cell['alpha_draws'] = {}
+    for t in cell['temps']:
+        key = f"T{str(t).replace('.', '_')}"
+        data = np.load(ddir / f'alpha_draws_{key}.npz')
+        cell['alpha_draws'][t] = data['alpha']
+
+    # Compute slope draws from posterior
+    temp_arr = np.array(cell['temps'])
+    n_draws = len(cell['alpha_draws'][cell['temps'][0]])
+    slope_draws = np.empty(n_draws)
+    for i in range(n_draws):
+        alphas = np.array([cell['alpha_draws'][t][i] for t in cell['temps']])
+        slope_draws[i] = np.cov(temp_arr, alphas)[0, 1] / np.var(temp_arr)
+    cell['slope_draws'] = slope_draws
+
+    # Normalise slope fields (initial study uses 'slope' instead of 'median')
+    slope_info = cell['analysis']['slope']
+    cell['slope_median'] = slope_info.get('median', slope_info.get('slope'))
+    cell['p_negative'] = slope_info.get('p_negative', float(np.mean(slope_draws < 0)))
+    cell['mono_prob'] = cell['analysis']['monotonicity_prob']
+
+print("All four cells loaded successfully.")
+for cid, c in CELLS.items():
+    print(f"  {cid} {c['label']}: {len(c['alpha_draws'][c['temps'][0]]):,} draws × {len(c['temps'])} temps")
+```
+
+
+## Introduction {#sec-introduction}
+
+The initial temperature study found a clear monotonic negative relationship between LLM sampling temperature and estimated SEU sensitivity $\alpha$, using GPT-4o on insurance claims triage ($K = 3$). When both the LLM and task were changed simultaneously — to Claude 3.5 Sonnet on Ellsberg gambles ($K = 4$) — the relationship was not replicated. Because those two changes were confounded, we could not determine whether the non-replication was driven by the LLM, the task, or their interaction.
+
+This report presents the results of a **$2 \times 2$ factorial design** that disentangles the contributions of each factor by running the two missing cells:
+
+| | Insurance ($K = 3$) | Ellsberg ($K = 4$) |
+|---|---|---|
+| **GPT-4o** | Initial study | New: GPT-4o × Ellsberg |
+| **Claude 3.5 Sonnet** | New: Claude × Insurance | Ellsberg study |
+
+::: {.callout-important}
+## Key Finding
+The **LLM is the dominant factor**. GPT-4o shows a clear negative temperature–$\alpha$ relationship on *both* tasks, while Claude 3.5 Sonnet shows weak or absent effects on *both* tasks. The task domain plays a secondary role — Ellsberg gambles may amplify the effect for GPT-4o but do not create it for Claude.
+:::
+
+
+## Design Summary {#sec-design}
+
+### Factorial Structure
+
+```{python}
+#| label: tbl-factorial-design
+#| tbl-cap: "The 2×2 factorial design. Each cell is a separate study with its own data collection, model fit, and analysis."
+
+design = pd.DataFrame({
+    'Cell': ['(1,1)', '(1,2)', '(2,1)', '(2,2)'],
+    'LLM': ['GPT-4o', 'GPT-4o', 'Claude 3.5 Sonnet', 'Claude 3.5 Sonnet'],
+    'Task': ['Insurance triage', 'Ellsberg gambles', 'Insurance triage', 'Ellsberg gambles'],
+    'K': [3, 4, 3, 4],
+    'Stan Model': ['m_01', 'm_02', 'm_01', 'm_02'],
+    'Temperatures': [
+        '{0.0, 0.3, 0.7, 1.0, 1.5}',
+        '{0.0, 0.3, 0.7, 1.0, 1.5}',
+        '{0.0, 0.2, 0.5, 0.8, 1.0}',
+        '{0.0, 0.2, 0.5, 0.8, 1.0}',
+    ],
+    'Problems': ['100 × 3', '100 × 3', '100 × 3', '100 × 3'],
+})
+design
+```
+
+::: {.callout-note}
+## Temperature Scales Are Not Comparable Across Providers
+The GPT-4o cells use temperatures in $[0.0, 1.5]$ (OpenAI range), while Claude cells use $[0.0, 1.0]$ (Anthropic range). The same numerical temperature (e.g., $T = 0.7$) produces different effective randomness levels in different LLMs. Comparisons across LLMs therefore focus on the **qualitative pattern** (monotonic decline vs. flat / non-monotonic) rather than quantitative slope magnitudes.
+:::
+
+
+## Results Matrix {#sec-results}
+
+### Forest Plots
+
+```{python}
+#| label: fig-forest-2x2
+#| fig-cap: "Forest plots of posterior α distributions for all four cells of the factorial design. Each panel shows the five temperature conditions, with point estimates (medians), 50% credible intervals (thick bars), and 90% credible intervals (thin bars). The GPT-4o row (top) shows clear leftward shifts at higher temperatures; the Claude row (bottom) does not."
+#| fig-height: 10
+#| fig-width: 14
+
+fig, axes = plt.subplots(2, 2, figsize=(14, 10))
+
+cell_order = [('(1,1)', 0, 0), ('(1,2)', 0, 1), ('(2,1)', 1, 0), ('(2,2)', 1, 1)]
+
+for cell_id, row, col in cell_order:
+    cell = CELLS[cell_id]
+    ax = axes[row, col]
+    temps = cell['temps']
+    y_positions = np.arange(len(temps))[::-1]
+
+    for i, t in enumerate(temps):
+        draws = cell['alpha_draws'][t]
+        median = np.median(draws)
+        q05, q25, q75, q95 = np.percentile(draws, [5, 25, 75, 95])
+
+        y = y_positions[i]
+        ax.plot([q05, q95], [y, y], color=SEU_PALETTE[i], linewidth=1.5, alpha=0.7)
+        ax.plot([q25, q75], [y, y], color=SEU_PALETTE[i], linewidth=4, alpha=0.9)
+        ax.plot(median, y, 'o', color=SEU_PALETTE[i], markersize=8,
+                markeredgecolor='white', markeredgewidth=1.5, zorder=5)
+
+    ax.set_yticks(y_positions)
+    ax.set_yticklabels([f'T = {t}' for t in temps])
+    ax.set_xlabel('Sensitivity (α)')
+    ax.set_title(f'{cell["label"]}', fontsize=13, fontweight='bold')
+    ax.grid(axis='x', alpha=0.3)
+    ax.grid(axis='y', alpha=0)
+
+# Share x-axis limits within rows (same LLM)
+for row_idx in range(2):
+    xmin = min(axes[row_idx, c].get_xlim()[0] for c in range(2))
+    xmax = max(axes[row_idx, c].get_xlim()[1] for c in range(2))
+    for c in range(2):
+        axes[row_idx, c].set_xlim(xmin, xmax)
+
+fig.suptitle('Posterior α by Temperature: 2×2 Factorial', fontsize=15, fontweight='bold', y=1.01)
+plt.tight_layout()
+plt.show()
+```
+
+### Posterior Density Overlays
+
+```{python}
+#| label: fig-density-2x2
+#| fig-cap: "Kernel density estimates of posterior α for all four cells. Top row: GPT-4o — densities separate clearly, with higher temperatures (warmer colours) shifting left. Bottom row: Claude — densities overlap heavily, with no consistent ordering."
+#| fig-height: 10
+#| fig-width: 14
+
+fig, axes = plt.subplots(2, 2, figsize=(14, 10))
+
+for cell_id, row, col in cell_order:
+    cell = CELLS[cell_id]
+    ax = axes[row, col]
+
+    for i, t in enumerate(cell['temps']):
+        draws = cell['alpha_draws'][t]
+        kde = gaussian_kde(draws)
+        x_grid = np.linspace(draws.min() * 0.8, draws.max() * 1.1, 300)
+        ax.fill_between(x_grid, kde(x_grid), alpha=0.2, color=SEU_PALETTE[i])
+        ax.plot(x_grid, kde(x_grid), color=SEU_PALETTE[i], linewidth=2,
+                label=f'T = {t}')
+
+    ax.set_xlabel('Sensitivity (α)')
+    ax.set_ylabel('Density')
+    ax.set_title(f'{cell["label"]}', fontsize=13, fontweight='bold')
+    ax.legend(loc='upper right', fontsize=9)
+
+plt.tight_layout()
+plt.show()
+```
+
+
+## Monotonicity Summary {#sec-monotonicity}
+
+```{python}
+#| label: tbl-monotonicity
+#| tbl-cap: "Summary of temperature–sensitivity relationship across all four cells. P(slope < 0) near 1 indicates strong evidence for a negative relationship; P(strict mono) is the probability that α is strictly decreasing at every consecutive temperature step."
+
+rows = []
+for cell_id in ['(1,1)', '(1,2)', '(2,1)', '(2,2)']:
+    cell = CELLS[cell_id]
+    s = cell['slope_draws']
+    q05, q95 = np.percentile(s, [5, 95])
+    rows.append({
+        'Cell': cell_id,
+        'Study': cell['label'],
+        'Slope median': f"{np.median(s):.1f}",
+        'Slope 90% CI': f"[{q05:.1f}, {q95:.1f}]",
+        'P(slope < 0)': f"{cell['p_negative']:.3f}",
+        'P(strict mono ↓)': f"{cell['mono_prob']:.4f}",
+        'Pattern': 'Declining' if cell['p_negative'] > 0.9 else
+                   ('Weak decline' if cell['p_negative'] > 0.7 else 'Flat / non-monotonic'),
+    })
+
+pd.DataFrame(rows)
+```
+
+```{python}
+#| label: fig-slope-comparison
+#| fig-cap: "Posterior distributions of the global slope Δα/ΔT for all four cells. GPT-4o cells (blue, orange) are concentrated below zero; Claude cells (green, red) straddle zero."
+#| fig-height: 5
+
+fig, ax = plt.subplots(figsize=(10, 5))
+
+cell_colors = {
+    '(1,1)': SEU_PALETTE[0],
+    '(1,2)': SEU_PALETTE[1],
+    '(2,1)': SEU_PALETTE[2],
+    '(2,2)': SEU_PALETTE[3],
+}
+
+for cell_id in ['(1,1)', '(1,2)', '(2,1)', '(2,2)']:
+    cell = CELLS[cell_id]
+    s = cell['slope_draws']
+    kde = gaussian_kde(s)
+    x_grid = np.linspace(np.percentile(s, 0.5), np.percentile(s, 99.5), 300)
+    ax.fill_between(x_grid, kde(x_grid), alpha=0.15, color=cell_colors[cell_id])
+    ax.plot(x_grid, kde(x_grid), color=cell_colors[cell_id], linewidth=2,
+            label=f'{cell["label"]} (med={np.median(s):.0f})')
+
+ax.axvline(x=0, color='gray', linestyle='--', alpha=0.5, linewidth=1.5)
+ax.set_xlabel('Slope (Δα / ΔT)')
+ax.set_ylabel('Density')
+ax.set_title('Posterior Slope Distributions: All Four Cells')
+ax.legend(loc='upper left', fontsize=10)
+
+plt.tight_layout()
+plt.show()
+```
+
+
+## Main Effects Analysis {#sec-main-effects}
+
+### LLM Main Effect {#sec-llm-effect}
+
+The **LLM main effect** asks: holding task constant, does switching from GPT-4o to Claude change the temperature–$\alpha$ relationship?
+
+```{python}
+#| label: fig-llm-effect
+#| fig-cap: "LLM main effect. Left: Insurance task — GPT-4o shows clear decline, Claude is flat. Right: Ellsberg task — GPT-4o shows clear decline, Claude shows a weak trend. The LLM effect is consistent across both tasks."
+#| fig-height: 5
+
+fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+llm_colors = {'GPT-4o': SEU_COLORS['primary'], 'Claude': SEU_COLORS['accent']}
+
+# --- Left: Insurance task ---
+ax = axes[0]
+for cell_id in ['(1,1)', '(2,1)']:
+    cell = CELLS[cell_id]
+    medians = [np.median(cell['alpha_draws'][t]) for t in cell['temps']]
+    q05s = [np.percentile(cell['alpha_draws'][t], 5) for t in cell['temps']]
+    q95s = [np.percentile(cell['alpha_draws'][t], 95) for t in cell['temps']]
+    color = llm_colors[cell['llm']]
+    marker = 'o' if cell['llm'] == 'GPT-4o' else 's'
+    ax.errorbar(cell['temps'], medians,
+                yerr=[np.array(medians) - np.array(q05s),
+                      np.array(q95s) - np.array(medians)],
+                fmt=f'{marker}-', color=color, linewidth=2, markersize=8,
+                capsize=5, capthick=1.5, label=f"{cell['llm']} (P(−)={cell['p_negative']:.2f})")
+
+ax.set_xlabel('Temperature')
+ax.set_ylabel('Sensitivity (α)')
+ax.set_title('Insurance Task (K=3)\nLLM Comparison', fontsize=12)
+ax.legend()
+
+# --- Right: Ellsberg task ---
+ax = axes[1]
+for cell_id in ['(1,2)', '(2,2)']:
+    cell = CELLS[cell_id]
+    medians = [np.median(cell['alpha_draws'][t]) for t in cell['temps']]
+    q05s = [np.percentile(cell['alpha_draws'][t], 5) for t in cell['temps']]
+    q95s = [np.percentile(cell['alpha_draws'][t], 95) for t in cell['temps']]
+    color = llm_colors[cell['llm']]
+    marker = 'o' if cell['llm'] == 'GPT-4o' else 's'
+    ax.errorbar(cell['temps'], medians,
+                yerr=[np.array(medians) - np.array(q05s),
+                      np.array(q95s) - np.array(medians)],
+                fmt=f'{marker}-', color=color, linewidth=2, markersize=8,
+                capsize=5, capthick=1.5, label=f"{cell['llm']} (P(−)={cell['p_negative']:.2f})")
+
+ax.set_xlabel('Temperature')
+ax.set_ylabel('Sensitivity (α)')
+ax.set_title('Ellsberg Task (K=4)\nLLM Comparison', fontsize=12)
+ax.legend()
+
+plt.tight_layout()
+plt.show()
+```
+
+```{python}
+#| label: tbl-llm-effect
+#| tbl-cap: "LLM main effect: GPT-4o vs Claude within each task."
+
+llm_rows = []
+for task, pairs in [('Insurance', [('(1,1)', '(2,1)')]), ('Ellsberg', [('(1,2)', '(2,2)')])]:
+    gpt_id, claude_id = pairs[0]
+    gpt = CELLS[gpt_id]
+    claude = CELLS[claude_id]
+
+    # P(GPT-4o slope more negative than Claude slope)
+    p_gpt_more_neg = np.mean(gpt['slope_draws'] < claude['slope_draws'])
+
+    llm_rows.append({
+        'Task': task,
+        'GPT-4o slope (med)': f"{np.median(gpt['slope_draws']):.1f}",
+        'GPT-4o P(−)': f"{gpt['p_negative']:.3f}",
+        'Claude slope (med)': f"{np.median(claude['slope_draws']):.1f}",
+        'Claude P(−)': f"{claude['p_negative']:.3f}",
+        'P(GPT slope < Claude slope)': f"{p_gpt_more_neg:.3f}",
+    })
+
+pd.DataFrame(llm_rows)
+```
+
+Within both tasks, GPT-4o's slope is substantially more negative than Claude's. The probability that GPT-4o's slope is more negative is high in both cases, confirming a **consistent LLM main effect**.
+
+
+### Task Main Effect {#sec-task-effect}
+
+The **task main effect** asks: holding LLM constant, does switching from insurance to Ellsberg change the temperature–$\alpha$ relationship?
+
+```{python}
+#| label: fig-task-effect
+#| fig-cap: "Task main effect. Left: GPT-4o — both tasks show declining α, though the Ellsberg task shows a steeper decline. Right: Claude — neither task shows a convincing decline, though Ellsberg has a slightly more negative slope."
+#| fig-height: 5
+
+fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+task_colors = {'Insurance': SEU_COLORS['primary'], 'Ellsberg': SEU_COLORS['accent']}
+
+# --- Left: GPT-4o ---
+ax = axes[0]
+for cell_id in ['(1,1)', '(1,2)']:
+    cell = CELLS[cell_id]
+    medians = [np.median(cell['alpha_draws'][t]) for t in cell['temps']]
+    q05s = [np.percentile(cell['alpha_draws'][t], 5) for t in cell['temps']]
+    q95s = [np.percentile(cell['alpha_draws'][t], 95) for t in cell['temps']]
+    color = task_colors[cell['task']]
+    marker = 'o' if cell['task'] == 'Insurance' else 's'
+    ax.errorbar(cell['temps'], medians,
+                yerr=[np.array(medians) - np.array(q05s),
+                      np.array(q95s) - np.array(medians)],
+                fmt=f'{marker}-', color=color, linewidth=2, markersize=8,
+                capsize=5, capthick=1.5,
+                label=f"{cell['task']} K={cell['K']} (P(−)={cell['p_negative']:.2f})")
+
+ax.set_xlabel('Temperature')
+ax.set_ylabel('Sensitivity (α)')
+ax.set_title('GPT-4o\nTask Comparison', fontsize=12)
+ax.legend()
+
+# --- Right: Claude ---
+ax = axes[1]
+for cell_id in ['(2,1)', '(2,2)']:
+    cell = CELLS[cell_id]
+    medians = [np.median(cell['alpha_draws'][t]) for t in cell['temps']]
+    q05s = [np.percentile(cell['alpha_draws'][t], 5) for t in cell['temps']]
+    q95s = [np.percentile(cell['alpha_draws'][t], 95) for t in cell['temps']]
+    color = task_colors[cell['task']]
+    marker = 'o' if cell['task'] == 'Insurance' else 's'
+    ax.errorbar(cell['temps'], medians,
+                yerr=[np.array(medians) - np.array(q05s),
+                      np.array(q95s) - np.array(medians)],
+                fmt=f'{marker}-', color=color, linewidth=2, markersize=8,
+                capsize=5, capthick=1.5,
+                label=f"{cell['task']} K={cell['K']} (P(−)={cell['p_negative']:.2f})")
+
+ax.set_xlabel('Temperature')
+ax.set_ylabel('Sensitivity (α)')
+ax.set_title('Claude 3.5 Sonnet\nTask Comparison', fontsize=12)
+ax.legend()
+
+plt.tight_layout()
+plt.show()
+```
+
+```{python}
+#| label: tbl-task-effect
+#| tbl-cap: "Task main effect: Insurance vs Ellsberg within each LLM."
+
+task_rows = []
+for llm, pairs in [('GPT-4o', [('(1,1)', '(1,2)')]), ('Claude', [('(2,1)', '(2,2)')])]:
+    ins_id, ells_id = pairs[0]
+    ins = CELLS[ins_id]
+    ells = CELLS[ells_id]
+
+    # P(Ellsberg slope more negative than Insurance slope)
+    p_ells_more_neg = np.mean(ells['slope_draws'] < ins['slope_draws'])
+
+    task_rows.append({
+        'LLM': llm,
+        'Insurance slope (med)': f"{np.median(ins['slope_draws']):.1f}",
+        'Insurance P(−)': f"{ins['p_negative']:.3f}",
+        'Ellsberg slope (med)': f"{np.median(ells['slope_draws']):.1f}",
+        'Ellsberg P(−)': f"{ells['p_negative']:.3f}",
+        'P(Ellsberg slope < Insurance slope)': f"{p_ells_more_neg:.3f}",
+    })
+
+pd.DataFrame(task_rows)
+```
+
+The task effect is **weaker and less consistent** than the LLM effect. For GPT-4o, Ellsberg gambles may produce a somewhat steeper slope than insurance, but both tasks show clear negative trends. For Claude, neither task produces a convincing slope.
+
+
+### Interaction {#sec-interaction}
+
+Is the temperature–$\alpha$ relationship **specific to a particular LLM–task combination**, or is it decomposable into additive main effects?
+
+```{python}
+#| label: fig-interaction
+#| fig-cap: "Interaction plot. Each line represents one LLM; each point represents one task. The slopes show the relative change in P(slope < 0) from insurance to Ellsberg. The lines are roughly parallel, suggesting minimal interaction — the LLM difference is similar regardless of task."
+#| fig-height: 5
+
+fig, ax = plt.subplots(figsize=(8, 5))
+
+tasks = ['Insurance', 'Ellsberg']
+gpt_p_neg = [CELLS['(1,1)']['p_negative'], CELLS['(1,2)']['p_negative']]
+claude_p_neg = [CELLS['(2,1)']['p_negative'], CELLS['(2,2)']['p_negative']]
+
+ax.plot(tasks, gpt_p_neg, 'o-', color=SEU_COLORS['primary'], linewidth=2.5,
+        markersize=10, label='GPT-4o')
+ax.plot(tasks, claude_p_neg, 's-', color=SEU_COLORS['accent'], linewidth=2.5,
+        markersize=10, label='Claude')
+
+ax.set_ylabel('P(slope < 0)')
+ax.set_title('Interaction Plot: LLM × Task')
+ax.legend(fontsize=12)
+ax.set_ylim(0.4, 1.05)
+ax.grid(axis='y', alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+```
+
+```{python}
+#| label: fig-interaction-slopes
+#| fig-cap: "Interaction in terms of slope medians. The GPT-4o line (both cells negative) is well-separated from the near-zero Claude line. The roughly parallel pattern indicates an additive structure with the LLM as the dominant factor."
+#| fig-height: 5
+
+fig, ax = plt.subplots(figsize=(8, 5))
+
+gpt_slopes = [np.median(CELLS['(1,1)']['slope_draws']),
+              np.median(CELLS['(1,2)']['slope_draws'])]
+claude_slopes = [np.median(CELLS['(2,1)']['slope_draws']),
+                 np.median(CELLS['(2,2)']['slope_draws'])]
+
+ax.plot(tasks, gpt_slopes, 'o-', color=SEU_COLORS['primary'], linewidth=2.5,
+        markersize=10, label='GPT-4o')
+ax.plot(tasks, claude_slopes, 's-', color=SEU_COLORS['accent'], linewidth=2.5,
+        markersize=10, label='Claude')
+
+ax.axhline(y=0, color='gray', linestyle='--', alpha=0.5)
+ax.set_ylabel('Slope median (Δα / ΔT)')
+ax.set_title('Interaction Plot: Slope Magnitude')
+ax.legend(fontsize=12)
+ax.grid(axis='y', alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+```
+
+```{python}
+#| label: interaction-quantitative
+#| echo: true
+
+# Quantitative interaction: difference in slope differences
+# If additive: (GPT-Ells − GPT-Ins) ≈ (Claude-Ells − Claude-Ins)
+# Interaction = (GPT-Ells − GPT-Ins) − (Claude-Ells − Claude-Ins)
+
+interaction_draws = (
+    (CELLS['(1,2)']['slope_draws'] - CELLS['(1,1)']['slope_draws']) -
+    (CELLS['(2,2)']['slope_draws'] - CELLS['(2,1)']['slope_draws'])
+)
+
+print(f"Interaction (difference-in-differences of slopes):")
+print(f"  Median: {np.median(interaction_draws):.1f}")
+print(f"  90% CI: [{np.percentile(interaction_draws, 5):.1f}, {np.percentile(interaction_draws, 95):.1f}]")
+print(f"  P(interaction > 0): {np.mean(interaction_draws > 0):.3f}")
+print(f"  P(interaction < 0): {np.mean(interaction_draws < 0):.3f}")
+print(f"")
+print(f"An interaction near zero indicates additive (non-interacting) effects.")
+print(f"The 90% CI spanning zero is consistent with a purely additive model.")
+```
+
+
+## Pairwise Comparison Heatmaps {#sec-pairwise}
+
+```{python}
+#| label: fig-heatmaps-2x2
+#| fig-cap: "Pairwise posterior probability heatmaps P(α_row > α_col) for all four cells. Green cells indicate the row temperature has higher α; red cells indicate the column temperature has higher α. GPT-4o cells (top) show strong green in the upper triangle (lower-T rows beat higher-T columns), indicating consistent decline. Claude cells (bottom) show mixed colours, indicating no reliable ordering."
+#| fig-height: 10
+#| fig-width: 14
+
+fig, axes = plt.subplots(2, 2, figsize=(14, 10))
+
+for cell_id, row, col in cell_order:
+    cell = CELLS[cell_id]
+    ax = axes[row, col]
+    temps = cell['temps']
+    n_temps = len(temps)
+    pairs = cell['analysis']['pairwise_comparisons']
+
+    heatmap = np.full((n_temps, n_temps), np.nan)
+    for key, prob in pairs.items():
+        t1, t2 = key.split('_vs_')
+        i = temps.index(float(t1))
+        j = temps.index(float(t2))
+        heatmap[i, j] = prob
+        heatmap[j, i] = 1 - prob
+    np.fill_diagonal(heatmap, 0.5)
+
+    im = ax.imshow(heatmap, cmap='RdYlGn', vmin=0, vmax=1, aspect='equal')
+    ax.set_xticks(range(n_temps))
+    ax.set_xticklabels([f'{t}' for t in temps], fontsize=9)
+    ax.set_yticks(range(n_temps))
+    ax.set_yticklabels([f'{t}' for t in temps], fontsize=9)
+    ax.set_xlabel('Temperature (col)')
+    ax.set_ylabel('Temperature (row)')
+    ax.set_title(f'{cell["label"]}', fontsize=12, fontweight='bold')
+
+    for i in range(n_temps):
+        for j in range(n_temps):
+            if not np.isnan(heatmap[i, j]):
+                color = 'white' if heatmap[i, j] > 0.8 or heatmap[i, j] < 0.2 else 'black'
+                ax.text(j, i, f'{heatmap[i, j]:.2f}', ha='center', va='center',
+                        fontsize=9, color=color)
+
+plt.colorbar(im, ax=axes.ravel().tolist(), shrink=0.6, label='P(α_row > α_col)')
+plt.tight_layout()
+plt.show()
+```
+
+
+## Summary Visualisation {#sec-summary-viz}
+
+```{python}
+#| label: fig-grand-summary
+#| fig-cap: "Grand summary: α trajectory (with 90% CIs) for all four factorial cells on a single axis. GPT-4o cells (solid lines) decline clearly; Claude cells (dashed lines) remain flat. Note: temperature scales differ between LLMs so the x-axis represents each LLM's own grid."
+#| fig-height: 6
+
+fig, ax = plt.subplots(figsize=(12, 6))
+
+styles = {
+    '(1,1)': {'color': SEU_PALETTE[0], 'ls': '-',  'marker': 'o'},
+    '(1,2)': {'color': SEU_PALETTE[1], 'ls': '-',  'marker': 's'},
+    '(2,1)': {'color': SEU_PALETTE[2], 'ls': '--', 'marker': 'o'},
+    '(2,2)': {'color': SEU_PALETTE[3], 'ls': '--', 'marker': 's'},
+}
+
+for cell_id in ['(1,1)', '(1,2)', '(2,1)', '(2,2)']:
+    cell = CELLS[cell_id]
+    s = styles[cell_id]
+    medians = [np.median(cell['alpha_draws'][t]) for t in cell['temps']]
+    q05s = [np.percentile(cell['alpha_draws'][t], 5) for t in cell['temps']]
+    q95s = [np.percentile(cell['alpha_draws'][t], 95) for t in cell['temps']]
+
+    ax.errorbar(cell['temps'], medians,
+                yerr=[np.array(medians) - np.array(q05s),
+                      np.array(q95s) - np.array(medians)],
+                fmt=f'{s["marker"]}', color=s['color'], linewidth=2, markersize=8,
+                capsize=4, capthick=1.5, linestyle=s['ls'],
+                label=f'{cell["label"]}')
+
+ax.set_xlabel('Temperature')
+ax.set_ylabel('Sensitivity (α)')
+ax.set_title('Temperature–Sensitivity Trajectories: All Factorial Cells')
+ax.legend(loc='upper right', fontsize=10)
+ax.grid(alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+```
+
+```{python}
+#| label: fig-summary-bars
+#| fig-cap: "P(slope < 0) for each cell, arranged in factorial layout. GPT-4o cells are well above 0.9 (strong evidence of decline); Claude cells are near 0.5–0.8 (weak or absent evidence)."
+#| fig-height: 5
+
+fig, ax = plt.subplots(figsize=(10, 5))
+
+cell_ids = ['(1,1)', '(1,2)', '(2,1)', '(2,2)']
+labels = [CELLS[c]['label'] for c in cell_ids]
+p_negs = [CELLS[c]['p_negative'] for c in cell_ids]
+colors = [cell_colors[c] for c in cell_ids]
+
+bars = ax.bar(labels, p_negs, color=colors, edgecolor='white', linewidth=1.5, width=0.6)
+
+ax.axhline(y=0.95, color='gray', linestyle='--', alpha=0.5, label='P = 0.95 threshold')
+ax.axhline(y=0.5, color='gray', linestyle=':', alpha=0.3)
+ax.set_ylabel('P(slope < 0)')
+ax.set_title('Evidence for Negative Temperature–Sensitivity Slope')
+ax.set_ylim(0, 1.08)
+ax.legend()
+
+for bar, p in zip(bars, p_negs):
+    ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.02,
+            f'{p:.3f}', ha='center', va='bottom', fontsize=11, fontweight='bold')
+
+plt.tight_layout()
+plt.show()
+```
+
+
+## Discussion {#sec-discussion}
+
+### Decomposing the Original Confound
+
+The original question was: why did the Claude × Ellsberg study fail to replicate the GPT-4o × Insurance finding? The factorial design provides a clear answer.
+
+```{python}
+#| label: tbl-final-summary
+#| tbl-cap: "Final factorial summary. The LLM factor (rows) drives the key distinction: GPT-4o consistently shows declining α with temperature, Claude does not."
+
+final = pd.DataFrame({
+    '': ['**GPT-4o**', '**Claude**'],
+    'Insurance (K=3)': [
+        f"Declining (P = {CELLS['(1,1)']['p_negative']:.2f})",
+        f"Flat (P = {CELLS['(2,1)']['p_negative']:.2f})",
+    ],
+    'Ellsberg (K=4)': [
+        f"Declining (P = {CELLS['(1,2)']['p_negative']:.2f})",
+        f"Weak (P = {CELLS['(2,2)']['p_negative']:.2f})",
+    ],
+})
+final
+```
+
+### Main Conclusions
+
+1. **LLM is the dominant factor.** GPT-4o shows a clear negative temperature–$\alpha$ slope ($P > 0.98$) on both tasks. Claude shows at best a weak trend ($P \approx 0.56$–$0.77$) on both tasks. The LLM effect is large and consistent.
+
+2. **Task is a secondary factor.** Changing the task from insurance to Ellsberg does not eliminate the effect for GPT-4o, nor does it create the effect for Claude. Within GPT-4o, Ellsberg may produce a slightly steeper decline, but the qualitative pattern is the same.
+
+3. **Minimal interaction.** The difference-in-differences analysis shows an interaction compatible with zero — the LLM and task effects are approximately **additive**. The non-replication in the original Ellsberg study was driven primarily by the LLM change, not the task change or a task–LLM interaction.
+
+4. **Temperature–sensitivity is LLM-specific.** The finding that higher temperature reduces estimated SEU sensitivity should be qualified as a property of **GPT-4o's temperature implementation**, not a universal feature of LLM temperature scaling.
+
+### Limitations
+
+- **Two LLMs.** The factorial examines only GPT-4o and Claude 3.5 Sonnet. Other LLMs (e.g., Llama, Gemini) may show different patterns.
+- **Temperature scales differ.** The GPT-4o grid extends to $T = 1.5$ while Claude's maximum is $T = 1.0$. While the qualitative comparison is valid, quantitative slope comparisons across LLMs should be interpreted cautiously.
+- **Two tasks.** Insurance triage and Ellsberg gambles differ in multiple ways ($K$, semantic content, prior calibration). More tasks would strengthen the conclusion that the task effect is minor.
+- **Fixed design parameters.** All cells use $M \approx 300$, $D = 32$, $R = 30$. The conclusions may not generalise to designs with substantially different sample sizes or feature spaces.
+
+### Future Directions
+
+- **Additional LLMs.** Extending the factorial to other model families would clarify whether the temperature–sensitivity effect is specific to OpenAI GPT-4o or shared by certain architectures.
+- **More tasks.** Including tasks with different $K$ values or semantic structures would strengthen the conclusion about task invariance.
+- **Longitudinal tracking.** Model updates (GPT-4o versions, Claude updates) could change the temperature–sensitivity relationship — periodic re-assessment would be informative.
+- **Mechanistic investigation.** Understanding *why* GPT-4o's temperature affects estimated $\alpha$ while Claude's does not may require probing the internal representations and decoding strategies of each model.
+
+
+## Reproducibility {#sec-reproducibility}
+
+This report loads pre-computed data from the frozen data directories of all four individual cell reports:
+
+| Cell | Data Directory |
+|------|---------------|
+| (1,1) GPT-4o × Insurance | `reports/applications/temperature_study/data/` |
+| (1,2) GPT-4o × Ellsberg | `reports/applications/gpt4o_ellsberg_study/data/` |
+| (2,1) Claude × Insurance | `reports/applications/claude_insurance_study/data/` |
+| (2,2) Claude × Ellsberg | `reports/applications/ellsberg_study/data/` |
+
+Each directory contains `primary_analysis.json`, `alpha_draws_T*.npz`, and associated diagnostics. See the individual cell reports for refitting instructions and full methodological details.
+
+
+## References
+
+::: {#refs}
+:::

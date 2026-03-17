@@ -1,0 +1,67 @@
+{
+  "0.0": {
+    "alpha_mean": 114.17527755425,
+    "alpha_median": 110.369925,
+    "alpha_sd": 28.55910346331294,
+    "alpha_q05": 74.39008715,
+    "alpha_q95": 167.15046799999988,
+    "output_dir": "/Users/jeffhelzner/seu-sensitivity/applications/gpt4o_ellsberg_study/results/fit_T0_0",
+    "ppc_p_values": {
+      "ll": 0.44775,
+      "modal": 0.40275,
+      "prob": 0.3735
+    }
+  },
+  "0.3": {
+    "alpha_mean": 111.0702515775,
+    "alpha_median": 106.899915,
+    "alpha_sd": 28.34066557343421,
+    "alpha_q05": 72.63442025,
+    "alpha_q95": 163.81201149999998,
+    "output_dir": "/Users/jeffhelzner/seu-sensitivity/applications/gpt4o_ellsberg_study/results/fit_T0_3",
+    "ppc_p_values": {
+      "ll": 0.45625,
+      "modal": 0.3195,
+      "prob": 0.3395
+    }
+  },
+  "0.7": {
+    "alpha_mean": 103.59185083824998,
+    "alpha_median": 99.45683149999999,
+    "alpha_sd": 27.99105989451145,
+    "alpha_q05": 65.42779870000001,
+    "alpha_q95": 154.63367799999997,
+    "output_dir": "/Users/jeffhelzner/seu-sensitivity/applications/gpt4o_ellsberg_study/results/fit_T0_7",
+    "ppc_p_values": {
+      "ll": 0.436,
+      "modal": 0.37025,
+      "prob": 0.397
+    }
+  },
+  "1.0": {
+    "alpha_mean": 87.36874903425002,
+    "alpha_median": 84.046989,
+    "alpha_sd": 22.182660076129384,
+    "alpha_q05": 57.0774481,
+    "alpha_q95": 126.10022899999994,
+    "output_dir": "/Users/jeffhelzner/seu-sensitivity/applications/gpt4o_ellsberg_study/results/fit_T1_0",
+    "ppc_p_values": {
+      "ll": 0.4565,
+      "modal": 0.3835,
+      "prob": 0.38125
+    }
+  },
+  "1.5": {
+    "alpha_mean": 54.3553379715,
+    "alpha_median": 52.1680245,
+    "alpha_sd": 14.356923760504289,
+    "alpha_q05": 35.54437975,
+    "alpha_q95": 80.3296955,
+    "output_dir": "/Users/jeffhelzner/seu-sensitivity/applications/gpt4o_ellsberg_study/results/fit_T1_5",
+    "ppc_p_values": {
+      "ll": 0.495,
+      "modal": 0.5345,
+      "prob": 0.4655
+    }
+  }
+}

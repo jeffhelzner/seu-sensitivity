@@ -1,0 +1,20 @@
+Checking sampler transitions treedepth.
+Treedepth satisfactory for all transitions.
+
+Checking sampler transitions for divergences.
+4 of 4000 (0.10%) transitions ended with a divergence.
+These divergent transitions indicate that HMC is not fully able to explore the posterior distribution.
+Try increasing adapt delta closer to 1.
+If this doesn't remove all divergences, try to reparameterize the model.
+
+Checking E-BFMI - sampler transitions HMC potential energy.
+E-BFMI satisfactory.
+
+Rank-normalized split effective sample size satisfactory for all parameters.
+
+The following parameters had rank-normalized split R-hat greater than 1.01:
+  eta[1], eta[4], eta[5], eta[8], eta[9], eta[12], eta[13], eta[14], eta[15], eta[17], eta[18], eta[19], eta[21], eta[22], eta[23], eta[37], eta[38], eta[39], eta[40], eta[41], eta[42], eta[49], eta[51], eta[53], eta[55], eta[57], eta[59], eta[61], eta[62], eta[64], eta[65], eta[67], eta[68], eta[70], eta[71], eta[74], eta[75], eta[78], eta[79], eta[88], eta[89], eta[90], eta[92], eta[93], eta[94], eta[96], eta[97], eta[98], eta[136], eta[140], eta[144], eta[150], eta[154], eta[158], eta[172], eta[174], eta[176], eta[178], eta[180], eta[182], eta[184], eta[185], eta[186], eta[187], eta[188], eta[189], eta[190], eta[192], eta[194], eta[196], eta[198], eta[200], eta[202], eta[204], eta[206], eta[217], eta[218], eta[219], eta[220], eta[221], eta[222], eta[223], eta[224], eta[225], eta[227], eta[228], eta[229], eta[231], eta[232], eta[233], eta[235], eta[239], eta[243], eta[248], eta[251], eta[254], eta[256], eta[257], eta[259], eta[260], eta[262], eta[263], eta[266], eta[270], eta[274], eta[283], eta[286], eta[289], eta[292], eta[294], eta[296], eta[298], eta[301], eta[304], eta[314], eta[317], eta[320], eta[322], eta[323], eta[325], eta[326], eta[328], eta[329], eta[331], eta[333], eta[335], eta[337], eta[339], eta[341], eta[343], eta[344], eta[347], eta[348], eta[351], eta[352], eta[370], eta[371], eta[373], eta[374], eta[376], eta[377], eta[379], eta[380], eta[381], eta[382], eta[383], eta[384], eta[385], eta[386], eta[388], eta[389], eta[391], eta[392], eta[412], eta[415], eta[418], eta[435], eta[438], eta[441], eta[442], eta[444], eta[446], eta[448], eta[450], eta[452], eta[454], eta[457], eta[460], eta[464], eta[468], eta[472], eta[475], eta[476], eta[477], eta[478], eta[479], eta[480], eta[481], eta[482], eta[483], eta[484], eta[487], eta[490], eta[493], eta[495], eta[497], eta[509], eta[512], eta[515], eta[517], eta[518], eta[519], eta[521], eta[522], eta[523], eta[525], eta[526], eta[527], eta[531], eta[535], eta[539], eta[541], eta[544], eta[547], eta[557], eta[561], eta[565], eta[569], eta[571], eta[573], eta[575], eta[577], eta[579], eta[580], eta[581], eta[583], eta[584], eta[586], eta[587], eta[589], eta[593], eta[597], eta[601], eta[605], eta[609], eta[613], eta[614], eta[615], eta[616], eta[617], eta[618], eta[619], eta[621], eta[623], eta[625], eta[627], eta[629], eta[637], eta[638], eta[640], eta[641], eta[643], eta[644], eta[653], eta[656], eta[659], eta[661], eta[663], eta[665], eta[667], eta[668], eta[670], eta[671], eta[673], eta[674], eta[676], eta[677], eta[680], eta[681], eta[684], eta[685], eta[689], eta[691], eta[693], eta[694], eta[695], eta[696], eta[698], eta[699], eta[700], eta[702], eta[703], eta[704], eta[706], eta[710], eta[714], eta[718], eta[719], eta[721], eta[722], eta[724], eta[725], eta[727], eta[730], eta[733], eta[736], eta[740], eta[744], eta[754], eta[756], eta[758], eta[760], eta[762], eta[764], eta[767], eta[770], eta[773], eta[775], eta[776], eta[778], eta[779], eta[780], eta[782], eta[783], eta[784], eta[786], eta[802], eta[804], eta[805], eta[807], eta[808], eta[810], eta[811], eta[813], eta[815], eta[817], eta[818], eta[820], eta[821], eta[823], eta[824], eta[874], eta[875], eta[877], eta[878], eta[880], eta[881], eta[884], eta[888], eta[892]
+Such high values indicate incomplete mixing and biased estimation.
+You should consider regularizing your model with additional prior information or a more effective parameterization.
+
+Processing complete.

@@ -40,6 +40,16 @@ website:
           - text: "Ellsberg Study"
           - text: "1. Ellsberg Study"
             href: applications/ellsberg_study/01_ellsberg_study.qmd
+          - text: "---"
+          - text: "Factorial Cells"
+          - text: "Claude × Insurance"
+            href: applications/claude_insurance_study/01_claude_insurance_study.qmd
+          - text: "GPT-4o × Ellsberg"
+            href: applications/gpt4o_ellsberg_study/01_gpt4o_ellsberg_study.qmd
+          - text: "---"
+          - text: "Factorial Synthesis"
+          - text: "2×2 Factorial Analysis"
+            href: applications/factorial_synthesis/01_factorial_synthesis.qmd
       - text: "Blog"
         href: blog/index.qmd
     right:

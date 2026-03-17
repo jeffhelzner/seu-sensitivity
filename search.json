@@ -627,7 +627,7 @@
     "href": "index.html#report-series",
     "title": "SEU Sensitivity",
     "section": "0.2 Report Series",
-    "text": "0.2 Report Series\n\n0.2.1 Foundational Reports\nThese reports establish the theoretical and methodological foundations:\n\nAbstract Formulation — Mathematical specification and key theoretical properties\nConcrete Implementation — Stan model implementation details\nPrior Analysis — Prior predictive analysis and prior selection\nParameter Recovery — Validation that parameters can be recovered from data\nAdding Risky Choices — Extension to model m_1 for utility identification\nSBC Validation — Simulation-based calibration results\n\n\n\n0.2.2 Application Reports\n\n0.2.2.1 Temperature Study\n\nInitial Results — How LLM temperature affects estimated SEU sensitivity"
+    "text": "0.2 Report Series\n\n0.2.1 Foundational Reports\nThese reports establish the theoretical and methodological foundations:\n\nAbstract Formulation — Mathematical specification and key theoretical properties\nConcrete Implementation — Stan model implementation details\nPrior Analysis — Prior predictive analysis and prior selection\nParameter Recovery — Validation that parameters can be recovered from data\nAdding Risky Choices — Extension to model m_1 for utility identification\nSBC Validation — Simulation-based calibration results\nGeneralizing Sensitivity — Generalized models m_2 and m_3\n\n\n\n0.2.2 Application Reports\n\n0.2.2.1 Temperature Study\n\nInitial Results — How LLM temperature affects estimated SEU sensitivity\n\n\n\n0.2.2.2 Temperature Study: EU Prompt\n\nEU Prompt Study — Effect of explicit EU-maximization framing on sensitivity\n\n\n\n0.2.2.3 Temperature Study: Risky Alternatives\n\nRisky Alternatives Extension — Risky choice data for utility identification across temperatures\n\n\n\n0.2.2.4 Ellsberg Study\n\nEllsberg Study — Claude 3.5 Sonnet on Ellsberg urn gambles\n\n\n\n0.2.2.5 Factorial Cells\n\nClaude × Insurance — Claude 3.5 Sonnet on insurance claims triage\nGPT-4o × Ellsberg — GPT-4o on Ellsberg urn gambles\n\n\n\n0.2.2.6 Factorial Synthesis\n\n2×2 Factorial Analysis — Cross-LLM × cross-task synthesis\n\n\n\n0.2.2.7 Prompt Framing Study\n\nBackground — Rationality cues in LLM prompts\nPilot Study 1 — Initial pilot results"
   },
   {
     "objectID": "index.html#key-insights",
@@ -648,7 +648,7 @@
     "href": "index.html#citation",
     "title": "SEU Sensitivity",
     "section": "0.5 Citation",
-    "text": "0.5 Citation\nIf you use this work, please cite:\nHelzner, J. (2025). SEU Sensitivity: A Bayesian Framework for Modeling \nDecision-Making Sensitivity. https://github.com/jeffhelzner/seu-sensitivity"
+    "text": "0.5 Citation\nIf you use this work, please cite:\nHelzner, J. (2026). SEU Sensitivity: A Bayesian Framework for Modeling \nDecision-Making Sensitivity. https://github.com/jeffhelzner/seu-sensitivity"
   },
   {
     "objectID": "blog/index.html",

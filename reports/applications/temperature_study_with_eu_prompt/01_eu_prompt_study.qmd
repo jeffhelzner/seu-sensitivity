@@ -5,7 +5,9 @@ description: |
   Tests whether explicitly instructing the LLM to maximize expected utility
   increases estimated sensitivity (α) compared to the base temperature study.
   Uses the same problems, assessments, and embeddings — only the choice prompt
-  is modified to include an explicit EU-maximization instruction.
+  is modified to include an explicit EU-maximization instruction. The EU-prompt
+  does not increase α; point estimates are lower at most temperatures, though
+  the evidence is suggestive rather than conclusive.
 categories: [applications, temperature, m_01, eu-prompt]
 execute:
   cache: true
@@ -46,6 +48,16 @@ moderate levels (T=0.3 ≈ T=0.7).
 This study asks a complementary question: **does explicitly telling the LLM to maximize
 expected utility increase α?**
 
+Our directional prediction was that the EU-prompt would *increase* $\alpha$: if the
+model is informed of the correct decision criterion, its choices should align more
+closely with EU maximization. This prediction follows naturally from the assumption
+that LLM performance improves with more specific instructions — an assumption common
+in the prompting literature but, as we will see, not obviously correct in this domain.
+We note that this study is exploratory in the sense that the prediction was not
+pre-registered; the design was motivated by the question of whether explicit
+instructions could modulate sensitivity, with the directional expectation serving as
+the natural baseline hypothesis against which to evaluate the results.
+
 The intervention is minimal. The choice prompt is identical to the base study except for
 one added paragraph:
 
@@ -77,6 +89,57 @@ probability-weighted utility.
 
 The assessment prompt is not modified. Assessments are reused directly from the base
 study, ensuring that the feature representation (w vectors) is identical.
+
+::: {.callout-note collapse="true"}
+## Complete Choice Prompts
+
+The two choice prompts differ by a single paragraph (shown in **bold** below). The
+system prompt is identical in both conditions.
+
+**System prompt (both conditions):**
+
+> You are a claims analyst selecting which insurance claim to forward to experienced fraud investigators for further review.
+
+**Base study choice prompt:**
+
+> Based on the following analyst assessments, select ONE claim to send to a team of two experienced fraud investigators.
+>
+> Your decision will be evaluated based on the investigators' assessments:
+>
+> - Best outcome: Both investigators agree your selection warrants investigation
+> - Middle outcome: One investigator agrees, one does not
+> - Worst outcome: Neither investigator agrees with your selection
+>
+> The assessments are:
+>
+> {assessments_list}
+>
+> Which claim do you select for investigation?
+>
+> Respond with ONLY the claim number ({num_range}).
+
+**EU-prompt choice prompt:**
+
+> Based on the following analyst assessments, select ONE claim to send to a team of two experienced fraud investigators.
+>
+> Your decision will be evaluated based on the investigators' assessments:
+>
+> - Best outcome: Both investigators agree your selection warrants investigation
+> - Middle outcome: One investigator agrees, one does not
+> - Worst outcome: Neither investigator agrees with your selection
+>
+> **Select the claim that maximizes your expected utility with respect to the three outcomes above. For each claim, consider the subjective probability you assign to each outcome and your utility for that outcome. Choose the claim for which the probability-weighted utility across the three outcomes is highest.**
+>
+> The assessments are:
+>
+> {assessments_list}
+>
+> Which claim do you select for investigation?
+>
+> Respond with ONLY the claim number ({num_range}).
+
+:::
+
 
 ### Data Reuse
 
@@ -202,7 +265,7 @@ The EU-prompt estimates show the same qualitative pattern as the base study: $\a
 
 ```{python}
 #| label: fig-forest-eu
-#| fig-cap: "Forest plot of posterior α distributions under the EU-prompt. Points show posterior medians; thick bars span the 50% credible interval; thin bars span the 90% credible interval."
+#| fig-cap: "Forest plot of posterior α distributions under the EU-prompt. Points show posterior medians; thick bars span the 50% credible interval; thin bars span the 90% credible interval. The temperature gradient is clearly visible: α declines monotonically from T=0.0 to T=1.5, with substantial overlap between T=0.3 and T=0.7."
 #| fig-height: 5
 
 fig, ax = plt.subplots(figsize=(8, 5))
@@ -281,11 +344,56 @@ for t in temperatures:
 pd.DataFrame(ppc_rows)
 ```
 
-All PPC p-values fall within $[0.42, 0.67]$, indicating adequate model fit at every temperature level. The m_01 model describes the EU-prompt choice data as well as it describes the base study data.
+All PPC p-values fall within $[0.42, 0.67]$, indicating adequate model fit at every temperature level. The m_01 model describes the EU-prompt choice data as well as it describes the base study data. This has an important implication: the model's softmax choice structure is flexible enough to accommodate whatever the EU-prompt does to choices without requiring a structural change to the decision model. The prompt effect, to the extent it exists, is absorbed entirely by changes in the sensitivity parameter $\alpha$ (and nuisance parameters $\beta$, $\delta$) rather than manifesting as systematic model misspecification. This confirms that comparing $\alpha$ across prompt conditions is a meaningful exercise — the parameter retains its interpretation under both conditions.
+
+### Prior-to-Posterior Contraction
+
+To assess whether the qualitative findings are robust to the choice of prior, we examine how much the posterior contracts relative to the Lognormal(3.0, 0.75) prior on $\alpha$. Strong contraction indicates that the data dominate the prior, making the results insensitive to alternative prior specifications.
+
+```{python}
+#| label: tbl-contraction
+#| tbl-cap: "Prior-to-posterior contraction for α at each temperature. Contraction is measured as 1 − (posterior SD / prior SD). Values near 1 indicate strong data dominance over the prior."
+
+from scipy.stats import lognorm
+
+# Lognormal(3.0, 0.75) prior: mean and SD on the natural scale
+prior_mu, prior_sigma = 3.0, 0.75
+prior_mean = np.exp(prior_mu + prior_sigma**2 / 2)
+prior_var = (np.exp(prior_sigma**2) - 1) * np.exp(2 * prior_mu + prior_sigma**2)
+prior_sd = np.sqrt(prior_var)
+
+contraction_rows = []
+for t in temperatures:
+    draws = eu_draws[t]
+    post_sd = np.std(draws)
+    contraction = 1 - post_sd / prior_sd
+    contraction_rows.append({
+        'Temperature': t,
+        'Prior SD': f"{prior_sd:.1f}",
+        'Posterior SD': f"{post_sd:.1f}",
+        'Contraction': f"{contraction:.3f}",
+    })
+
+pd.DataFrame(contraction_rows)
+```
+
+The posterior is substantially narrower than the prior at every temperature, indicating strong data dominance. This provides confidence that the qualitative findings — the temperature gradient and the direction of prompt effects — are not artifacts of the specific prior specification.
 
 ## Cross-Study Comparison {#sec-comparison}
 
 The central question is whether explicit EU-maximization instructions increase or decrease estimated sensitivity. We compare the two studies using the same 4,000 posterior draws per condition.
+
+::: {.callout-important}
+## Methodological Note on Cross-Study Comparisons
+
+The quantities $P(\alpha_{\text{base}} > \alpha_{\text{EU}})$ reported below are computed by comparing draw $i$ from the base study's posterior with draw $i$ from the EU-prompt study's posterior. These are *independent* posteriors from separate model fits — there is no joint posterior over $(\alpha_{\text{base}}, \alpha_{\text{EU}})$. The draw-by-draw comparison is valid insofar as both MCMC chains have mixed well (which diagnostics confirm), but it does not account for the correlation structure induced by shared stimuli. A joint model over prompt conditions would properly account for this shared design structure and yield sharper inference. The per-temperature $P(\text{base} > \text{EU})$ values should therefore be regarded as approximate measures of directional confidence.
+:::
+
+::: {.callout-note}
+## Interpreting Posterior Probabilities
+
+Throughout this section, $P(\text{base} > \text{EU})$ denotes the proportion of posterior draws in which $\alpha_{\text{base}}$ exceeds $\alpha_{\text{EU}}$ — a Bayesian analogue to asking "how probable is it that the true base $\alpha$ exceeds the true EU $\alpha$, given the observed data?" Values near 0.5 indicate no directional evidence; values near 0 or 1 indicate strong evidence for a difference. These are not frequentist p-values and do not share their interpretation.
+:::
 
 ### Per-Temperature Comparison
 
@@ -308,6 +416,45 @@ pd.DataFrame(rows)
 ```
 
 The EU-prompt *lowers* estimated $\alpha$ at three of five temperatures (0.0, 0.3, 0.7), raises it slightly at $T = 1.0$, and lowers it substantially at $T = 1.5$. However, the 90% credible intervals on $\alpha_{\text{base}} - \alpha_{\text{EU}}$ contain zero at every temperature—the individual per-temperature differences are not decisive.
+
+### Aggregate Test of the Prompt Effect
+
+The individual per-temperature comparisons are suggestive but not individually decisive. To evaluate the *pattern-level* claim that the EU-prompt lowers $\alpha$, we compute two aggregate quantities from the existing posterior draws:
+
+1. **Mean difference across temperatures:** For each draw $i$, compute $\overline{\Delta\alpha}_i = \frac{1}{5}\sum_{t} (\alpha^{(i)}_{\text{base},t} - \alpha^{(i)}_{\text{EU},t})$ and report $P(\overline{\Delta\alpha} > 0)$.
+
+2. **Sign count:** For each draw $i$, count the number of temperatures at which $\alpha^{(i)}_{\text{base}} > \alpha^{(i)}_{\text{EU}}$. Under the null hypothesis of no prompt effect, the expected count is 2.5 out of 5.
+
+```{python}
+#| label: aggregate-test
+#| echo: true
+
+# Aggregate test 1: Mean difference across temperatures
+n = cross['n_draws']
+mean_diffs = np.zeros(n)
+for t in temperatures:
+    mean_diffs += (base_draws[t][:n] - eu_draws[t][:n])
+mean_diffs /= len(temperatures)
+
+p_mean_positive = np.mean(mean_diffs > 0)
+print(f"Mean Δα across temperatures:")
+print(f"  Median = {np.median(mean_diffs):+.1f}")
+print(f"  90% CI = [{np.percentile(mean_diffs, 5):+.1f}, {np.percentile(mean_diffs, 95):+.1f}]")
+print(f"  P(mean Δα > 0) = {p_mean_positive:.3f}")
+print()
+
+# Aggregate test 2: Sign count per draw
+sign_counts = np.zeros(n)
+for t in temperatures:
+    sign_counts += (base_draws[t][:n] > eu_draws[t][:n]).astype(float)
+
+print(f"Number of temperatures with base > EU (per draw):")
+print(f"  Mean = {np.mean(sign_counts):.2f} / 5")
+print(f"  P(≥4 of 5 temperatures with base > EU) = {np.mean(sign_counts >= 4):.3f}")
+print(f"  P(all 5 temperatures with base > EU) = {np.mean(sign_counts >= 5):.3f}")
+```
+
+These aggregate tests provide a formal basis for evaluating the pattern-level claim. If $P(\overline{\Delta\alpha} > 0)$ is substantially above 0.5, the data favor the interpretation that the EU-prompt reduces sensitivity on average, though this inference remains approximate due to the use of independent posteriors (see note above).
 
 ### Overlaid Posterior Densities
 
@@ -356,7 +503,7 @@ The overlaid densities show substantial overlap at every temperature. The most v
 
 ```{python}
 #| label: fig-comparison-summary
-#| fig-cap: "Left: posterior medians with 90% credible intervals for both studies. Right: posterior distribution of α_base − α_EU at each temperature (positive = EU-prompt yields lower α)."
+#| fig-cap: "Left: posterior medians with 90% credible intervals for both studies; the EU-prompt estimates (orange) are lower at most temperatures but credible intervals overlap throughout. Right: posterior distribution of α_base − α_EU at each temperature (positive = base yields higher α); distributions are centered near zero with slight positive shifts at T=0.0 and T=1.5."
 #| fig-height: 5
 
 fig, axes = plt.subplots(1, 2, figsize=(13, 5))
@@ -400,7 +547,7 @@ ax.axhline(0, color='gray', linestyle='--', alpha=0.5, label='No difference')
 ax.set_xticks(range(len(temperatures)))
 ax.set_xticklabels([f'{t}' for t in temperatures])
 ax.set_xlabel('Temperature')
-ax.set_ylabel('α_base − α_EU')
+ax.set_ylabel(r'$\alpha_{\mathrm{base}} - \alpha_{\mathrm{EU}}$')
 ax.set_title('Posterior of the Prompt Effect (Δα)')
 ax.legend()
 ax.grid(True, alpha=0.3)
@@ -474,7 +621,7 @@ print(f"  Base:      {m['base_strict_monotonicity']:.3f}")
 print(f"  EU-prompt: {m['eu_strict_monotonicity']:.3f}")
 ```
 
-Strict monotonicity probabilities are comparable and modest in both cases, driven by the $T = 0.3 \approx T = 0.7$ plateau that persists across prompt conditions.
+Strict monotonicity probabilities are comparable and modest in both cases, driven by the $T = 0.3 \approx T = 0.7$ plateau that persists across prompt conditions. This mid-range plateau also appears in the [risky alternatives study](../temperature_study_with_risky_alts/01_risky_alternatives_study.qmd), suggesting it is a structural feature of the temperature–sensitivity relationship rather than a task- or prompt-specific artifact.
 
 ## Discussion {#sec-discussion}
 
@@ -484,20 +631,21 @@ The EU-prompt study yields three main findings:
 
 1. **The temperature–sensitivity gradient is preserved.** Explicit EU-maximization instructions do not disrupt the monotone relationship between temperature and $\alpha$. The global slope, pairwise ordering, and approximate magnitude are reproduced.
 
-2. **The EU-prompt does not increase α.** Contrary to the naive expectation that telling the LLM to maximize expected utility would make its choices more EU-aligned, the point estimates of $\alpha$ are *lower* under the EU-prompt at four of five temperatures. The effect is most visible at $T = 0.0$ ($\Delta \approx -17$) and $T = 1.5$ ($\Delta \approx -10$).
+2. **The EU-prompt does not increase α, and may decrease it.** Contrary to our directional prediction that telling the LLM to maximize expected utility would make its choices more EU-aligned, the point estimates of $\alpha$ are *lower* under the EU-prompt at four of five temperatures. The aggregate test (§4) yields $P(\overline{\Delta\alpha} > 0) \approx 0.73$ — the data lean toward the EU-prompt reducing sensitivity, but the evidence is modest rather than compelling. At the per-temperature level, the differences remain individually non-decisive. This level of evidence is consistent with either a small genuine effect or sampling variability, and does not warrant strong causal claims about the EU-prompt's direction of influence.
 
-3. **The per-temperature differences are not individually decisive.** The 90% credible intervals on $\alpha_{\text{base}} - \alpha_{\text{EU}}$ contain zero at every temperature, and no single $P(\text{base} > \text{EU})$ exceeds 0.85. This is a pattern-level finding, not a temperature-specific one.
+3. **The evidence is suggestive but not conclusive.** The 90% credible intervals on $\alpha_{\text{base}} - \alpha_{\text{EU}}$ contain zero at every temperature, and no single $P(\text{base} > \text{EU})$ exceeds 0.85. The aggregate test provides a pattern-level assessment, but the approximate nature of the cross-study comparison (independent posteriors) means that even an apparently strong aggregate result should be interpreted with caution until confirmed by a joint hierarchical model.
 
 ```{python}
 #| label: fig-summary
-#| fig-cap: "Summary heatmap of P(α_base > α_EU) at each temperature. Values above 0.5 indicate the base study yields higher sensitivity. The pattern is consistent at 4/5 temperatures, with T=1.0 as the exception."
+#| fig-cap: "Summary heatmap of P(α_base > α_EU) at each temperature. Values above 0.5 indicate the base study yields higher sensitivity. The pattern favors base > EU at 4/5 temperatures, with T=1.0 as the exception, though no individual comparison is decisive. Scale spans the full [0, 1] range."
+#| fig-height: 1.5
 
 fig, ax = plt.subplots(figsize=(6, 1.5))
 
 probs = [cross['per_temperature'][str(t)]['p_base_gt_eu'] for t in temperatures]
 probs_arr = np.array(probs).reshape(1, -1)
 
-im = ax.imshow(probs_arr, cmap='RdYlGn', vmin=0.2, vmax=0.8, aspect='auto')
+im = ax.imshow(probs_arr, cmap='RdBu', vmin=0.0, vmax=1.0, aspect='auto')
 ax.set_xticks(range(len(temperatures)))
 ax.set_xticklabels([f'{t}' for t in temperatures])
 ax.set_yticks([])
@@ -516,15 +664,17 @@ plt.show()
 
 ### Why Might Explicit EU Instructions Reduce Sensitivity?
 
-The finding that explicit EU-maximization instructions *decrease* rather than increase estimated $\alpha$ admits several interpretations. We consider three, ordered from most to least favorable to the LLM.
+The finding that explicit EU-maximization instructions *decrease* rather than increase estimated $\alpha$ admits several interpretations. The following interpretations are speculative, conditional on the directional pattern being genuine — a proposition that the current data support at a suggestive but not decisive level. We consider four possibilities.
 
-**1. Prompt interference with implicit competence.** The base study's high $\alpha$ values (median $\approx 74$ at $T = 0.0$) suggest that GPT-4o already approximates EU-maximizing behavior without being told to do so. The model's training on vast corpora of human decision-making text has likely instilled robust decision heuristics that, in this task domain, produce choices closely aligned with EU maximization. Adding explicit EU instructions may *interfere* with these heuristics by forcing the model into a more deliberate reasoning mode. This is analogous to the well-documented finding in cognitive science that conscious rule-following can degrade the performance of automatic, well-practiced skills.
+**0. No robust effect.** The most parsimonious interpretation is that there is no genuine EU-prompt effect: the observed 4-out-of-5 directional pattern is sampling variability. Under the null hypothesis, observing $\geq 4$ same-sign differences among 5 comparisons has probability $\sim$0.19 by a binomial sign test — suggestive but not conventionally significant. The aggregate test yields $P(\overline{\Delta\alpha} > 0) \approx 0.73$, which is consistent with this interpretation: the data modestly favor a directional effect but do not rule out noise. Distinguishing a small true effect from noise will likely require either the joint hierarchical model described in Next Steps or replication in additional study conditions. Given the modest aggregate evidence, this null interpretation should be weighed seriously.
 
-**2. Imperfect explicit calculation.** The EU-prompt asks the model to "consider the subjective probability you assign to each outcome and your utility for that outcome" and "choose the claim for which the probability-weighted utility across the three outcomes is highest." This invites the model to perform an explicit numerical computation—assigning probabilities, utilities, multiplying, and summing. If the model performs this computation imprecisely (e.g., miscalibrated probabilities, crude utility estimates), the resulting choices could be *less* EU-aligned than those produced by the model's default, holistic assessment of the claims. The explicit framework may be correct in principle but implemented poorly in the model's token-by-token generation process.
+**1. Prompt interference with implicit competence.** The base study's high $\alpha$ values (median $\approx 74$ at $T = 0.0$) suggest that GPT-4o already approximates EU-maximizing behavior without being told to do so. Adding explicit EU instructions may *interfere* with well-functioning implicit processes by forcing the model into a more deliberate reasoning mode. This is analogous to phenomena well-documented in human cognition, including verbal overshadowing [@schooler1990verbal] — where verbalizing a perceptual judgment degrades subsequent recognition — and the broader finding that explicit rule-following can impair automatic, well-practiced skills [@nisbett1977telling]. While these are human-cognition results, the structural parallel is apt: asking the model to articulate a decision process may disrupt an effective implicit one.
 
-**3. Frame narrowing.** The EU-prompt constrains the model's attention to a specific decision-theoretic framework. The base prompt, by contrast, leaves the decision criterion open—the model is free to draw on whatever internal reasoning best discriminates among claims. The EU-prompt may cause the model to attend less to features of the claims that are relevant to the choice (and captured in the embedding-derived $w$ vectors) and more to the abstract probability-utility calculus. If the model's implicit feature weighting is better calibrated than its explicit probability × utility computation, the narrower frame reduces sensitivity.
+**2. Imperfect explicit calculation.** The EU-prompt asks the model to "consider the subjective probability you assign to each outcome and your utility for that outcome" and "choose the claim for which the probability-weighted utility across the three outcomes is highest." This invites the model to perform an explicit numerical computation — assigning probabilities, utilities, multiplying, and summing. If the model performs this computation imprecisely (e.g., miscalibrated probabilities, crude utility estimates), the resulting choices could be *less* EU-aligned than those produced by the model's default holistic assessment.
 
-These interpretations are not mutually exclusive. All three point to a common theme: **the gap between competence and articulable reasoning.** The model appears to "know" how to choose well but cannot reliably improve its choices when asked to explain or formalize its decision process.
+**3. Frame narrowing.** The EU-prompt constrains the model's attention to a specific decision-theoretic framework. The base prompt, by contrast, leaves the decision criterion open — the model is free to draw on whatever internal reasoning best discriminates among claims. The EU-prompt may cause the model to attend less to features of the claims that are relevant to the choice (and captured in the embedding-derived $w$ vectors) and more to the abstract probability-utility calculus.
+
+These interpretations are not mutually exclusive. Interpretations 1–3 all point to a common theme: **the gap between competence and articulable reasoning.** The model appears to "know" how to choose well but cannot reliably improve its choices when asked to explain or formalize its decision process.
 
 ### Implications for the Sensitivity Framework
 
@@ -538,13 +688,13 @@ The finding has a natural interpretation within the SEU sensitivity framework de
 
 ### The T = 1.0 Exception
 
-At $T = 1.0$, the EU-prompt yields slightly *higher* $\alpha$ than the base study (median 43.3 vs 39.1, $P(\text{base} > \text{EU}) = 0.37$). While this is not statistically decisive, it is the only temperature where the direction reverses. One speculative explanation: at moderate-to-high temperature, the base model's implicit heuristics may be sufficiently disrupted by sampling noise that the explicit EU framework provides some anchoring benefit. This would predict a U-shaped interaction where the EU-prompt hurts at low temperatures (where implicit competence is high) and helps at higher temperatures (where implicit competence is degraded). The current data are insufficient to test this conjecture—it would require additional temperature levels in the moderate-to-high range.
+At $T = 1.0$, the EU-prompt yields slightly *higher* $\alpha$ than the base study (median 43.3 vs 39.1, $P(\text{base} > \text{EU}) = 0.37$). While not statistically decisive, this reversal weakens confidence in the pattern-level claim and is consistent with the "no robust effect" interpretation (§5.2, item 0). If the directional pattern is genuine, one speculative possibility is that the EU-prompt provides anchoring benefit at temperatures where implicit heuristics are already substantially disrupted — but the current data are insufficient to test this conjecture.
 
 ### Limitations
 
 This study has several limitations that constrain the strength of its conclusions:
 
-1. **Independent posteriors.** The base and EU-prompt $\alpha$ values are estimated from *independent* model fits—there is no joint posterior over (α_base, α_EU). The posterior probabilities $P(\alpha_{\text{base}} > \alpha_{\text{EU}})$ are computed from draws matched by index, which is valid only insofar as MCMC mixing is adequate (which diagnostics confirm). A joint model that shares structure across prompt conditions would provide sharper inference.
+1. **Independent posteriors.** As noted in §4, the base and EU-prompt $\alpha$ values are estimated from independent model fits. The aggregate and per-temperature comparisons are approximate; a joint model that shares structure across prompt conditions would provide sharper inference and properly account for the shared design structure.
 
 2. **Single model, single task.** All conclusions are conditional on the m_01 model, the insurance triage task, and GPT-4o. The EU-prompt effect may differ with other model specifications, task domains, or LLM architectures.
 

@@ -52,7 +52,7 @@ temp_key_map = dict(zip(temperatures, temp_keys))
 
 This report extends that analysis in two ways:
 
-1. **Adding risky alternatives.** We collect a new set of choice data in which the LLM chooses among alternatives whose outcome probabilities are *stated explicitly* (risky alternatives), rather than inferred from features (uncertain alternatives). This creates a paired dataset: each temperature condition now has $M = 300$ uncertain decisions and $N \approx 300$ risky decisions.
+1. **Adding risky alternatives.** We collect a new set of choice data in which the LLM chooses among alternatives whose outcome probabilities are *stated explicitly* (risky alternatives), rather than inferred from features (uncertain alternatives). This creates a paired dataset: each temperature condition now has $M = 300$ uncertain decisions and $N = 300$ risky decisions ($N = 299$ at $T = 1.5$ due to one unparseable response).
 
 2. **A family of augmented models.** We fit three models that jointly estimate sensitivity from both decision contexts:
    - **m_11** — shared sensitivity $\alpha$ across uncertain and risky choices
@@ -98,7 +98,12 @@ for a in sample_alts:
 pd.DataFrame(rows)
 ```
 
-The $S = 30$ risky alternatives span a range of probability profiles: corner alternatives concentrating mass on a single consequence (e.g., $[0.90, 0.05, 0.05]$), balanced alternatives (e.g., $[1/3, 1/3, 1/3]$), and intermediate cases. In each risky decision problem, a subset of these alternatives are presented and the LLM chooses one. The same position-counterbalancing design is used as in the uncertain case: 100 base problems $\times$ 3 presentations with shuffled orderings.
+The $S = 30$ risky alternatives span a range of probability profiles: corner alternatives concentrating mass on a single consequence (e.g., $[0.90, 0.05, 0.05]$), balanced alternatives (e.g., $[1/3, 1/3, 1/3]$), and intermediate cases. Each risky decision problem draws 2–4 alternatives uniformly at random (without replacement) from the pool of 30, with a fresh draw for each of the 100 base problems. The same position-counterbalancing design is used as in the uncertain case: 100 base problems $\times$ 3 presentations with shuffled orderings. All draws use the study-level random seed recorded in the frozen data snapshot, ensuring exact reproducibility.
+
+::: {.callout-note}
+## Terminology: "Uncertain" vs. "Ambiguous"
+Throughout this report, we use "uncertain" to describe the decision context in which probabilities must be inferred from natural-language features, and "risky" for the context in which probabilities are stated explicitly. In the JDM literature, the former is closer to what is typically called "ambiguity" (unknown or imprecise probabilities) and the latter to "risk" (known probabilities). We retain "uncertain" for consistency with [Report 1](../temperature_study/01_initial_study.qmd) and the model notation, but the connection to the classic risk–ambiguity distinction (Ellsberg, 1961) is substantive and is discussed in @sec-discussion.
+:::
 
 ### Design Parameters
 
@@ -132,7 +137,7 @@ print(f"  Temperature conditions:   {config['temperatures']}")
 
 design_df = pd.DataFrame({
     "": ["Uncertain (m_01 data)", "Risky (new data)"],
-    "Observations": ["M = 300 per temp", "N ≈ 300 per temp"],
+    "Observations": ["M = 300 per temp", "N = 300 per temp (299 at T=1.5)"],
     "Alternatives": ["R = 30 distinct", "S = 30 distinct"],
     "Per problem": ["2–4 alternatives", "2–4 alternatives"],
     "Probabilities": ["Inferred via β·w → softmax", "Stated explicitly (simplexes)"],
@@ -155,6 +160,11 @@ for key, val in na['per_temperature'].items():
 ```
 
 Data quality is excellent: only 1 unparseable response out of 1,500 risky choices (at $T = 1.5$), matching the near-perfect parsing observed in the initial uncertain study.
+
+::: {.callout-note}
+## Sample Size
+The sample sizes ($M = 300$ uncertain, $N = 300$ risky per temperature) were chosen to match the initial study's design while remaining computationally tractable for the augmented models. No formal power analysis was conducted to determine the sample size needed for precise estimation of $\kappa$ or for discriminating between m_11 and m_31. As will become apparent (@sec-results), the credible intervals on $\kappa$ are wide enough that a larger study would improve precision. The sample size adequacy for the primary finding—replication of the temperature–$\alpha$ relationship—is supported by the strong posterior separation observed.
+:::
 
 ## Model Family {#sec-models}
 
@@ -554,7 +564,13 @@ plt.show()
 
 ## Posterior Predictive Checks {#sec-ppc}
 
-The augmented models produce separate posterior predictive check statistics for uncertain and risky choices. For each context, we compute three test statistics: log-likelihood (ll), modal choice frequency (modal), and mean choice probability (prob). The posterior predictive p-value is the proportion of replicated datasets where the statistic equals or exceeds the observed value; 0.5 indicates perfect calibration.
+The augmented models produce separate posterior predictive check statistics for uncertain and risky choices. For each context, we compute three test statistics:
+
+- **Log-likelihood (ll):** The total log-likelihood of the observed choices under the model — i.e., $\sum_i \log p(y_i^{\text{obs}} \mid \theta)$ — computed separately for uncertain and risky observations.
+- **Modal choice frequency (modal):** The fraction of decision problems in which the alternative assigned the highest predicted probability by the model is the one actually chosen by the LLM.
+- **Mean choice probability (prob):** The average predicted probability assigned to the observed choice across all problems — i.e., $\frac{1}{N}\sum_i p(y_i^{\text{obs}} \mid \theta)$.
+
+The posterior predictive p-value is the proportion of replicated datasets where the statistic equals or exceeds the observed value; 0.5 indicates perfect calibration.
 
 ### m_11 PPCs
 
@@ -687,6 +703,11 @@ The PPC analysis reveals a clear model-adequacy story:
 - **m_21 resolves this miscalibration** by giving risky choices their own $\omega$, bringing all risky PPC p-values into the well-calibrated range.
 - **m_31 falls between** the other two, consistent with its intermediate structural flexibility.
 
+::: {.callout-important}
+## Limitation: No Formal Information-Theoretic Model Comparison
+The PPC analysis provides evidence of model *adequacy* — whether each model can reproduce observed data patterns — but does not quantify the predictive performance trade-off between models of different complexity. A formal model comparison using leave-one-out cross-validation (LOO-CV via Pareto-smoothed importance sampling) or the widely applicable information criterion (WAIC) would complement the PPC evidence, particularly since m_21 has an additional free parameter relative to m_11 and m_31. All models output pointwise log-likelihood values (`log_lik_uncertain`, `log_lik_risky`), making PSIS-LOO straightforward to compute. We note this as an important gap: the PPC-based preference for m_21 is supported by the specific pattern of misfit in m_11's risky-choice statistics, but formal information-theoretic comparison would strengthen the model selection conclusion. Future revisions of this report should include LOO-CV with elpd differences and standard errors across models.
+:::
+
 
 ## Monotonicity Analysis {#sec-monotonicity}
 
@@ -803,43 +824,139 @@ pd.DataFrame(pair_rows)
 The pairwise structure exactly replicates [Report 1](../temperature_study/01_initial_study.qmd): strong separation between $T = 0.0$ and $T \geq 1.0$, moderate separation between middle and high temperatures, and near-indistinguishability between $T = 0.3$ and $T = 0.7$.
 
 
+## Formal Context Comparison: Uncertain vs. Risky Sensitivity {#sec-context-comparison}
+
+The most novel finding of this report is that the LLM exhibits lower EU sensitivity in the risky context than in the uncertain context. This section provides formal quantification of that claim.
+
+### Posterior Probability of α > ω (m_21)
+
+```{python}
+#| label: tbl-alpha-gt-omega
+#| tbl-cap: "m_21: Posterior probability that uncertain sensitivity α exceeds risky sensitivity ω at each temperature, with the median difference Δ = α − ω."
+#| echo: false
+
+context_rows = []
+for t in temperatures:
+    tk = temp_key_map[t]
+    a_draws = alpha_draws['m_21'][t]
+    o_draws = omega_draws['m_21'][t]
+    diff = a_draws - o_draws
+    prob_gt = np.mean(a_draws > o_draws)
+    context_rows.append({
+        'Temp': t,
+        'P(α > ω)': f'{prob_gt:.4f}',
+        'Median Δ': f'{np.median(diff):.1f}',
+        '90% CI of Δ': f'[{np.percentile(diff, 5):.1f}, {np.percentile(diff, 95):.1f}]',
+    })
+pd.DataFrame(context_rows)
+```
+
+### Aggregate Test: Mean Difference Across Temperatures (m_21)
+
+```{python}
+#| label: tbl-aggregate-context
+#| tbl-cap: "Aggregate measure of the context-dependent sensitivity gap. For each posterior draw, the five per-temperature α − ω differences are averaged, yielding a single summary of the overall gap."
+#| echo: false
+
+n_draws = len(alpha_draws['m_21'][temperatures[0]])
+mean_diffs = []
+for draw_idx in range(n_draws):
+    diffs = [alpha_draws['m_21'][t][draw_idx] - omega_draws['m_21'][t][draw_idx] 
+             for t in temperatures]
+    mean_diffs.append(np.mean(diffs))
+mean_diffs = np.array(mean_diffs)
+
+print(f"Aggregate mean(α − ω) across temperatures:")
+print(f"  Median:     {np.median(mean_diffs):.1f}")
+print(f"  90% CI:     [{np.percentile(mean_diffs, 5):.1f}, {np.percentile(mean_diffs, 95):.1f}]")
+print(f"  P(mean > 0): {np.mean(mean_diffs > 0):.4f}")
+```
+
+::: {.callout-note}
+## Interpreting the Aggregate Test
+The aggregate P(mean(α − ω) > 0) provides a single summary of the strength of evidence for context-dependent sensitivity across all temperatures. This draw-wise averaging treats the per-temperature estimates as independent (since they are fit separately), which is appropriate given the study design but does not pool information across temperatures.
+:::
+
+### Posterior Probability of κ < 1 (m_31)
+
+```{python}
+#| label: tbl-kappa-lt-1
+#| tbl-cap: "m_31: Posterior probability that the proportionality parameter κ is below 1.0 at each temperature. κ < 1 indicates lower risky sensitivity relative to uncertain sensitivity."
+#| echo: false
+
+kappa_rows = []
+for t in temperatures:
+    draws = kappa_draws[t]
+    prob_lt1 = np.mean(draws < 1.0)
+    kappa_rows.append({
+        'Temp': t,
+        'κ median': f'{np.median(draws):.3f}',
+        'P(κ < 1)': f'{prob_lt1:.4f}',
+        '90% CI': f'[{np.percentile(draws, 5):.3f}, {np.percentile(draws, 95):.3f}]',
+    })
+pd.DataFrame(kappa_rows)
+```
+
+### Pairwise Comparisons: ω (m_21)
+
+```{python}
+#| label: tbl-pairwise-omega
+#| tbl-cap: "m_21: Posterior probability that ω (risky sensitivity) is higher at the lower temperature. The temperature–sensitivity gradient is present but may differ in strength from the α gradient."
+#| echo: false
+
+omega_pair_rows = []
+for t_low, t_high in combinations(temperatures, 2):
+    draws_low = omega_draws['m_21'][t_low]
+    draws_high = omega_draws['m_21'][t_high]
+    prob = np.mean(draws_low > draws_high)
+    omega_pair_rows.append({
+        'Pair': f'T={t_low} vs T={t_high}',
+        'P(ω_low > ω_high)': f'{prob:.4f}',
+        'Strength': '●●●' if prob > 0.95 else ('●●' if prob > 0.80 else ('●' if prob > 0.65 else '○')),
+    })
+pd.DataFrame(omega_pair_rows)
+```
+
+The pairwise ω comparison clarifies whether the temperature–sensitivity gradient operates similarly in the risky context. If the pairwise probabilities are systematically lower for ω than for α (@tbl-pairwise-m11), this would indicate that risky sensitivity is not only lower in level but also less responsive to temperature — a more nuanced finding.
+
+
 ## Cross-Study Comparison {#sec-cross-study}
 
 ```{python}
 #| label: fig-cross-study
-#| fig-cap: "Cross-study comparison of α posteriors from the initial m_01 study and the augmented m_11, m_21, and m_31 models. The qualitative pattern is consistent across all four models, while the augmented models (particularly m_11) show substantially tighter posteriors due to the additional risky-choice data."
+#| fig-cap: "Cross-study comparison of α posteriors from the initial m_01 study and the augmented m_11, m_21, and m_31 models. The qualitative pattern is consistent across all four models. Labels: m_01 (Report 1, uncertain only), m_11 (shared α, this report), m_21 (separate α and ω, this report), m_31 (proportional ω = κ·α, this report)."
 #| fig-height: 6
 
 fig, ax = plt.subplots(figsize=(10, 6))
 
 model_configs = [
-    ('m_01', m01_analysis['summary_table'], SEU_COLORS['secondary'], 'o', 0.45),
-    ('m_11', None, SEU_COLORS['primary'], 's', 0.15),
-    ('m_21', None, SEU_COLORS['accent'], 'D', -0.15),
-    ('m_31', None, SEU_COLORS['success'], '^', -0.45),
+    ('m_01', 'm_01 (Report 1, uncertain only)', m01_analysis['summary_table'], SEU_COLORS['secondary'], 'o', 0.45),
+    ('m_11', 'm_11 (shared α, this report)', None, SEU_COLORS['primary'], 's', 0.15),
+    ('m_21', 'm_21 (separate α, ω)', None, SEU_COLORS['accent'], 'D', -0.15),
+    ('m_31', 'm_31 (ω = κ·α)', None, SEU_COLORS['success'], '^', -0.45),
 ]
 
 y_positions = np.arange(len(temperatures))[::-1]
 
-for model_name, summary_data, color, marker, offset in model_configs:
+for model_key, model_label, summary_data, color, marker, offset in model_configs:
     for i, t in enumerate(temperatures):
         y = y_positions[i] + offset
         
-        if model_name == 'm_01':
+        if model_key == 'm_01':
             entry = summary_data[i]
             median = entry['median']
             q05 = entry['ci_low']
             q95 = entry['ci_high']
         else:
             tk = temp_key_map[t]
-            p = param_summary[model_name][tk]
+            p = param_summary[model_key][tk]
             median = p['alpha_median']
             q05 = p['alpha_q05']
             q95 = p['alpha_q95']
         
         ax.plot([q05, q95], [y, y], color=color, linewidth=1.5, alpha=0.7)
         ax.plot(median, y, marker, color=color, markersize=7, zorder=5,
-                label=model_name if i == 0 else '')
+                label=model_label if i == 0 else '')
 
 ax.set_yticks(y_positions)
 ax.set_yticklabels([f'T = {t}' for t in temperatures])
@@ -852,15 +969,15 @@ plt.tight_layout()
 plt.show()
 ```
 
-Several patterns emerge from the cross-study comparison:
+Several patterns emerge from the cross-study comparison. An important caveat: the uncertain-choice data in the augmented models (m_11, m_21, m_31) are *the same data* as in m_01, so the α estimates from the augmented models are not independent of the m_01 estimates. This comparison is therefore a *consistency check*—verifying that the augmented model structure does not distort the uncertain-context estimates—rather than an independent replication.
 
-1. **Qualitative replication.** All four models agree on the direction and approximate shape of the temperature–sensitivity relationship. The ordering $\alpha(T\!=\!0.0) > \alpha(T\!=\!0.3) \approx \alpha(T\!=\!0.7) > \alpha(T\!=\!1.0) > \alpha(T\!=\!1.5)$ is preserved.
+1. **Qualitative consistency.** All four models agree on the direction and approximate shape of the temperature–sensitivity relationship. The ordering $\alpha(T\!=\!0.0) > \alpha(T\!=\!0.3) \approx \alpha(T\!=\!0.7) > \alpha(T\!=\!1.0) > \alpha(T\!=\!1.5)$ is preserved.
 
-2. **m_11 produces the tightest posteriors.** By forcing a single $\alpha$ to explain both 300 uncertain and 300 risky choices, m_11 achieves SDs roughly half those of m_01 (which used 300 uncertain choices alone). The medians are somewhat lower than m_01's—a consequence of the risky context pulling $\alpha$ downward.
+2. **m_11 produces the tightest posteriors.** By forcing a single $\alpha$ to explain both 300 uncertain and 300 risky choices, m_11 achieves SDs roughly half those of m_01 (which used 300 uncertain choices alone). The medians are somewhat lower than m_01's — a consequence of the shared $\alpha$ being a compromise between the two contexts, with the risky data favoring lower values.
 
-3. **m_21 and m_31 recover m_01-like α values.** When the risky context is given its own sensitivity parameter ($\omega$ or $\kappa \cdot \alpha$), the uncertain-context $\alpha$ estimates are similar to the m_01 values, confirming that the m_01 estimates were not biased by the absence of risky data.
+3. **m_21 and m_31 recover m_01-like α values.** When the risky context is given its own sensitivity parameter ($\omega$ or $\kappa \cdot \alpha$), the uncertain-context $\alpha$ estimates closely match the m_01 values. This is expected as a necessary consequence of the shared uncertain-choice likelihood: the m_01 and m_21/m_31 models fit the same uncertain observations with the same structural assumptions. The consistency confirms that the augmented model does not introduce distortion, rather than providing independent confirmation of the m_01 estimates.
 
-4. **The $\alpha/\omega$ gap is substantive.** Under m_21 at $T = 0.0$, the median $\alpha \approx 70$ while the median $\omega \approx 41$. The LLM is approximately 1.7× more sensitive to EU differences when it must infer probabilities from features than when probabilities are stated explicitly.
+4. **The $\alpha/\omega$ gap is substantive.** Under m_21 at $T = 0.0$, the median $\alpha \approx 70$ while the median $\omega \approx 41$. As quantified formally in @sec-context-comparison, the LLM is approximately 1.7× more sensitive to EU differences in the uncertain context than in the risky context.
 
 
 ## Discussion {#sec-discussion}
@@ -869,7 +986,7 @@ Several patterns emerge from the cross-study comparison:
 
 This study demonstrates three key results:
 
-1. **Temperature–sensitivity replication.** The negative relationship between sampling temperature and estimated SEU sensitivity $\alpha$ — first established in [Report 1](../temperature_study/01_initial_study.qmd) using the m_01 model — is robust to the inclusion of risky alternatives and to the choice of augmented model (m_11, m_21, m_31). The qualitative pattern — high sensitivity at greedy decoding, a sharp drop between $T = 0.7$ and $T = 1.0$, and the near-indistinguishability of $T = 0.3$ and $T = 0.7$ — replicates exactly.
+1. **Temperature–sensitivity replication.** The negative association between sampling temperature and estimated SEU sensitivity $\alpha$ — first established in [Report 1](../temperature_study/01_initial_study.qmd) using the m_01 model — is robust to the inclusion of risky alternatives and to the choice of augmented model (m_11, m_21, m_31). The qualitative pattern — high sensitivity at greedy decoding, a marked decrease between $T = 0.7$ and $T = 1.0$, and the near-indistinguishability of $T = 0.3$ and $T = 0.7$ — replicates exactly.
 
 2. **Context-dependent sensitivity.** Under m_21 and m_31, the LLM's sensitivity to EU maximization is consistently *lower* in the risky context (where probabilities are stated explicitly) than in the uncertain context (where probabilities are inferred from features). The m_31 proportionality parameter $\kappa$ clusters below 1.0 at every temperature level, with medians ranging from 0.71 to 0.94.
 
@@ -877,16 +994,48 @@ This study demonstrates three key results:
 
 ### Interpretation: Why Is Risky Sensitivity Lower?
 
-The finding that $\omega < \alpha$ admits several interpretations:
+The finding that $\omega < \alpha$ — now formally quantified in @sec-context-comparison — is a robust empirical pattern, but its *explanation* remains open. The interpretations below are **post hoc**: they were formulated after observing the data and cannot be discriminated by the current design. The data establish the descriptive fact; mechanistic explanation requires follow-up study.
 
-- **Format effect.** When probabilities are stated numerically (risky context), the LLM may process them less effectively than when probability-relevant information is embedded in natural-language descriptions (uncertain context). The softmax token sampling introduces noise at the token level, which may compound differently across the two representations.
+- **Format effect.** When probabilities are stated numerically (risky context), the LLM may process them less effectively than when probability-relevant information is embedded in natural-language descriptions (uncertain context). The softmax token sampling introduces noise at the token level, which may compound differently across the two representations. This hypothesis could in principle be tested by presenting risky alternatives in natural-language format (e.g., "about a 90% chance of neither claim being approved") and observing whether sensitivity rises to uncertain-context levels.
 
-- **Calibration asymmetry.** The feature-to-probability mapping $\psi = \text{softmax}(\beta \cdot w)$ is learned jointly with $\alpha$, and may effectively "sharpen" the inferred probability distributions in ways that favor EU-aligned choices. The risky context has no such adaptive layer.
+- **Calibration asymmetry.** The feature-to-probability mapping $\psi = \text{softmax}(\beta \cdot w)$ is learned jointly with $\alpha$, and may effectively "sharpen" the inferred probability distributions in ways that favor EU-aligned choices. The risky context has no such adaptive layer. This is partially testable: if the estimated subjective probabilities $\psi_r$ under the fitted model are more "peaked" (lower entropy) than the stated risky simplexes, this would be consistent with the β layer acting as an adaptive sharpening mechanism.
 
-- **Utility estimation precision.** In the risky context, the expected utilities $\eta^{(r)} = x' \upsilon$ are exact given $\upsilon$, creating very fine EU differences between alternatives with similar probability profiles.  When many alternatives have nearly equal EU, even moderate sensitivity $\omega$ produces near-uniform choice probabilities.
+- **Utility estimation precision.** In the risky context, the expected utilities $\eta^{(r)} = x' \upsilon$ are exact given $\upsilon$, creating very fine EU differences between alternatives with similar probability profiles.  When many alternatives have nearly equal EU, even moderate sensitivity $\omega$ produces near-uniform choice probabilities. This could be assessed by comparing the distribution of EU differences among alternatives in risky vs. uncertain problems.
+
+Any of these mechanisms — or some combination — could be operative; the current data do not discriminate among them.
+
+### Confounds in the Uncertain/Risky Comparison
+
+Beyond the post hoc nature of the interpretations above, the uncertain and risky contexts differ in ways that go beyond probability format:
+
+- **Stimulus complexity.** Uncertain alternatives are derived from natural-language claim descriptions processed through embedding and PCA ($D = 32$ features per alternative), while risky alternatives present explicit probability simplexes ($K = 3$ values).
+- **Dimensionality and estimation burden.** The uncertain model estimates a $K \times D$ matrix $\beta$ jointly with $\alpha$; the risky model takes probabilities as given.
+- **Representation pathway.** Uncertain probabilities pass through a learned softmax mapping; risky probabilities enter the EU calculation directly.
+
+These differences mean that the $\alpha > \omega$ finding could reflect task structure rather than probability-format effects per se. A matched design — where the same 30 stimulus profiles are used in both contexts, with probabilities either inferred or stated — would provide cleaner causal attribution. The current finding should be interpreted as: *as operationalized in this design*, risky choices show lower sensitivity to EU differences.
+
+### Connection to the JDM Risk–Ambiguity Literature
+
+The distinction between our "uncertain" and "risky" contexts maps directly onto the risk–ambiguity distinction that has been central to JDM since Ellsberg (1961). In the uncertain context, the LLM must infer probabilities from text features — analogous to the "ambiguity" condition where probabilities are unknown or imprecise. In the risky context, probabilities are stated explicitly — the canonical "risk" condition.
+
+A large body of research on human decision-making has documented *ambiguity aversion*: people tend to prefer options with known probabilities over options with unknown probabilities, even when expected values are equivalent (Camerer & Weber, 1992; Trautmann & van de Kuilen, 2015). This typically manifests as more conservative choice under ambiguity.
+
+The finding that the LLM shows *higher* EU sensitivity under uncertainty/ambiguity than under risk is interesting in light of this literature, though direct comparison requires caution. Higher $\alpha$ means choices are more tightly aligned with EU maximization — which could be seen as *more rational* rather than more conservative. Whether this pattern reflects something analogous to human ambiguity attitudes, or is an artifact of the adaptive $\beta$ layer, remains an open question. The [Ellsberg study](../ellsberg_study/01_ellsberg_study.qmd) in this series engages more directly with classic Ellsberg-style ambiguity manipulations; cross-referencing those findings with the present results may shed light on whether the sensitivity asymmetry reflects a general feature of LLM probability processing.
+
+### Practical Implications
+
+The finding that temperature affects LLM rationality has implications for AI deployment. At greedy decoding ($T = 0.0$), the LLM's choices are most closely aligned with EU maximization — potentially desirable in applications where consistent, utility-maximizing decisions are valued (e.g., automated triage, recommendation systems) but potentially undesirable where diversity of response or exploration is needed. The additional finding that context format affects sensitivity suggests that how probabilities are presented to an LLM may matter for the quality of its decisions, independent of the temperature setting.
 
 ### Limitations and Next Steps
 
-The current analysis fits each temperature condition independently. A hierarchical model that pools information across temperatures — or a model with temperature as a continuous predictor — would provide sharper inference on the functional form of the temperature–sensitivity relationship. The near-equality of $T = 0.3$ and $T = 0.7$ estimates, in particular, motivates investigation of whether the relationship is piecewise or smoothly nonlinear.
+**Independent temperature fits.** The current analysis fits each temperature condition independently. A hierarchical model that pools information across temperatures — e.g., $\log \alpha(T) = a + bT$, $\log \omega(T) = c + dT$ — would directly estimate slope parameters, test whether the temperature effect on $\omega$ parallels that on $\alpha$, and obviate the need for draw-wise slope computation across independent fits. The m_31 structure ($\omega = \kappa \alpha$) would be particularly amenable to a hierarchical extension where $\kappa$ is allowed to vary with temperature. The near-equality of $T = 0.3$ and $T = 0.7$ estimates motivates investigation of whether the relationship is piecewise or smoothly nonlinear.
 
-The $\kappa < 1$ finding, while consistent across temperatures, has wide credible intervals; a study with larger $N$ (more risky problems per temperature) would improve precision on this parameter and enable sharper discrimination between m_11 and m_31.
+**Precision on κ.** The $\kappa < 1$ finding, while consistent across temperatures, has wide credible intervals; a study with larger $N$ (more risky problems per temperature) would improve precision on this parameter and enable sharper discrimination between m_11 and m_31.
+
+**Prior sensitivity.** The $\alpha$ prior — Lognormal(3.0, 0.75) — is carried forward from [Report 1](../temperature_study/01_initial_study.qmd) without robustness checking, and the $\omega$ prior in m_21 adopts the same hyperparameters by symmetry. The $\kappa$ prior in m_31 — Lognormal(0, 0.5) — is moderately informative. Refitting under alternative priors (e.g., $\alpha, \omega \sim \text{Lognormal}(2.5, 1.0)$) and verifying that the qualitative findings — the temperature gradient and the $\omega < \alpha$ pattern — are preserved would strengthen the robustness of the conclusions. Prior-to-posterior contraction ratios for the key parameters would further quantify the data's influence relative to the prior.
+
+**Single LLM and task domain.** All results are from GPT-4o on the insurance triage task. The [Ellsberg study](../ellsberg_study/01_ellsberg_study.qmd) and [GPT-4o Ellsberg study](../gpt4o_ellsberg_study/01_gpt4o_ellsberg_study.qmd) in this series provide some cross-task context, while the [Claude Insurance study](../claude_insurance_study/01_claude_insurance_study.qmd) provides cross-LLM context on the same task domain. The upcoming [factorial synthesis](../factorial_synthesis/01_factorial_synthesis.qmd) will formally disentangle LLM and task effects.
+
+### Transparency Note
+
+The decision to fit three models (m_11, m_21, m_31) was pre-specified as part of the study design — the model family was defined in advance based on the nesting structure established in the [foundational reports](../../foundations/07_generalizing_sensitivity.qmd). The specific finding that m_21 shows better PPC calibration than m_11, and the subsequent focus on the $\alpha > \omega$ pattern, are data-driven and should be regarded as exploratory rather than confirmatory. The formal context comparison (@sec-context-comparison) was added during revision to provide rigorous quantification of a pattern that was initially presented only qualitatively.

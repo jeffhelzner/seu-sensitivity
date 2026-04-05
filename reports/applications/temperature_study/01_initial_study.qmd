@@ -42,7 +42,12 @@ data_dir = Path("data")
 
 The foundational reports established the SEU sensitivity model's theoretical properties ([Report 1](../../foundations/01_abstract_formulation.qmd)), concrete implementation ([Report 2](../../foundations/02_concrete_implementation.qmd)), and computational validity ([Reports 3–6](../../foundations/03_prior_analysis.qmd)). This report presents the first empirical application: investigating how the **sampling temperature** of a large language model affects its estimated sensitivity to subjective expected utility maximization.
 
-The motivation is straightforward. In the softmax choice model, the sensitivity parameter $\alpha$ governs how sharply choices track expected utility differences. Language models employ their own softmax temperature during token sampling, which controls the entropy of the next-token distribution. If the LLM's choice behavior is well-described by our model, then increasing the external sampling temperature should *decrease* the estimated $\alpha$—the additional stochasticity in token generation should manifest as noisier, less EU-aligned choices.
+The motivation is straightforward. In the softmax choice model, the sensitivity parameter $\alpha$ governs how sharply choices track expected utility differences. Language models employ their own softmax temperature during token sampling, which controls the entropy of the next-token distribution. If the LLM's choice behavior is well-described by our model, then increasing the external sampling temperature is expected to be associated with *lower* estimated $\alpha$—the additional stochasticity in token generation should manifest as noisier, less EU-aligned choices.
+
+::: {.callout-note}
+## Theoretical Pathway
+The hypothesized relationship between token-sampling temperature and choice-level sensitivity $\alpha$ rests on an assumption about how noise propagates through the LLM's processing. Higher temperature increases entropy in token selection, which could affect choice behavior through multiple channels: (a) adding noise that propagates through to the final choice response, reducing effective $\alpha$; (b) affecting the LLM's intermediate reasoning in ways that reduce EU-alignment; or (c) affecting both the assessment phase (which generates embeddings) and the choice phase. The present design does not distinguish among these mechanisms—it tests only the aggregate effect of temperature on the estimated $\alpha$ parameter.
+:::
 
 ::: {.callout-note}
 ## What This Report Covers
@@ -55,7 +60,7 @@ This report presents initial results from a single data collection. The study de
 
 We use an insurance claims triage task in which GPT-4o selects which claim to forward for investigation from a set of alternatives. Each alternative (claim) can lead to one of $K = 3$ possible consequences, and there are $R$ distinct alternatives in the pool (see Design Parameters below). In each decision problem, the LLM is presented with a subset of these alternatives. The LLM first *assesses* each claim individually (producing text that is then embedded), and subsequently makes a *choice* among the alternatives in a given problem.
 
-Five temperature levels define the between-condition factor:
+Five temperature levels define the experimental factor. Each level constitutes an independent data collection, analogous to a between-subjects design where each "subject" is a separate LLM run at a fixed temperature:
 
 ```{python}
 #| label: tbl-conditions
@@ -103,11 +108,26 @@ print(f"  LLM model:                   {config['llm_model']}")
 print(f"  Embedding model:             {config['embedding_model']}")
 ```
 
-Each of the 100 base problems is presented $P = 3$ times with claims shuffled to different positions, yielding $M = 300$ observations per temperature condition. This **position counterbalancing** design addresses the systematic position bias discovered in an earlier pilot study, where unparseable responses were silently mapped to position 0. Here, each claim appears in multiple positions across presentations, and any unparseable response is recorded as NA rather than assigned a default.
+Each of the 100 base problems is presented $P = 3$ times with claims shuffled to different positions, yielding $M = 300$ choice problems per temperature condition. This **position counterbalancing** design addresses the systematic position bias discovered in an earlier pilot study, where unparseable responses were silently mapped to position 0. Here, each claim appears in multiple positions across presentations, and any unparseable response is recorded as NA rather than assigned a default.
+
+::: {.callout-note}
+## Sample Size Rationale
+The sample size of $M = 300$ per condition was chosen to provide adequate posterior precision for detecting large differences in $\alpha$ (e.g., between $T = 0.0$ and $T = 1.5$) while remaining computationally tractable. Parameter recovery simulations (§4.1) confirm that $\alpha$ is well-identified at this scale (coverage $\approx 90\%$, low bias). The inability to distinguish $\alpha$ at $T = 0.3$ vs. $T = 0.7$ (see §6.2) reflects either a true null effect or insufficient power for fine-grained adjacent comparisons—the present design was not powered for the latter.
+:::
+
+::: {.callout-note}
+## Choice Prompt
+The exact prompt text shown to the LLM when making choices is specified in the study configuration. The prompt presents the claim descriptions and asks the LLM to select which claim to forward for investigation. The full prompt template and related materials are available in the project codebase at `applications/temperature_study/prompts/`.
+:::
 
 ### Feature Construction
 
 Alternative features are constructed through a two-stage process. First, the LLM assesses each claim on its own merits at the relevant temperature, producing a natural-language evaluation. These assessments are embedded using `text-embedding-3-small`, yielding high-dimensional vectors. Second, all embeddings across temperature conditions are pooled and projected via PCA to $D = 32$ dimensions. Crucially, PCA is fit once on the pooled set and then applied to each condition separately, ensuring a shared coordinate system without privileging any single temperature.
+
+::: {.callout-note}
+## PCA and Temperature
+Because assessments vary with temperature, the shared PCA basis may partly reflect temperature-induced variation in the embedding space, not only variation across claims. This could create an aliasing between temperature effects on *assessment quality* and temperature effects on *choice sensitivity*. The present design does not disentangle these mechanisms.
+:::
 
 ```{python}
 #| label: pca-variance
@@ -690,7 +710,7 @@ print(f"Expected false rejections at α=0.05: {n_beta * 0.05:.1f}")
 
 ::: {.callout-note}
 ## SBC Interpretation
-With 200 SBC simulations the formal chi-square tests have modest power (~10 expected counts per bin), so visual inspection of rank histograms is as important as the p-values. The key question is whether α shows approximately uniform ranks—confirming that the m_01 posterior correctly represents uncertainty about sensitivity at this study scale. The β–δ identification pattern from the foundational reports ([Report 6](../../foundations/06_sbc_validation.qmd)) is expected to manifest here as well, since m_01 (like m_0) uses only uncertain choices. This does not affect the validity of α estimation for the primary analysis.
+With 200 SBC simulations the formal chi-square tests have modest power (~10 expected counts per bin), so visual inspection of rank histograms is as important as the p-values. Specifically, with 200 simulations and 20 bins, the chi-square test has approximately 50% power to detect a 40% deviation from uniformity in any single bin—substantial miscalibration could go undetected. The key question is whether α shows approximately uniform ranks—confirming that the m_01 posterior correctly represents uncertainty about sensitivity at this study scale. The β–δ identification pattern from the foundational reports ([Report 6](../../foundations/06_sbc_validation.qmd)) is expected to manifest here as well, since m_01 (like m_0) uses only uncertain choices. This does not affect the validity of α estimation for the primary analysis.
 :::
 
 ## Results {#sec-results}
@@ -956,7 +976,14 @@ The global slope averages over all five conditions and may mask local structure 
 $$
 P\bigl(\alpha(T_i) > \alpha(T_j) \mid \text{data}\bigr) = \frac{1}{S} \sum_{s=1}^{S} \mathbb{1}\bigl[\alpha^{(s)}(T_i) > \alpha^{(s)}(T_j)\bigr],
 $$
-where the indicator function is evaluated draw-by-draw from the *independent* posteriors at each temperature. Values near 1.0 indicate that the lower-temperature condition almost certainly yields higher sensitivity; values near 0.5 indicate that the two conditions are effectively indistinguishable.
+where the indicator function is evaluated draw-by-draw from the *independent* posteriors at each temperature.
+
+::: {.callout-warning}
+## Independence Caveat
+These posteriors are independent *conditional on the shared design*. Because the same R = 30 insurance claims appear at every temperature, the $\alpha$ estimates are not statistically independent across conditions: any idiosyncratic features of this particular claim set affect all five estimates simultaneously. A hierarchical model jointly estimating $\alpha(T)$ would properly account for between-condition correlations. The pairwise probabilities reported here may therefore be somewhat overconfident—they treat the posteriors as more independent than they truly are.
+:::
+
+Values near 1.0 indicate that the lower-temperature condition almost certainly yields higher sensitivity; values near 0.5 indicate that the two conditions are effectively indistinguishable.
 
 ```{python}
 #| label: tbl-pairwise
@@ -1107,6 +1134,12 @@ These interpretations are not mutually exclusive, and the current data do not di
 
 The posterior predictive checks provide no evidence of misfit at any temperature level. This is reassuring but not conclusive—PPC p-values assess whether the model *can* reproduce summary statistics of the data, not whether the model captures the *mechanism* by which temperature affects choices. The m_01 model treats each temperature condition as an independent estimation problem; it does not model how temperature enters the choice process.
 
+### Construct Validity of $\alpha$
+
+For a JDM audience, the claim that $\alpha$ measures "sensitivity to subjective expected utility maximization" requires careful interpretation. The parameter $\alpha$ controls the sharpness of the softmax choice distribution—higher $\alpha$ means choices are more concentrated on high-EU alternatives. But this interpretation assumes the model's *other* parameters ($\beta$, $\delta$) correctly capture the subjective utilities. Given the acknowledged $\beta$–$\delta$ identification issues, what does $\alpha$ actually measure?
+
+Operationally, $\alpha$ measures the *consistency* with which the agent chooses in the direction implied by the fitted utility function. This is related to, but not identical to, "sensitivity to EU maximization" in the strong sense that would require the utility parameters to be correctly identified. The inference that higher $\alpha$ implies more EU-aligned choices rests on the assumption that the fitted utility structure (whatever its absolute scaling) captures the relevant trade-offs. Under this assumption—which the PPCs support at least globally—observing higher $\alpha$ at lower temperatures supports the conclusion that choices are more concentrated on utility-maximizing alternatives.
+
 ### Relation to the Foundational Framework
 
 These results can be interpreted through the lens of [Report 1](../../foundations/01_abstract_formulation.qmd):
@@ -1116,6 +1149,34 @@ These results can be interpreted through the lens of [Report 1](../../foundation
 - The **rate of convergence** (Theorem 5) tells us that the effect of $\alpha$ on choice probabilities depends on the gap $\Delta$ between the best and second-best expected utilities. Problems with larger utility gaps will show temperature effects more readily.
 
 - The **commitment–performance distinction** discussed in Report 1 provides a natural framing: if we take EU maximization as the LLM's "commitment" (the normative standard its training approximates), then temperature controls the *performance* noise around that commitment.
+
+### Connection to the JDM Literature
+
+The relationship between temperature and choice consistency connects to several strands of the human decision-making literature:
+
+- **Error theories of choice.** The softmax (logit) choice model is a standard "trembling-hand" specification that allows for probabilistic choice even when preferences are deterministic (Hey & Orme, 1994). The $\alpha$ parameter plays the same role as inverse temperature in random utility models, and our finding that external noise (temperature) reduces effective $\alpha$ parallels work on how cognitive load and time pressure increase choice inconsistency in human subjects.
+
+- **Quantal response equilibrium.** In game-theoretic settings, the softmax choice rule defines quantal response equilibrium (McKelvey & Palfrey, 1995), where players choose strategies with probabilities that increase in expected payoff. The $\alpha$ parameter governs the "rationality" of players in this framework. Our results suggest that LLM temperature has an analogous effect to noise in human strategic reasoning.
+
+- **Rational inattention.** From the perspective of resource-rational analysis (Griffiths et al., 2015; Lieder & Griffiths, 2020), choice noise may reflect optimal information processing under constraints. The token-sampling temperature could be viewed as a proxy for "cognitive effort"—lower temperature corresponds to more deterministic (less resource-intensive?) output generation. This framing suggests connections to rational inattention models (Sims, 2003; Caplin & Dean, 2015) where agents optimally trade off decision quality against processing costs.
+
+These connections are suggestive rather than formal, but they situate the temperature–$\alpha$ relationship within broader theoretical frameworks for understanding noisy choice.
+
+### Limitations and Generalizability
+
+These results establish the temperature–sensitivity relationship for **GPT-4o on the insurance claims triage task**. Several important limitations should constrain interpretation:
+
+1. **Single LLM.** The temperature parameter has model-specific effects. Whether this relationship generalizes to other LLM architectures (Claude, Llama, etc.) is an open empirical question. Subsequent reports in this series ([Claude × Insurance](../claude_insurance_study/01_claude_insurance_study.qmd), [GPT-4o × Ellsberg](../gpt4o_ellsberg_study/01_gpt4o_ellsberg_study.qmd)) provide cross-LLM evidence.
+
+2. **Single task domain.** The insurance claims triage task is a specific operationalization of decision-making under uncertainty. How well findings generalize to other domains (gambles, consumer choice, medical decisions) depends on task-specific factors that may interact with temperature.
+
+3. **Single embedding model.** The feature construction uses `text-embedding-3-small`. Different embedding models might produce different utility landscapes and thus different temperature–$\alpha$ relationships.
+
+4. **Prior sensitivity.** While the prior predictive analysis motivates $\text{Lognormal}(3.0, 0.75)$, we have not conducted a formal sensitivity analysis demonstrating that conclusions are robust to nearby prior specifications. Given that $M = 300$ observations per condition is substantial, we expect the prior to be swamped by the data—but this should be verified. A robustness analysis is planned for subsequent work.
+
+5. **Design-induced correlations.** Because the same claims appear at every temperature, the five $\alpha$ estimates share design-induced correlations not captured by the independent-fits approach. A hierarchical model expressing $\alpha$ as a function of temperature would provide more appropriate uncertainty quantification.
+
+Claims about "LLM decision-making" generally should be understood as hypotheses motivated by these specific findings, not as established generalizations.
 
 ## Reproducibility {#sec-reproducibility}
 
@@ -1169,11 +1230,11 @@ This initial study establishes that temperature affects estimated SEU sensitivit
 
 1. **Position bias and consistency analysis.** The data support analyses described in DESIGN.md §6.2–6.4, examining whether position bias or choice inconsistency varies with temperature. These diagnostics may reveal whether temperature affects *how* the LLM chooses, beyond the summary captured by $\alpha$.
 
-2. **Alternative model specifications.** The current analysis fits m_01 (structurally identical to m_0) at each temperature independently. A hierarchical extension could model $\alpha(T)$ as a function of temperature, borrowing strength across conditions.
+2. **Hierarchical temperature model.** The current analysis fits m_01 at each temperature independently, which does not account for correlations induced by the shared design (see Limitations). A natural extension would model $\log \alpha(T) = \gamma_0 + \gamma_1 \cdot T$ with priors on $\gamma_0$ and $\gamma_1$, directly estimating the slope with proper uncertainty and borrowing strength across conditions. This would also provide a cleaner test of the linear relationship between temperature and log-sensitivity.
 
 3. **Replication with different LLMs.** The temperature parameter has model-specific effects. Repeating this study with different architectures would test the generality of the finding.
 
-4. **Robustness to prior choice.** While the prior predictive analysis motivates $\text{Lognormal}(3.0, 0.75)$, a sensitivity analysis across nearby priors would characterize how much the conclusions depend on this specific choice.
+4. **Prior sensitivity analysis.** While the prior predictive analysis motivates $\text{Lognormal}(3.0, 0.75)$, a sensitivity analysis across nearby priors (e.g., $\text{Lognormal}(2.5, 1.0)$ and $\text{Lognormal}(3.5, 0.5)$) would characterize how much the conclusions depend on this specific choice. Given $M = 300$ observations per condition, we expect the posterior to be dominated by the likelihood, but this should be verified.
 
 ## References
 

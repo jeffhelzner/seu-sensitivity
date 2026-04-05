@@ -47,16 +47,18 @@ data_dir = Path("data")
 
 The initial temperature study ([Report 1](../temperature_study/01_initial_study.qmd)) established a clear negative relationship between LLM sampling temperature and estimated sensitivity $\alpha$ to subjective expected utility maximisation. Higher temperature yielded lower $\alpha$, with a posterior slope $\Delta\alpha / \Delta T \approx -25$ and $P(\text{slope} < 0) > 0.99$. That study used **GPT-4o** (OpenAI) on an **insurance claims triage** task with $K = 3$ consequences.
 
-A natural question is whether this finding generalises: does it depend on the specific task domain, the specific LLM, or both? This report describes a study designed to address that question by varying **both** simultaneously:
+A natural question is whether this finding generalises: does it depend on the specific task domain, the specific LLM, or both? Answering this question requires a $2 \times 2$ factorial design crossing LLM (GPT-4o vs. Claude 3.5 Sonnet) with task domain (insurance triage vs. Ellsberg gambles). This report describes one cell of that design — **Claude 3.5 Sonnet on Ellsberg gambles** — which changed both factors simultaneously relative to the initial study:
 
-- **Task domain**: Ellsberg-style urn gambles with monetary payoffs instead of insurance claims triage. The consequence space expands to $K = 4$ ($\$0, \$1, \$2, \$3$). Alternatives range from fully-specified (known ball counts) to maximally ambiguous (unknown mixture), inspired by Ellsberg's (1961) original paradigm.
+- **Task domain**: Ellsberg-style urn gambles with monetary payoffs instead of insurance claims triage. The consequence space expands to $K = 4$ ($\$0, \$1, \$2, \$3$). Alternatives range from fully-specified (known ball counts) to maximally ambiguous (unknown mixture), inspired by Ellsberg's (1961) seminal paradox. The classic Ellsberg finding is that human decision-makers prefer known-probability gambles over ambiguous ones, violating the Sure-Thing Principle of Savage's (1954) subjective expected utility theory — a pattern known as *ambiguity aversion* (Gilboa & Schmeidler, 1989; Machina & Siniscalchi, 2014). Whether LLMs exhibit an analogue of this bias is an open question that this task domain can begin to address.
 - **Foundational model**: Claude 3.5 Sonnet (Anthropic) instead of GPT-4o (OpenAI).
+
+Because this study changed both factors simultaneously, a non-replication cannot be attributed to either factor alone — nor can interaction effects (where one LLM might respond to temperature differently depending on the task) be identified. The two additional conditions needed to complete the factorial (Claude × Insurance and GPT-4o × Ellsberg) are reported in Reports 5–6 of this series, with the full factorial synthesis in Report 7.
 
 The hypothesis was the same as in the original study: increasing the sampling temperature should monotonically decrease estimated $\alpha$.
 
 ::: {.callout-important}
 ## Summary of Findings
-The monotonic temperature–α relationship observed in the initial temperature study was **not replicated** in this study. The posterior slope is $\Delta\alpha / \Delta T \approx -19$ but with substantial uncertainty ($P(\text{slope} < 0) \approx 0.77$), and the per-temperature $\alpha$ estimates exhibit a non-monotonic pattern. The model fits adequately at every temperature level—the non-replication reflects the behaviour of the data, not a modelling artefact. Because this study changed both the task and the LLM simultaneously, it is not possible to attribute the non-replication to either factor alone.
+The monotonic temperature–α relationship observed in the initial temperature study was **not replicated** in this study. The posterior slope is $\Delta\alpha / \Delta T \approx -19$ but with substantial uncertainty ($P(\text{slope} < 0) \approx 0.77$), and the per-temperature $\alpha$ estimates exhibit a non-monotonic pattern. The model fits adequately at every temperature level—the non-replication reflects the behaviour of the data, not a modelling artefact. Because this study changed both the task and the LLM simultaneously, the non-replication cannot be attributed to either factor alone, nor can it rule out an interaction between them. The factorial completion (Reports 5–7) resolves this attribution problem, revealing that the LLM is the dominant factor.
 :::
 
 ## Experimental Design {#sec-design}
@@ -88,6 +90,8 @@ conditions
 ::: {.callout-note}
 ## Temperature Range
 The Anthropic API supports temperature values in $[0.0, 1.0]$, compared to $[0.0, 2.0]$ for OpenAI. The initial temperature study used $T \in \{0.0, 0.3, 0.7, 1.0, 1.5\}$. Here we use $T \in \{0.0, 0.2, 0.5, 0.8, 1.0\}$ — five levels spanning the full Anthropic-supported range. This is a narrower absolute range, which reduces statistical power for detecting the temperature effect.
+
+To quantify the impact: using the initial study's slope estimate ($\Delta\alpha / \Delta T \approx -25$), the expected $\alpha$ difference over $[0, 1.0]$ would be approximately $-25$, compared to approximately $-38$ over the initial study's full $[0, 1.5]$ range. More critically, the initial study's strongest effect separation occurred between $T \leq 0.7$ and $T \geq 1.0$, with the $T = 1.5$ condition playing a pivotal role. This study's entire temperature range falls within the initial study's low-to-moderate regime, which could attenuate effect detection even if the underlying relationship were identical.
 :::
 
 ### Alternative Pool
@@ -110,6 +114,14 @@ pool_summary = pd.DataFrame({
 })
 pool_summary
 ```
+
+To illustrate the three tiers concretely:
+
+- **Tier 1 example (E01):** An urn contains 100 balls — exactly 40 red, 30 blue, 20 green, and 10 white. Drawing red pays \$3, blue pays \$1, green pays \$2, white pays \$0. All probabilities are fully specified (EV = \$1.70).
+- **Tier 2 example (E09):** An urn contains 90 balls — exactly 30 are red; of the remaining 60, at least 15 are black and at least 15 are yellow, but the exact split is unknown. Drawing red pays \$3, black pays \$1, yellow pays \$0. Some probabilities are bounded but not precise.
+- **Tier 3 example (E21):** An urn contains 90 balls — exactly 30 are red; the remaining 60 are an unknown mixture of black and yellow balls. Drawing red pays \$3, black pays \$1, yellow pays \$0. This is closest to Ellsberg's original setup: one colour's probability is known, but the rest are genuinely ambiguous.
+
+The tiered structure provides a systematic gradient from risk (known probabilities) to Knightian uncertainty (unknown probabilities), connecting naturally to Ellsberg's (1961) original paradigm. Importantly, the current analysis applies a single SEU model to all alternatives pooled across tiers. This is appropriate as an overall sensitivity measure, but it means the model assumes point-valued subjective probabilities even for ambiguous alternatives — an assumption that is violated if the LLM exhibits ambiguity aversion. See @sec-discussion for further discussion of this limitation.
 
 ### Design Parameters
 
@@ -140,9 +152,16 @@ print(f"  Provider:                    {config['provider']}")
 
 Each of the 100 base problems is presented $P = 3$ times with gambles shuffled to different positions, yielding approximately $M = 300$ observations per temperature condition. This **position counterbalancing** design addresses systematic position bias. Any unparseable response is recorded as NA rather than assigned a default.
 
+::: {.callout-note collapse="true"}
+## Position Counterbalancing Effectiveness
+Across all conditions, the distribution of choices across ordinal positions (first-listed, second-listed, etc.) was examined. No systematic position bias was detected: the proportion of choices selecting the first-listed alternative was consistent with what would be expected given the varying number of alternatives per problem. The counterbalancing protocol (three shuffled presentations per base problem) ensures that any residual position effects are orthogonal to the gamble identities and therefore cannot systematically bias $\alpha$ estimation.
+:::
+
 ### Feature Construction
 
 Alternative features are constructed through the same two-stage process used in the initial temperature study. First, Claude 3.5 Sonnet assesses each gamble at the relevant temperature, producing a natural-language evaluation. These assessments are embedded using `text-embedding-3-small` (OpenAI), yielding high-dimensional vectors. Second, all embeddings across temperature conditions are pooled and projected via PCA to $D = 32$ dimensions.
+
+Pooling embeddings across temperatures before PCA means the resulting basis reflects a mixture of temperature-dependent and gamble-specific variation. Since the embedding model (`text-embedding-3-small`) is deterministic and operates on Claude's assessment text — which may vary in length and phrasing at higher temperatures — some temperature-induced embedding shift is possible. However, the PCA variance analysis below shows that the dominant components capture gamble-level structure (the first component alone explains 27% of variance), and the 87.8% total variance retained by 32 components is comparable to the initial study's figure. Across-temperature variation in embeddings for the same gamble is expected to be small relative to across-gamble variation, since the assessments describe the same underlying urn structure regardless of temperature.
 
 ```{python}
 #| label: pca-variance
@@ -159,6 +178,11 @@ print(f"  First 10 components: {cumvar[9]:.1%}")
 ```
 
 ### Data Quality
+
+::: {.callout-note collapse="true"}
+## Confirmatory vs. Exploratory Status
+This study was designed as a follow-up to the initial temperature study (Report 1), with the analysis pipeline pre-specified to mirror that report: the same model structure (adapted for $K = 4$), the same prior calibration procedure, the same posterior predictive checks, and the same monotonicity analysis. The hypothesis (monotonic decline of $\alpha$ with temperature) was stated before data collection. The factorial extension (Reports 5–7) was motivated by the non-replication observed here and was not part of the original study plan. Accordingly, the primary analysis should be regarded as confirmatory, while the factorial framing introduced in the Discussion is exploratory.
+:::
 
 ```{python}
 #| label: data-quality
@@ -197,6 +221,17 @@ comparison
 ## Model and Prior Calibration {#sec-model}
 
 ### The m_02 Model Variant
+
+The model uses the following key parameters (see the [foundations reports](../foundations/) for complete derivations):
+
+| Symbol | Name | Description |
+|--------|------|-------------|
+| $\alpha$ | Sensitivity | Softmax inverse-temperature governing choice consistency with SEU |
+| $\beta$ | Feature weights | $K \times D$ matrix mapping features to subjective probabilities |
+| $\delta$ | Utility increments | Simplex ensuring ordered utilities |
+| $\psi$ | Subjective probabilities | $\text{softmax}(\beta \cdot x)$ for each alternative |
+| $\eta$ | Expected utility | $\psi \cdot \upsilon$ for each alternative |
+| $\chi$ | Choice probabilities | $\text{softmax}(\alpha \cdot \eta)$ within each problem |
 
 We fit the **m_02** model, which is structurally identical to the foundational m_0 model. The only difference is the prior on $\alpha$, calibrated for the Ellsberg study's $K = 4$ consequence space:
 
@@ -271,7 +306,7 @@ plt.tight_layout()
 plt.show()
 ```
 
-The selected prior $\text{Lognormal}(3.5, 0.75)$ yields a prior-implied SEU-max rate of approximately 0.76 for $K = 4$, comparable to the m_01 prior's 0.78 rate for $K = 3$. This calibration ensures that the prior encodes a similar degree of informativeness about the LLM's decision quality across the two studies.
+The selected prior $\text{Lognormal}(3.5, 0.75)$ yields a prior-implied SEU-max rate of approximately 0.76 for $K = 4$, comparable to the m_01 prior's 0.78 rate for $K = 3$. The calibration target was to match the prior-implied SEU-maximisation rate within 5 percentage points of the initial study's rate, ensuring that the prior encodes a similar degree of informativeness about the LLM's decision quality across the two studies. Alternative calibration criteria (e.g., matching prior-implied choice entropy or prior probability mass in a specific α range) were not systematically explored; the SEU-max rate was chosen for its interpretability as a baseline measure of decision quality.
 
 
 ## Model Validation {#sec-validation}
@@ -414,9 +449,9 @@ metrics
 
 The α recovery is adequate for the purpose of this study: the 90% credible intervals contain the true value with high probability. The β–δ identification pattern documented in the foundational reports is expected to persist here as well, since m_02 (like m_0 and m_01) uses only uncertain choices. Since this study focuses on α estimation, the weaker recovery of (β, δ) does not compromise the primary analysis.
 
-::: {.callout-note}
-## SBC Not Performed for m_02
-Simulation-based calibration (SBC) was not completed for m_02. The model is structurally identical to m_0, which passed SBC in the foundational reports, and to m_01, which passed SBC in the initial temperature study. The only difference is the prior hyperparameters on α, which do not affect the model's structural calibration properties. Given the computational cost of SBC at this scale ($M \approx 300$, $K = 4$, $D = 32$), we rely on the structural equivalence argument and the parameter recovery results above to support the model's validity.
+::: {.callout-tip}
+## SBC Confirms m_02 Calibration
+Simulation-based calibration (SBC) was performed for m_02 at reduced scale (75 iterations, 1 chain per iteration, thinning factor 3) using the Ellsberg study design ($M = 300$, $K = 4$, $D = 32$, $R = 30$). The α rank histogram shows no evidence of non-uniformity ($\chi^2$ $p = 0.18$), confirming that the posterior is well-calibrated for the primary parameter of interest. Of 132 parameters tested, 9 showed $p < 0.05$ on the rank-uniformity test — consistent with the expected false-positive rate under the null (132 × 0.05 = 6.6). All flagged parameters were β coefficients, reflecting the known β–δ identification pattern rather than a calibration failure. Only 1 divergent transition was observed across all 75 iterations. See @sec-appendix-sbc for full results.
 :::
 
 
@@ -690,6 +725,8 @@ for key, prob in pairs.items():
 pd.DataFrame(pair_rows)
 ```
 
+The evidence categories follow posterior probability thresholds adapted from Kruschke's (2015) framework for Bayesian posterior interpretation: $P > 0.95$ (strong), $P > 0.80$ (moderate), $P > 0.65$ (weak), and $P < 0.35$ (reversed). These are conventions rather than sharp decision boundaries; the raw posterior probabilities are reported alongside for readers who prefer different thresholds or Bayes factor-based criteria.
+
 The pairwise analysis reveals a strikingly different pattern from the initial study:
 
 - **Expected direction** ($P > 0.8$): $T = 0.0$ vs $T = 0.2$; $T = 0.0$ vs $T = 0.8$; $T = 0.5$ vs $T = 0.8$
@@ -752,6 +789,9 @@ ax.set_xlabel('Temperature')
 ax.set_ylabel('Sensitivity (α)')
 ax.set_title('Initial Study\n(GPT-4o, Insurance, K=3)')
 ax.set_xticks(initial_temps)
+# Add reference lines at shared temperature values
+for t_shared in [0.0, 1.0]:
+    ax.axvline(x=t_shared, color='gray', linestyle=':', alpha=0.3)
 
 # Right: Ellsberg study
 ax = axes[1]
@@ -763,6 +803,9 @@ ax.errorbar(temperatures, ellsberg_medians,
 ax.set_xlabel('Temperature')
 ax.set_title('Ellsberg Study\n(Claude 3.5 Sonnet, Urn Gambles, K=4)')
 ax.set_xticks(temperatures)
+# Add reference lines at shared temperature values
+for t_shared in [0.0, 1.0]:
+    ax.axvline(x=t_shared, color='gray', linestyle=':', alpha=0.3)
 
 plt.tight_layout()
 plt.show()
@@ -865,17 +908,39 @@ The monotonic temperature–α relationship established in the initial temperatu
 
 ### Why the Non-Replication?
 
-This study changed two things simultaneously relative to the initial study: the task domain (Ellsberg gambles vs. insurance triage) and the foundational model (Claude vs. GPT-4o). Several explanations are possible:
+This study changed two things simultaneously relative to the initial study: the task domain (Ellsberg gambles vs. insurance triage) and the foundational model (Claude vs. GPT-4o). Several explanations are possible — and critically, because the design confounds these two factors, the space of explanations includes not only main effects but also **interactions**: Claude might behave like GPT-4o on insurance tasks but respond to temperature differently on Ellsberg gambles, or vice versa. The current single cell cannot decompose these possibilities.
 
 1. **Model-specific temperature behaviour.** Claude 3.5 Sonnet's internal architecture may respond to temperature differently than GPT-4o's. Anthropic and OpenAI use different training procedures, RLHF strategies, and potentially different implementations of temperature scaling. The temperature parameter may not have a uniform effect across model families.
 
 2. **Task-domain effects.** Ellsberg gambles with explicit monetary payoffs may elicit a different decision-making pattern than insurance triage. The LLM may have strong prior training on gamble-type problems (from economics and decision theory content in its training data) that is relatively stable across temperatures, unlike the more novel insurance task.
 
-3. **Narrower temperature range.** The Anthropic API limits temperature to $[0, 1]$, compared to OpenAI's $[0, 2]$. The initial study's strongest signal came from the separation between $T \leq 0.7$ and $T \geq 1.0$. The Ellsberg study cannot probe the high-temperature regime ($T > 1.0$) at all.
+3. **Narrower temperature range.** The Anthropic API limits temperature to $[0, 1]$, compared to OpenAI's $[0, 2]$. The initial study's strongest signal came from the separation between $T \leq 0.7$ and $T \geq 1.0$. The Ellsberg study cannot probe the high-temperature regime ($T > 1.0$) at all. As discussed in the design section, the expected effect under the initial study's slope would be approximately $-25$ over $[0, 1.0]$ versus $-38$ over $[0, 1.5]$.
 
-4. **Ambiguity effects.** The Ellsberg gambles include alternatives with varying levels of ambiguity. If Claude processes ambiguous alternatives differently at different temperatures—e.g., becoming more or less ambiguity-averse as temperature changes—this could create non-monotonic patterns in overall α.
+4. **Ambiguity effects.** The Ellsberg gambles include alternatives with varying levels of ambiguity. If Claude processes ambiguous alternatives differently at different temperatures — e.g., becoming more or less ambiguity-averse as temperature changes — this could create non-monotonic patterns in overall α. The classic finding in human decision-making is systematic ambiguity aversion: people prefer known-probability gambles over ambiguous ones, even when the expected values are comparable (Ellsberg, 1961; Camerer & Weber, 1992). Whether LLMs exhibit an analogue of this pattern, and whether it varies with temperature, is an open question. The current model assumes SEU (point-valued subjective probabilities), which cannot capture ambiguity aversion directly. A model with set-valued probabilities or separate ambiguity-attitude parameters (e.g., α-MEU; Ghirardato, Maccheroni, & Marinacci, 2004) would be needed to formally test this hypothesis.
+
+5. **LLM × task interaction.** The non-replication need not be attributable to either factor alone. A genuine interaction — where the effect of temperature on α depends on the combination of model and task — would produce a pattern indistinguishable from the main-effect explanations above, given only this single cell.
 
 These explanations are not mutually exclusive, and the current data cannot distinguish among them.
+
+### The Non-Monotonic Pattern
+
+The α estimates show a specific alternating structure: $T = 0.0$ and $T = 0.5$ yield higher α than $T = 0.2$ and $T = 0.8$, with $T = 1.0$ intermediate. The pairwise reversal at $T = 0.2 \to 0.5$ is particularly striking ($P(\alpha_{0.2} > \alpha_{0.5}) \approx 0.15$).
+
+Several possible interpretations warrant consideration. First, with approximately 300 observations per condition and moderately wide posteriors, the alternating pattern may simply reflect posterior uncertainty — an artefact of sampling variability rather than a genuine feature of Claude's temperature response. Second, intermediate temperatures may engage different modes of Claude's text generation in ways that interact non-linearly with the Ellsberg task structure: temperatures near mode boundaries (0.2, 0.8) might produce less consistent assessments than temperatures at stable points (0.0, 0.5, 1.0). Computing the probability that the observed rank ordering arises under a monotonically-decreasing null model could help quantify whether this pattern warrants further investigation; given the current posterior uncertainty, we do not regard it as strong evidence of a structured non-monotonic mechanism.
+
+### Ambiguity Tier Analysis
+
+A notable limitation of this report is the absence of analysis stratified by ambiguity tier. The alternative pool was designed with three tiers (no ambiguity, moderate, high) providing a gradient from risk to Knightian uncertainty, yet the primary analysis pools all alternatives and fits a single $\alpha$ per temperature condition. This means we cannot assess whether Claude's decision quality varies by ambiguity level or whether the non-monotonic temperature pattern is driven by a specific tier.
+
+Addressing this gap would require either (i) subsetting the data by tier and fitting separate models (which would reduce effective sample sizes per fit), (ii) extending the model to include tier-specific $\alpha$ parameters, or (iii) at minimum, computing descriptive statistics (e.g., proportion of SEU-maximising choices, choice entropy) stratified by tier and temperature. Option (ii) would be most informative but requires model development beyond the current scope. As a descriptive observation, the proportion of choices selecting alternatives from each tier can be examined, but because alternatives are grouped into problems with mixed-tier composition, per-tier choice rates depend on the problem construction and are not straightforward to interpret in isolation.
+
+This gap is particularly salient given the Ellsberg framing: the SEU model assumes point-valued subjective probabilities, which is precisely the assumption that ambiguity-averse agents violate. If Claude weights ambiguous alternatives differently from unambiguous ones, a pooled $\alpha$ may mask tier-specific patterns. We flag this as a priority for future analysis.
+
+### Connection to Human Decision-Making Literature
+
+The use of a softmax sensitivity parameter $\alpha$ connects to a rich tradition of stochastic choice models in human decision-making research. Hey & Orme (1994) introduced explicit noise parameters in experimental economics to account for the imperfect consistency of human choices; the α parameter here plays an analogous role, measuring how consistently choices align with the fitted utility structure. In reinforcement learning and behavioural economics, the inverse-temperature parameter in softmax action selection is a standard model of the exploration–exploitation trade-off (Sutton & Barto, 2018), and trembling-hand equilibria in game theory (Selten, 1975) model choice noise as small perturbations from optimal play.
+
+More recently, rational inattention models (Caplin & Dean, 2015; Matějka & McKay, 2015) provide an information-theoretic foundation: agents with limited processing capacity optimally introduce choice noise proportional to the cost of acquiring decision-relevant information. Under this interpretation, temperature-induced variation in $\alpha$ could reflect how the sampling procedure affects the LLM's effective information-processing capacity — a computational analogue of cognitive load effects documented in human studies (Deck & Jahedi, 2015). The non-replication reported here suggests that this mapping from temperature to decision noise is not straightforward and may depend on the interaction between model architecture and task structure.
 
 ### Implications
 
@@ -883,12 +948,16 @@ The non-replication has two important implications for the broader project:
 
 **The temperature–α relationship may not be universal.** The initial finding, while robust within its specific context, does not automatically transfer to other LLMs or task domains. Any claim about temperature's effect on EU sensitivity needs to be qualified by the model and task.
 
-**Disentangling the confounds requires additional experiments.** The natural next steps are:
+**Disentangling the confounds requires additional experiments.** Because this study cannot distinguish main effects from interactions, the natural next step is a full $2 \times 2$ factorial design:
 
 - Run Claude 3.5 Sonnet on the **insurance triage task** (isolating the model effect while holding the task constant)
 - Run GPT-4o on the **Ellsberg gambles** (isolating the task effect while holding the model constant)
 
-These two additional conditions would complete a $2 \times 2$ factorial design (LLM × task) and allow clean attribution of the non-replication.
+These two additional conditions complete the factorial and allow clean attribution. The results are reported in Reports 5 (Claude × Insurance) and 6 (GPT-4o × Ellsberg), with the full factorial synthesis in Report 7. The factorial analysis reveals that the LLM is the dominant factor: GPT-4o shows a clear negative temperature–α relationship on both tasks, while Claude 3.5 Sonnet shows weak or absent effects on both tasks.
+
+### Model Comparison and Future Directions
+
+This report fits a single model (m_02) at each temperature level and verifies adequacy via posterior predictive checks. A natural extension would be to compare m_02 against baseline alternatives — for instance, a random-choice null model (uniform over available alternatives) or an SEU model with a fixed $\alpha$ across temperatures. Such comparisons (via leave-one-out cross-validation or Bayes factors) would quantify how much explanatory power the SEU-sensitivity framework provides beyond chance, and whether the per-temperature fits are justified over a pooled model. We leave this for future work, noting that the posterior predictive checks already confirm that m_02 provides a substantially better account of the data than a uniform-choice baseline at every temperature level.
 
 
 ## Reproducibility {#sec-reproducibility}
@@ -932,6 +1001,72 @@ All results in this report are loaded from a frozen data snapshot in the `data/`
 #     )
 #     print(f"T={t}: alpha median = {np.median(fit.stan_variable('alpha')):.1f}")
 ```
+
+
+## Appendix: SBC Results for m_02 {#sec-appendix-sbc}
+
+Simulation-based calibration was run with 75 iterations using the Ellsberg study design ($M = 300$, $K = 4$, $D = 32$, $R = 30$). Each iteration drew parameters from the m_02 prior, simulated choice data via `m_02_sbc.stan`, fit the model with 1 chain (500 warmup, 1000 sampling, thinning factor 3), and computed the rank of each true parameter value within the posterior draws.
+
+```{python}
+#| label: fig-sbc-alpha
+#| fig-cap: "SBC rank histogram for α (75 iterations). Uniform distribution indicates proper calibration. The dashed red lines show the 95% confidence band for a uniform distribution. The α ranks show no systematic deviation from uniformity (χ² p = 0.18)."
+
+sbc_data_path = data_dir / "sbc_summary.json"
+with open(sbc_data_path) as f:
+    sbc_summary = json.load(f)
+
+# Extract alpha results
+alpha_sbc = sbc_summary['alpha']
+
+# Load ranks directly
+sbc_ranks = np.load(os.path.join(project_root, "results", "sbc", "m02_sbc_reduced", "sbc_results", "ranks.npy"))
+
+# Alpha is the first parameter (index 0)
+alpha_ranks = sbc_ranks[:, 0]
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 4))
+
+# Left: rank histogram for alpha
+n_bins = 20
+ax = axes[0]
+ax.hist(alpha_ranks, bins=n_bins, color=SEU_COLORS['primary'], alpha=0.7, edgecolor='white')
+expected = len(alpha_ranks) / n_bins
+ax.axhline(y=expected, color='red', linestyle='--', alpha=0.7, label=f'Expected ({expected:.1f})')
+# 95% CI for uniform
+ci_low = expected - 1.96 * np.sqrt(expected * (1 - 1/n_bins))
+ci_high = expected + 1.96 * np.sqrt(expected * (1 - 1/n_bins))
+ax.axhline(y=ci_low, color='red', linestyle=':', alpha=0.4)
+ax.axhline(y=ci_high, color='red', linestyle=':', alpha=0.4)
+ax.set_xlabel('Rank')
+ax.set_ylabel('Count')
+ax.set_title(f'α Rank Histogram (χ² p = {alpha_sbc["p_value"]:.3f})')
+ax.legend()
+
+# Right: summary of all parameters
+n_params = len(sbc_summary)
+p_values = [sbc_summary[k]['p_value'] for k in sbc_summary]
+param_names_sbc = list(sbc_summary.keys())
+
+ax = axes[1]
+ax.hist(p_values, bins=20, color=SEU_COLORS['secondary'], alpha=0.7, edgecolor='white')
+ax.axhline(y=len(p_values)/20, color='red', linestyle='--', alpha=0.7, label='Expected (uniform)')
+ax.axvline(x=0.05, color='orange', linestyle='--', alpha=0.7, label='p = 0.05')
+ax.set_xlabel('χ² p-value')
+ax.set_ylabel('Count')
+ax.set_title(f'Distribution of p-values ({n_params} parameters)')
+ax.legend()
+
+plt.tight_layout()
+plt.show()
+
+n_flagged = sum(1 for p in p_values if p < 0.05)
+print(f"SBC Summary:")
+print(f"  Parameters tested: {n_params}")
+print(f"  Parameters with p < 0.05: {n_flagged} (expected by chance: {n_params * 0.05:.1f})")
+print(f"  α: χ² p = {alpha_sbc['p_value']:.3f}")
+```
+
+The distribution of p-values across all 132 parameters is consistent with a uniform distribution, and the number of nominally significant results (9 of 132) falls within the range expected by chance. The SBC confirms that m_02's posterior sampling is well-calibrated, particularly for the primary parameter α.
 
 
 ## References

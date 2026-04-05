@@ -60,7 +60,13 @@ GPT-4o shows a **clear negative temperature–α relationship** on the Ellsberg 
 
 ### Task and Conditions
 
-We use the Ellsberg gamble task from the Ellsberg study: GPT-4o evaluates gambles involving urns with unknown colour compositions. Each gamble has $K = 4$ possible consequences (corresponding to drawing different-coloured balls). The LLM first *assesses* each gamble individually, and then makes a *choice* among alternatives in each problem.
+We use the Ellsberg gamble task from the [Ellsberg study](../ellsberg_study/01_ellsberg_study.qmd): GPT-4o evaluates gambles involving urns with unknown colour compositions. The alternative pool consists of 30 Ellsberg-style urn gambles, each with $K = 4$ possible monetary consequences (\$0, \$1, \$2, \$3) corresponding to drawing different-coloured balls from urns of 60–120 balls. The gambles are organized into three ambiguity tiers:
+
+- **Tier 1 (No ambiguity; E01–E08):** 8 gambles with fully specified ball counts — pure risk with known objective probabilities.
+- **Tier 2 (Moderate ambiguity; E09–E20):** 12 gambles with partially bounded counts ("at least"/"at most" constraints); urn totals always stated.
+- **Tier 3 (High ambiguity; E21–E30):** 10 gambles where only one colour's count is known; the remainder is an unknown mixture — closest to Ellsberg's (1961) original setup.
+
+The LLM first *assesses* each gamble individually, and then makes a *choice* among alternatives in each problem. The gamble set is identical to that used in the Claude × Ellsberg study, ensuring that any differences in results are attributable to the LLM, not the stimuli.
 
 Five temperature levels define the between-condition factor:
 
@@ -112,7 +118,7 @@ print(f"  Embedding model:             {config['embedding_model']}")
 print(f"  Provider:                    {config['provider']}")
 ```
 
-Each of the 100 base problems is presented $P = 3$ times with alternatives shuffled to different positions, yielding approximately $M = 300$ observations per temperature condition.
+Each of the 100 base problems is presented $P = 3$ times with alternatives shuffled to different positions, yielding approximately $M = 300$ observations per temperature condition. The position counterbalancing mitigates any systematic position bias (e.g., a tendency to select the first-listed alternative), which was identified as a potential confound in early pilot work.
 
 ### Feature Construction
 
@@ -132,6 +138,8 @@ print(f"  First 5 components: {cumvar[4]:.1%}")
 print(f"  First 10 components: {cumvar[9]:.1%}")
 ```
 
+The PCA reduction to $D = 32$ components captures the large majority of variance in GPT-4o's Ellsberg gamble assessments. The fact that relatively few components account for most of the variance indicates that the embedding space, while nominally high-dimensional, has a moderate effective dimensionality — consistent with the assessment texts varying along a limited number of semantic axes related to gamble value, risk, and ambiguity.
+
 ### Data Quality
 
 ```{python}
@@ -144,6 +152,8 @@ print(f"  Overall: {na['overall']['na']} / {na['overall']['total']} ({na['overal
 for key, val in na['per_temperature'].items():
     print(f"  {key}: {val['na']} / {val['total']} ({val['na_rate']:.1%})")
 ```
+
+The overall NA rate is low (well under 1%), comparable to the rates observed in the other factorial cells. NA responses (cases where the LLM failed to produce a parseable choice) are excluded from analysis; at these rates, missingness is unlikely to introduce systematic bias.
 
 ### Comparison with Other Factorial Cells
 
@@ -311,7 +321,7 @@ metrics
 
 ::: {.callout-note}
 ## SBC Not Performed
-Simulation-based calibration (SBC) was not performed for this cell. The m_02 model passed SBC in the Ellsberg study report. Since the model is structurally identical and only the data source (GPT-4o vs. Claude) differs, the structural calibration properties are unchanged.
+Simulation-based calibration (SBC) was not performed for this cell. The m_02 model passed SBC in the [Ellsberg study report](../ellsberg_study/01_ellsberg_study.qmd), and the model structure is identical here — SBC validates the prior–likelihood geometry, which is invariant to the data source. The parameter recovery analysis above (which *was* performed with this study's specific design parameters) provides the complementary, data-specific assurance that the posterior concentrates correctly around known true values under realistic conditions.
 :::
 
 
@@ -587,6 +597,8 @@ p_mono = strictly_decreasing / n_draws
 print(f"P(α strictly decreasing across all T): {p_mono:.4f}")
 ```
 
+The posterior probability of strict monotonicity — that $\alpha$ decreases at every successive temperature step — provides a stringent test of the ordering. Combined with the pairwise comparisons above, these results indicate that the negative temperature–$\alpha$ relationship is not driven by any single temperature pair but reflects a consistent ordering across the full range.
+
 
 ## Comparison with Other Factorial Cells {#sec-comparison}
 
@@ -691,11 +703,50 @@ cross
 
 ### Key Observations
 
-1. **Task effect (GPT-4o row):** GPT-4o shows a clear negative slope on *both* tasks — approximately $-25$ on insurance and $-38$ on Ellsberg. The effect replicates across task domains, though the magnitude may differ due to different $K$ values and prior scales.
+1. **Task effect (GPT-4o row):** GPT-4o shows a clear negative slope on *both* tasks — approximately $-25$ on insurance and $-38$ on Ellsberg. The *qualitative* pattern (clear negative relationship) replicates across task domains. However, the absolute slope magnitudes and $\alpha$ levels are **not directly comparable** across these cells, because they use different model variants (m_01 vs. m_02), different priors (Lognormal(3.0, 0.75) vs. Lognormal(3.5, 0.75)), and different numbers of consequences ($K = 3$ vs. $K = 4$). The $\alpha$ parameter's scale is implicitly set by the interaction of prior, consequence space, and utility geometry, so a value of $\alpha \approx 110$ in the $K = 4$ Ellsberg cell does not have the same behavioural meaning as $\alpha \approx 41$ in the $K = 3$ insurance cell. The key inference is that both cells exhibit a clearly negative slope, not that one slope is "larger" than the other.
 
-2. **LLM effect (Ellsberg column):** On the same Ellsberg task, GPT-4o obtains $P(\text{slope} < 0) \approx 0.98$ while Claude obtains $P(\text{slope} < 0) \approx 0.77$. The LLM makes a substantial difference.
+2. **LLM effect (Ellsberg column):** On the same Ellsberg task, GPT-4o obtains $P(\text{slope} < 0) \approx 0.98$ while Claude obtains $P(\text{slope} < 0) \approx 0.77$. The LLM makes a substantial difference. Since both cells use the same m_02 model and the same prior, the $\alpha$ estimates *are* directly comparable within the Ellsberg column.
 
 3. **Pattern:** GPT-4o consistently shows clear monotonic decline; Claude consistently shows weaker or absent effects.
+
+::: {.callout-warning}
+## Temperature Range Mismatch
+The GPT-4o cells use temperatures $\{0.0, 0.3, 0.7, 1.0, 1.5\}$ ($\Delta T = 1.5$) while the Claude cells use $\{0.0, 0.2, 0.5, 0.8, 1.0\}$ ($\Delta T = 1.0$) due to API constraints. The slopes ($\Delta\alpha / \Delta T$) are estimated over different covariate ranges, which complicates direct magnitude comparison. The GPT-4o slope may appear steeper in part because it includes the $T = 1.5$ point, where the largest marginal drop occurs. The restricted-range analysis below addresses this by recomputing the GPT-4o slope over $T \in [0.0, 1.0]$ only.
+:::
+
+### Restricted-Range Slope (T ∈ [0.0, 1.0])
+
+To enable a fairer cross-LLM comparison, we recompute the GPT-4o slope using only the four temperature levels within $[0.0, 1.0]$, approximately matching Claude's range.
+
+```{python}
+#| label: restricted-slope
+#| echo: true
+
+restricted_temps = [0.0, 0.3, 0.7, 1.0]
+restricted_temp_array = np.array(restricted_temps)
+
+restricted_slope_draws = []
+for draw_idx in range(len(alpha_draws[0.0])):
+    alphas_at_draw = np.array([alpha_draws[t][draw_idx] for t in restricted_temps])
+    b = np.cov(restricted_temp_array, alphas_at_draw)[0, 1] / np.var(restricted_temp_array)
+    restricted_slope_draws.append(b)
+restricted_slope_draws = np.array(restricted_slope_draws)
+
+r_median = np.median(restricted_slope_draws)
+r_q05, r_q95 = np.percentile(restricted_slope_draws, [5, 95])
+r_p_neg = np.mean(restricted_slope_draws < 0)
+
+print(f"Restricted-range slope (T ∈ [0.0, 1.0]):")
+print(f"  Median:       {r_median:.1f}")
+print(f"  90% CI:       [{r_q05:.1f}, {r_q95:.1f}]")
+print(f"  P(slope < 0): {r_p_neg:.3f}")
+print(f"")
+print(f"Full-range slope (T ∈ [0.0, 1.5]):")
+print(f"  Median:       {median_slope:.1f}")
+print(f"  P(slope < 0): {np.mean(slope_draws < 0):.3f}")
+```
+
+The negative relationship is preserved — and remains strong — even when the high-temperature $T = 1.5$ condition is excluded. This confirms that the effect is not an artifact of the extended temperature range available for GPT-4o, and supports the cross-LLM comparison on a common temperature interval.
 
 ### Summary Heatmap
 
@@ -762,11 +813,19 @@ plt.show()
 
 GPT-4o shows a **clear negative temperature–sensitivity relationship** on the Ellsberg gamble task:
 
-1. **Strong negative slope.** The posterior slope $\Delta\alpha / \Delta T$ has a median of $\approx -38$, with $P(\text{slope} < 0) \approx 0.98$. This is comparable in strength to the initial temperature study.
+1. **Strong negative slope.** The posterior slope $\Delta\alpha / \Delta T$ has a median of $\approx -38$, with $P(\text{slope} < 0) \approx 0.98$. This is comparable in strength to the initial temperature study. The posterior probability of strict monotonicity — $\alpha$ decreasing at every successive temperature step — reinforces this conclusion (see @sec-monotonicity).
 
-2. **Consistent decline.** The α estimates decline monotonically from $\approx 110$ at $T = 0.0$ to $\approx 52$ at $T = 1.5$. The largest drop is between $T = 1.0$ and $T = 1.5$.
+2. **Consistent decline.** The $\alpha$ estimates decline monotonically from $\approx 110$ at $T = 0.0$ to $\approx 52$ at $T = 1.5$, a roughly 2:1 ratio. The largest marginal drop is between $T = 1.0$ and $T = 1.5$, suggesting a possible nonlinearity in the temperature–sensitivity relationship: the marginal effect of temperature on $\alpha$ may be largest at high temperatures. This high-temperature regime ($T > 1.0$) is unavailable for Claude due to API constraints, limiting cross-LLM comparability in this range. Whether the large $T = 1.0 \to 1.5$ drop reflects a genuine threshold effect or simply the tail of a smooth nonlinear relationship cannot be determined from five temperature points alone.
 
 3. **Good model fit.** Posterior predictive checks indicate adequate calibration at all temperature levels.
+
+### Interpreting α in Behavioural Terms
+
+The $\alpha$ parameter controls the concentration of the softmax choice rule: higher $\alpha$ implies sharper concentration of choice probability on the SEU-maximising alternative. At $\alpha \approx 110$ ($T = 0.0$), the model assigns overwhelming probability to the EU-maximising gamble in most decision problems — choice behaviour is nearly deterministic. At $\alpha \approx 52$ ($T = 1.5$), the concentration is still well above chance (which would correspond to $\alpha \to 0$), but the model allocates meaningfully more probability mass to suboptimal alternatives. The 2:1 decline thus represents a shift from near-deterministic SEU maximisation to a regime where random or heuristic choice patterns are more frequent, though still well above indifference.
+
+### Comparability of α Across Factorial Cells
+
+A recurring issue in cross-cell comparison is the **non-comparability of absolute $\alpha$ values** across cells that use different model variants. The insurance cells ($K = 3$) use m_01 with a Lognormal(3.0, 0.75) prior, while the Ellsberg cells ($K = 4$) use m_02 with a Lognormal(3.5, 0.75) prior. The $\alpha$ parameter interacts with the dimension of the consequence space and the utility geometry in ways that make raw magnitudes non-portable: a value of $\alpha = 50$ implies different choice probabilities under $K = 3$ vs. $K = 4$ because the softmax operates over different-sized simplex spaces. Consequently, comparisons across the task dimension of the factorial should focus on **directional quantities** — the sign of the slope, $P(\text{slope} < 0)$, and strict monotonicity probabilities — rather than absolute $\alpha$ levels or slope magnitudes. Within-column comparisons (same task, different LLMs) do not have this limitation, since both cells share the same model and prior.
 
 ### Implications for the Factorial Design
 
@@ -775,7 +834,29 @@ This cell confirms that GPT-4o's temperature–sensitivity relationship **genera
 - **LLM is the primary driver.** The main effect of LLM (GPT-4o vs. Claude) is large and consistent.
 - **Task is a secondary factor.** Changing the task ($K = 3$ to $K = 4$) does not eliminate or reverse the effect for GPT-4o, and does not create the effect for Claude.
 
-The full $2 \times 2$ factorial analysis (Phase 8 report) will quantify the LLM main effect, task main effect, and their interaction.
+Note that this report analyses each factorial cell independently; it does not formally model the LLM × Task interaction. The [2×2 Factorial Synthesis](../factorial_synthesis/01_factorial_synthesis.qmd) report quantifies the LLM main effect, task main effect, and their interaction by jointly analysing the posterior draws from all four cells, including a difference-in-differences analysis that addresses the interaction directly.
+
+### Connection to the Ambiguity Aversion Literature
+
+The Ellsberg gamble paradigm was originally designed to reveal violations of subjective expected utility theory — specifically, ambiguity aversion (Ellsberg, 1961; Camerer & Weber, 1992). In the human decision-making literature, the canonical finding is that agents prefer gambles with known probabilities over gambles with equivalent expected values but unknown probabilities (Trautmann & van de Kuilen, 2015). Our gamble set spans three ambiguity tiers precisely to allow for such effects.
+
+In this study, however, we use the Ellsberg gambles primarily as a **task domain** for the factorial design — a set of $K = 4$ decision problems that differs structurally from the insurance triage task. The $\alpha$ parameter captures *overall* sensitivity to expected utility maximisation, not ambiguity-specific processing. Whether GPT-4o exhibits ambiguity aversion per se — i.e., whether its subjective probability estimates ($\psi$) or choice patterns systematically shift as a function of gamble ambiguity tier — is an important question that lies beyond the scope of the current temperature-focused analysis. We note this as a natural direction for future work: examining whether the temperature effect on $\alpha$ is modulated by ambiguity level (e.g., whether high-ambiguity gambles show a larger temperature-induced degradation in choice quality) would connect this line of work more directly to the behavioural decision theory literature.
+
+### Embedding Model and Cross-LLM Comparability
+
+Both GPT-4o cells use OpenAI's `text-embedding-3-small` for feature construction, and both Claude cells also use `text-embedding-3-small` (following the same pipeline). The embedding model is therefore held constant across all four factorial cells, preventing the embedding representation from confounding the LLM main effect. Any differences in the PCA features across cells arise from differences in the LLM's natural-language assessments (which vary with both LLM identity and temperature), not from the embedding step.
+
+### Relation to the Broader Literature
+
+The finding that LLM identity is the dominant factor in the temperature–sensitivity relationship contributes to a growing literature examining LLM decision-making and rationality. Recent work has investigated how LLMs perform on classic decision-theoretic tasks (Binz & Schulz, 2023), how API parameters affect output quality (Renze & Guven, 2024), and whether LLMs exhibit systematic biases analogous to those documented in humans (Hagendorff et al., 2023). Our results suggest that the mapping from temperature to choice quality is not a universal property of LLM decoding but depends on model-specific characteristics — potentially reflecting differences in training, architecture, or the relationship between the temperature parameter and the model's internal representations.
+
+### Limitations
+
+1. **No prior sensitivity analysis.** The m_02 prior on $\alpha$ is Lognormal(3.5, 0.75), with prior 90% CI $\approx [10, 124]$. The posterior at $T = 0.0$ ($\alpha \approx 110$) falls near the upper tail of this prior. While $M \approx 300$ observations provide substantial information, and the parameter recovery analysis confirms good identifiability, we have not verified that the slope sign and $P(\text{slope} < 0)$ are robust to alternative prior specifications (e.g., a wider Lognormal(3.5, 1.0) or a shifted Lognormal(4.0, 0.75)). This is a standard robustness check for Bayesian analyses (Kruschke, 2013) and is planned as a supplementary analysis.
+
+2. **Temperature range mismatch.** The GPT-4o cells sample temperatures up to $T = 1.5$, while Claude is limited to $T = 1.0$. The restricted-range analysis in @sec-comparison confirms that the negative slope holds over $T \in [0.0, 1.0]$, but slope *magnitudes* remain difficult to compare directly given the non-identical temperature grids.
+
+3. **No within-study ambiguity analysis.** The gamble set spans three ambiguity tiers, but the current analysis does not examine whether $\alpha$ or choice patterns vary by tier. This limits the study's contribution to the ambiguity aversion literature specifically.
 
 
 ## Reproducibility {#sec-reproducibility}

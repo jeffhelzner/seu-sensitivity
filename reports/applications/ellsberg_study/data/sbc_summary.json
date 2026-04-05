@@ -1,0 +1,1058 @@
+{
+  "alpha": {
+    "chi2_statistic": 24.466666666666665,
+    "p_value": 0.17885618930697697,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.18450450450450445,
+    "ks_p_value": 0.010449566638347176
+  },
+  "beta[1,1]": {
+    "chi2_statistic": 32.46666666666667,
+    "p_value": 0.027673628843305365,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.12084084084084087,
+    "ks_p_value": 0.20604400593311656
+  },
+  "beta[1,2]": {
+    "chi2_statistic": 10.599999999999998,
+    "p_value": 0.9365617906814179,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.11063063063063061,
+    "ks_p_value": 0.2954446781279188
+  },
+  "beta[1,3]": {
+    "chi2_statistic": 21.8,
+    "p_value": 0.2943227625364242,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.09165165165165168,
+    "ks_p_value": 0.5244643359759928
+  },
+  "beta[1,4]": {
+    "chi2_statistic": 19.666666666666664,
+    "p_value": 0.41488105638204476,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.08216216216216221,
+    "ks_p_value": 0.6612667465270907
+  },
+  "beta[1,5]": {
+    "chi2_statistic": 12.200000000000001,
+    "p_value": 0.8768993620455907,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.07951951951951952,
+    "ks_p_value": 0.6998420523362294
+  },
+  "beta[1,6]": {
+    "chi2_statistic": 19.133333333333333,
+    "p_value": 0.4483130622132518,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.10090090090090087,
+    "ks_p_value": 0.4031652336839368
+  },
+  "beta[1,7]": {
+    "chi2_statistic": 32.46666666666666,
+    "p_value": 0.027673628843305365,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.11447447447447445,
+    "ks_p_value": 0.25898854013307215
+  },
+  "beta[1,8]": {
+    "chi2_statistic": 11.666666666666668,
+    "p_value": 0.8993749053398796,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.0902102102102102,
+    "ks_p_value": 0.5446967282948494
+  },
+  "beta[1,9]": {
+    "chi2_statistic": 16.466666666666665,
+    "p_value": 0.625950488312361,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.07723723723723719,
+    "ks_p_value": 0.7327399212634113
+  },
+  "beta[1,10]": {
+    "chi2_statistic": 35.189189189189186,
+    "p_value": 0.01325170313195394,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.1668468468468468,
+    "ks_p_value": 0.027099912427924297
+  },
+  "beta[1,11]": {
+    "chi2_statistic": 23.933333333333334,
+    "p_value": 0.1987220467123535,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.12456456456456455,
+    "ks_p_value": 0.1791710831000376
+  },
+  "beta[1,12]": {
+    "chi2_statistic": 16.466666666666665,
+    "p_value": 0.625950488312361,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.11291291291291294,
+    "ks_p_value": 0.2733830944666529
+  },
+  "beta[1,13]": {
+    "chi2_statistic": 14.866666666666664,
+    "p_value": 0.7310332068266137,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.14258258258258255,
+    "ks_p_value": 0.08571786851106249
+  },
+  "beta[1,14]": {
+    "chi2_statistic": 16.999999999999996,
+    "p_value": 0.5898678221289586,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.07543543543543546,
+    "ks_p_value": 0.7582261918484172
+  },
+  "beta[1,15]": {
+    "chi2_statistic": 35.189189189189186,
+    "p_value": 0.01325170313195394,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.19459459459459455,
+    "ks_p_value": 0.005801831559035104
+  },
+  "beta[1,16]": {
+    "chi2_statistic": 18.43243243243243,
+    "p_value": 0.4937482597292622,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.1543543543543544,
+    "ks_p_value": 0.05015657872747975
+  },
+  "beta[1,17]": {
+    "chi2_statistic": 11.133333333333336,
+    "p_value": 0.919271893217907,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.1006606606606606,
+    "ks_p_value": 0.4060985953729813
+  },
+  "beta[1,18]": {
+    "chi2_statistic": 27.133333333333336,
+    "p_value": 0.10158551949387652,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.08156156156156157,
+    "ks_p_value": 0.6700578568051749
+  },
+  "beta[1,19]": {
+    "chi2_statistic": 16.46666666666667,
+    "p_value": 0.6259504883123608,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.11423423423423429,
+    "ks_p_value": 0.26116630271434205
+  },
+  "beta[1,20]": {
+    "chi2_statistic": 27.133333333333333,
+    "p_value": 0.10158551949387677,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.09933933933933936,
+    "ks_p_value": 0.42245576090779
+  },
+  "beta[1,21]": {
+    "chi2_statistic": 28.73333333333333,
+    "p_value": 0.07029700375199815,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.1035435435435435,
+    "ks_p_value": 0.37174614258983074
+  },
+  "beta[1,22]": {
+    "chi2_statistic": 26.599999999999998,
+    "p_value": 0.11432079401857832,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.10846846846846847,
+    "ks_p_value": 0.317474289019973
+  },
+  "beta[1,23]": {
+    "chi2_statistic": 18.600000000000005,
+    "p_value": 0.48275240319942614,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.10642642642642641,
+    "ks_p_value": 0.33929018811386474
+  },
+  "beta[1,24]": {
+    "chi2_statistic": 13.266666666666667,
+    "p_value": 0.8246441209972122,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.0503303303303303,
+    "ks_p_value": 0.9863747196153518
+  },
+  "beta[1,25]": {
+    "chi2_statistic": 29.266666666666662,
+    "p_value": 0.06190468408411667,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.1341741741741742,
+    "ks_p_value": 0.12244359353553738
+  },
+  "beta[1,26]": {
+    "chi2_statistic": 21.799999999999997,
+    "p_value": 0.29432276253642403,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.12468468468468469,
+    "ks_p_value": 0.17835222395590036
+  },
+  "beta[1,27]": {
+    "chi2_statistic": 20.73333333333333,
+    "p_value": 0.35172090008004053,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.10642642642642641,
+    "ks_p_value": 0.33929018811386474
+  },
+  "beta[1,28]": {
+    "chi2_statistic": 12.733333333333333,
+    "p_value": 0.851938179957745,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.07039039039039036,
+    "ks_p_value": 0.8258449655824126
+  },
+  "beta[1,29]": {
+    "chi2_statistic": 18.066666666666666,
+    "p_value": 0.5179892345633155,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.1073873873873874,
+    "ks_p_value": 0.32890186149819456
+  },
+  "beta[1,30]": {
+    "chi2_statistic": 17.0,
+    "p_value": 0.5898678221289584,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.06546546546546546,
+    "ks_p_value": 0.8837850892808415
+  },
+  "beta[1,31]": {
+    "chi2_statistic": 18.972972972972972,
+    "p_value": 0.4585711916828571,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.11651651651651651,
+    "ks_p_value": 0.24101288435955814
+  },
+  "beta[1,32]": {
+    "chi2_statistic": 20.73333333333333,
+    "p_value": 0.35172090008004053,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.12960960960960966,
+    "ks_p_value": 0.14723985638639853
+  },
+  "beta[2,1]": {
+    "chi2_statistic": 12.733333333333333,
+    "p_value": 0.851938179957745,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.13945945945945948,
+    "ks_p_value": 0.09810702473850054
+  },
+  "beta[2,2]": {
+    "chi2_statistic": 10.066666666666666,
+    "p_value": 0.9512820494586932,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.05669669669669675,
+    "ks_p_value": 0.9581947640464693
+  },
+  "beta[2,3]": {
+    "chi2_statistic": 10.600000000000003,
+    "p_value": 0.9365617906814176,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.048888888888888926,
+    "ks_p_value": 0.9900920258575769
+  },
+  "beta[2,4]": {
+    "chi2_statistic": 8.466666666666669,
+    "p_value": 0.9813279620341515,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.06786786786786786,
+    "ks_p_value": 0.856730961935385
+  },
+  "beta[2,5]": {
+    "chi2_statistic": 22.75675675675675,
+    "p_value": 0.2482256093221676,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.10042042042042043,
+    "ks_p_value": 0.4090445667651562
+  },
+  "beta[2,6]": {
+    "chi2_statistic": 21.26666666666667,
+    "p_value": 0.3222549687666169,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.15015015015015015,
+    "ks_p_value": 0.06103583730848134
+  },
+  "beta[2,7]": {
+    "chi2_statistic": 25.999999999999996,
+    "p_value": 0.13018901494948892,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.17405405405405405,
+    "ks_p_value": 0.01858425262068143
+  },
+  "beta[2,8]": {
+    "chi2_statistic": 15.399999999999999,
+    "p_value": 0.6968579456096244,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.13429429429429424,
+    "ks_p_value": 0.12184018881248093
+  },
+  "beta[2,9]": {
+    "chi2_statistic": 16.466666666666665,
+    "p_value": 0.625950488312361,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.08552552552552556,
+    "ks_p_value": 0.6120718759155637
+  },
+  "beta[2,10]": {
+    "chi2_statistic": 18.432432432432428,
+    "p_value": 0.4937482597292622,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.0763963963963964,
+    "ks_p_value": 0.7446981987145218
+  },
+  "beta[2,11]": {
+    "chi2_statistic": 22.866666666666664,
+    "p_value": 0.2432656222906492,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.1105105105105105,
+    "ks_p_value": 0.2966396715043071
+  },
+  "beta[2,12]": {
+    "chi2_statistic": 11.666666666666668,
+    "p_value": 0.8993749053398796,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.0814414414414415,
+    "ks_p_value": 0.6718150309196623
+  },
+  "beta[2,13]": {
+    "chi2_statistic": 23.93333333333333,
+    "p_value": 0.19872204671235377,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.07039039039039036,
+    "ks_p_value": 0.8258449655824126
+  },
+  "beta[2,14]": {
+    "chi2_statistic": 12.200000000000001,
+    "p_value": 0.8768993620455907,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.0696696696696697,
+    "ks_p_value": 0.8349040528065232
+  },
+  "beta[2,15]": {
+    "chi2_statistic": 14.866666666666667,
+    "p_value": 0.7310332068266133,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.07771771771771774,
+    "ks_p_value": 0.7258623949405592
+  },
+  "beta[2,16]": {
+    "chi2_statistic": 19.666666666666668,
+    "p_value": 0.4148810563820448,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.11567567567567569,
+    "ks_p_value": 0.24829906213918673
+  },
+  "beta[2,17]": {
+    "chi2_statistic": 15.72972972972973,
+    "p_value": 0.675227605103874,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.07351351351351348,
+    "ks_p_value": 0.7847424692724994
+  },
+  "beta[2,18]": {
+    "chi2_statistic": 12.73333333333333,
+    "p_value": 0.851938179957745,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.07195195195195203,
+    "ks_p_value": 0.8056420327720512
+  },
+  "beta[2,19]": {
+    "chi2_statistic": 36.27027027027027,
+    "p_value": 0.009777050390099653,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.19939939939939938,
+    "ks_p_value": 0.004335000084806192
+  },
+  "beta[2,20]": {
+    "chi2_statistic": 16.27027027027027,
+    "p_value": 0.6391760552078616,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.06690690690690693,
+    "ks_p_value": 0.8678502147797817
+  },
+  "beta[2,21]": {
+    "chi2_statistic": 35.66666666666667,
+    "p_value": 0.011595292230656262,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.13357357357357358,
+    "ks_p_value": 0.12549732629100294
+  },
+  "beta[2,22]": {
+    "chi2_statistic": 9.783783783783784,
+    "p_value": 0.9580791792300477,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.0996996996996996,
+    "ks_p_value": 0.4179575053647169
+  },
+  "beta[2,23]": {
+    "chi2_statistic": 24.999999999999996,
+    "p_value": 0.16054222136106852,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.09465465465465461,
+    "ks_p_value": 0.48333339876959935
+  },
+  "beta[2,24]": {
+    "chi2_statistic": 15.933333333333334,
+    "p_value": 0.6617213609323501,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.06846846846846846,
+    "ks_p_value": 0.8495920353193739
+  },
+  "beta[2,25]": {
+    "chi2_statistic": 13.849315068493151,
+    "p_value": 0.7924034818410861,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.08876876876876871,
+    "ks_p_value": 0.5651966008195755
+  },
+  "beta[2,26]": {
+    "chi2_statistic": 10.600000000000001,
+    "p_value": 0.9365617906814178,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.07651651651651653,
+    "ks_p_value": 0.742996374405601
+  },
+  "beta[2,27]": {
+    "chi2_statistic": 18.432432432432435,
+    "p_value": 0.49374825972926195,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.08756756756756756,
+    "ks_p_value": 0.5824536664112011
+  },
+  "beta[2,28]": {
+    "chi2_statistic": 13.266666666666664,
+    "p_value": 0.8246441209972124,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.08408408408408408,
+    "ks_p_value": 0.6331236415334627
+  },
+  "beta[2,29]": {
+    "chi2_statistic": 16.46666666666667,
+    "p_value": 0.6259504883123608,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.09861861861861865,
+    "ks_p_value": 0.43153462920046026
+  },
+  "beta[2,30]": {
+    "chi2_statistic": 32.46666666666667,
+    "p_value": 0.027673628843305365,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.10618618618618622,
+    "ks_p_value": 0.3419210706347017
+  },
+  "beta[2,31]": {
+    "chi2_statistic": 21.800000000000004,
+    "p_value": 0.29432276253642403,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.10522522522522523,
+    "ks_p_value": 0.3525792945861004
+  },
+  "beta[2,32]": {
+    "chi2_statistic": 18.066666666666666,
+    "p_value": 0.5179892345633155,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.08948948948948948,
+    "ks_p_value": 0.554915775212061
+  },
+  "beta[3,1]": {
+    "chi2_statistic": 19.66666666666666,
+    "p_value": 0.41488105638204525,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.10114114114114114,
+    "ks_p_value": 0.40024454173819374
+  },
+  "beta[3,2]": {
+    "chi2_statistic": 20.73333333333333,
+    "p_value": 0.35172090008004053,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.09297297297297302,
+    "ks_p_value": 0.5061854379498285
+  },
+  "beta[3,3]": {
+    "chi2_statistic": 23.400000000000002,
+    "p_value": 0.22018248869634016,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.14654654654654653,
+    "ks_p_value": 0.07190753529939264
+  },
+  "beta[3,4]": {
+    "chi2_statistic": 29.799999999999997,
+    "p_value": 0.05439958513924139,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.12600600600600598,
+    "ks_p_value": 0.16953740230902306
+  },
+  "beta[3,5]": {
+    "chi2_statistic": 18.066666666666666,
+    "p_value": 0.5179892345633155,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.15051051051051056,
+    "ks_p_value": 0.06003024781947065
+  },
+  "beta[3,6]": {
+    "chi2_statistic": 12.200000000000001,
+    "p_value": 0.8768993620455907,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.07687687687687689,
+    "ks_p_value": 0.737877615597507
+  },
+  "beta[3,7]": {
+    "chi2_statistic": 16.466666666666665,
+    "p_value": 0.625950488312361,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.09081081081081083,
+    "ks_p_value": 0.5362317803955877
+  },
+  "beta[3,8]": {
+    "chi2_statistic": 15.399999999999999,
+    "p_value": 0.6968579456096244,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.09081081081081083,
+    "ks_p_value": 0.5362317803955877
+  },
+  "beta[3,9]": {
+    "chi2_statistic": 13.266666666666666,
+    "p_value": 0.8246441209972123,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.05741741741741742,
+    "ks_p_value": 0.9536530898266835
+  },
+  "beta[3,10]": {
+    "chi2_statistic": 21.266666666666662,
+    "p_value": 0.32225496876661724,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.10786786786786785,
+    "ks_p_value": 0.3237889991420565
+  },
+  "beta[3,11]": {
+    "chi2_statistic": 11.133333333333335,
+    "p_value": 0.9192718932179073,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.06426426426426429,
+    "ks_p_value": 0.8963360387838896
+  },
+  "beta[3,12]": {
+    "chi2_statistic": 14.333333333333334,
+    "p_value": 0.7639244192506934,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.11303303303303303,
+    "ks_p_value": 0.2722557061772628
+  },
+  "beta[3,13]": {
+    "chi2_statistic": 9.243243243243242,
+    "p_value": 0.9692174232406249,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.0763963963963964,
+    "ks_p_value": 0.7446981987145218
+  },
+  "beta[3,14]": {
+    "chi2_statistic": 17.53333333333333,
+    "p_value": 0.5537835790960937,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.12456456456456455,
+    "ks_p_value": 0.1791710831000376
+  },
+  "beta[3,15]": {
+    "chi2_statistic": 11.133333333333331,
+    "p_value": 0.9192718932179076,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.1065465465465466,
+    "ks_p_value": 0.3379798104892422
+  },
+  "beta[3,16]": {
+    "chi2_statistic": 21.26666666666667,
+    "p_value": 0.3222549687666169,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.11183183183183176,
+    "ks_p_value": 0.2836811914082068
+  },
+  "beta[3,17]": {
+    "chi2_statistic": 11.666666666666664,
+    "p_value": 0.8993749053398798,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.06666666666666665,
+    "ks_p_value": 0.8705694824192632
+  },
+  "beta[3,18]": {
+    "chi2_statistic": 11.133333333333336,
+    "p_value": 0.919271893217907,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.09597597597597596,
+    "ks_p_value": 0.4657301441430559
+  },
+  "beta[3,19]": {
+    "chi2_statistic": 22.75675675675675,
+    "p_value": 0.2482256093221676,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.07279279279279283,
+    "ks_p_value": 0.7944679625084261
+  },
+  "beta[3,20]": {
+    "chi2_statistic": 14.866666666666665,
+    "p_value": 0.7310332068266135,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.07327327327327327,
+    "ks_p_value": 0.7879987154838543
+  },
+  "beta[3,21]": {
+    "chi2_statistic": 20.733333333333334,
+    "p_value": 0.35172090008004053,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.12492492492492491,
+    "ks_p_value": 0.1767233145456285
+  },
+  "beta[3,22]": {
+    "chi2_statistic": 16.466666666666665,
+    "p_value": 0.625950488312361,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.12696696696696697,
+    "ks_p_value": 0.16334541612174766
+  },
+  "beta[3,23]": {
+    "chi2_statistic": 10.6,
+    "p_value": 0.9365617906814179,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.05897897897897897,
+    "ks_p_value": 0.9428225887036831
+  },
+  "beta[3,24]": {
+    "chi2_statistic": 17.533333333333335,
+    "p_value": 0.5537835790960935,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.07315315315315318,
+    "ks_p_value": 0.7896215080439444
+  },
+  "beta[3,25]": {
+    "chi2_statistic": 17.53333333333333,
+    "p_value": 0.5537835790960937,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.08456456456456457,
+    "ks_p_value": 0.6260973742110336
+  },
+  "beta[3,26]": {
+    "chi2_statistic": 24.999999999999996,
+    "p_value": 0.16054222136106852,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.1505105105105105,
+    "ks_p_value": 0.060030247819469536
+  },
+  "beta[3,27]": {
+    "chi2_statistic": 30.866666666666664,
+    "p_value": 0.04175351303414225,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.09753753753753758,
+    "ks_p_value": 0.4453548133503282
+  },
+  "beta[3,28]": {
+    "chi2_statistic": 24.46666666666667,
+    "p_value": 0.17885618930697697,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.07783783783783782,
+    "ks_p_value": 0.724138453914386
+  },
+  "beta[3,29]": {
+    "chi2_statistic": 13.266666666666666,
+    "p_value": 0.8246441209972123,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.07195195195195203,
+    "ks_p_value": 0.8056420327720512
+  },
+  "beta[3,30]": {
+    "chi2_statistic": 27.133333333333333,
+    "p_value": 0.10158551949387677,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.124084084084084,
+    "ks_p_value": 0.18247601831289958
+  },
+  "beta[3,31]": {
+    "chi2_statistic": 31.933333333333334,
+    "p_value": 0.03179915164515259,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.06342342342342344,
+    "ks_p_value": 0.9047058570395361
+  },
+  "beta[3,32]": {
+    "chi2_statistic": 10.6,
+    "p_value": 0.9365617906814179,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.1581981981981982,
+    "ks_p_value": 0.04171581213287414
+  },
+  "beta[4,1]": {
+    "chi2_statistic": 21.266666666666666,
+    "p_value": 0.32225496876661713,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.06474474474474473,
+    "ks_p_value": 0.8913979315413793
+  },
+  "beta[4,2]": {
+    "chi2_statistic": 10.6,
+    "p_value": 0.9365617906814179,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.0796396396396396,
+    "ks_p_value": 0.698096863276114
+  },
+  "beta[4,3]": {
+    "chi2_statistic": 21.266666666666666,
+    "p_value": 0.32225496876661713,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.1267267267267267,
+    "ks_p_value": 0.16487634483347718
+  },
+  "beta[4,4]": {
+    "chi2_statistic": 15.933333333333334,
+    "p_value": 0.6617213609323501,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.08156156156156158,
+    "ks_p_value": 0.6700578568051749
+  },
+  "beta[4,5]": {
+    "chi2_statistic": 26.599999999999994,
+    "p_value": 0.11432079401857843,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.08360360360360353,
+    "ks_p_value": 0.6401560038871182
+  },
+  "beta[4,6]": {
+    "chi2_statistic": 13.266666666666664,
+    "p_value": 0.8246441209972124,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.08612612612612613,
+    "ks_p_value": 0.6033303162787675
+  },
+  "beta[4,7]": {
+    "chi2_statistic": 22.333333333333332,
+    "p_value": 0.26798219091337816,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.1195195195195195,
+    "ks_p_value": 0.2162905940688514
+  },
+  "beta[4,8]": {
+    "chi2_statistic": 15.399999999999999,
+    "p_value": 0.6968579456096244,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.061141141141141164,
+    "ks_p_value": 0.9256017662129601
+  },
+  "beta[4,9]": {
+    "chi2_statistic": 19.13333333333333,
+    "p_value": 0.44831306221325196,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.07243243243243241,
+    "ks_p_value": 0.799280478991437
+  },
+  "beta[4,10]": {
+    "chi2_statistic": 10.6,
+    "p_value": 0.9365617906814179,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.09153153153153154,
+    "ks_p_value": 0.5261391973221679
+  },
+  "beta[4,11]": {
+    "chi2_statistic": 19.666666666666668,
+    "p_value": 0.4148810563820448,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.08072072072072078,
+    "ks_p_value": 0.6823473949438231
+  },
+  "beta[4,12]": {
+    "chi2_statistic": 23.933333333333326,
+    "p_value": 0.198722046712354,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.09969969969969972,
+    "ks_p_value": 0.41795750536471576
+  },
+  "beta[4,13]": {
+    "chi2_statistic": 15.4,
+    "p_value": 0.6968579456096247,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.08444444444444443,
+    "ks_p_value": 0.6278532481579537
+  },
+  "beta[4,14]": {
+    "chi2_statistic": 22.866666666666664,
+    "p_value": 0.2432656222906492,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.14402402402402403,
+    "ks_p_value": 0.08045828834398186
+  },
+  "beta[4,15]": {
+    "chi2_statistic": 12.733333333333334,
+    "p_value": 0.8519381799577449,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.059579579579579586,
+    "ks_p_value": 0.9382965347600088
+  },
+  "beta[4,16]": {
+    "chi2_statistic": 25.533333333333328,
+    "p_value": 0.1437255293045374,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.11423423423423423,
+    "ks_p_value": 0.26116630271434205
+  },
+  "beta[4,17]": {
+    "chi2_statistic": 13.799999999999999,
+    "p_value": 0.7952228793212334,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.09693693693693695,
+    "ks_p_value": 0.4531348526286122
+  },
+  "beta[4,18]": {
+    "chi2_statistic": 12.733333333333334,
+    "p_value": 0.8519381799577449,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.10966966966966962,
+    "ks_p_value": 0.3050997004838718
+  },
+  "beta[4,19]": {
+    "chi2_statistic": 23.933333333333334,
+    "p_value": 0.1987220467123535,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.10126126126126125,
+    "ks_p_value": 0.39878896508341466
+  },
+  "beta[4,20]": {
+    "chi2_statistic": 13.26666666666667,
+    "p_value": 0.8246441209972122,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.09117117117117118,
+    "ks_p_value": 0.5311763135150243
+  },
+  "beta[4,21]": {
+    "chi2_statistic": 27.666666666666664,
+    "p_value": 0.09005700862500464,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.07843843843843844,
+    "ks_p_value": 0.7154936879117495
+  },
+  "beta[4,22]": {
+    "chi2_statistic": 20.054054054054053,
+    "p_value": 0.39133212657579464,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.05837837837837839,
+    "ks_p_value": 0.9471486343416959
+  },
+  "beta[4,23]": {
+    "chi2_statistic": 20.199999999999996,
+    "p_value": 0.38263477994512707,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.0735135135135135,
+    "ks_p_value": 0.7847424692724994
+  },
+  "beta[4,24]": {
+    "chi2_statistic": 22.333333333333336,
+    "p_value": 0.2679821909133778,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.16336336336336338,
+    "ks_p_value": 0.03233208991577353
+  },
+  "beta[4,25]": {
+    "chi2_statistic": 26.183098591549303,
+    "p_value": 0.12516745307935154,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.1351351351351352,
+    "ks_p_value": 0.11768407976919881
+  },
+  "beta[4,26]": {
+    "chi2_statistic": 18.599999999999998,
+    "p_value": 0.48275240319942647,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.1174774774774775,
+    "ks_p_value": 0.2328821548274503
+  },
+  "beta[4,27]": {
+    "chi2_statistic": 14.108108108108109,
+    "p_value": 0.7773530783373791,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.10474474474474482,
+    "ks_p_value": 0.35798892360771056
+  },
+  "beta[4,28]": {
+    "chi2_statistic": 15.189189189189186,
+    "p_value": 0.7104994391946831,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.05021021021021016,
+    "ks_p_value": 0.9867174898461571
+  },
+  "beta[4,29]": {
+    "chi2_statistic": 14.333333333333334,
+    "p_value": 0.7639244192506934,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.0696696696696697,
+    "ks_p_value": 0.8349040528065232
+  },
+  "beta[4,30]": {
+    "chi2_statistic": 16.466666666666665,
+    "p_value": 0.625950488312361,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.10126126126126128,
+    "ks_p_value": 0.398788965083416
+  },
+  "beta[4,31]": {
+    "chi2_statistic": 24.46666666666667,
+    "p_value": 0.17885618930697697,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.1351351351351352,
+    "ks_p_value": 0.11768407976919881
+  },
+  "beta[4,32]": {
+    "chi2_statistic": 24.466666666666665,
+    "p_value": 0.17885618930697697,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.1418618618618619,
+    "ks_p_value": 0.08845393834341378
+  },
+  "delta[1]": {
+    "chi2_statistic": 20.2,
+    "p_value": 0.3826347799451272,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.07555555555555549,
+    "ks_p_value": 0.7565440619302048
+  },
+  "delta[2]": {
+    "chi2_statistic": 29.8,
+    "p_value": 0.054399585139241265,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.06882882882882882,
+    "ks_p_value": 0.8452417245544931
+  },
+  "delta[3]": {
+    "chi2_statistic": 19.666666666666668,
+    "p_value": 0.4148810563820448,
+    "n_bins": 20,
+    "n_simulations": 75,
+    "ks_statistic": 0.09333333333333332,
+    "ks_p_value": 0.5012483279116242
+  }
+}

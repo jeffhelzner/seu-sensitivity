@@ -53,7 +53,7 @@ This study is one of two new cells in a $2 \times 2$ factorial design (LLM × Ta
 
 ::: {.callout-important}
 ## Summary of Findings
-The monotonic temperature–α relationship observed in the initial temperature study (GPT-4o, insurance) was **not replicated** with Claude 3.5 Sonnet on the same insurance task. The posterior slope is near zero ($\Delta\alpha / \Delta T \approx -3$, $P(\text{slope} < 0) \approx 0.56$), and the α estimates show a non-monotonic pattern. Combined with the Ellsberg study results, this suggests the **LLM** is the dominant factor: Claude 3.5 Sonnet does not exhibit the temperature–sensitivity relationship that GPT-4o does, regardless of task domain.
+The monotonic temperature–α relationship observed in the initial temperature study (GPT-4o, insurance) was **not replicated** with Claude 3.5 Sonnet on the same insurance task. The posterior slope is near zero ($\Delta\alpha / \Delta T \approx -3$, $P(\text{slope} < 0) \approx 0.56$), and the α estimates show a non-monotonic pattern. By contrast, the initial GPT-4o study found slope $\approx -25$ with $P(\text{slope} < 0) > 0.99$. Combined with the Ellsberg study results, this suggests the **LLM** is the dominant factor: Claude 3.5 Sonnet does not exhibit the temperature–sensitivity relationship that GPT-4o does, regardless of task domain.
 :::
 
 ## Experimental Design {#sec-design}
@@ -83,8 +83,8 @@ conditions
 ```
 
 ::: {.callout-note}
-## Temperature Range
-The Anthropic API supports temperature values in $[0.0, 1.0]$, the same range used in the Ellsberg study. The initial temperature study (GPT-4o) used $T \in \{0.0, 0.3, 0.7, 1.0, 1.5\}$ over OpenAI's wider $[0.0, 2.0]$ range.
+## Temperature Range and Grid Choice
+The Anthropic API supports temperature values in $[0.0, 1.0]$, compared to OpenAI's wider $[0.0, 2.0]$ range. We adopt the same temperature grid as the Ellsberg study ($T \in \{0.0, 0.2, 0.5, 0.8, 1.0\}$) to enable direct comparison within the Claude row of the factorial design. The initial temperature study (GPT-4o) used $T \in \{0.0, 0.3, 0.7, 1.0, 1.5\}$. Because the grid points and range differ across providers, quantitative slope comparisons should be interpreted with care: the narrower Anthropic range (absolute span = 1.0 vs. 1.5) may reduce statistical power to detect a temperature effect, and the absolute temperature values may not correspond to equivalent levels of next-token entropy across providers.
 :::
 
 ### Design Parameters
@@ -132,6 +132,8 @@ print(f"  First 5 components: {cumvar[4]:.1%}")
 print(f"  First 10 components: {cumvar[9]:.1%}")
 ```
 
+The PCA variance profile is comparable to the initial temperature study's embeddings, confirming that the feature construction captures a similar proportion of the embedding space for Claude as it does for GPT-4o. This rules out gross differences in feature-space geometry as an explanation for any divergence in results.
+
 ### Data Quality
 
 ```{python}
@@ -144,6 +146,8 @@ print(f"  Overall: {na['overall']['na']} / {na['overall']['total']} ({na['overal
 for key, val in na['per_temperature'].items():
     print(f"  {key}: {val['na']} / {val['total']} ({val['na_rate']:.1%})")
 ```
+
+NA rates are uniformly low across all temperature conditions, with no systematic trend suggesting temperature-dependent data quality issues. The rates are comparable to those in the initial temperature study, confirming that Claude's response completeness is not a confound.
 
 ### Comparison with Other Factorial Cells
 
@@ -311,7 +315,7 @@ metrics
 
 ::: {.callout-note}
 ## SBC Not Performed
-Simulation-based calibration (SBC) was not performed for this cell. The m_01 model passed SBC in the initial temperature study report. Since the model is structurally identical and only the data source (Claude vs. GPT-4o) differs, the structural calibration properties are unchanged.
+Simulation-based calibration (SBC) was not performed for this cell. The m_01 model passed SBC in the initial temperature study report. SBC validates the *model's* computational faithfulness (i.e., whether the posterior computation recovers the prior under simulated data), which depends on the model structure and prior specification — both of which are identical here. The study-specific parameter recovery analysis (above) provides validation that the model is identifiable under this study's actual data characteristics, including any differences in Claude's embedding distributions relative to GPT-4o.
 :::
 
 
@@ -660,6 +664,119 @@ cross = pd.DataFrame([
 cross
 ```
 
+### Formal Cross-Study Slope Comparison {#sec-formal-comparison}
+
+To move beyond visual comparison, we compute the posterior probability that the GPT-4o slope is more negative than the Claude slope. Because the two studies were fit independently, we draw from each study's slope posterior via Monte Carlo and compute the overlap.
+
+```{python}
+#| label: formal-slope-comparison
+#| echo: true
+
+# Load GPT-4o alpha draws from the initial study
+initial_temps_grid = [0.0, 0.3, 0.7, 1.0, 1.5]
+initial_alpha_draws = {}
+for t in initial_temps_grid:
+    key = f"T{str(t).replace('.', '_')}"
+    data = np.load(initial_data_dir / f"alpha_draws_{key}.npz")
+    initial_alpha_draws[t] = data['alpha']
+
+# Compute GPT-4o slope posterior
+initial_temp_array = np.array(initial_temps_grid)
+n_draws_initial = len(initial_alpha_draws[initial_temps_grid[0]])
+initial_slope_draws = np.empty(n_draws_initial)
+for i in range(n_draws_initial):
+    alphas_i = np.array([initial_alpha_draws[t][i] for t in initial_temps_grid])
+    initial_slope_draws[i] = np.cov(initial_temp_array, alphas_i)[0, 1] / np.var(initial_temp_array)
+
+# Use minimum draw count for paired comparison
+n_compare = min(len(slope_draws), len(initial_slope_draws))
+p_gpt4o_more_negative = np.mean(initial_slope_draws[:n_compare] < slope_draws[:n_compare])
+
+print(f"Cross-study slope comparison:")
+print(f"  GPT-4o slope: median = {np.median(initial_slope_draws):.1f}, "
+      f"90% CI = [{np.percentile(initial_slope_draws, 5):.1f}, {np.percentile(initial_slope_draws, 95):.1f}]")
+print(f"  Claude slope:  median = {np.median(slope_draws):.1f}, "
+      f"90% CI = [{np.percentile(slope_draws, 5):.1f}, {np.percentile(slope_draws, 95):.1f}]")
+print(f"  P(GPT-4o slope < Claude slope) = {p_gpt4o_more_negative:.3f}")
+print(f"  (i.e., probability that GPT-4o has a more negative temperature effect)")
+```
+
+This provides a formal posterior quantity for the core claim that the temperature–sensitivity relationship differs between LLMs.
+
+::: {.callout-note}
+## Temperature Range Caveat for Slope Comparison
+The GPT-4o slope is estimated over a wider temperature range ($\Delta T = 1.5$) than the Claude slope ($\Delta T = 1.0$). If the GPT-4o relationship is nonlinear (with steeper decline at higher temperatures), the wider range inflates the GPT-4o slope magnitude. However, even restricting attention to the qualitative contrast — clear monotonic decline vs. flat oscillation — the LLM effect is unambiguous.
+:::
+
+### Characterising the Oscillatory Pattern {#sec-oscillation}
+
+The non-monotonic pattern in Claude's α estimates — a dip at $T = 0.2$, rise at $T = 0.5$ and $T = 0.8$, dip at $T = 1.0$ — echoes the oscillation seen in the Ellsberg study. Is this a genuine feature of Claude's behaviour, or merely posterior noise around a flat line?
+
+```{python}
+#| label: oscillation-analysis
+#| echo: true
+
+# Compute the range (max - min) of alpha across temperatures for each posterior draw
+alpha_range_draws = np.empty(n_draws)
+for i in range(n_draws):
+    vals = np.array([alpha_draws[t][i] for t in temperatures])
+    alpha_range_draws[i] = np.max(vals) - np.min(vals)
+
+# Compare against a "flat" baseline: what range would we expect if all
+# temperatures had the same true alpha? Use the overall mean draw as reference.
+overall_mean_draws = np.mean([alpha_draws[t] for t in temperatures], axis=0)
+
+# Summary statistics
+median_range = np.median(alpha_range_draws)
+q05_range, q95_range = np.percentile(alpha_range_draws, [5, 95])
+
+# Check pairwise probabilities for notable reversals
+notable_reversals = []
+for key, prob in pairs.items():
+    t1, t2 = key.split('_vs_')
+    if prob < 0.35:
+        notable_reversals.append((t1, t2, prob))
+    elif prob > 0.65:
+        pass  # expected direction, not a reversal
+
+print(f"Oscillation analysis:")
+print(f"  Posterior range of α across temperatures:")
+print(f"    Median: {median_range:.1f}")
+print(f"    90% CI: [{q05_range:.1f}, {q95_range:.1f}]")
+print()
+print(f"  Pairwise probabilities near or below 0.50 (potential reversals):")
+for key, prob in pairs.items():
+    t1, t2 = key.split('_vs_')
+    if prob < 0.50:
+        print(f"    P(α(T={t1}) > α(T={t2})) = {prob:.3f}  [reversed from monotonic prediction]")
+print()
+print(f"  Notable reversals (P < 0.35): {len(notable_reversals)}")
+for t1, t2, p in notable_reversals:
+    print(f"    P(α(T={t1}) > α(T={t2})) = {p:.3f}")
+```
+
+```{python}
+#| label: oscillation-interpretation
+#| echo: false
+
+# Check if any pairwise comparison reaches conventional "notable" threshold
+any_notable = any(prob > 0.80 or prob < 0.20 for prob in pairs.values())
+n_near_chance = sum(1 for prob in pairs.values() if 0.35 <= prob <= 0.65)
+n_total_pairs = len(pairs)
+
+print(f"Assessment:")
+print(f"  Pairwise comparisons near chance (0.35-0.65): {n_near_chance}/{n_total_pairs}")
+print(f"  Any pairwise comparison reaching notable level (>0.80 or <0.20): {any_notable}")
+if not any_notable:
+    print(f"  → The oscillatory pattern is consistent with posterior noise around a flat function.")
+    print(f"    No individual pairwise comparison provides strong evidence for a genuine non-monotonic")
+    print(f"    structure. The most parsimonious interpretation is that temperature has approximately")
+    print(f"    zero effect on Claude's sensitivity for this task.")
+else:
+    print(f"  → Some pairwise comparisons suggest the oscillation may have a genuine component,")
+    print(f"    warranting further investigation.")
+```
+
 ### Summary Heatmap
 
 ```{python}
@@ -727,9 +844,9 @@ Claude 3.5 Sonnet shows essentially **no temperature–sensitivity relationship*
 
 1. **No slope.** The posterior slope $\Delta\alpha / \Delta T$ has a median of $\approx -3$, with the 90% CI spanning both positive and negative values. $P(\text{slope} < 0) \approx 0.56$ — barely above chance.
 
-2. **Non-monotonic pattern.** The α estimates oscillate: dip at $T = 0.2$, rise at $T = 0.5$ and $T = 0.8$, then dip again at $T = 1.0$. This mirrors the oscillatory pattern seen in the Ellsberg study with Claude.
+2. **Non-monotonic pattern.** The α estimates oscillate: dip at $T = 0.2$, rise at $T = 0.5$ and $T = 0.8$, then dip again at $T = 1.0$. This mirrors the oscillatory pattern seen in the Ellsberg study with Claude. However, the oscillation analysis in @sec-oscillation shows that no individual pairwise comparison reaches a conventionally notable level, suggesting the non-monotonic pattern is consistent with posterior noise around a flat function rather than a genuine oscillatory structure.
 
-3. **Near-zero strict monotonicity.** $P(\text{strictly decreasing}) \approx 0.008$.
+3. **Near-zero strict monotonicity.** $P(\alpha \text{ strictly decreasing across all five temperatures}) = 0.008$.
 
 4. **Good model fit.** Posterior predictive checks show no evidence of misfit, confirming the pattern reflects the data, not a modelling artefact.
 
@@ -740,10 +857,52 @@ This cell, combined with the initial study (GPT-4o × Insurance), provides the *
 - **GPT-4o**: slope $\approx -25$, $P(\text{slope} < 0) > 0.99$
 - **Claude**: slope $\approx -3$, $P(\text{slope} < 0) \approx 0.56$
 
-This strongly suggests the temperature–sensitivity effect is **LLM-specific** rather than a universal property of temperature scaling. The full $2 \times 2$ factorial analysis (Phase 8 report) will formalise this comparison by computing the interaction between LLM and task factors.
+The formal cross-study comparison (@sec-formal-comparison) provides a direct posterior quantity for this contrast. This strongly suggests the temperature–sensitivity effect is **LLM-specific** rather than a universal property of temperature scaling. The full $2 \times 2$ factorial analysis ([factorial synthesis report](../factorial_synthesis/01_factorial_synthesis.qmd)) formalises this comparison by computing the interaction between LLM and task factors.
+
+### Why Does the Effect Differ Across LLMs? {#sec-why-differ}
+
+The central finding of this study — that Claude does not exhibit the temperature–sensitivity relationship observed with GPT-4o — invites the question of *why* the two LLMs diverge. Several candidate explanations merit consideration, though the current data cannot definitively adjudicate among them. We label these as post-hoc hypotheses to be tested in future work.
+
+**Baseline decision noise.** If Claude 3.5 Sonnet already operates with relatively high internal decision noise at $T = 0.0$ (relative to GPT-4o), increasing temperature may have less room to degrade choice consistency. In the quantal response framework, this would correspond to Claude starting from a lower "effective α" even at its most deterministic setting, with temperature adding noise to a process already near a noise floor. The absolute α levels observed here — which cluster in a relatively narrow range — are consistent with this hypothesis, though they are not conclusive.
+
+**Assessment-stage vs. choice-stage effects.** Temperature affects both the assessment text (which determines the embeddings and hence the features entering the model) and potentially the choice itself. If Claude produces more stereotyped or less temperature-sensitive assessments than GPT-4o across the temperature range, the features may not vary enough to drive α differences. The comparable PCA variance profiles across studies (noted in @sec-design) suggest that gross differences in embedding geometry are not the explanation, but more fine-grained measures — such as the mean pairwise distance between embeddings at each temperature — could reveal subtler differences in assessment diversity.
+
+**Training and alignment differences.** Claude's post-training process (Constitutional AI, RLHF) may produce decision-making behaviour that is more robust to temperature perturbation than GPT-4o's. If Claude's alignment training effectively regularises its outputs toward consistent, policy-compliant responses, temperature increases might modulate surface-level linguistic variety without substantially affecting the underlying decision process. This would be consistent with the observed pattern in which Claude produces varied text (different assessment wordings across temperatures) without changing *which* alternative it selects.
+
+**Non-equivalent temperature parameterisation.** The external temperature parameter may not correspond to equivalent levels of next-token entropy across providers. Anthropic and OpenAI implement temperature scaling in architectures that differ in layer count, attention mechanism, and post-training procedures. A temperature of $T = 0.5$ in one model may correspond to a very different effective sampling entropy than $T = 0.5$ in the other. While this complicates quantitative slope comparisons, it cannot fully explain the qualitative contrast: GPT-4o shows a clear, strong monotonic decline whereas Claude shows no discernible trend whatsoever.
+
+These hypotheses are not mutually exclusive and may interact. Testing them would require access to model internals (e.g., next-token entropy distributions at each temperature level) or controlled experiments manipulating assessment diversity independently of temperature. The key empirical contribution of this study is establishing that the LLM-specificity is robust: it holds when the task is held constant.
+
+### Connection to JDM Literature
+
+The finding that different LLMs respond differently to temperature manipulation resonates with a substantial literature on individual differences in stochastic choice. In human decision-making, individuals vary in the degree to which their choices approximate expected utility maximisation, and this heterogeneity is a persistent finding across paradigms (Hey & Orme, 1994; Wilcox, 2011). The sensitivity parameter α in our softmax framework is analogous to the "trembling hand" or noise parameter in stochastic choice models: some decision-makers exhibit consistently high α (near-deterministic EU maximisation) while others show low α (near-random choice).
+
+From this perspective, LLMs may be viewed as exhibiting model-specific "decision styles" — with GPT-4o showing a clear temperature-dependent gradient in decision noise while Claude maintains relatively stable sensitivity. This parallels human findings in which some individuals' choice consistency is highly malleable (e.g., through time pressure or cognitive load) while others' is stable (Busemeyer & Townsend, 1993). The LLM-specificity finding suggests that temperature is not a universal dial for decision quality, but rather interacts with model-specific properties in ways that require empirical characterisation for each LLM family.
+
+### Implications for Applied LLM Deployment
+
+The LLM-specific nature of the temperature–sensitivity relationship has practical consequences for users who tune temperature to control decision quality across LLM providers. A practitioner who observes that lowering temperature improves GPT-4o's choice consistency cannot assume the same calibration will transfer to Claude — or to any other model. Temperature tuning strategies must be validated empirically for each provider, particularly in high-stakes decision-support applications.
+
+### Limitations {#sec-limitations}
+
+Several limitations should be noted:
+
+1. **Temperature range and grid comparability.** The Anthropic API constrains temperature to $[0.0, 1.0]$, whereas the initial GPT-4o study used $[0.0, 1.5]$. The narrower range reduces statistical power to detect a temperature effect and complicates quantitative slope comparisons. Additionally, the absolute temperature values may not correspond to equivalent next-token entropy levels across providers. While the qualitative contrast (clear monotonic decline vs. flat pattern) is unambiguous, precise numerical comparisons of slope magnitudes should be interpreted cautiously.
+
+2. **Prior sensitivity.** The m_01 prior on α is Lognormal(3.0, 0.75), inherited from the initial temperature study. We did not conduct a formal prior sensitivity analysis for this cell. However, with $M \approx 300$ observations per condition and α posteriors that are substantially narrower than the prior, the likelihood dominates the prior contribution. A formal check under alternative priors (e.g., Lognormal(3.0, 1.0) or Lognormal(2.5, 0.75)) would provide additional reassurance that the null finding is prior-robust, though we expect the conclusion to be unchanged given the data volume.
+
+3. **SBC by proxy.** SBC was inherited from the initial study rather than re-run with Claude-generated data. While SBC validates the computational algorithm (which is model-structural, not data-source-specific), the parameter recovery analysis provides direct validation under this study's conditions.
+
+4. **Single embedding model.** All studies in the factorial design use text-embedding-3-small (OpenAI) for embedding construction. Different embedding models might yield different feature spaces and hence different α estimates, though the consistency of the PCA variance profile across studies suggests robustness to this choice.
+
+5. **Position bias.** While the $3\times$ position counterbalancing design addresses systematic position effects, we did not conduct a separate analysis of whether Claude's position bias patterns differ from GPT-4o's. Differential position sensitivity could in principle contribute to the observed differences, though it seems unlikely to explain the qualitative absence of a temperature trend.
+
+6. **Formal interaction test deferred.** The full 2×2 interaction test (LLM × Task) is computed in the [factorial synthesis report](../factorial_synthesis/01_factorial_synthesis.qmd) rather than here, to avoid redundancy and ensure consistency across cells.
 
 
 ## Reproducibility {#sec-reproducibility}
+
+**Codebase version:** `8c1b772` (git commit hash at time of analysis)
 
 ### Data Snapshot
 

@@ -123,8 +123,8 @@ This report presents the results of a **$2 \times 2$ factorial design** that dis
 | **Claude 3.5 Sonnet** | New: Claude × Insurance | Ellsberg study |
 
 ::: {.callout-important}
-## Key Finding
-The **LLM is the dominant factor**. GPT-4o shows a clear negative temperature–$\alpha$ relationship on *both* tasks, while Claude 3.5 Sonnet shows weak or absent effects on *both* tasks. The task domain plays a secondary role — Ellsberg gambles may amplify the effect for GPT-4o but do not create it for Claude.
+## Preview of Key Finding
+The **LLM factor accounts for most of the qualitative variation** in temperature–sensitivity patterns. GPT-4o shows a clear negative temperature–$\alpha$ relationship on *both* tasks, while Claude 3.5 Sonnet shows weak or absent effects on *both* tasks. The task domain plays a secondary role — Ellsberg gambles may amplify the effect for GPT-4o but do not create it for Claude. The between-LLM comparison, while directionally clear, carries more uncertainty than the within-LLM evidence (see @sec-discussion for calibrated claims).
 :::
 
 
@@ -156,6 +156,40 @@ design
 ::: {.callout-note}
 ## Temperature Scales Are Not Comparable Across Providers
 The GPT-4o cells use temperatures in $[0.0, 1.5]$ (OpenAI range), while Claude cells use $[0.0, 1.0]$ (Anthropic range). The same numerical temperature (e.g., $T = 0.7$) produces different effective randomness levels in different LLMs. Comparisons across LLMs therefore focus on the **qualitative pattern** (monotonic decline vs. flat / non-monotonic) rather than quantitative slope magnitudes.
+:::
+
+
+## Hypotheses and Design Chronology {#sec-hypotheses}
+
+The factorial synthesis tests three predictions about the temperature–$\alpha$ relationship:
+
+1. **LLM main effect (H1):** The probability of a negative temperature–$\alpha$ slope will be higher for GPT-4o than for Claude within both tasks. That is, P(slope < 0) for GPT-4o cells will exceed the corresponding values for Claude cells.
+
+2. **Task secondary effect (H2):** The task effect (Insurance vs. Ellsberg) will be smaller than the LLM effect. Within each LLM, the qualitative pattern will be similar across tasks.
+
+3. **Minimal interaction (H3):** The LLM and task effects will be approximately additive — i.e., the difference-in-differences of slopes will be near zero.
+
+::: {.callout-note}
+## Design Chronology
+This factorial design was not pre-registered. The initial study (GPT-4o × Insurance) and the Ellsberg study (Claude × Ellsberg) were conducted first. When the replication failed, the confound between LLM and task was identified, and the two missing cells (GPT-4o × Ellsberg, Claude × Insurance) were run *reactively* to disentangle the factors. The factorial framing was thus imposed post-hoc, and the analysis should be understood as **exploratory** rather than confirmatory. Nevertheless, the design logic is sound: the four cells provide the minimal structure needed to decompose the original confound into main effects and an interaction.
+:::
+
+
+## Methods {#sec-methods}
+
+### Analytical Approach
+
+This synthesis loads pre-computed posterior draws from four independently fitted Bayesian models — one per factorial cell. Each cell was modelled using task-appropriate Stan models: `m_01` (softmax with $K = 3$ alternatives) for insurance cells and `m_02` ($K = 4$) for Ellsberg cells. The α parameter was estimated separately at each temperature level within each cell.
+
+**Slope computation.** The temperature–$\alpha$ slope for each posterior draw is computed by ordinary least-squares regression of the five α values on the temperature grid. This is a *derived summary* computed from independent per-temperature posteriors, not a parameter estimated within the Bayesian model. The slope captures the global linear trend but cannot distinguish between linear and non-linear temperature–α relationships. Its uncertainty reflects posterior uncertainty in the per-temperature α estimates but not model uncertainty about the functional form of the temperature–α relationship.
+
+**Main effects and interaction.** The LLM main effect is assessed by comparing slope draws between GPT-4o and Claude cells within each task. The task main effect is assessed analogously. The interaction is quantified as the difference-in-differences of slopes: (GPT-Ellsberg − GPT-Insurance) − (Claude-Ellsberg − Claude-Insurance). Because the four cells were fitted independently with no shared parameters, between-cell comparisons combine two sources of posterior uncertainty and are inherently wider than within-cell contrasts.
+
+**Limitations of the independent-fits approach.** A more statistically coherent analysis would fit a single hierarchical model with LLM, task, and temperature as factors. The current approach was chosen to maintain consistency with the individual cell reports and because the foundational validation applies to the within-cell models. However, independent fits cannot share information across cells and may underestimate the precision of between-cell contrasts. The cross-cell comparisons should therefore be understood as exploratory summaries rather than formal inferential conclusions.
+
+::: {.callout-note}
+## Prior Differences Across Tasks
+The insurance cells use `m_01` with prior $\alpha \sim \text{Lognormal}(3.0, 0.75)$, while the Ellsberg cells use `m_02` with prior $\alpha \sim \text{Lognormal}(3.5, 0.75)$. This difference reflects the prior predictive calibration for $K = 3$ vs. $K = 4$ settings and is methodologically appropriate for within-task comparisons. However, it means that cross-task comparisons of α *levels* may partly reflect prior differences rather than data differences. The slope analysis (within-task changes across temperature) is less affected, since the prior is constant within each task. Readers should interpret cross-task level differences cautiously.
 :::
 
 
@@ -265,6 +299,10 @@ for cell_id in ['(1,1)', '(1,2)', '(2,1)', '(2,2)']:
 
 pd.DataFrame(rows)
 ```
+
+The "Pattern" labels in @tbl-monotonicity use the following descriptive scheme: "Declining" for P(slope < 0) > 0.9, "Weak decline" for P(slope < 0) > 0.7, and "Flat / non-monotonic" otherwise. These thresholds are intended as interpretive aids, not formal inferential cutoffs. Readers should attend to the continuous P(slope < 0) values rather than the categorical labels.
+
+Note that the strict monotonicity probabilities — P(strict mono ↓) — are remarkably low even for GPT-4o (0.12 and 0.09), meaning that in roughly 90% of posterior draws, at least one adjacent temperature pair shows a local reversal. The global slope is clearly negative for GPT-4o, but the trajectory is a *noisy decline* rather than a smooth monotonic function. This is consistent with non-monotonic local variation around a global negative trend, and suggests that the temperature–α relationship, while real, is not a simple step-wise degradation. For Claude, the near-zero strict monotonicity probabilities are expected given the absence of a global trend.
 
 ```{python}
 #| label: fig-slope-comparison
@@ -384,7 +422,7 @@ for task, pairs in [('Insurance', [('(1,1)', '(2,1)')]), ('Ellsberg', [('(1,2)',
 pd.DataFrame(llm_rows)
 ```
 
-Within both tasks, GPT-4o's slope is substantially more negative than Claude's. The probability that GPT-4o's slope is more negative is high in both cases, confirming a **consistent LLM main effect**.
+Within both tasks, GPT-4o's slope is more negative than Claude's. The probability that GPT-4o's slope is more negative than Claude's is moderately high for both tasks (see P(GPT slope < Claude slope) in @tbl-llm-effect), indicating a **consistent LLM main effect** in qualitative terms. However, these between-LLM probabilities (~0.80–0.82) are notably weaker than the within-LLM evidence for GPT-4o's negative slope (P > 0.98). The between-cell comparison carries additional uncertainty because the four cells were fitted independently with no shared parameters.
 
 
 ### Task Main Effect {#sec-task-effect}
@@ -479,8 +517,36 @@ The task effect is **weaker and less consistent** than the LLM effect. For GPT-4
 Is the temperature–$\alpha$ relationship **specific to a particular LLM–task combination**, or is it decomposable into additive main effects?
 
 ```{python}
+#| label: fig-interaction-slopes
+#| fig-cap: "Primary interaction plot in terms of slope medians. The GPT-4o line (both cells negative) is well-separated from the near-zero Claude line. The roughly parallel pattern is consistent with an additive structure, though the data cannot rule out moderate interactions (see text)."
+#| fig-height: 5
+
+fig, ax = plt.subplots(figsize=(8, 5))
+
+tasks = ['Insurance', 'Ellsberg']
+gpt_slopes = [np.median(CELLS['(1,1)']['slope_draws']),
+              np.median(CELLS['(1,2)']['slope_draws'])]
+claude_slopes = [np.median(CELLS['(2,1)']['slope_draws']),
+                 np.median(CELLS['(2,2)']['slope_draws'])]
+
+ax.plot(tasks, gpt_slopes, 'o-', color=SEU_COLORS['primary'], linewidth=2.5,
+        markersize=10, label='GPT-4o')
+ax.plot(tasks, claude_slopes, 's-', color=SEU_COLORS['accent'], linewidth=2.5,
+        markersize=10, label='Claude')
+
+ax.axhline(y=0, color='gray', linestyle='--', alpha=0.5)
+ax.set_ylabel('Slope median (Δα / ΔT)')
+ax.set_title('Interaction Plot: Slope Magnitude')
+ax.legend(fontsize=12)
+ax.grid(axis='y', alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+```
+
+```{python}
 #| label: fig-interaction
-#| fig-cap: "Interaction plot. Each line represents one LLM; each point represents one task. The slopes show the relative change in P(slope < 0) from insurance to Ellsberg. The lines are roughly parallel, suggesting minimal interaction — the LLM difference is similar regardless of task."
+#| fig-cap: "Supplementary interaction plot using P(slope < 0) as the dependent variable. Note that P(slope < 0) is a tail probability — a non-linear transformation of the slope distribution — so parallel lines here do not strictly imply additive effects on the slope scale. See @fig-interaction-slopes for the primary interaction analysis on the linear slope scale."
 #| fig-height: 5
 
 fig, ax = plt.subplots(figsize=(8, 5))
@@ -498,33 +564,6 @@ ax.set_ylabel('P(slope < 0)')
 ax.set_title('Interaction Plot: LLM × Task')
 ax.legend(fontsize=12)
 ax.set_ylim(0.4, 1.05)
-ax.grid(axis='y', alpha=0.3)
-
-plt.tight_layout()
-plt.show()
-```
-
-```{python}
-#| label: fig-interaction-slopes
-#| fig-cap: "Interaction in terms of slope medians. The GPT-4o line (both cells negative) is well-separated from the near-zero Claude line. The roughly parallel pattern indicates an additive structure with the LLM as the dominant factor."
-#| fig-height: 5
-
-fig, ax = plt.subplots(figsize=(8, 5))
-
-gpt_slopes = [np.median(CELLS['(1,1)']['slope_draws']),
-              np.median(CELLS['(1,2)']['slope_draws'])]
-claude_slopes = [np.median(CELLS['(2,1)']['slope_draws']),
-                 np.median(CELLS['(2,2)']['slope_draws'])]
-
-ax.plot(tasks, gpt_slopes, 'o-', color=SEU_COLORS['primary'], linewidth=2.5,
-        markersize=10, label='GPT-4o')
-ax.plot(tasks, claude_slopes, 's-', color=SEU_COLORS['accent'], linewidth=2.5,
-        markersize=10, label='Claude')
-
-ax.axhline(y=0, color='gray', linestyle='--', alpha=0.5)
-ax.set_ylabel('Slope median (Δα / ΔT)')
-ax.set_title('Interaction Plot: Slope Magnitude')
-ax.legend(fontsize=12)
 ax.grid(axis='y', alpha=0.3)
 
 plt.tight_layout()
@@ -550,9 +589,12 @@ print(f"  90% CI: [{np.percentile(interaction_draws, 5):.1f}, {np.percentile(int
 print(f"  P(interaction > 0): {np.mean(interaction_draws > 0):.3f}")
 print(f"  P(interaction < 0): {np.mean(interaction_draws < 0):.3f}")
 print(f"")
-print(f"An interaction near zero indicates additive (non-interacting) effects.")
-print(f"The 90% CI spanning zero is consistent with a purely additive model.")
+print(f"The 90% CI is extremely wide, reflecting the propagation of uncertainty")
+print(f"through the difference-in-differences of four independently estimated slopes.")
+print(f"The data are uninformative about the presence or magnitude of an interaction.")
 ```
+
+The difference-in-differences analysis yields an interaction estimate centred near zero, but the 90% credible interval is extremely wide — spanning roughly 170 slope units. This width reflects a fundamental statistical limitation: each slope is derived from regression on five temperature points with substantial posterior uncertainty, and the interaction compounds two such differences. The data therefore **cannot distinguish between additive and non-additive structures**. The correct interpretation is not that the interaction is small, but that the study has limited power to detect it. A formal equivalence claim would require defining a region of practical equivalence (ROPE) and demonstrating that the posterior concentrates within it; the current data do not support such a claim.
 
 
 ## Pairwise Comparison Heatmaps {#sec-pairwise}
@@ -607,7 +649,7 @@ plt.show()
 
 ```{python}
 #| label: fig-grand-summary
-#| fig-cap: "Grand summary: α trajectory (with 90% CIs) for all four factorial cells on a single axis. GPT-4o cells (solid lines) decline clearly; Claude cells (dashed lines) remain flat. Note: temperature scales differ between LLMs so the x-axis represents each LLM's own grid."
+#| fig-cap: "Grand summary: α trajectory (with 90% CIs) for all four factorial cells on a single axis. GPT-4o cells (solid lines) decline clearly; Claude cells (dashed lines) remain flat. **Important**: temperature scales differ between LLMs — GPT-4o uses {0.0, 0.3, 0.7, 1.0, 1.5} while Claude uses {0.0, 0.2, 0.5, 0.8, 1.0}. The x-axis represents each LLM's own grid, so cross-LLM visual comparisons of slope magnitude are not directly valid. The qualitative contrast (declining vs. flat) is interpretable."
 #| fig-height: 6
 
 fig, ax = plt.subplots(figsize=(12, 6))
@@ -697,29 +739,94 @@ final = pd.DataFrame({
 final
 ```
 
+### Baseline Sensitivity Levels
+
+Beyond the slope analysis, the four cells differ substantially in their *baseline* α levels. GPT-4o at $T = 0.0$ has α ≈ 128 (Insurance) and α ≈ 110 (Ellsberg), while Claude at $T = 0.0$ has α ≈ 28 (Insurance) and α ≈ 55 (Ellsberg). These 2–5× differences in baseline sensitivity suggest that GPT-4o is generally more SEU-sensitive than Claude at low temperatures, independent of the temperature–slope question. This level effect is orthogonal to the slope effect but equally relevant for understanding how different LLMs implement decision-theoretic reasoning.
+
+### The Oscillatory Claude Pattern
+
+Both Claude cells exhibit a non-monotonic, oscillatory α trajectory across temperatures rather than a smooth decline or flat line. If this oscillation is systematic (rather than noise), it may reflect features of Claude's temperature implementation or its RLHF training that interact non-trivially with the softmax sensitivity parameter. The individual cell reports discuss these patterns in more detail. Whether the oscillation patterns align across the two Claude cells — which would suggest a systematic mechanism rather than random variation — is an open question that warrants investigation in future work.
+
 ### Main Conclusions
 
-1. **LLM is the dominant factor.** GPT-4o shows a clear negative temperature–$\alpha$ slope ($P > 0.98$) on both tasks. Claude shows at best a weak trend ($P \approx 0.56$–$0.77$) on both tasks. The LLM effect is large and consistent.
+1. **LLM accounts for most of the qualitative variation.** GPT-4o shows a clear negative temperature–$\alpha$ slope ($P > 0.98$) on both tasks. Claude shows at best a weak trend ($P \approx 0.56$–$0.77$) on both tasks. The within-LLM evidence is strong for GPT-4o. The between-LLM comparison is directionally clear — P(GPT-4o slope < Claude slope) is approximately 0.80–0.82 within both tasks — but this between-cell probability is more modest than the within-cell evidence, reflecting the additional uncertainty inherent in comparing independently fitted models.
 
 2. **Task is a secondary factor.** Changing the task from insurance to Ellsberg does not eliminate the effect for GPT-4o, nor does it create the effect for Claude. Within GPT-4o, Ellsberg may produce a slightly steeper decline, but the qualitative pattern is the same.
 
-3. **Minimal interaction.** The difference-in-differences analysis shows an interaction compatible with zero — the LLM and task effects are approximately **additive**. The non-replication in the original Ellsberg study was driven primarily by the LLM change, not the task change or a task–LLM interaction.
+3. **No strong evidence of interaction, though power is limited.** The difference-in-differences analysis yields an interaction estimate centred near zero, but with a 90% credible interval wide enough to accommodate substantial interactions in either direction. The data are uninformative about whether the factorial structure is additive. The absence of a detected interaction should not be confused with evidence of additivity — a formal equivalence claim would require a ROPE analysis that the current data cannot support.
 
-4. **Temperature–sensitivity is LLM-specific.** The finding that higher temperature reduces estimated SEU sensitivity should be qualified as a property of **GPT-4o's temperature implementation**, not a universal feature of LLM temperature scaling.
+4. **Temperature–sensitivity is LLM-specific.** The finding that higher temperature reduces estimated SEU sensitivity should be qualified as a property observed in **GPT-4o** but not in Claude. Whether this reflects differences in temperature implementation, RLHF procedures, training data, or other architectural factors cannot be determined from the current design. The attribution to "temperature implementation" specifically is one of several possible explanations.
+
+### Model Adequacy Across Cells
+
+Posterior predictive checks were conducted for each of the four individual cell models and are reported in the respective cell reports. All four models showed adequate fit to the observed choice data, with no systematic evidence of misspecification. Readers are directed to the individual cell reports for full diagnostic details, including R-hat convergence, effective sample sizes, and posterior predictive p-values.
+
+### Temperature Range Confound {#sec-temp-confound}
+
+The GPT-4o cells use temperatures in $\{0.0, 0.3, 0.7, 1.0, 1.5\}$ while the Claude cells use $\{0.0, 0.2, 0.5, 0.8, 1.0\}$. Because the slope $\Delta\alpha / \Delta T$ is computed by regression over the full temperature grid, the GPT-4o slopes are estimated over a wider range ($\Delta T = 1.5$) with different grid spacing than the Claude slopes ($\Delta T = 1.0$). A flatter true relationship would produce a less negative slope over a narrower range even if the underlying sensitivity function were identical.
+
+To assess whether this confound drives the LLM comparison, we compute **matched-range slopes** for GPT-4o by restricting to $T \in \{0.0, 0.3, 0.7, 1.0\}$ (dropping $T = 1.5$) and compare these to the full-range Claude slopes.
+
+```{python}
+#| label: matched-range-analysis
+#| echo: true
+
+# Compute matched-range slopes for GPT-4o (T ≤ 1.0, dropping T = 1.5)
+matched_temps = [0.0, 0.3, 0.7, 1.0]
+matched_temp_arr = np.array(matched_temps)
+
+matched_slopes = {}
+for cell_id in ['(1,1)', '(1,2)']:
+    cell = CELLS[cell_id]
+    n_draws = len(cell['alpha_draws'][cell['temps'][0]])
+    slopes = np.empty(n_draws)
+    for i in range(n_draws):
+        alphas = np.array([cell['alpha_draws'][t][i] for t in matched_temps])
+        slopes[i] = np.cov(matched_temp_arr, alphas)[0, 1] / np.var(matched_temp_arr)
+    matched_slopes[cell_id] = slopes
+
+print("Matched-range slopes for GPT-4o (T ≤ 1.0 only):")
+for cell_id in ['(1,1)', '(1,2)']:
+    cell = CELLS[cell_id]
+    s = matched_slopes[cell_id]
+    p_neg = np.mean(s < 0)
+    print(f"  {cell['label']}: median = {np.median(s):.1f}, "
+          f"90% CI = [{np.percentile(s, 5):.1f}, {np.percentile(s, 95):.1f}], "
+          f"P(slope < 0) = {p_neg:.3f}")
+
+print()
+print("LLM comparison on matched range:")
+for task, gpt_id, claude_id in [('Insurance', '(1,1)', '(2,1)'),
+                                  ('Ellsberg', '(1,2)', '(2,2)')]:
+    p_gpt_more_neg = np.mean(matched_slopes[gpt_id] < CELLS[claude_id]['slope_draws'])
+    print(f"  {task}: P(GPT matched slope < Claude slope) = {p_gpt_more_neg:.3f}")
+```
+
+The matched-range analysis confirms that restricting GPT-4o to $T \leq 1.0$ does not eliminate the negative trend: P(slope < 0) remains high for both GPT-4o cells on the restricted grid. The between-LLM comparison is also robust — P(GPT matched slope < Claude slope) is similar to the full-range values. The qualitative conclusion (GPT-4o declining, Claude flat) is not an artefact of the wider GPT-4o temperature range. Quantitative slope magnitudes still differ across grids due to the non-identical temperature points (e.g., GPT-4o at 0.3 vs. Claude at 0.2), but the range asymmetry is no longer a plausible alternative explanation for the qualitative LLM effect.
 
 ### Limitations
 
+- **Exploratory synthesis, not pre-registered.** The factorial structure was imposed post-hoc after the initial non-replication. The analysis is exploratory and the conclusions should be evaluated accordingly.
+- **Independent model fits, not a unified hierarchical model.** The four cells were fitted independently, and the factorial analysis operates on combined posterior draws. A hierarchical model estimating LLM and task effects within a single structure would yield tighter between-cell contrasts and formal effect-size estimates. This was not pursued in order to maintain consistency with the individual cell reports and because the foundational model validation applies to within-cell fits, not cross-cell comparisons.
 - **Two LLMs.** The factorial examines only GPT-4o and Claude 3.5 Sonnet. Other LLMs (e.g., Llama, Gemini) may show different patterns.
-- **Temperature scales differ.** The GPT-4o grid extends to $T = 1.5$ while Claude's maximum is $T = 1.0$. While the qualitative comparison is valid, quantitative slope comparisons across LLMs should be interpreted cautiously.
+- **Temperature scales differ.** The GPT-4o grid extends to $T = 1.5$ while Claude's maximum is $T = 1.0$. While the qualitative comparison is valid, quantitative slope comparisons across LLMs should be interpreted cautiously (see @sec-temp-confound).
 - **Two tasks.** Insurance triage and Ellsberg gambles differ in multiple ways ($K$, semantic content, prior calibration). More tasks would strengthen the conclusion that the task effect is minor.
+- **Prior differences across tasks.** The `m_01` and `m_02` models use different α priors calibrated for their respective $K$ values. This is appropriate for within-task analysis but complicates cross-task comparisons of α levels (see @sec-methods).
+- **Multiple confounds between LLMs.** GPT-4o and Claude differ not only in their temperature implementations but also in training data, RLHF procedures, and potentially in task-specific fine-tuning. The observed LLM effect could reflect any combination of these factors.
 - **Fixed design parameters.** All cells use $M \approx 300$, $D = 32$, $R = 30$. The conclusions may not generalise to designs with substantially different sample sizes or feature spaces.
+
+### Connections to the JDM Literature
+
+The finding that different LLMs show qualitatively different temperature–sensitivity patterns resonates with the broader JDM literature on individual differences in decision quality. Bruhin et al. (2010) documented substantial heterogeneity across human decision-makers in risk preferences and consistency, and Hey and Orme (1994) showed that error structures vary meaningfully across individuals. The present finding — that GPT-4o's estimated decision sensitivity degrades with temperature while Claude's does not — can be viewed as an analog of between-subject variability in decision noise. Whether this analogy is substantive (reflecting genuinely different "decision-making strategies") or superficial (reflecting implementation differences in how temperature modifies token sampling) is an open question that connects to ongoing debates about whether LLMs are useful models of human cognition (Binz & Schulz, 2023).
 
 ### Future Directions
 
 - **Additional LLMs.** Extending the factorial to other model families would clarify whether the temperature–sensitivity effect is specific to OpenAI GPT-4o or shared by certain architectures.
 - **More tasks.** Including tasks with different $K$ values or semantic structures would strengthen the conclusion about task invariance.
+- **Unified hierarchical model.** Fitting a single model with LLM, task, and temperature as factors — potentially using a meta-analytic framework on the per-cell posterior draws — would provide formal effect-size estimates and sharper interaction tests.
 - **Longitudinal tracking.** Model updates (GPT-4o versions, Claude updates) could change the temperature–sensitivity relationship — periodic re-assessment would be informative.
-- **Mechanistic investigation.** Understanding *why* GPT-4o's temperature affects estimated $\alpha$ while Claude's does not may require probing the internal representations and decoding strategies of each model.
+- **Mechanistic investigation.** Understanding *why* GPT-4o's temperature affects estimated $\alpha$ while Claude's does not may require probing the internal representations and decoding strategies of each model, connecting to the LLM interpretability literature on temperature scaling and its interaction with RLHF-trained output distributions.
+- **Implications for deployment.** The finding that GPT-4o's decision quality (as measured by SEU sensitivity) degrades with temperature while Claude's does not has practical implications for LLM deployment in decision-support systems, suggesting that temperature settings should be tuned with model-specific awareness.
 
 
 ## Reproducibility {#sec-reproducibility}
@@ -735,8 +842,29 @@ This report loads pre-computed data from the frozen data directories of all four
 
 Each directory contains `primary_analysis.json`, `alpha_draws_T*.npz`, and associated diagnostics. See the individual cell reports for refitting instructions and full methodological details.
 
+To regenerate this synthesis report, render the Quarto document from the project root:
 
-## References
+```bash
+quarto render reports/applications/factorial_synthesis/01_factorial_synthesis.qmd
+```
 
-::: {#refs}
-:::
+The report depends on the frozen data files listed above and the `report_utils` module in `reports/`. No additional packages beyond those in the project `environment.yml` are required.
+
+
+## References {#sec-references}
+
+Binz, M., & Schulz, E. (2023). Using cognitive psychology to understand GPT-3. *Proceedings of the National Academy of Sciences*, 120(6), e2218523120.
+
+Bruhin, A., Fehr-Hansen, H., & Epper, T. (2010). Risk and rationality: Uncovering heterogeneity in probability distortion. *Econometrica*, 78(4), 1375–1412.
+
+Ellsberg, D. (1961). Risk, ambiguity, and the Savage axioms. *Quarterly Journal of Economics*, 75(4), 643–669.
+
+Hey, J. D., & Orme, C. (1994). Investigating generalizations of expected utility theory using experimental data. *Econometrica*, 62(6), 1291–1326.
+
+Kruschke, J. K. (2013). Bayesian estimation supersedes the *t* test. *Journal of Experimental Psychology: General*, 142(2), 573–603.
+
+Lakens, D. (2017). Equivalence tests: A practical primer for *t* tests, correlations, and meta-analyses. *Social Psychological and Personality Science*, 8(4), 355–362.
+
+Luce, R. D. (1959). *Individual choice behavior: A theoretical analysis*. Wiley.
+
+McFadden, D. (1974). Conditional logit analysis of qualitative choice behavior. In P. Zarembka (Ed.), *Frontiers in econometrics* (pp. 105–142). Academic Press.

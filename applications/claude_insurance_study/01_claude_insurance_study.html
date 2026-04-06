@@ -466,16 +466,6 @@ window.Quarto = {
     <a class="dropdown-item" href="../../applications/factorial_synthesis/01_factorial_synthesis.html">
  <span class="dropdown-text">2×2 Factorial Analysis</span></a>
   </li>  
-        <li><hr class="dropdown-divider"></li>
-        <li class="dropdown-header">Prompt Framing Study</li>
-        <li>
-    <a class="dropdown-item" href="../../applications/prompt_framing_study/01_background.qmd">
- <span class="dropdown-text">1. Background</span></a>
-  </li>  
-        <li>
-    <a class="dropdown-item" href="../../applications/prompt_framing_study/02_pilot_study_1.qmd">
- <span class="dropdown-text">2. Pilot Study 1</span></a>
-  </li>  
     </ul>
   </li>
   <li class="nav-item">
@@ -656,7 +646,7 @@ window.Quarto = {
 <h3 data-number="0.2.1" class="anchored" data-anchor-id="task-and-conditions"><span class="header-section-number">0.2.1</span> Task and Conditions</h3>
 <p>We use the same insurance claims triage task as the initial temperature study: Claude 3.5 Sonnet selects which insurance claim to prioritise from a set of alternatives. Each claim has <span class="math inline">\(K = 3\)</span> possible consequences (denial, partial approval, full approval). The LLM first <em>assesses</em> each claim individually (producing text that is then embedded), and subsequently makes a <em>choice</em> among the claims in a given problem.</p>
 <p>Five temperature levels define the between-condition factor:</p>
-<div class="cell" data-execution_count="2">
+<div class="cell" data-execution_count="3">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>conditions <span class="op">=</span> pd.DataFrame({</span>
@@ -672,7 +662,7 @@ window.Quarto = {
 <span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>})</span>
 <span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>conditions</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div id="tbl-conditions" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="2">
+<div id="tbl-conditions" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="3">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-conditions-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;1: Experimental conditions. Each temperature level constitutes a separate model fit.
@@ -747,7 +737,7 @@ Table&nbsp;1: Experimental conditions. Each temperature level constitutes a sepa
 </section>
 <section id="design-parameters" class="level3" data-number="0.2.2">
 <h3 data-number="0.2.2" class="anchored" data-anchor-id="design-parameters"><span class="header-section-number">0.2.2</span> Design Parameters</h3>
-<div id="design-params" class="cell" data-execution_count="3">
+<div id="design-params" class="cell" data-execution_count="4">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> yaml</span>
@@ -785,7 +775,7 @@ Table&nbsp;1: Experimental conditions. Each temperature level constitutes a sepa
 <section id="feature-construction" class="level3" data-number="0.2.3">
 <h3 data-number="0.2.3" class="anchored" data-anchor-id="feature-construction"><span class="header-section-number">0.2.3</span> Feature Construction</h3>
 <p>Alternative features are constructed through the same two-stage process used in the initial temperature study. First, Claude 3.5 Sonnet assesses each insurance claim at the relevant temperature, producing a natural-language evaluation. These assessments are embedded using <code>text-embedding-3-small</code> (OpenAI), yielding high-dimensional vectors. Second, all embeddings across temperature conditions are pooled and projected via PCA to <span class="math inline">\(D = 32\)</span> dimensions.</p>
-<div id="pca-variance" class="cell" data-execution_count="4">
+<div id="pca-variance" class="cell" data-execution_count="5">
 <div class="cell-output cell-output-stdout">
 <pre><code>PCA Summary:
   Components retained: 32
@@ -798,7 +788,7 @@ Table&nbsp;1: Experimental conditions. Each temperature level constitutes a sepa
 </section>
 <section id="data-quality" class="level3" data-number="0.2.4">
 <h3 data-number="0.2.4" class="anchored" data-anchor-id="data-quality"><span class="header-section-number">0.2.4</span> Data Quality</h3>
-<div id="data-quality" class="cell" data-execution_count="5">
+<div id="data-quality" class="cell" data-execution_count="6">
 <div class="cell-output cell-output-stdout">
 <pre><code>NA Summary:
   Overall: 17 / 1500 (1.1%)
@@ -813,7 +803,7 @@ Table&nbsp;1: Experimental conditions. Each temperature level constitutes a sepa
 </section>
 <section id="comparison-with-other-factorial-cells" class="level3" data-number="0.2.5">
 <h3 data-number="0.2.5" class="anchored" data-anchor-id="comparison-with-other-factorial-cells"><span class="header-section-number">0.2.5</span> Comparison with Other Factorial Cells</h3>
-<div class="cell" data-execution_count="6">
+<div class="cell" data-execution_count="7">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>comparison <span class="op">=</span> pd.DataFrame({</span>
@@ -829,7 +819,7 @@ Table&nbsp;1: Experimental conditions. Each temperature level constitutes a sepa
 <span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>})</span>
 <span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>comparison</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div id="tbl-design-comparison" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="6">
+<div id="tbl-design-comparison" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="7">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-design-comparison-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;2: Design comparison across the 2×2 factorial. This study (Cell 2,1) shares the insurance task with Cell (1,1) and shares Claude with Cell (2,2).
@@ -965,7 +955,7 @@ Table&nbsp;2: Design comparison across the 2×2 factorial. This study (Cell 2,1)
 <section id="sec-parameter-recovery" class="level3" data-number="0.4.1">
 <h3 data-number="0.4.1" class="anchored" data-anchor-id="sec-parameter-recovery"><span class="header-section-number">0.4.1</span> Parameter Recovery</h3>
 <p>We validate that m_01’s parameters are identifiable under this study’s design (<span class="math inline">\(M \approx 300\)</span>, <span class="math inline">\(K = 3\)</span>, <span class="math inline">\(D = 32\)</span>, <span class="math inline">\(R = 30\)</span>) via 20 iterations of parameter recovery.</p>
-<div id="load-recovery" class="cell" data-execution_count="7">
+<div id="load-recovery" class="cell" data-execution_count="8">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>recovery_dir <span class="op">=</span> os.path.join(project_root, <span class="st">"results"</span>, <span class="st">"parameter_recovery"</span>, <span class="st">"claude_insurance_recovery"</span>)</span>
@@ -992,7 +982,7 @@ Table&nbsp;2: Design comparison across the 2×2 factorial. This study (Cell 2,1)
 <span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Loaded </span><span class="sc">{</span>n_successful<span class="sc">}</span><span class="ss"> recovery iterations"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
-<div id="cell-fig-alpha-recovery" class="cell" data-execution_count="8">
+<div id="cell-fig-alpha-recovery" class="cell" data-execution_count="9">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>alpha_true <span class="op">=</span> np.array([p[<span class="st">'alpha'</span>] <span class="cf">for</span> p <span class="kw">in</span> true_params_list])</span>
@@ -1051,7 +1041,7 @@ Figure&nbsp;1: Recovery of the sensitivity parameter α under the m_01 prior wit
 </div>
 </div>
 </div>
-<div class="cell" data-execution_count="9">
+<div class="cell" data-execution_count="10">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>K_val <span class="op">=</span> <span class="dv">3</span></span>
@@ -1094,7 +1084,7 @@ Figure&nbsp;1: Recovery of the sensitivity parameter α under the m_01 prior wit
 <span id="cb9-38"><a href="#cb9-38" aria-hidden="true" tabindex="-1"></a>])</span>
 <span id="cb9-39"><a href="#cb9-39" aria-hidden="true" tabindex="-1"></a>metrics</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div id="tbl-recovery-metrics" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="9">
+<div id="tbl-recovery-metrics" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="10">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-recovery-metrics-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;3: Parameter recovery metrics for m_01 with the Claude × Insurance design (M≈300, K=3, D=32, R=30).
@@ -1168,7 +1158,7 @@ Table&nbsp;3: Parameter recovery metrics for m_01 with the Claude × Insurance d
 <h2 data-number="0.5" class="anchored" data-anchor-id="sec-results"><span class="header-section-number">0.5</span> Results</h2>
 <section id="loading-posterior-draws" class="level3" data-number="0.5.1">
 <h3 data-number="0.5.1" class="anchored" data-anchor-id="loading-posterior-draws"><span class="header-section-number">0.5.1</span> Loading Posterior Draws</h3>
-<div id="load-posteriors" class="cell" data-execution_count="10">
+<div id="load-posteriors" class="cell" data-execution_count="11">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>temperatures <span class="op">=</span> [<span class="fl">0.0</span>, <span class="fl">0.2</span>, <span class="fl">0.5</span>, <span class="fl">0.8</span>, <span class="fl">1.0</span>]</span>
@@ -1187,7 +1177,7 @@ Table&nbsp;3: Parameter recovery metrics for m_01 with the Claude × Insurance d
 <span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>    fit_summary <span class="op">=</span> json.load(f)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
-<div id="58e15481" class="cell" data-execution_count="11">
+<div id="58e15481" class="cell" data-execution_count="12">
 <div class="cell-output cell-output-stdout">
 <pre><code>  T=0.0: 4,000 posterior draws loaded
   T=0.2: 4,000 posterior draws loaded
@@ -1199,7 +1189,7 @@ Table&nbsp;3: Parameter recovery metrics for m_01 with the Claude × Insurance d
 </section>
 <section id="mcmc-diagnostics" class="level3" data-number="0.5.2">
 <h3 data-number="0.5.2" class="anchored" data-anchor-id="mcmc-diagnostics"><span class="header-section-number">0.5.2</span> MCMC Diagnostics</h3>
-<div class="cell" data-execution_count="12">
+<div class="cell" data-execution_count="13">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>diag_rows <span class="op">=</span> []</span>
@@ -1228,7 +1218,7 @@ Table&nbsp;3: Parameter recovery metrics for m_01 with the Claude × Insurance d
 <span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a>pd.DataFrame(diag_rows)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div id="tbl-diagnostics" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="12">
+<div id="tbl-diagnostics" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="13">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-diagnostics-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;4: MCMC diagnostics for all five temperature conditions. All fits used 4 chains with 1,000 warmup and 1,000 sampling iterations each (4,000 post-warmup draws total).
@@ -1302,7 +1292,7 @@ Table&nbsp;4: MCMC diagnostics for all five temperature conditions. All fits use
 </section>
 <section id="posterior-summaries" class="level3" data-number="0.5.3">
 <h3 data-number="0.5.3" class="anchored" data-anchor-id="posterior-summaries"><span class="header-section-number">0.5.3</span> Posterior Summaries</h3>
-<div class="cell" data-execution_count="13">
+<div class="cell" data-execution_count="14">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>summary <span class="op">=</span> analysis[<span class="st">'summary_table'</span>]</span>
@@ -1319,7 +1309,7 @@ Table&nbsp;4: MCMC diagnostics for all five temperature conditions. All fits use
 <span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>pd.DataFrame(rows)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div id="tbl-posteriors" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="13">
+<div id="tbl-posteriors" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="14">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-posteriors-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;5: Posterior summaries for the sensitivity parameter α at each temperature level. Intervals are 90% credible intervals.
@@ -1394,7 +1384,7 @@ Table&nbsp;5: Posterior summaries for the sensitivity parameter α at each tempe
 </section>
 <section id="forest-plot" class="level3" data-number="0.5.4">
 <h3 data-number="0.5.4" class="anchored" data-anchor-id="forest-plot"><span class="header-section-number">0.5.4</span> Forest Plot</h3>
-<div id="cell-fig-forest" class="cell" data-fig-height="5" data-execution_count="14">
+<div id="cell-fig-forest" class="cell" data-fig-height="5" data-execution_count="15">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">8</span>, <span class="dv">5</span>))</span>
@@ -1438,7 +1428,7 @@ Figure&nbsp;2: Forest plot of posterior α distributions across temperature cond
 </section>
 <section id="posterior-densities" class="level3" data-number="0.5.5">
 <h3 data-number="0.5.5" class="anchored" data-anchor-id="posterior-densities"><span class="header-section-number">0.5.5</span> Posterior Densities</h3>
-<div id="cell-fig-density" class="cell" data-fig-height="5" data-execution_count="15">
+<div id="cell-fig-density" class="cell" data-fig-height="5" data-execution_count="16">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy.stats <span class="im">import</span> gaussian_kde</span>
@@ -1477,7 +1467,7 @@ Figure&nbsp;3: Kernel density estimates of the posterior α distributions. The p
 </section>
 <section id="posterior-predictive-checks" class="level3" data-number="0.5.6">
 <h3 data-number="0.5.6" class="anchored" data-anchor-id="posterior-predictive-checks"><span class="header-section-number">0.5.6</span> Posterior Predictive Checks</h3>
-<div class="cell" data-execution_count="16">
+<div class="cell" data-execution_count="17">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>ppc_rows <span class="op">=</span> []</span>
@@ -1496,7 +1486,7 @@ Figure&nbsp;3: Kernel density estimates of the posterior α distributions. The p
 <span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>pd.DataFrame(ppc_rows)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div id="tbl-ppc" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="16">
+<div id="tbl-ppc" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="17">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-ppc-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;6: Posterior predictive check p-values for each temperature condition. Values near 0.5 indicate good calibration.
@@ -1568,7 +1558,7 @@ Table&nbsp;6: Posterior predictive check p-values for each temperature condition
 <h2 data-number="0.6" class="anchored" data-anchor-id="sec-monotonicity"><span class="header-section-number">0.6</span> Monotonicity Analysis</h2>
 <section id="global-slope" class="level3" data-number="0.6.1">
 <h3 data-number="0.6.1" class="anchored" data-anchor-id="global-slope"><span class="header-section-number">0.6.1</span> Global Slope</h3>
-<div id="cell-fig-slope" class="cell" data-execution_count="17">
+<div id="cell-fig-slope" class="cell" data-execution_count="18">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>slopes <span class="op">=</span> analysis[<span class="st">'slope'</span>]</span>
@@ -1634,7 +1624,7 @@ Figure&nbsp;4: Posterior distribution of the slope Δα/ΔT. The distribution is
 </section>
 <section id="pairwise-comparisons" class="level3" data-number="0.6.2">
 <h3 data-number="0.6.2" class="anchored" data-anchor-id="pairwise-comparisons"><span class="header-section-number">0.6.2</span> Pairwise Comparisons</h3>
-<div class="cell" data-execution_count="18">
+<div class="cell" data-execution_count="19">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>pairs <span class="op">=</span> analysis[<span class="st">'pairwise_comparisons'</span>]</span>
@@ -1660,7 +1650,7 @@ Figure&nbsp;4: Posterior distribution of the slope Δα/ΔT. The distribution is
 <span id="cb19-21"><a href="#cb19-21" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb19-22"><a href="#cb19-22" aria-hidden="true" tabindex="-1"></a>pd.DataFrame(pair_rows)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div id="tbl-pairwise" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="18">
+<div id="tbl-pairwise" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="19">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-pairwise-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;7: Posterior probability that α is higher at the lower temperature in each pair.
@@ -1752,7 +1742,7 @@ Table&nbsp;7: Posterior probability that α is higher at the lower temperature i
 </section>
 <section id="strict-monotonicity" class="level3" data-number="0.6.3">
 <h3 data-number="0.6.3" class="anchored" data-anchor-id="strict-monotonicity"><span class="header-section-number">0.6.3</span> Strict Monotonicity</h3>
-<div id="monotonicity" class="cell" data-execution_count="19">
+<div id="monotonicity" class="cell" data-execution_count="20">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>n_draws <span class="op">=</span> <span class="bu">len</span>(alpha_draws[<span class="fl">0.0</span>])</span>
@@ -1775,7 +1765,7 @@ Table&nbsp;7: Posterior probability that α is higher at the lower temperature i
 <section id="sec-comparison" class="level2" data-number="0.7">
 <h2 data-number="0.7" class="anchored" data-anchor-id="sec-comparison"><span class="header-section-number">0.7</span> Comparison with Initial Temperature Study</h2>
 <p>This comparison isolates the <strong>LLM effect</strong>: both studies use the same insurance triage task and m_01 model, but different LLMs.</p>
-<div id="cell-fig-cross-study" class="cell" data-execution_count="20">
+<div id="cell-fig-cross-study" class="cell" data-execution_count="21">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>initial_data_dir <span class="op">=</span> Path(<span class="st">".."</span>) <span class="op">/</span> <span class="st">"temperature_study"</span> <span class="op">/</span> <span class="st">"data"</span></span>
@@ -1831,7 +1821,7 @@ Figure&nbsp;5: Cross-study comparison isolating the LLM effect. Left: GPT-4o (in
 </div>
 </div>
 </div>
-<div class="cell" data-execution_count="21">
+<div class="cell" data-execution_count="22">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Handle different field names in primary_analysis.json</span></span>
@@ -1852,7 +1842,7 @@ Figure&nbsp;5: Cross-study comparison isolating the LLM effect. Left: GPT-4o (in
 <span id="cb23-16"><a href="#cb23-16" aria-hidden="true" tabindex="-1"></a>])</span>
 <span id="cb23-17"><a href="#cb23-17" aria-hidden="true" tabindex="-1"></a>cross</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div id="tbl-cross-study" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="21">
+<div id="tbl-cross-study" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="22">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-cross-study-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;8: Cross-study comparison isolating the LLM effect (same task, different LLMs).
@@ -1902,7 +1892,7 @@ Table&nbsp;8: Cross-study comparison isolating the LLM effect (same task, differ
 <section id="sec-formal-comparison" class="level3" data-number="0.7.1">
 <h3 data-number="0.7.1" class="anchored" data-anchor-id="sec-formal-comparison"><span class="header-section-number">0.7.1</span> Formal Cross-Study Slope Comparison</h3>
 <p>To move beyond visual comparison, we compute the posterior probability that the GPT-4o slope is more negative than the Claude slope. Because the two studies were fit independently, we draw from each study’s slope posterior via Monte Carlo and compute the overlap.</p>
-<div id="formal-slope-comparison" class="cell" data-execution_count="22">
+<div id="formal-slope-comparison" class="cell" data-execution_count="23">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load GPT-4o alpha draws from the initial study</span></span>
@@ -1959,7 +1949,7 @@ Table&nbsp;8: Cross-study comparison isolating the LLM effect (same task, differ
 <section id="sec-oscillation" class="level3" data-number="0.7.2">
 <h3 data-number="0.7.2" class="anchored" data-anchor-id="sec-oscillation"><span class="header-section-number">0.7.2</span> Characterising the Oscillatory Pattern</h3>
 <p>The non-monotonic pattern in Claude’s α estimates — a dip at <span class="math inline">\(T = 0.2\)</span>, rise at <span class="math inline">\(T = 0.5\)</span> and <span class="math inline">\(T = 0.8\)</span>, dip at <span class="math inline">\(T = 1.0\)</span> — echoes the oscillation seen in the Ellsberg study. Is this a genuine feature of Claude’s behaviour, or merely posterior noise around a flat line?</p>
-<div id="oscillation-analysis" class="cell" data-execution_count="23">
+<div id="oscillation-analysis" class="cell" data-execution_count="24">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute the range (max - min) of alpha across temperatures for each posterior draw</span></span>
@@ -2017,7 +2007,7 @@ Table&nbsp;8: Cross-study comparison isolating the LLM effect (same task, differ
     P(α(T=0.2) &gt; α(T=0.8)) = 0.225</code></pre>
 </div>
 </div>
-<div id="oscillation-interpretation" class="cell" data-execution_count="24">
+<div id="oscillation-interpretation" class="cell" data-execution_count="25">
 <div class="cell-output cell-output-stdout">
 <pre><code>Assessment:
   Pairwise comparisons near chance (0.35-0.65): 4/10
@@ -2029,7 +2019,7 @@ Table&nbsp;8: Cross-study comparison isolating the LLM effect (same task, differ
 </section>
 <section id="summary-heatmap" class="level3" data-number="0.7.3">
 <h3 data-number="0.7.3" class="anchored" data-anchor-id="summary-heatmap"><span class="header-section-number">0.7.3</span> Summary Heatmap</h3>
-<div id="cell-fig-summary" class="cell" data-execution_count="25">
+<div id="cell-fig-summary" class="cell" data-execution_count="26">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>pairs <span class="op">=</span> analysis[<span class="st">'pairwise_comparisons'</span>]</span>
@@ -2152,7 +2142,7 @@ Figure&nbsp;6: Left: α vs.&nbsp;temperature showing the flat, non-monotonic pat
 </section>
 <section id="sec-reproducibility" class="level2" data-number="0.9">
 <h2 data-number="0.9" class="anchored" data-anchor-id="sec-reproducibility"><span class="header-section-number">0.9</span> Reproducibility</h2>
-<p><strong>Codebase version:</strong> <code>8c1b772</code> (git commit hash at time of analysis)</p>
+<p><strong>Codebase version:</strong> <code>21d6883</code> (git commit hash at time of analysis)</p>
 <section id="data-snapshot" class="level3" data-number="0.9.1">
 <h3 data-number="0.9.1" class="anchored" data-anchor-id="data-snapshot"><span class="header-section-number">0.9.1</span> Data Snapshot</h3>
 <table class="caption-top table">
@@ -2204,7 +2194,7 @@ Figure&nbsp;6: Left: α vs.&nbsp;temperature showing the flat, non-monotonic pat
 </section>
 <section id="refitting-from-source" class="level3" data-number="0.9.2">
 <h3 data-number="0.9.2" class="anchored" data-anchor-id="refitting-from-source"><span class="header-section-number">0.9.2</span> Refitting from Source</h3>
-<div id="refit-example" class="cell" data-execution_count="26">
+<div id="refit-example" class="cell" data-execution_count="27">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Uncomment to refit from source data (requires CmdStanPy)</span></span>
@@ -3617,7 +3607,7 @@ Insurance Study.”</span> SEU Sensitivity Project, April 6. <a href="https://je
 <span id="cb31-952"><a href="#cb31-952" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb31-953"><a href="#cb31-953" aria-hidden="true" tabindex="-1"></a><span class="fu">## Reproducibility {#sec-reproducibility}</span></span>
 <span id="cb31-954"><a href="#cb31-954" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-955"><a href="#cb31-955" aria-hidden="true" tabindex="-1"></a>**Codebase version:** <span class="in">`8c1b772`</span> (git commit hash at time of analysis)</span>
+<span id="cb31-955"><a href="#cb31-955" aria-hidden="true" tabindex="-1"></a>**Codebase version:** <span class="in">`21d6883`</span> (git commit hash at time of analysis)</span>
 <span id="cb31-956"><a href="#cb31-956" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb31-957"><a href="#cb31-957" aria-hidden="true" tabindex="-1"></a><span class="fu">### Data Snapshot</span></span>
 <span id="cb31-958"><a href="#cb31-958" aria-hidden="true" tabindex="-1"></a></span>

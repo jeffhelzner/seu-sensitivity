@@ -2,15 +2,18 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.8.27">
+<meta name="generator" content="quarto-1.9.36">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Jeff Helzner">
-<meta name="dcterms.date" content="2026-03-17">
+<meta name="dcterms.date" content="2026-04-06">
 
 <title>SEU Sensitivity</title>
 <style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
 div.columns{display: flex; gap: min(4vw, 1.5em);}
@@ -69,19 +72,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <meta name="quarto:offset" content="./">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
-<script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-4d9afe2b8d18ee9fa5d0d57b5ed4214d.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-845c23b38eaddc0f92fda52bfe77a8c8.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-f418161beb48e0141c760e455f12af2c.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-845c23b38eaddc0f92fda52bfe77a8c8.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-8bffb863ba02556ae9cbd60282933685.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="site_libs/bootstrap/bootstrap-dark-b681a0ec939e67307781ecabf18bfad0.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="site_libs/bootstrap/bootstrap-8bffb863ba02556ae9cbd60282933685.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-8bea9ef0322c8307074b0391064fa4e7.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark-57d7ea011d1f2c9e7c782893198740cb.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="site_libs/bootstrap/bootstrap-8bea9ef0322c8307074b0391064fa4e7.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -115,10 +117,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link rel="stylesheet" href="styles/seu-sensitivity.css">
 <meta name="citation_title" content="SEU Sensitivity">
 <meta name="citation_author" content="Jeff Helzner">
-<meta name="citation_publication_date" content="2026-03-17">
-<meta name="citation_cover_date" content="2026-03-17">
+<meta name="citation_publication_date" content="2026-04-06">
+<meta name="citation_cover_date" content="2026-04-06">
 <meta name="citation_year" content="2026">
-<meta name="citation_online_date" content="2026-03-17">
+<meta name="citation_online_date" content="2026-04-06">
 <meta name="citation_fulltext_html_url" content="https://jeffhelzner.github.io/seu-sensitivity/">
 <meta name="citation_language" content="en">
 <meta name="citation_journal_title" content="SEU Sensitivity Project">
@@ -145,6 +147,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <meta name="citation_reference" content="citation_title=A definition of subjective probability;,citation_author=Francis J. Anscombe;,citation_author=Robert J. Aumann;,citation_publication_date=1963;,citation_cover_date=1963;,citation_year=1963;,citation_issue=1;,citation_volume=34;,citation_journal_title=Annals of Mathematical Statistics;">
 <meta name="citation_reference" content="citation_title=Notes on the theory of choice;,citation_author=David M. Kreps;,citation_publication_date=1988;,citation_cover_date=1988;,citation_year=1988;">
 <meta name="citation_reference" content="citation_title=Identification in parametric models;,citation_author=Thomas J. Rothenberg;,citation_publication_date=1971;,citation_cover_date=1971;,citation_year=1971;,citation_issue=3;,citation_volume=39;,citation_journal_title=Econometrica;,citation_publisher=Wiley;">
+<meta name="citation_reference" content="citation_title=Telling more than we can know: Verbal reports on mental processes;,citation_author=Richard E. Nisbett;,citation_author=Timothy D. Wilson;,citation_publication_date=1977;,citation_cover_date=1977;,citation_year=1977;,citation_issue=3;,citation_volume=84;,citation_journal_title=Psychological Review;,citation_publisher=American Psychological Association;">
+<meta name="citation_reference" content="citation_title=Verbal overshadowing of visual memories: Some things are better left unsaid;,citation_author=Jonathan W. Schooler;,citation_author=Tonya Y. Engstler-Schooler;,citation_publication_date=1990;,citation_cover_date=1990;,citation_year=1990;,citation_issue=1;,citation_volume=22;,citation_journal_title=Cognitive Psychology;,citation_publisher=Elsevier;">
 </head>
 
 <body class="nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
@@ -413,11 +417,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
         <li><hr class="dropdown-divider"></li>
         <li class="dropdown-header">Prompt Framing Study</li>
         <li>
-    <a class="dropdown-item" href="./applications/prompt_framing_study/01_background.html">
+    <a class="dropdown-item" href="./applications/prompt_framing_study/01_background.qmd">
  <span class="dropdown-text">1. Background</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./applications/prompt_framing_study/02_pilot_study_1.html">
+    <a class="dropdown-item" href="./applications/prompt_framing_study/02_pilot_study_1.qmd">
  <span class="dropdown-text">2. Pilot Study 1</span></a>
   </li>  
     </ul>
@@ -486,7 +490,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">March 17, 2026</p>
+      <p class="date">April 6, 2026</p>
     </div>
   </div>
   
@@ -559,8 +563,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="prompt-framing-study" class="level4" data-number="0.2.2.7">
 <h4 data-number="0.2.2.7" class="anchored" data-anchor-id="prompt-framing-study"><span class="header-section-number">0.2.2.7</span> Prompt Framing Study</h4>
 <ol type="1">
-<li><strong><a href="./applications/prompt_framing_study/01_background.html">Background</a></strong> — Rationality cues in LLM prompts</li>
-<li><strong><a href="./applications/prompt_framing_study/02_pilot_study_1.html">Pilot Study 1</a></strong> — Initial pilot results</li>
+<li><strong><a href="applications/prompt_framing_study/01_background.qmd">Background</a></strong> — Rationality cues in LLM prompts</li>
+<li><strong><a href="applications/prompt_framing_study/02_pilot_study_1.qmd">Pilot Study 1</a></strong> — Initial pilot results</li>
 </ol>
 </section>
 </section>
@@ -618,13 +622,13 @@ Decision-Making Sensitivity. https://github.com/jeffhelzner/seu-sensitivity</cod
 <div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{helzner2026,
   author = {Helzner, Jeff},
   title = {SEU {Sensitivity}},
-  date = {2026-03-17},
+  date = {2026-04-06},
   url = {https://jeffhelzner.github.io/seu-sensitivity/},
   langid = {en}
 }
 </code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-helzner2026" class="csl-entry quarto-appendix-citeas" role="listitem">
 Helzner, Jeff. 2026. <span>“SEU Sensitivity.”</span> SEU Sensitivity
-Project. March 17, 2026. <a href="https://jeffhelzner.github.io/seu-sensitivity/">https://jeffhelzner.github.io/seu-sensitivity/</a>.
+Project, April 6. <a href="https://jeffhelzner.github.io/seu-sensitivity/">https://jeffhelzner.github.io/seu-sensitivity/</a>.
 </div></div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {

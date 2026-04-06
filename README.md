@@ -27,6 +27,8 @@ Current status:
 - ✅ Claude insurance study complete
 - ✅ GPT-4o Ellsberg study complete
 - ✅ 2×2 factorial synthesis complete
+- ✅ Hierarchical model (h_m01) with cell-level regression on α implemented and tested
+- ✅ Alignment study application scaffolded (6 model × 3 prompt factorial)
 - 📝 Documentation being expanded
 - 🔬 Empirical validation ongoing
 
@@ -95,11 +97,15 @@ seu-sensitivity/
 │   ├── m_31.stan           # m_3 with calibrated priors
 │   ├── m_3_sim.stan        # m_3 simulation model
 │   ├── m_3_sbc.stan        # m_3 SBC model
+│   ├── h_m01.stan          # Hierarchical model (regression on log-α across cells)
+│   ├── h_m01_sim.stan      # h_m01 simulation model
+│   ├── h_m01_sbc.stan      # h_m01 SBC model
 │   └── README_m1.md        # m_1 implementation guide
 ├── utils/                   # Core utilities
 │   ├── __init__.py         # Shared utilities, model detection
 │   ├── study_design.py     # Experimental design generation (m_0)
 │   ├── study_design_m1.py  # Extended design for m_1
+│   ├── study_design_hierarchical.py # Hierarchical design (stacked cells)
 │   └── README.md           # Utils documentation
 ├── analysis/                # Analysis scripts
 │   ├── model_estimation.py # Model fitting utilities
@@ -107,7 +113,9 @@ seu-sensitivity/
 │   ├── posterior_predictive_checks.py # Posterior predictive checks
 │   ├── prior_predictive.py # Prior predictive checks
 │   ├── sbc.py              # Simulation-based calibration
-│   └── sample_size_estimation.py # Sample size planning
+│   ├── sample_size_estimation.py # Sample size planning
+│   ├── hierarchical_parameter_recovery.py # Recovery for h_m01
+│   └── hierarchical_sbc.py # SBC for h_m01
 ├── applications/            # Applied research projects
 │   ├── temperature_study/  # LLM temperature effects on sensitivity
 │   ├── temperature_study_with_eu_prompt/ # Temperature study with EU-maximization prompt
@@ -115,7 +123,8 @@ seu-sensitivity/
 │   ├── ellsberg_study/     # Claude 3.5 Sonnet on Ellsberg urn gambles
 │   ├── claude_insurance_study/ # Claude 3.5 Sonnet on insurance claims triage
 │   ├── gpt4o_ellsberg_study/ # GPT-4o on Ellsberg urn gambles
-│   └── factorial_synthesis/ # Cross-LLM × cross-task synthesis inputs and outputs
+│   ├── factorial_synthesis/ # Cross-LLM × cross-task synthesis inputs and outputs
+│   └── alignment_study/    # 6-model × 3-prompt hierarchical alignment study
 ├── scripts/                 # Executable scripts
 │   ├── run_study_design.py # Generate study designs
 │   ├── run_m1_study_design.py # Generate m_1 study designs
@@ -488,6 +497,35 @@ Synthesizes the full 2×2 factorial design crossing LLM family and task domain.
 - Integrates all four factorial cells
 - Formal cross-cell comparison of temperature slopes and monotonicity
 - Final synthesis of LLM-specific versus task-specific effects
+
+### Alignment Study
+
+A 6-model × 3-prompt factorial study measuring how LLM identity and prompt framing affect SEU sensitivity. Uses the hierarchical model h_m01 to estimate regression coefficients on log(α) across experimental cells.
+
+**Research Question**: Do different LLMs and prompt framings produce systematically different levels of decision-theoretic rationality?
+
+**Key Features:**
+- 18 experimental cells: 6 LLMs (GPT-4o, GPT-4o-mini, o3-mini, Claude 3.5 Sonnet, Claude 3.7 Sonnet, Gemini 2.0 Flash) × 3 prompts (neutral, EU-maximizing, deliberative)
+- Hierarchical model with treatment-coded design matrix regressing on log(α)
+- Non-centered parameterization for cell-level α
+- Support for reasoning models (o3-mini) and extended thinking (Claude 3.7)
+
+## Model h_m01 Specification
+
+The hierarchical model (`models/h_m01.stan`) extends m_01 to pool information across J experimental cells via a regression on log-sensitivity:
+
+- `log(α_j) = γ₀ + X_j·γ + σ_cell·z_j` (non-centered parameterization)
+- Cell-specific `beta[j]` for feature-to-probability mapping
+- Shared `delta` (utility increments) across all cells
+- Stacked data with `cell[m]` membership vector
+
+**Parameters:**
+- `gamma0`: Intercept of log-α regression
+- `gamma[P]`: Regression coefficients (treatment effects on log-α)
+- `sigma_cell`: Cell-level residual SD
+- `alpha[J]`: Cell-specific sensitivity (derived)
+- `beta[J]`: Cell-specific feature weights (K × D per cell)
+- `delta`: Shared utility increments ((K-1)-simplex)
 
 ## Configuration Files
 

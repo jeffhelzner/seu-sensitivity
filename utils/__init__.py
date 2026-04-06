@@ -28,6 +28,7 @@ MODEL_PARAMETERS = {
     'm_1': ['alpha', 'beta', 'delta'],
     'm_2': ['alpha', 'omega', 'beta', 'delta'],
     'm_3': ['alpha', 'kappa', 'beta', 'delta'],
+    'h_m01': ['gamma0', 'gamma', 'sigma_cell', 'alpha', 'beta', 'delta'],
 }
 
 # Parameters that are scalar (not matrix/vector) — used for recovery/SBC tracking
@@ -38,6 +39,7 @@ MODEL_SCALAR_PARAMETERS = {
     'm_1': ['alpha'],
     'm_2': ['alpha', 'omega'],
     'm_3': ['alpha', 'kappa'],
+    'h_m01': ['gamma0', 'sigma_cell'],
 }
 
 # Prior hyperparameters required by each model's sim file
@@ -48,6 +50,7 @@ MODEL_SIM_HYPERPARAMS = {
     'm_1': ['alpha_mean', 'alpha_sd', 'beta_sd'],
     'm_2': ['alpha_mean', 'alpha_sd', 'omega_mean', 'omega_sd', 'beta_sd'],
     'm_3': ['alpha_mean', 'alpha_sd', 'kappa_mean', 'kappa_sd', 'beta_sd'],
+    'h_m01': ['gamma0_mean', 'gamma0_sd', 'gamma_sd', 'sigma_cell_sd', 'beta_sd'],
 }
 
 # Transformed parameters to monitor (not free, but useful for diagnostics)
@@ -58,6 +61,7 @@ MODEL_TRANSFORMED_MONITORS = {
     'm_1': ['upsilon'],
     'm_2': ['upsilon'],
     'm_3': ['omega', 'upsilon'],
+    'h_m01': ['upsilon', 'alpha'],
 }
 
 

@@ -54,12 +54,6 @@ website:
           - text: "Factorial Synthesis"
           - text: "2×2 Factorial Analysis"
             href: applications/factorial_synthesis/01_factorial_synthesis.qmd
-          - text: "---"
-          - text: "Prompt Framing Study"
-          - text: "1. Background"
-            href: applications/prompt_framing_study/01_background.qmd
-          - text: "2. Pilot Study 1"
-            href: applications/prompt_framing_study/02_pilot_study_1.qmd
       - text: "Blog"
         href: blog/index.qmd
     right:

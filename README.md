@@ -27,7 +27,6 @@ Current status:
 - ✅ Claude insurance study complete
 - ✅ GPT-4o Ellsberg study complete
 - ✅ 2×2 factorial synthesis complete
-- 🔄 Prompt framing study application in progress
 - 📝 Documentation being expanded
 - 🔬 Empirical validation ongoing
 
@@ -64,7 +63,6 @@ seu-sensitivity/
 │   │   ├── 06_sbc_validation.qmd         # Simulation-based calibration
 │   │   └── 07_generalizing_sensitivity.qmd # m_2 and m_3 model development
 │   ├── applications/       # Applied research reports
-│   │   ├── prompt_framing_study/
 │   │   ├── temperature_study/
 │   │   ├── temperature_study_with_eu_prompt/
 │   │   ├── temperature_study_with_risky_alts/
@@ -111,14 +109,13 @@ seu-sensitivity/
 │   ├── sbc.py              # Simulation-based calibration
 │   └── sample_size_estimation.py # Sample size planning
 ├── applications/            # Applied research projects
-│   ├── prompt_framing_study/ # Prompt framing effects on LLM rationality
 │   ├── temperature_study/  # LLM temperature effects on sensitivity
 │   ├── temperature_study_with_eu_prompt/ # Temperature study with EU-maximization prompt
 │   ├── temperature_study_with_risky_alts/ # Risky choice collection for m_1/m_2/m_3
 │   ├── ellsberg_study/     # Claude 3.5 Sonnet on Ellsberg urn gambles
 │   ├── claude_insurance_study/ # Claude 3.5 Sonnet on insurance claims triage
 │   ├── gpt4o_ellsberg_study/ # GPT-4o on Ellsberg urn gambles
-│   └── llm_rationality/    # Legacy LLM benchmarking (deprecated)
+│   └── factorial_synthesis/ # Cross-LLM × cross-task synthesis inputs and outputs
 ├── scripts/                 # Executable scripts
 │   ├── run_study_design.py # Generate study designs
 │   ├── run_m1_study_design.py # Generate m_1 study designs
@@ -261,16 +258,13 @@ fit = model.sample(data=design.get_data_dict())
 
 See [models/README_m1.md](models/README_m1.md) for detailed m_1 documentation.
 
-### 4. Benchmark LLM Rationality
+### 4. Run an Application Study
 
-```bash
-cd applications/prompt_framing_study
+The application modules each contain their own workflow documentation and entry points. Start with one of the active study directories:
 
-# Run the full study pipeline
-python -m prompt_framing_study
-```
-
-See [applications/prompt_framing_study/README.md](applications/prompt_framing_study/README.md) for detailed workflow on investigating how prompt framing affects LLM rationality.
+- [applications/temperature_study/README.md](applications/temperature_study/README.md)
+- [applications/temperature_study_with_eu_prompt/README.md](applications/temperature_study_with_eu_prompt/README.md)
+- [applications/temperature_study_with_risky_alts/README.md](applications/temperature_study_with_risky_alts/README.md)
 
 ## Analysis Pipeline
 
@@ -411,19 +405,6 @@ See [utils/README.md](utils/README.md) for complete documentation.
 
 ## Applications
 
-### Prompt Framing Study
-
-Investigate how prompt framing (rationality emphasis) affects an LLM's sensitivity to expected utility maximization.
-
-**Research Question**: Does explicitly framing a decision problem in terms of utility maximization change how "rational" an LLM appears to be?
-
-**Key Features:**
-- Contextualized embeddings that capture prompt-specific claim perception
-- Multiple prompt variants from minimal to maximal rationality emphasis
-- Robustness analysis across embedding models and dimensions
-
-See [applications/prompt_framing_study/README.md](applications/prompt_framing_study/README.md) for complete workflow.
-
 ### Temperature Study
 
 Investigate how LLM sampling temperature affects estimated sensitivity (α) to expected utility maximization.
@@ -497,11 +478,16 @@ Part of the 2×2 factorial design (GPT-4o × Ellsberg cell). Tests GPT-4o on Ell
 - Uses m_02 model variant with Lognormal(3.5, 0.75) prior
 - Completes the 2×2 factorial design with the other three cells
 
-### Legacy: LLM Rationality Benchmarking (Deprecated)
+### Factorial Synthesis
 
-The original `llm_rationality` module provides basic LLM benchmarking capabilities. This module is being superseded by `prompt_framing_study` and `temperature_study` which offer improved methodology.
+Synthesizes the full 2×2 factorial design crossing LLM family and task domain.
 
-See [applications/llm_rationality/README.md](applications/llm_rationality/README.md) for legacy documentation.
+**Research Question**: Are temperature effects on estimated SEU sensitivity primarily driven by LLM, task, or their interaction?
+
+**Key Features:**
+- Integrates all four factorial cells
+- Formal cross-cell comparison of temperature slopes and monotonicity
+- Final synthesis of LLM-specific versus task-specific effects
 
 ## Configuration Files
 

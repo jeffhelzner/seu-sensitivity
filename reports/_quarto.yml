@@ -26,6 +26,10 @@ website:
             href: foundations/06_sbc_validation.qmd
           - text: "7. Generalizing Sensitivity"
             href: foundations/07_generalizing_sensitivity.qmd
+          - text: "8. Hierarchical Formulation"
+            href: foundations/08_hierarchical_formulation.qmd
+          - text: "9. Hierarchical Implementation"
+            href: foundations/09_hierarchical_implementation.qmd
       - text: "Applications"
         menu:
           - text: "---"

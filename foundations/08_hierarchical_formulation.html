@@ -1,0 +1,2068 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.36">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Jeff Helzner">
+<meta name="dcterms.date" content="2026-04-08">
+<meta name="description" content="Abstract formulation of the hierarchical SEU sensitivity model. Extends the single-agent softmax framework to multi-cell experimental designs where sensitivity varies systematically across cells via regression on log(α).">
+
+<title>Hierarchical Formulation of Multi-Cell SEU Sensitivity – SEU Sensitivity</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-845c23b38eaddc0f92fda52bfe77a8c8.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-f418161beb48e0141c760e455f12af2c.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-845c23b38eaddc0f92fda52bfe77a8c8.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-8bea9ef0322c8307074b0391064fa4e7.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-57d7ea011d1f2c9e7c782893198740cb.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-8bea9ef0322c8307074b0391064fa4e7.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../styles/seu-sensitivity.css">
+<meta name="citation_title" content="Hierarchical Formulation of Multi-Cell SEU Sensitivity">
+<meta name="citation_author" content="Jeff Helzner">
+<meta name="citation_publication_date" content="2026-04-08">
+<meta name="citation_cover_date" content="2026-04-08">
+<meta name="citation_year" content="2026">
+<meta name="citation_online_date" content="2026-04-08">
+<meta name="citation_fulltext_html_url" content="https://jeffhelzner.github.io/seu-sensitivity/foundations/08_hierarchical_formulation.html">
+<meta name="citation_language" content="en">
+<meta name="citation_journal_title" content="SEU Sensitivity Project">
+<meta name="citation_reference" content="citation_title=Theory of games and economic behavior;,citation_author=John Neumann;,citation_author=Oskar Morgenstern;,citation_publication_date=1947;,citation_cover_date=1947;,citation_year=1947;">
+<meta name="citation_reference" content="citation_title=The foundations of statistics;,citation_author=Leonard J. Savage;,citation_publication_date=1954;,citation_cover_date=1954;,citation_year=1954;,citation_publisher=John Wiley &amp;amp;amp; Sons;">
+<meta name="citation_reference" content="citation_title=Individual choice behavior: A theoretical analysis;,citation_author=R. Duncan Luce;,citation_publication_date=1959;,citation_cover_date=1959;,citation_year=1959;,citation_publisher=John Wiley &amp;amp;amp; Sons;">
+<meta name="citation_reference" content="citation_title=Conditional logit analysis of qualitative choice behavior;,citation_author=Daniel McFadden;,citation_publication_date=1974;,citation_cover_date=1974;,citation_year=1974;,citation_journal_title=Frontiers in Econometrics;,citation_publisher=Academic Press;">
+<meta name="citation_reference" content="citation_title=Discrete choice methods with simulation;,citation_author=Kenneth E. Train;,citation_publication_date=2009;,citation_cover_date=2009;,citation_year=2009;,citation_publisher=Cambridge University Press;">
+<meta name="citation_reference" content="citation_title=Validating Bayesian inference algorithms with simulation-based calibration;,citation_author=Sean Talts;,citation_author=Michael Betancourt;,citation_author=Daniel Simpson;,citation_author=Aki Vehtari;,citation_author=Andrew Gelman;,citation_publication_date=2018;,citation_cover_date=2018;,citation_year=2018;,citation_journal_title=arXiv preprint arXiv:1804.06788;">
+<meta name="citation_reference" content="citation_title=Bayesian workflow;,citation_author=Andrew Gelman;,citation_author=Aki Vehtari;,citation_author=Daniel Simpson;,citation_author=Charles C. Margossian;,citation_author=Bob Carpenter;,citation_author=Yuling Yao;,citation_author=Lauren Kennedy;,citation_author=Jonah Gabry;,citation_author=Paul-Christian Bürkner;,citation_author=Martin Modrák;,citation_publication_date=2020;,citation_cover_date=2020;,citation_year=2020;,citation_journal_title=arXiv preprint arXiv:2011.01808;">
+<meta name="citation_reference" content="citation_title=Stan: A probabilistic programming language;,citation_author=Bob Carpenter;,citation_author=Andrew Gelman;,citation_author=Matthew D. Hoffman;,citation_author=Daniel Lee;,citation_author=Ben Goodrich;,citation_author=Michael Betancourt;,citation_author=Marcus Brubaker;,citation_author=Jiqiang Guo;,citation_author=Peter Li;,citation_author=Allen Riddell;,citation_publication_date=2017;,citation_cover_date=2017;,citation_year=2017;,citation_issue=1;,citation_volume=76;,citation_journal_title=Journal of Statistical Software;">
+<meta name="citation_reference" content="citation_title=Visualization in Bayesian workflow;,citation_author=Jonah Gabry;,citation_author=Daniel Simpson;,citation_author=Aki Vehtari;,citation_author=Michael Betancourt;,citation_author=Andrew Gelman;,citation_publication_date=2019;,citation_cover_date=2019;,citation_year=2019;,citation_issue=2;,citation_volume=182;,citation_journal_title=Journal of the Royal Statistical Society: Series A;">
+<meta name="citation_reference" content="citation_title=The logic of decision;,citation_author=Richard C. Jeffrey;,citation_publication_date=1965;,citation_cover_date=1965;,citation_year=1965;">
+<meta name="citation_reference" content="citation_title=Prospect theory: An analysis of decision under risk;,citation_author=Daniel Kahneman;,citation_author=Amos Tversky;,citation_publication_date=1979;,citation_cover_date=1979;,citation_year=1979;,citation_issue=2;,citation_volume=47;,citation_journal_title=Econometrica;">
+<meta name="citation_reference" content="citation_title=Advances in prospect theory: Cumulative representation of uncertainty;,citation_author=Amos Tversky;,citation_author=Daniel Kahneman;,citation_publication_date=1992;,citation_cover_date=1992;,citation_year=1992;,citation_issue=4;,citation_volume=5;,citation_journal_title=Journal of Risk and Uncertainty;">
+<meta name="citation_reference" content="citation_title=The enterprise of knowledge: An essay on knowledge, credal probability, and chance;,citation_author=Isaac Levi;,citation_publication_date=1980;,citation_cover_date=1980;,citation_year=1980;">
+<meta name="citation_reference" content="citation_title=Hard choices: Decision making under unresolved conflict;,citation_author=Isaac Levi;,citation_publication_date=1986;,citation_cover_date=1986;,citation_year=1986;">
+<meta name="citation_reference" content="citation_title=A behavioral model of rational choice;,citation_author=Herbert A. Simon;,citation_publication_date=1955;,citation_cover_date=1955;,citation_year=1955;,citation_issue=1;,citation_volume=69;,citation_journal_title=The Quarterly Journal of Economics;">
+<meta name="citation_reference" content="citation_title=Reasoning the fast and frugal way: Models of bounded rationality;,citation_author=Gerd Gigerenzer;,citation_author=Daniel G. Goldstein;,citation_publication_date=1996;,citation_cover_date=1996;,citation_year=1996;,citation_volume=103;,citation_inbook_title=Psychological review;">
+<meta name="citation_reference" content="citation_title=The methodology of positive economics;,citation_author=Milton Friedman;,citation_publication_date=1953;,citation_cover_date=1953;,citation_year=1953;,citation_journal_title=Essays in Positive Economics;,citation_publisher=University of Chicago Press;">
+<meta name="citation_reference" content="citation_title=Risk, uncertainty and profit;,citation_author=Frank H. Knight;,citation_publication_date=1921;,citation_cover_date=1921;,citation_year=1921;">
+<meta name="citation_reference" content="citation_title=Theory of games and economic behavior;,citation_author=John Neumann;,citation_author=Oskar Morgenstern;,citation_publication_date=1944;,citation_cover_date=1944;,citation_year=1944;">
+<meta name="citation_reference" content="citation_title=The foundations of statistics;,citation_author=Leonard J. Savage;,citation_publication_date=1954;,citation_cover_date=1954;,citation_year=1954;">
+<meta name="citation_reference" content="citation_title=A definition of subjective probability;,citation_author=Francis J. Anscombe;,citation_author=Robert J. Aumann;,citation_publication_date=1963;,citation_cover_date=1963;,citation_year=1963;,citation_issue=1;,citation_volume=34;,citation_journal_title=Annals of Mathematical Statistics;">
+<meta name="citation_reference" content="citation_title=Notes on the theory of choice;,citation_author=David M. Kreps;,citation_publication_date=1988;,citation_cover_date=1988;,citation_year=1988;">
+<meta name="citation_reference" content="citation_title=Identification in parametric models;,citation_author=Thomas J. Rothenberg;,citation_publication_date=1971;,citation_cover_date=1971;,citation_year=1971;,citation_issue=3;,citation_volume=39;,citation_journal_title=Econometrica;,citation_publisher=Wiley;">
+<meta name="citation_reference" content="citation_title=Telling more than we can know: Verbal reports on mental processes;,citation_author=Richard E. Nisbett;,citation_author=Timothy D. Wilson;,citation_publication_date=1977;,citation_cover_date=1977;,citation_year=1977;,citation_issue=3;,citation_volume=84;,citation_journal_title=Psychological Review;,citation_publisher=American Psychological Association;">
+<meta name="citation_reference" content="citation_title=Verbal overshadowing of visual memories: Some things are better left unsaid;,citation_author=Jonathan W. Schooler;,citation_author=Tonya Y. Engstler-Schooler;,citation_publication_date=1990;,citation_cover_date=1990;,citation_year=1990;,citation_issue=1;,citation_volume=22;,citation_journal_title=Cognitive Psychology;,citation_publisher=Elsevier;">
+<meta name="citation_reference" content="citation_title=Data analysis using regression and multilevel/hierarchical models;,citation_author=Andrew Gelman;,citation_author=Jennifer Hill;,citation_publication_date=2007;,citation_cover_date=2007;,citation_year=2007;">
+</head>
+
+<body class="nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">SEU Sensitivity</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-foundations" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Foundations</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-foundations">    
+        <li>
+    <a class="dropdown-item" href="../foundations/01_abstract_formulation.html">
+ <span class="dropdown-text">1. Abstract Formulation</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../foundations/02_concrete_implementation.html">
+ <span class="dropdown-text">2. Concrete Implementation</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../foundations/03_prior_analysis.html">
+ <span class="dropdown-text">3. Prior Analysis</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../foundations/04_parameter_recovery.html">
+ <span class="dropdown-text">4. Parameter Recovery</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../foundations/05_adding_risky_choices.html">
+ <span class="dropdown-text">5. Adding Risky Choices</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../foundations/06_sbc_validation.html">
+ <span class="dropdown-text">6. SBC Validation</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../foundations/07_generalizing_sensitivity.html">
+ <span class="dropdown-text">7. Generalizing Sensitivity</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../foundations/08_hierarchical_formulation.html">
+ <span class="dropdown-text">8. Hierarchical Formulation</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../foundations/09_hierarchical_implementation.html">
+ <span class="dropdown-text">9. Hierarchical Implementation</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-applications" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Applications</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-applications">    
+        <li><hr class="dropdown-divider"></li>
+        <li class="dropdown-header">Temperature Study</li>
+        <li>
+    <a class="dropdown-item" href="../applications/temperature_study/01_initial_study.html">
+ <span class="dropdown-text">1. Initial Results</span></a>
+  </li>  
+        <li><hr class="dropdown-divider"></li>
+        <li class="dropdown-header">Temperature Study: EU Prompt</li>
+        <li>
+    <a class="dropdown-item" href="../applications/temperature_study_with_eu_prompt/01_eu_prompt_study.html">
+ <span class="dropdown-text">1. EU Prompt Study</span></a>
+  </li>  
+        <li><hr class="dropdown-divider"></li>
+        <li class="dropdown-header">Temperature Study: Risky Alternatives</li>
+        <li>
+    <a class="dropdown-item" href="../applications/temperature_study_with_risky_alts/01_risky_alternatives_study.html">
+ <span class="dropdown-text">1. Risky Alternatives Extension</span></a>
+  </li>  
+        <li><hr class="dropdown-divider"></li>
+        <li class="dropdown-header">Ellsberg Study</li>
+        <li>
+    <a class="dropdown-item" href="../applications/ellsberg_study/01_ellsberg_study.html">
+ <span class="dropdown-text">1. Ellsberg Study</span></a>
+  </li>  
+        <li><hr class="dropdown-divider"></li>
+        <li class="dropdown-header">Factorial Cells</li>
+        <li>
+    <a class="dropdown-item" href="../applications/claude_insurance_study/01_claude_insurance_study.html">
+ <span class="dropdown-text">Claude × Insurance</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../applications/gpt4o_ellsberg_study/01_gpt4o_ellsberg_study.html">
+ <span class="dropdown-text">GPT-4o × Ellsberg</span></a>
+  </li>  
+        <li><hr class="dropdown-divider"></li>
+        <li class="dropdown-header">Factorial Synthesis</li>
+        <li>
+    <a class="dropdown-item" href="../applications/factorial_synthesis/01_factorial_synthesis.html">
+ <span class="dropdown-text">2×2 Factorial Analysis</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="../blog/index.html"> 
+<span class="menu-text">Blog</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/jeffhelzner/seu-sensitivity"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active" data-toc-expanded="2">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction"><span class="header-section-number">0.1</span> Introduction</a></li>
+  <li><a href="#from-single-agent-to-multi-cell-designs" id="toc-from-single-agent-to-multi-cell-designs" class="nav-link" data-scroll-target="#from-single-agent-to-multi-cell-designs"><span class="header-section-number">0.2</span> From Single-Agent to Multi-Cell Designs</a></li>
+  <li><a href="#notation-for-the-hierarchical-model" id="toc-notation-for-the-hierarchical-model" class="nav-link" data-scroll-target="#notation-for-the-hierarchical-model"><span class="header-section-number">0.3</span> Notation for the Hierarchical Model</a></li>
+  <li><a href="#sec-regression" id="toc-sec-regression" class="nav-link" data-scroll-target="#sec-regression"><span class="header-section-number">0.4</span> The Regression on Log-Sensitivity</a>
+  <ul class="collapse">
+  <li><a href="#why-the-log-scale" id="toc-why-the-log-scale" class="nav-link" data-scroll-target="#why-the-log-scale"><span class="header-section-number">0.4.1</span> Why the log scale?</a></li>
+  <li><a href="#interpretation-of-boldsymbolgamma" id="toc-interpretation-of-boldsymbolgamma" class="nav-link" data-scroll-target="#interpretation-of-boldsymbolgamma"><span class="header-section-number">0.4.2</span> Interpretation of <span class="math inline">\(\boldsymbol{\gamma}\)</span></a></li>
+  <li><a href="#non-centered-parameterization" id="toc-non-centered-parameterization" class="nav-link" data-scroll-target="#non-centered-parameterization"><span class="header-section-number">0.4.3</span> Non-centered parameterization</a></li>
+  </ul></li>
+  <li><a href="#what-is-shared-what-varies" id="toc-what-is-shared-what-varies" class="nav-link" data-scroll-target="#what-is-shared-what-varies"><span class="header-section-number">0.5</span> What Is Shared, What Varies</a>
+  <ul class="collapse">
+  <li><a href="#cell-specific-boldsymbolbeta_j" id="toc-cell-specific-boldsymbolbeta_j" class="nav-link" data-scroll-target="#cell-specific-boldsymbolbeta_j"><span class="header-section-number">0.5.1</span> Cell-specific <span class="math inline">\(\boldsymbol{\beta}_j\)</span></a></li>
+  <li><a href="#shared-boldsymboldelta" id="toc-shared-boldsymboldelta" class="nav-link" data-scroll-target="#shared-boldsymboldelta"><span class="header-section-number">0.5.2</span> Shared <span class="math inline">\(\boldsymbol{\delta}\)</span></a></li>
+  <li><a href="#shared-alternatives" id="toc-shared-alternatives" class="nav-link" data-scroll-target="#shared-alternatives"><span class="header-section-number">0.5.3</span> Shared alternatives</a></li>
+  </ul></li>
+  <li><a href="#sec-stacked-data" id="toc-sec-stacked-data" class="nav-link" data-scroll-target="#sec-stacked-data"><span class="header-section-number">0.6</span> The Stacked Data Structure</a></li>
+  <li><a href="#sec-reduction" id="toc-sec-reduction" class="nav-link" data-scroll-target="#sec-reduction"><span class="header-section-number">0.7</span> Relationship to the Base Model</a></li>
+  <li><a href="#properties-of-the-hierarchical-extension" id="toc-properties-of-the-hierarchical-extension" class="nav-link" data-scroll-target="#properties-of-the-hierarchical-extension"><span class="header-section-number">0.8</span> Properties of the Hierarchical Extension</a></li>
+  <li><a href="#sec-design-matrix" id="toc-sec-design-matrix" class="nav-link" data-scroll-target="#sec-design-matrix"><span class="header-section-number">0.9</span> Design Matrix Construction</a></li>
+  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary"><span class="header-section-number">0.10</span> Summary</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<div class="quarto-title-block"><div><h1 class="title">Hierarchical Formulation of Multi-Cell SEU Sensitivity</h1><button type="button" class="btn code-tools-button dropdown-toggle" id="quarto-code-tools-menu" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi"></i> Code</button><ul class="dropdown-menu dropdown-menu-end" aria-labelelledby="quarto-code-tools-menu"><li><a id="quarto-show-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Show All Code</a></li><li><a id="quarto-hide-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Hide All Code</a></li><li><hr class="dropdown-divider"></li><li><a id="quarto-view-source" class="dropdown-item" href="javascript:void(0)" role="button">View Source</a></li></ul></div></div>
+<p class="subtitle lead">Foundational Report 8</p>
+  <div class="quarto-categories">
+    <div class="quarto-category">foundations</div>
+    <div class="quarto-category">theory</div>
+    <div class="quarto-category">h_m01</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    <p>Abstract formulation of the hierarchical SEU sensitivity model. Extends the single-agent softmax framework to multi-cell experimental designs where sensitivity varies systematically across cells via regression on log(α).</p>
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p><a href="https://github.com/jeffhelzner">Jeff Helzner</a> </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">April 8, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="introduction" class="level2" data-number="0.1">
+<h2 data-number="0.1" class="anchored" data-anchor-id="introduction"><span class="header-section-number">0.1</span> Introduction</h2>
+<p><a href="../foundations/01_abstract_formulation.html">Report 1</a> and <a href="../foundations/02_concrete_implementation.html">Report 2</a> established the single-agent SEU sensitivity model: a sensitivity parameter <span class="math inline">\(\alpha\)</span> governs how consistently an agent’s choices track expected utility via the softmax rule. <a href="../foundations/05_adding_risky_choices.html">Reports 5–7</a> extended the parameter space to accommodate risky alternatives, separate sensitivity, and proportional sensitivity. This report extends the framework in a different direction: from single-agent to <strong>multi-cell experimental designs</strong>.</p>
+<p>The motivation for this extension is twofold:</p>
+<ol type="1">
+<li><p><strong>Prospective (primary).</strong> The natural next step for this research program is a large-scale factorial experiment — the alignment study — crossing multiple LLMs with multiple prompt conditions (6 models × 3 prompts = 18 cells). Analyzing such a design requires a model that can estimate cell-level sensitivity within a single unified framework, with formal regression coefficients quantifying how experimental factors shift <span class="math inline">\(\alpha\)</span>. Independent per-cell fits would not provide the formal effect estimates, partial pooling, or principled shrinkage that a study of this scale demands.</p></li>
+<li><p><strong>Retrospective.</strong> The 2×2 factorial synthesis (<a href="../applications/factorial_synthesis/01_factorial_synthesis.html">Report</a>) already demonstrated the limitations of the independent-fits approach. That report explicitly noted: “A more statistically coherent analysis would fit a single hierarchical model with LLM, task, and temperature as factors.” The factorial pilot data could itself be re-analyzed under the hierarchical framework, but the primary impetus was the prospective alignment study.</p></li>
+</ol>
+<p>This report presents a hierarchical model — <code>h_m01</code> — that enables formal inference about how experimental factors (e.g., LLM identity, prompt framing, task domain) affect SEU sensitivity, within a single unified Bayesian analysis.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Why Hierarchical?
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>When data are gathered across <span class="math inline">\(J\)</span> experimental cells (e.g., different LLMs, different prompt conditions), fitting each cell independently discards information. A hierarchical model:</p>
+<ol type="1">
+<li><strong>Shares statistical strength</strong>: Cells with less data borrow from the group-level estimate</li>
+<li><strong>Enables formal comparisons</strong>: Regression coefficients directly quantify how factors shift sensitivity</li>
+<li><strong>Provides principled shrinkage</strong>: Extreme per-cell estimates are regularized toward the group mean</li>
+</ol>
+</div>
+</div>
+</section>
+<section id="from-single-agent-to-multi-cell-designs" class="level2" data-number="0.2">
+<h2 data-number="0.2" class="anchored" data-anchor-id="from-single-agent-to-multi-cell-designs"><span class="header-section-number">0.2</span> From Single-Agent to Multi-Cell Designs</h2>
+<p>Recall the single-agent model from <a href="../foundations/01_abstract_formulation.html">Report 1</a>: a single sensitivity parameter <span class="math inline">\(\alpha\)</span> governs how choices track expected utility via the softmax rule <span class="math inline">\(P(\text{choose } r) \propto \exp(\alpha \cdot \eta_r)\)</span>. All <span class="math inline">\(M\)</span> observations are generated by one agent with one <span class="math inline">\(\alpha\)</span>.</p>
+<p>Now consider the experimental design setting: <span class="math inline">\(J\)</span> cells indexed by <span class="math inline">\(j \in \{1, \ldots, J\}\)</span>, each with its own population of observations. Cells correspond to distinct experimental conditions — for example, a particular LLM under a particular prompt. Each cell <span class="math inline">\(j\)</span> has its own sensitivity parameter <span class="math inline">\(\alpha_j\)</span>.</p>
+<p>The key question: how should we relate the <span class="math inline">\(\alpha_j\)</span> across cells?</p>
+<p>Three possible approaches are:</p>
+<div id="tbl-approaches" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-approaches-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;1: Approaches to multi-cell sensitivity estimation.
+</figcaption>
+<div aria-describedby="tbl-approaches-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 25%">
+<col style="width: 17%">
+<col style="width: 27%">
+<col style="width: 30%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Approach</th>
+<th>Model</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Independent fits</td>
+<td>Fit m_01 separately per cell</td>
+<td>Simple, no assumptions about cross-cell structure</td>
+<td>No information sharing; between-cell comparisons are post-hoc</td>
+</tr>
+<tr class="even">
+<td>Exchangeable hierarchy</td>
+<td><span class="math inline">\(\alpha_j \sim \text{LogNormal}(\mu, \sigma)\)</span></td>
+<td>Partial pooling, shrinkage</td>
+<td>No formal link to experimental design; effects estimated post-hoc</td>
+</tr>
+<tr class="odd">
+<td>Regression hierarchy</td>
+<td><span class="math inline">\(\log(\alpha_j) = \gamma_0 + \mathbf{X}_j \boldsymbol{\gamma} + \sigma_{\text{cell}} \cdot z_j\)</span></td>
+<td>Formal effect estimates; partial pooling; directly interpretable coefficients</td>
+<td>Requires specifying a design matrix</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>The <code>h_m01</code> model takes the <strong>regression hierarchy</strong> approach, which nests the other two as special cases: setting <span class="math inline">\(P = 0\)</span> (no predictors) recovers an exchangeable hierarchy, while <span class="math inline">\(\sigma_{\text{cell}} \to \infty\)</span> effectively recovers independent fits.</p>
+</section>
+<section id="notation-for-the-hierarchical-model" class="level2" data-number="0.3">
+<h2 data-number="0.3" class="anchored" data-anchor-id="notation-for-the-hierarchical-model"><span class="header-section-number">0.3</span> Notation for the Hierarchical Model</h2>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Notation Summary (Hierarchical Extension)
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 38%">
+<col style="width: 61%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Symbol</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><span class="math inline">\(J\)</span></td>
+<td>Number of experimental cells</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(j \in \{1, \ldots, J\}\)</span></td>
+<td>Cell index</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(\alpha_j\)</span></td>
+<td>Sensitivity parameter for cell <span class="math inline">\(j\)</span></td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(\mathbf{X} \in \mathbb{R}^{J \times P}\)</span></td>
+<td>Design matrix (no intercept column)</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(\gamma_0 \in \mathbb{R}\)</span></td>
+<td>Intercept of log-<span class="math inline">\(\alpha\)</span> regression</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(\boldsymbol{\gamma} \in \mathbb{R}^P\)</span></td>
+<td>Regression coefficients</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(\sigma_{\text{cell}} \geq 0\)</span></td>
+<td>Cell-level residual SD</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(z_j \sim \mathcal{N}(0, 1)\)</span></td>
+<td>Standardized cell deviations</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(\boldsymbol{\beta}_j \in \mathbb{R}^{K \times D}\)</span></td>
+<td>Cell-specific feature-to-probability mapping</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(\boldsymbol{\delta} \in \Delta^{K-2}\)</span></td>
+<td>Shared utility increments (unchanged from m_01)</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(M_{\text{total}}\)</span></td>
+<td>Total observations across all cells</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(\text{cell}[m] \in \{1, \ldots, J\}\)</span></td>
+<td>Cell membership for observation <span class="math inline">\(m\)</span></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Unchanged from Reports 01–02:</strong> <span class="math inline">\(K\)</span> (consequences), <span class="math inline">\(D\)</span> (feature dimensions), <span class="math inline">\(R\)</span> (distinct alternatives), <span class="math inline">\(\mathbf{w}_r\)</span> (feature vectors), <span class="math inline">\(I_{m,r}\)</span> (availability indicators), <span class="math inline">\(y_m\)</span> (observed choices), <span class="math inline">\(\boldsymbol{\psi}_r\)</span> (subjective probabilities), <span class="math inline">\(\boldsymbol{\upsilon}\)</span> (utilities), <span class="math inline">\(\eta_r\)</span> (expected utilities).</p>
+</div>
+</div>
+</section>
+<section id="sec-regression" class="level2" data-number="0.4">
+<h2 data-number="0.4" class="anchored" data-anchor-id="sec-regression"><span class="header-section-number">0.4</span> The Regression on Log-Sensitivity</h2>
+<p>This section presents the core theoretical contribution: a regression structure that links cell-level sensitivity to experimental factors.</p>
+<p>The hierarchical structure is:</p>
+<p><span id="eq-regression"><span class="math display">\[
+\log(\alpha_j) = \gamma_0 + \mathbf{X}_j \boldsymbol{\gamma} + \sigma_{\text{cell}} \cdot z_j, \quad z_j \sim \mathcal{N}(0, 1)
+\tag{1}\]</span></span></p>
+<p>Equivalently:</p>
+<p><span id="eq-alpha-exp"><span class="math display">\[
+\alpha_j = \exp\!\bigl(\gamma_0 + \mathbf{X}_j \boldsymbol{\gamma} + \sigma_{\text{cell}} \cdot z_j\bigr)
+\tag{2}\]</span></span></p>
+<section id="why-the-log-scale" class="level3" data-number="0.4.1">
+<h3 data-number="0.4.1" class="anchored" data-anchor-id="why-the-log-scale"><span class="header-section-number">0.4.1</span> Why the log scale?</h3>
+<p>The sensitivity parameter <span class="math inline">\(\alpha\)</span> is strictly positive. Working on the log scale maps to the real line, permitting standard normal regression mechanics. The lognormal prior on <span class="math inline">\(\alpha\)</span> in m_01 (<span class="math inline">\(\text{LogNormal}(3.0, 0.75)\)</span>) already operates on the log scale — <span class="math inline">\(\gamma_0\)</span> takes the role of the prior mean (3.0) and <span class="math inline">\(\sigma_{\text{cell}}\)</span> plays a role analogous to the prior SD (0.75), but now conditional on predictors.</p>
+</section>
+<section id="interpretation-of-boldsymbolgamma" class="level3" data-number="0.4.2">
+<h3 data-number="0.4.2" class="anchored" data-anchor-id="interpretation-of-boldsymbolgamma"><span class="header-section-number">0.4.2</span> Interpretation of <span class="math inline">\(\boldsymbol{\gamma}\)</span></h3>
+<p>Each <span class="math inline">\(\gamma_p\)</span> represents the <strong>multiplicative change</strong> in <span class="math inline">\(\alpha\)</span> associated with a unit change in <span class="math inline">\(X_{j,p}\)</span>, all else equal. Specifically, <span class="math inline">\(\exp(\gamma_p)\)</span> is the multiplicative factor. If <span class="math inline">\(\gamma_p = 0.5\)</span>, then a one-unit increase in predictor <span class="math inline">\(p\)</span> multiplies <span class="math inline">\(\alpha\)</span> by <span class="math inline">\(\exp(0.5) \approx 1.65\)</span>, i.e., a 65% increase in sensitivity.</p>
+</section>
+<section id="non-centered-parameterization" class="level3" data-number="0.4.3">
+<h3 data-number="0.4.3" class="anchored" data-anchor-id="non-centered-parameterization"><span class="header-section-number">0.4.3</span> Non-centered parameterization</h3>
+<p>We parameterize via <span class="math inline">\(z_j \sim \mathcal{N}(0, 1)\)</span> and construct <span class="math inline">\(\log(\alpha_j) = \gamma_0 + \mathbf{X}_j \boldsymbol{\gamma} + \sigma_{\text{cell}} \cdot z_j\)</span>, rather than directly placing a normal prior on <span class="math inline">\(\log(\alpha_j)\)</span>. These two formulations are mathematically equivalent, but the non-centered form performs better computationally when <span class="math inline">\(\sigma_{\text{cell}}\)</span> is small relative to the data information, because it avoids the “funnel” geometry that causes divergent transitions in the <span class="math inline">\((\sigma_{\text{cell}}, z_j)\)</span> joint posterior <span class="citation" data-cites="carpenter2017">(<a href="#ref-carpenter2017" role="doc-biblioref">Carpenter et al. 2017</a>)</span>.</p>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>Interpreting Regression Coefficients
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>With a treatment-coded design matrix:</p>
+<ul>
+<li><strong><span class="math inline">\(\gamma_0\)</span></strong> is the log-sensitivity of the reference cell (all predictors = 0)</li>
+<li><strong><span class="math inline">\(\gamma_p\)</span></strong> is the log-ratio of sensitivity between the treatment and reference level for factor <span class="math inline">\(p\)</span></li>
+<li><strong><span class="math inline">\(\exp(\gamma_p)\)</span></strong> is the multiplicative effect on <span class="math inline">\(\alpha\)</span></li>
+</ul>
+<p>Example: If <span class="math inline">\(\gamma_0 = 3.0\)</span> and <span class="math inline">\(\gamma_1 = -0.5\)</span> (for an LLM indicator), the reference LLM has median <span class="math inline">\(\alpha \approx 20\)</span> and the treatment LLM has median <span class="math inline">\(\alpha \approx 20 \cdot \exp(-0.5) \approx 12\)</span>. The treatment LLM is approximately 40% less sensitive to SEU maximization.</p>
+</div>
+</div>
+<div id="cell-fig-regression-illustration" class="cell" data-execution_count="2">
+<details class="code-fold">
+<summary>Show code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">12</span>, <span class="dv">5</span>), gridspec_kw<span class="op">=</span>{<span class="st">'width_ratios'</span>: [<span class="dv">1</span>, <span class="fl">1.5</span>]})</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Left panel: Design matrix visualization</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> axes[<span class="dv">0</span>]</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co"># 2x2 factorial: LLM (A vs B) × Prompt (neutral vs directive)</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>cell_labels <span class="op">=</span> [<span class="st">'A × neutral'</span>, <span class="st">'A × directive'</span>, <span class="st">'B × neutral'</span>, <span class="st">'B × directive'</span>]</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>X_example <span class="op">=</span> np.array([</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    [<span class="dv">0</span>, <span class="dv">0</span>],  <span class="co"># reference: LLM A, neutral</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    [<span class="dv">0</span>, <span class="dv">1</span>],  <span class="co"># LLM A, directive</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    [<span class="dv">1</span>, <span class="dv">0</span>],  <span class="co"># LLM B, neutral</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    [<span class="dv">1</span>, <span class="dv">1</span>],  <span class="co"># LLM B, directive</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>])</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>im <span class="op">=</span> ax.imshow(X_example, cmap<span class="op">=</span><span class="st">'Blues'</span>, aspect<span class="op">=</span><span class="st">'auto'</span>, vmin<span class="op">=-</span><span class="fl">0.5</span>, vmax<span class="op">=</span><span class="fl">1.5</span>)</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>ax.set_xticks([<span class="dv">0</span>, <span class="dv">1</span>])</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>ax.set_xticklabels([<span class="st">'$X_1$ (LLM B)'</span>, <span class="st">'$X_2$ (directive)'</span>], fontsize<span class="op">=</span><span class="dv">10</span>)</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>ax.set_yticks(<span class="bu">range</span>(<span class="dv">4</span>))</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>ax.set_yticklabels(cell_labels, fontsize<span class="op">=</span><span class="dv">10</span>)</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">4</span>):</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> j_col <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">2</span>):</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>        ax.text(j_col, i, <span class="bu">str</span>(X_example[i, j_col]),</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>                ha<span class="op">=</span><span class="st">'center'</span>, va<span class="op">=</span><span class="st">'center'</span>, fontsize<span class="op">=</span><span class="dv">14</span>, fontweight<span class="op">=</span><span class="st">'bold'</span>,</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>                color<span class="op">=</span><span class="st">'white'</span> <span class="cf">if</span> X_example[i, j_col] <span class="op">==</span> <span class="dv">1</span> <span class="cf">else</span> <span class="st">'black'</span>)</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">'Design Matrix $</span><span class="ch">\\</span><span class="st">mathbf</span><span class="sc">{X}</span><span class="st">$'</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a><span class="co"># Right panel: Resulting log(alpha) distributions</span></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> axes[<span class="dv">1</span>]</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>gamma0 <span class="op">=</span> <span class="fl">3.0</span></span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>gamma1 <span class="op">=</span> <span class="op">-</span><span class="fl">0.5</span>  <span class="co"># LLM B effect</span></span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>gamma2 <span class="op">=</span> <span class="fl">0.3</span>   <span class="co"># directive prompt effect</span></span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>sigma_cell <span class="op">=</span> <span class="fl">0.3</span></span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>x_range <span class="op">=</span> np.linspace(<span class="fl">0.5</span>, <span class="fl">5.5</span>, <span class="dv">300</span>)</span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>colors <span class="op">=</span> [<span class="st">'#1f77b4'</span>, <span class="st">'#ff7f0e'</span>, <span class="st">'#2ca02c'</span>, <span class="st">'#d62728'</span>]</span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i, (label, x_row) <span class="kw">in</span> <span class="bu">enumerate</span>(<span class="bu">zip</span>(cell_labels, X_example)):</span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>    mu <span class="op">=</span> gamma0 <span class="op">+</span> x_row[<span class="dv">0</span>] <span class="op">*</span> gamma1 <span class="op">+</span> x_row[<span class="dv">1</span>] <span class="op">*</span> gamma2</span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>    density <span class="op">=</span> norm.pdf(x_range, loc<span class="op">=</span>mu, scale<span class="op">=</span>sigma_cell)</span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>    ax.plot(x_range, density, color<span class="op">=</span>colors[i], linewidth<span class="op">=</span><span class="dv">2</span>, label<span class="op">=</span><span class="ss">f'</span><span class="sc">{</span>label<span class="sc">}</span><span class="ch">\n</span><span class="ss">$</span><span class="ch">\\</span><span class="ss">mu = </span><span class="sc">{</span>mu<span class="sc">:.1f}</span><span class="ss">$'</span>)</span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>    ax.fill_between(x_range, density, alpha<span class="op">=</span><span class="fl">0.15</span>, color<span class="op">=</span>colors[i])</span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="st">'$</span><span class="ch">\\</span><span class="st">log(</span><span class="ch">\\</span><span class="st">alpha_j)$'</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">'Density'</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="ss">f'Cell-level $</span><span class="ch">\\</span><span class="ss">log(</span><span class="ch">\\</span><span class="ss">alpha)$ distributions</span><span class="ch">\n</span><span class="ss">($</span><span class="ch">\\</span><span class="ss">gamma_0=</span><span class="sc">{</span>gamma0<span class="sc">}</span><span class="ss">$, $</span><span class="ch">\\</span><span class="ss">gamma_1=</span><span class="sc">{</span>gamma1<span class="sc">}</span><span class="ss">$, $</span><span class="ch">\\</span><span class="ss">gamma_2=</span><span class="sc">{</span>gamma2<span class="sc">}</span><span class="ss">$, $</span><span class="ch">\\</span><span class="ss">sigma_</span><span class="ch">{{\\</span><span class="ss">mathrm</span><span class="ch">{{</span><span class="ss">cell</span><span class="ch">}}}}</span><span class="ss">=</span><span class="sc">{</span>sigma_cell<span class="sc">}</span><span class="ss">$)'</span>, fontsize<span class="op">=</span><span class="dv">11</span>)</span>
+<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a>ax.legend(fontsize<span class="op">=</span><span class="dv">9</span>, loc<span class="op">=</span><span class="st">'upper right'</span>)</span>
+<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a>ax.set_xlim(<span class="fl">0.5</span>, <span class="fl">5.5</span>)</span>
+<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-display">
+<div id="fig-regression-illustration" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-regression-illustration-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="08_hierarchical_formulation_files/figure-html/fig-regression-illustration-output-1.svg" class="img-fluid figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-regression-illustration-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Illustration of how regression coefficients map to cell-level sensitivity distributions in a 2×2 factorial design. Left: design matrix structure. Right: resulting log(α) distributions for each cell, showing how γ coefficients shift the location.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="what-is-shared-what-varies" class="level2" data-number="0.5">
+<h2 data-number="0.5" class="anchored" data-anchor-id="what-is-shared-what-varies"><span class="header-section-number">0.5</span> What Is Shared, What Varies</h2>
+<p>A key design decision in any hierarchical model is which parameters are shared across cells and which vary. In <code>h_m01</code>, these choices are:</p>
+<div id="tbl-shared-varies" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-shared-varies-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;2: Shared vs.&nbsp;cell-specific components in h_m01.
+</figcaption>
+<div aria-describedby="tbl-shared-varies-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 29%">
+<col style="width: 40%">
+<col style="width: 29%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Component</th>
+<th style="text-align: center;">Shared/Varies</th>
+<th>Rationale</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><span class="math inline">\(\alpha_j\)</span> (sensitivity)</td>
+<td style="text-align: center;">Varies by cell (via regression)</td>
+<td>Primary quantity of interest</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(\boldsymbol{\beta}_j\)</span> (feature → probability)</td>
+<td style="text-align: center;">Varies by cell</td>
+<td>Different LLMs/prompts may form different beliefs</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(\boldsymbol{\delta}\)</span> (utility increments)</td>
+<td style="text-align: center;">Shared across cells</td>
+<td>Consequence structure is constant across cells</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(\boldsymbol{\upsilon}\)</span> (utilities)</td>
+<td style="text-align: center;">Shared (derived from <span class="math inline">\(\boldsymbol{\delta}\)</span>)</td>
+<td>Same as above</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(\mathbf{w}_r\)</span> (features)</td>
+<td style="text-align: center;">Shared</td>
+<td>Same alternative pool across all cells</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<section id="cell-specific-boldsymbolbeta_j" class="level3" data-number="0.5.1">
+<h3 data-number="0.5.1" class="anchored" data-anchor-id="cell-specific-boldsymbolbeta_j"><span class="header-section-number">0.5.1</span> Cell-specific <span class="math inline">\(\boldsymbol{\beta}_j\)</span></h3>
+<p>Each cell represents a different agent (LLM) under a different prompt. There is no reason to assume they form identical subjective probabilities from the same features. In fact, differences in <span class="math inline">\(\boldsymbol{\beta}_j\)</span> capture an important part of how LLMs differ — two models may agree on the utility ranking of consequences but disagree about which consequences follow from a given alternative.</p>
+</section>
+<section id="shared-boldsymboldelta" class="level3" data-number="0.5.2">
+<h3 data-number="0.5.2" class="anchored" data-anchor-id="shared-boldsymboldelta"><span class="header-section-number">0.5.2</span> Shared <span class="math inline">\(\boldsymbol{\delta}\)</span></h3>
+<p>The utility structure represents the consequence rank-ordering. For a fixed task (e.g., insurance triage), the consequences and their relative desirability are the same regardless of which LLM is deciding or what prompt was used. Sharing <span class="math inline">\(\boldsymbol{\delta}\)</span> introduces a useful constraint and improves identification: the shared utility scale provides a common frame of reference against which cell-specific sensitivities and beliefs are estimated.</p>
+</section>
+<section id="shared-alternatives" class="level3" data-number="0.5.3">
+<h3 data-number="0.5.3" class="anchored" data-anchor-id="shared-alternatives"><span class="header-section-number">0.5.3</span> Shared alternatives</h3>
+<p>The experimental design uses a common pool of decision problems across all cells, so that differences in behavior are attributable to the experimental factors, not to different stimuli. This is a standard feature of factorial designs.</p>
+</section>
+</section>
+<section id="sec-stacked-data" class="level2" data-number="0.6">
+<h2 data-number="0.6" class="anchored" data-anchor-id="sec-stacked-data"><span class="header-section-number">0.6</span> The Stacked Data Structure</h2>
+<p>The hierarchical model requires a specific data format: all <span class="math inline">\(M_{\text{total}}\)</span> observations across all cells are <strong>concatenated</strong> into a single dataset, with a cell-membership vector <span class="math inline">\(\text{cell}[m]\)</span> identifying which cell observation <span class="math inline">\(m\)</span> belongs to.</p>
+<p>This stacked structure is more efficient than separate per-cell fits because:</p>
+<ul>
+<li>The shared parameters (<span class="math inline">\(\boldsymbol{\delta}\)</span>) are estimated jointly</li>
+<li>The regression structure (<span class="math inline">\(\gamma_0, \boldsymbol{\gamma}, \sigma_{\text{cell}}\)</span>) pools information across cells</li>
+<li>A single MCMC run produces joint posterior samples, enabling coherent inference about all parameters simultaneously</li>
+</ul>
+<div id="cell-fig-stacked-data" class="cell" data-execution_count="3">
+<details class="code-fold">
+<summary>Show code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">4</span>))</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Draw stacked blocks</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>J <span class="op">=</span> <span class="dv">4</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>M_per_cell <span class="op">=</span> [<span class="dv">8</span>, <span class="dv">12</span>, <span class="dv">6</span>, <span class="dv">10</span>]</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>colors <span class="op">=</span> [<span class="st">'#1f77b4'</span>, <span class="st">'#ff7f0e'</span>, <span class="st">'#2ca02c'</span>, <span class="st">'#d62728'</span>]</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>cell_labels <span class="op">=</span> [<span class="ss">f'Cell </span><span class="sc">{</span>j<span class="op">+</span><span class="dv">1</span><span class="sc">}</span><span class="ch">\n</span><span class="ss">($M_</span><span class="sc">{</span>j<span class="op">+</span><span class="dv">1</span><span class="sc">}</span><span class="ss">=</span><span class="sc">{</span>M_per_cell[j]<span class="sc">}</span><span class="ss">$)'</span> <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(J)]</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>total <span class="op">=</span> <span class="bu">sum</span>(M_per_cell)</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>left <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(J):</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    width <span class="op">=</span> M_per_cell[j] <span class="op">/</span> total</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    rect <span class="op">=</span> plt.Rectangle((left, <span class="fl">0.3</span>), width, <span class="fl">0.3</span>, facecolor<span class="op">=</span>colors[j], edgecolor<span class="op">=</span><span class="st">'black'</span>, linewidth<span class="op">=</span><span class="fl">1.5</span>, alpha<span class="op">=</span><span class="fl">0.7</span>)</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>    ax.add_patch(rect)</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>    ax.text(left <span class="op">+</span> width <span class="op">/</span> <span class="dv">2</span>, <span class="fl">0.45</span>, cell_labels[j], ha<span class="op">=</span><span class="st">'center'</span>, va<span class="op">=</span><span class="st">'center'</span>, fontsize<span class="op">=</span><span class="dv">9</span>, fontweight<span class="op">=</span><span class="st">'bold'</span>)</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>    left <span class="op">+=</span> width</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Label the full array</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>ax.annotate(<span class="st">''</span>, xy<span class="op">=</span>(<span class="dv">0</span>, <span class="fl">0.25</span>), xytext<span class="op">=</span>(<span class="dv">1</span>, <span class="fl">0.25</span>),</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>            arrowprops<span class="op">=</span><span class="bu">dict</span>(arrowstyle<span class="op">=</span><span class="st">'&lt;-&gt;'</span>, color<span class="op">=</span><span class="st">'black'</span>, lw<span class="op">=</span><span class="fl">1.5</span>))</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>ax.text(<span class="fl">0.5</span>, <span class="fl">0.18</span>, <span class="ss">f'$M_</span><span class="ch">{{\\</span><span class="ss">mathrm</span><span class="ch">{{</span><span class="ss">total</span><span class="ch">}}}}</span><span class="ss"> = </span><span class="sc">{</span>total<span class="sc">}</span><span class="ss">$ stacked observations'</span>, ha<span class="op">=</span><span class="st">'center'</span>, fontsize<span class="op">=</span><span class="dv">11</span>)</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a><span class="co"># cell[m] vector</span></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>ax.text(<span class="fl">0.5</span>, <span class="fl">0.72</span>, <span class="st">'cell[$m$] = [1, 1, ..., 1, 2, 2, ..., 2, 3, 3, ..., 3, 4, 4, ..., 4]'</span>,</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>        ha<span class="op">=</span><span class="st">'center'</span>, fontsize<span class="op">=</span><span class="dv">10</span>, family<span class="op">=</span><span class="st">'monospace'</span>,</span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>        bbox<span class="op">=</span><span class="bu">dict</span>(boxstyle<span class="op">=</span><span class="st">'round,pad=0.3'</span>, facecolor<span class="op">=</span><span class="st">'lightyellow'</span>, edgecolor<span class="op">=</span><span class="st">'gray'</span>))</span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>ax.annotate(<span class="st">''</span>, xy<span class="op">=</span>(<span class="fl">0.5</span>, <span class="fl">0.65</span>), xytext<span class="op">=</span>(<span class="fl">0.5</span>, <span class="fl">0.63</span>),</span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>            arrowprops<span class="op">=</span><span class="bu">dict</span>(arrowstyle<span class="op">=</span><span class="st">'-&gt;'</span>, color<span class="op">=</span><span class="st">'gray'</span>, lw<span class="op">=</span><span class="dv">1</span>))</span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a><span class="co"># Arrows from cell vector to blocks</span></span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(J):</span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>    x_center <span class="op">=</span> <span class="bu">sum</span>(M_per_cell[:j]) <span class="op">/</span> total <span class="op">+</span> M_per_cell[j] <span class="op">/</span> (<span class="dv">2</span> <span class="op">*</span> total)</span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>    ax.annotate(<span class="st">''</span>, xy<span class="op">=</span>(x_center, <span class="fl">0.6</span>), xytext<span class="op">=</span>(x_center, <span class="fl">0.63</span>),</span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>                arrowprops<span class="op">=</span><span class="bu">dict</span>(arrowstyle<span class="op">=</span><span class="st">'-&gt;'</span>, color<span class="op">=</span>colors[j], lw<span class="op">=</span><span class="fl">1.5</span>))</span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>ax.set_xlim(<span class="op">-</span><span class="fl">0.05</span>, <span class="fl">1.05</span>)</span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>ax.set_ylim(<span class="fl">0.05</span>, <span class="fl">0.85</span>)</span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>ax.axis(<span class="st">'off'</span>)</span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">'Stacked Data Structure for Hierarchical Model'</span>, fontsize<span class="op">=</span><span class="dv">13</span>, pad<span class="op">=</span><span class="dv">15</span>)</span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-display">
+<div id="fig-stacked-data" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-stacked-data-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="08_hierarchical_formulation_files/figure-html/fig-stacked-data-output-1.svg" class="img-fluid figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-stacked-data-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: Schematic of the stacked data structure. Observations from J cells are concatenated into a single data array. The cell[m] vector indexes back to the cell of origin, enabling shared and cell-specific parameter estimation within a single model.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="sec-reduction" class="level2" data-number="0.7">
+<h2 data-number="0.7" class="anchored" data-anchor-id="sec-reduction"><span class="header-section-number">0.7</span> Relationship to the Base Model</h2>
+<p>The hierarchical model <code>h_m01</code> nests the base model <code>m_01</code> as a special case, and interpolates between complete pooling and independent estimation.</p>
+<div class="callout callout-style-simple callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Proposition (Reduction to m_01)
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>If <span class="math inline">\(J = 1\)</span> and <span class="math inline">\(P = 0\)</span>, then <code>h_m01</code> reduces to <code>m_01</code> with <span class="math inline">\(\alpha \sim \text{LogNormal}(\gamma_0, \sigma_{\text{cell}})\)</span>.</p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-5-contents" aria-controls="callout-5" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Proof
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-5" class="callout-5-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>With <span class="math inline">\(J = 1\)</span>, the design matrix <span class="math inline">\(\mathbf{X}\)</span> is empty (no columns), so:</p>
+<p><span class="math display">\[
+\log(\alpha_1) = \gamma_0 + \sigma_{\text{cell}} \cdot z_1, \quad z_1 \sim \mathcal{N}(0, 1)
+\]</span></p>
+<p>This is equivalent to <span class="math inline">\(\log(\alpha_1) \sim \mathcal{N}(\gamma_0, \sigma_{\text{cell}})\)</span>, i.e., <span class="math inline">\(\alpha_1 \sim \text{LogNormal}(\gamma_0, \sigma_{\text{cell}})\)</span>.</p>
+<p>Since there is only one cell and one <span class="math inline">\(\boldsymbol{\beta}_1\)</span>, the model reduces to a single-cell softmax choice model — exactly <code>m_01</code>.</p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-simple callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Proposition (Independent cells)
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>As <span class="math inline">\(\sigma_{\text{cell}} \to \infty\)</span>, the cell-level deviations dominate the regression, and estimating per-cell <span class="math inline">\(\alpha_j\)</span> approaches independent estimation.</p>
+</div>
+</div>
+<p>The regression hierarchy thus interpolates between <strong>complete pooling</strong> (<span class="math inline">\(\sigma_{\text{cell}} = 0\)</span>, all cells have the same <span class="math inline">\(\alpha\)</span> determined by the regression) and <strong>no pooling</strong> (<span class="math inline">\(\sigma_{\text{cell}} \to \infty\)</span>, each cell’s <span class="math inline">\(\alpha\)</span> is essentially unconstrained). The data determine where along this continuum the model settles — this is the essence of partial pooling <span class="citation" data-cites="gelman2007">(<a href="#ref-gelman2007" role="doc-biblioref">Gelman and Hill 2007</a>)</span>.</p>
+</section>
+<section id="properties-of-the-hierarchical-extension" class="level2" data-number="0.8">
+<h2 data-number="0.8" class="anchored" data-anchor-id="properties-of-the-hierarchical-extension"><span class="header-section-number">0.8</span> Properties of the Hierarchical Extension</h2>
+<p>The three fundamental properties from <a href="../foundations/01_abstract_formulation.html">Report 1</a> — monotonicity, perfect optimization limit, and random choice limit — continue to hold <strong>within each cell</strong>. Conditional on <span class="math inline">\(\alpha_j\)</span>, the choice model for cell <span class="math inline">\(j\)</span> is exactly the softmax model from Report 1. The proofs are identical; no new derivations are needed.</p>
+<p>The new structural contribution is the <strong>cross-cell</strong> relationship: the regression structure enables testing hypotheses about what drives sensitivity differences across experimental conditions.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Example Testable Hypotheses
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ol type="1">
+<li><strong>LLM main effect</strong>: <span class="math inline">\(\gamma_{\text{LLM}} \neq 0\)</span> — different LLMs have systematically different sensitivity</li>
+<li><strong>Prompt main effect</strong>: <span class="math inline">\(\gamma_{\text{prompt}} \neq 0\)</span> — prompt framing shifts sensitivity</li>
+<li><strong>Interaction</strong>: A coefficient on the product term — the prompt effect differs by LLM</li>
+<li><strong>Heterogeneity</strong>: <span class="math inline">\(\sigma_{\text{cell}} &gt; 0\)</span> — there is residual cell-level variation beyond what the design matrix explains</li>
+</ol>
+</div>
+</div>
+</section>
+<section id="sec-design-matrix" class="level2" data-number="0.9">
+<h2 data-number="0.9" class="anchored" data-anchor-id="sec-design-matrix"><span class="header-section-number">0.9</span> Design Matrix Construction</h2>
+<p>The design matrix <span class="math inline">\(\mathbf{X} \in \mathbb{R}^{J \times P}\)</span> encodes the experimental structure. Common coding schemes include:</p>
+<ul>
+<li><strong>Treatment coding</strong> (dummy/indicator coding): One reference cell; each predictor is an indicator for a treatment level. <span class="math inline">\(\gamma_p\)</span> measures the difference from the reference on the log-<span class="math inline">\(\alpha\)</span> scale. This is the default in <code>h_m01</code>.</li>
+<li><strong>Effect coding</strong>: Coefficients represent deviations from the grand mean rather than from a reference level.</li>
+<li><strong>Interaction terms</strong>: Products of main-effect columns capture non-additive effects on log-sensitivity.</li>
+</ul>
+<p>The following figure illustrates a treatment-coded design matrix for a 6-model × 3-prompt factorial study (<span class="math inline">\(J = 18\)</span> cells, <span class="math inline">\(P = 7\)</span> predictors: 5 model dummies + 2 prompt dummies), with GPT-4o under the neutral prompt as the reference cell.</p>
+<div id="cell-fig-design-matrix" class="cell" data-execution_count="4">
+<details class="code-fold">
+<summary>Show code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>models <span class="op">=</span> [<span class="st">'GPT-4o'</span>, <span class="st">'GPT-4o-mini'</span>, <span class="st">'Claude 3.5S'</span>, <span class="st">'Claude 3.5H'</span>, <span class="st">'Gemini 1.5P'</span>, <span class="st">'Gemini 1.5F'</span>]</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>prompts <span class="op">=</span> [<span class="st">'neutral'</span>, <span class="st">'chain-of-thought'</span>, <span class="st">'role-play'</span>]</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Build design matrix: 5 model dummies + 2 prompt dummies</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>J <span class="op">=</span> <span class="bu">len</span>(models) <span class="op">*</span> <span class="bu">len</span>(prompts)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>P <span class="op">=</span> (<span class="bu">len</span>(models) <span class="op">-</span> <span class="dv">1</span>) <span class="op">+</span> (<span class="bu">len</span>(prompts) <span class="op">-</span> <span class="dv">1</span>)  <span class="co"># 5 + 2 = 7</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> np.zeros((J, P))</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>cell_labels <span class="op">=</span> []</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>row <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i, model <span class="kw">in</span> <span class="bu">enumerate</span>(models):</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> k, prompt <span class="kw">in</span> <span class="bu">enumerate</span>(prompts):</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Model dummies (GPT-4o is reference = 0)</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> i <span class="op">&gt;</span> <span class="dv">0</span>:</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>            X[row, i <span class="op">-</span> <span class="dv">1</span>] <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Prompt dummies (neutral is reference = 0)</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> k <span class="op">&gt;</span> <span class="dv">0</span>:</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>            X[row, <span class="bu">len</span>(models) <span class="op">-</span> <span class="dv">1</span> <span class="op">+</span> k <span class="op">-</span> <span class="dv">1</span>] <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>        cell_labels.append(<span class="ss">f'</span><span class="sc">{</span>model<span class="sc">}</span><span class="ss"> × </span><span class="sc">{</span>prompt<span class="sc">}</span><span class="ss">'</span>)</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>        row <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">8</span>))</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>im <span class="op">=</span> ax.imshow(X, cmap<span class="op">=</span><span class="st">'Blues'</span>, aspect<span class="op">=</span><span class="st">'auto'</span>, vmin<span class="op">=-</span><span class="fl">0.3</span>, vmax<span class="op">=</span><span class="fl">1.3</span>)</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a><span class="co"># Column labels</span></span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>col_labels <span class="op">=</span> [<span class="ss">f'$</span><span class="ch">\\</span><span class="ss">gamma_</span><span class="ch">{{</span><span class="sc">{</span>i<span class="op">+</span><span class="dv">1</span><span class="sc">}</span><span class="ch">}}</span><span class="ss">$</span><span class="ch">\n</span><span class="sc">{</span>models[i<span class="op">+</span><span class="dv">1</span>]<span class="sc">}</span><span class="ss">'</span> <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(models)<span class="op">-</span><span class="dv">1</span>)]</span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>col_labels <span class="op">+=</span> [<span class="ss">f'$</span><span class="ch">\\</span><span class="ss">gamma_</span><span class="ch">{{</span><span class="sc">{</span><span class="bu">len</span>(models)<span class="op">+</span>k<span class="sc">}</span><span class="ch">}}</span><span class="ss">$</span><span class="ch">\n</span><span class="sc">{</span>prompts[k<span class="op">+</span><span class="dv">1</span>]<span class="sc">}</span><span class="ss">'</span> <span class="cf">for</span> k <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(prompts)<span class="op">-</span><span class="dv">1</span>)]</span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>ax.set_xticks(<span class="bu">range</span>(P))</span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>ax.set_xticklabels(col_labels, fontsize<span class="op">=</span><span class="dv">8</span>, ha<span class="op">=</span><span class="st">'center'</span>)</span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>ax.set_yticks(<span class="bu">range</span>(J))</span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>ax.set_yticklabels(cell_labels, fontsize<span class="op">=</span><span class="dv">8</span>)</span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a><span class="co"># Add text values</span></span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(J):</span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> j_col <span class="kw">in</span> <span class="bu">range</span>(P):</span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a>        val <span class="op">=</span> <span class="bu">int</span>(X[i, j_col])</span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a>        color <span class="op">=</span> <span class="st">'white'</span> <span class="cf">if</span> val <span class="op">==</span> <span class="dv">1</span> <span class="cf">else</span> <span class="st">'gray'</span></span>
+<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a>        ax.text(j_col, i, <span class="bu">str</span>(val), ha<span class="op">=</span><span class="st">'center'</span>, va<span class="op">=</span><span class="st">'center'</span>, fontsize<span class="op">=</span><span class="dv">9</span>, color<span class="op">=</span>color, fontweight<span class="op">=</span><span class="st">'bold'</span>)</span>
+<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-41"><a href="#cb3-41" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">'Treatment-Coded Design Matrix (6 × 3 Factorial)'</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb3-42"><a href="#cb3-42" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="st">'Predictors ($</span><span class="ch">\\</span><span class="st">gamma_0$ intercept not shown)'</span>, fontsize<span class="op">=</span><span class="dv">11</span>)</span>
+<span id="cb3-43"><a href="#cb3-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-44"><a href="#cb3-44" aria-hidden="true" tabindex="-1"></a><span class="co"># Highlight reference row</span></span>
+<span id="cb3-45"><a href="#cb3-45" aria-hidden="true" tabindex="-1"></a>ax.axhspan(<span class="op">-</span><span class="fl">0.5</span>, <span class="fl">0.5</span>, color<span class="op">=</span><span class="st">'gold'</span>, alpha<span class="op">=</span><span class="fl">0.15</span>)</span>
+<span id="cb3-46"><a href="#cb3-46" aria-hidden="true" tabindex="-1"></a>ax.text(P <span class="op">+</span> <span class="fl">0.3</span>, <span class="dv">0</span>, <span class="st">'← reference'</span>, va<span class="op">=</span><span class="st">'center'</span>, fontsize<span class="op">=</span><span class="dv">9</span>, color<span class="op">=</span><span class="st">'goldenrod'</span>, fontstyle<span class="op">=</span><span class="st">'italic'</span>,</span>
+<span id="cb3-47"><a href="#cb3-47" aria-hidden="true" tabindex="-1"></a>        clip_on<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb3-48"><a href="#cb3-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-49"><a href="#cb3-49" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb3-50"><a href="#cb3-50" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-display">
+<div id="fig-design-matrix" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-design-matrix-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="08_hierarchical_formulation_files/figure-html/fig-design-matrix-output-1.svg" class="img-fluid figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-design-matrix-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: Treatment-coded design matrix for a 6-model × 3-prompt factorial study (J=18 cells, P=7 predictors). GPT-4o under the neutral prompt is the reference cell (all zeros). Each row corresponds to one experimental cell.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="summary" class="level2" data-number="0.10">
+<h2 data-number="0.10" class="anchored" data-anchor-id="summary"><span class="header-section-number">0.10</span> Summary</h2>
+<p>This report extended the single-agent SEU sensitivity framework to multi-cell experimental designs. The key contributions are:</p>
+<ol type="1">
+<li><p><strong>Regression on log-sensitivity.</strong> A hierarchical structure (<span class="math inline">\(@eq-regression\)</span>) formally links cell-level <span class="math inline">\(\alpha_j\)</span> to experimental factors via a design matrix, producing interpretable regression coefficients.</p></li>
+<li><p><strong>Shared-vs-varying parameter choices.</strong> Sensitivity and beliefs vary by cell; utilities and alternatives are shared — reflecting the structure of factorial experiments where the task is constant but the decision-maker (LLM × prompt) varies.</p></li>
+<li><p><strong>Nesting of the base model.</strong> The hierarchical framework reduces to <code>m_01</code> when <span class="math inline">\(J = 1\)</span> and <span class="math inline">\(P = 0\)</span> (<a href="#sec-reduction" class="quarto-xref">Section&nbsp;0.7</a>), and interpolates between complete pooling and independent estimation via <span class="math inline">\(\sigma_{\text{cell}}\)</span>.</p></li>
+<li><p><strong>Preservation of fundamental properties.</strong> The three properties of softmax choice (monotonicity, perfect optimization limit, random choice limit) hold within each cell, unchanged.</p></li>
+<li><p><strong>Design matrix construction.</strong> Treatment coding provides directly interpretable coefficients for factorial experiments (<a href="#sec-design-matrix" class="quarto-xref">Section&nbsp;0.9</a>).</p></li>
+</ol>
+<p><a href="../foundations/09_hierarchical_implementation.html">Report 9</a> presents the concrete implementation of this formulation in Stan, detailing the data structure, parameterization, and generated quantities.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Connection to Earlier Reports
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li><a href="../foundations/01_abstract_formulation.html">Report 1</a>: The three properties of softmax choice continue to hold within each cell</li>
+<li><a href="../foundations/02_concrete_implementation.html">Report 2</a>: The concrete implementation choices (softmax beliefs, incremental utilities) carry forward in h_m01</li>
+<li><a href="../foundations/05_adding_risky_choices.html">Reports 5–7</a>: The risky-choice extensions (m_1, m_2, m_3) could in principle also be hierarchicalized; h_m01 extends m_01 specifically</li>
+<li><a href="../applications/factorial_synthesis/01_factorial_synthesis.html">Factorial Synthesis</a>: Retrospective motivation — demonstrated limitations of independent per-cell fits</li>
+</ul>
+</div>
+</div>
+
+
+<!-- -->
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-carpenter2017" class="csl-entry" role="listitem">
+Carpenter, Bob, Andrew Gelman, Matthew D. Hoffman, et al. 2017. <span>“Stan: A Probabilistic Programming Language.”</span> <em>Journal of Statistical Software</em> 76 (1): 1–32.
+</div>
+<div id="ref-gelman2007" class="csl-entry" role="listitem">
+Gelman, Andrew, and Jennifer Hill. 2007. <em>Data Analysis Using Regression and Multilevel/Hierarchical Models</em>. Cambridge University Press.
+</div>
+</div></section><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{helzner2026,
+  author = {Helzner, Jeff},
+  title = {Hierarchical {Formulation} of {Multi-Cell} {SEU}
+    {Sensitivity}},
+  date = {2026-04-08},
+  url = {https://jeffhelzner.github.io/seu-sensitivity/foundations/08_hierarchical_formulation.html},
+  langid = {en}
+}
+</code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-helzner2026" class="csl-entry quarto-appendix-citeas" role="listitem">
+Helzner, Jeff. 2026. <span>“Hierarchical Formulation of Multi-Cell SEU
+Sensitivity.”</span> SEU Sensitivity Project, April 8. <a href="https://jeffhelzner.github.io/seu-sensitivity/foundations/08_hierarchical_formulation.html">https://jeffhelzner.github.io/seu-sensitivity/foundations/08_hierarchical_formulation.html</a>.
+</div></div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+    const viewSource = window.document.getElementById('quarto-view-source') ||
+                       window.document.getElementById('quarto-code-tools-source');
+    if (viewSource) {
+      const sourceUrl = viewSource.getAttribute("data-quarto-source-url");
+      viewSource.addEventListener("click", function(e) {
+        if (sourceUrl) {
+          // rstudio viewer pane
+          if (/\bcapabilities=\b/.test(window.location)) {
+            window.open(sourceUrl);
+          } else {
+            window.location.href = sourceUrl;
+          }
+        } else {
+          const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
+          modal.show();
+        }
+        return false;
+      });
+    }
+    function toggleCodeHandler(show) {
+      return function(e) {
+        const detailsSrc = window.document.querySelectorAll(".cell > details > .sourceCode");
+        for (let i=0; i<detailsSrc.length; i++) {
+          const details = detailsSrc[i].parentElement;
+          if (show) {
+            details.open = true;
+          } else {
+            details.removeAttribute("open");
+          }
+        }
+        const cellCodeDivs = window.document.querySelectorAll(".cell > .sourceCode");
+        const fromCls = show ? "hidden" : "unhidden";
+        const toCls = show ? "unhidden" : "hidden";
+        for (let i=0; i<cellCodeDivs.length; i++) {
+          const codeDiv = cellCodeDivs[i];
+          if (codeDiv.classList.contains(fromCls)) {
+            codeDiv.classList.remove(fromCls);
+            codeDiv.classList.add(toCls);
+          } 
+        }
+        return false;
+      }
+    }
+    const hideAllCode = window.document.getElementById("quarto-hide-all-code");
+    if (hideAllCode) {
+      hideAllCode.addEventListener("click", toggleCodeHandler(false));
+    }
+    const showAllCode = window.document.getElementById("quarto-show-all-code");
+    if (showAllCode) {
+      showAllCode.addEventListener("click", toggleCodeHandler(true));
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/jeffhelzner\.github\.io\/seu-sensitivity\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "Hierarchical Formulation of Multi-Cell SEU Sensitivity"</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="an">subtitle:</span><span class="co"> "Foundational Report 8"</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="an">description:</span><span class="co"> |</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="co">  Abstract formulation of the hierarchical SEU sensitivity model. Extends the</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="co">  single-agent softmax framework to multi-cell experimental designs where</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="co">  sensitivity varies systematically across cells via regression on log(α).</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="an">categories:</span><span class="co"> [foundations, theory, h_m01]</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="an">execute:</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="co">  cache: true</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: setup</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a><span class="co">#| include: false</span></span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> sys</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>sys.path.insert(<span class="dv">0</span>, os.path.join(os.getcwd(), <span class="st">'..'</span>))</span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy.special <span class="im">import</span> softmax</span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy.stats <span class="im">import</span> norm, lognorm</span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a><span class="fu">## Introduction</span></span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">Report 1</span><span class="co">](01_abstract_formulation.qmd)</span> and <span class="co">[</span><span class="ot">Report 2</span><span class="co">](02_concrete_implementation.qmd)</span> established the single-agent SEU sensitivity model: a sensitivity parameter $\alpha$ governs how consistently an agent's choices track expected utility via the softmax rule. <span class="co">[</span><span class="ot">Reports 5–7</span><span class="co">](05_adding_risky_choices.qmd)</span> extended the parameter space to accommodate risky alternatives, separate sensitivity, and proportional sensitivity. This report extends the framework in a different direction: from single-agent to **multi-cell experimental designs**.</span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a>The motivation for this extension is twofold:</span>
+<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>**Prospective (primary).** The natural next step for this research program is a large-scale factorial experiment — the alignment study — crossing multiple LLMs with multiple prompt conditions (6 models × 3 prompts = 18 cells). Analyzing such a design requires a model that can estimate cell-level sensitivity within a single unified framework, with formal regression coefficients quantifying how experimental factors shift $\alpha$. Independent per-cell fits would not provide the formal effect estimates, partial pooling, or principled shrinkage that a study of this scale demands.</span>
+<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-37"><a href="#cb4-37" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>**Retrospective.** The 2×2 factorial synthesis (<span class="co">[</span><span class="ot">Report</span><span class="co">](../applications/factorial_synthesis/01_factorial_synthesis.qmd)</span>) already demonstrated the limitations of the independent-fits approach. That report explicitly noted: "A more statistically coherent analysis would fit a single hierarchical model with LLM, task, and temperature as factors." The factorial pilot data could itself be re-analyzed under the hierarchical framework, but the primary impetus was the prospective alignment study.</span>
+<span id="cb4-38"><a href="#cb4-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-39"><a href="#cb4-39" aria-hidden="true" tabindex="-1"></a>This report presents a hierarchical model — <span class="in">`h_m01`</span> — that enables formal inference about how experimental factors (e.g., LLM identity, prompt framing, task domain) affect SEU sensitivity, within a single unified Bayesian analysis.</span>
+<span id="cb4-40"><a href="#cb4-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-41"><a href="#cb4-41" aria-hidden="true" tabindex="-1"></a>::: {.callout-note}</span>
+<span id="cb4-42"><a href="#cb4-42" aria-hidden="true" tabindex="-1"></a><span class="fu">## Why Hierarchical?</span></span>
+<span id="cb4-43"><a href="#cb4-43" aria-hidden="true" tabindex="-1"></a>When data are gathered across $J$ experimental cells (e.g., different LLMs, different prompt conditions), fitting each cell independently discards information. A hierarchical model:</span>
+<span id="cb4-44"><a href="#cb4-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-45"><a href="#cb4-45" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>**Shares statistical strength**: Cells with less data borrow from the group-level estimate</span>
+<span id="cb4-46"><a href="#cb4-46" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>**Enables formal comparisons**: Regression coefficients directly quantify how factors shift sensitivity</span>
+<span id="cb4-47"><a href="#cb4-47" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>**Provides principled shrinkage**: Extreme per-cell estimates are regularized toward the group mean</span>
+<span id="cb4-48"><a href="#cb4-48" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb4-49"><a href="#cb4-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-50"><a href="#cb4-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-51"><a href="#cb4-51" aria-hidden="true" tabindex="-1"></a><span class="fu">## From Single-Agent to Multi-Cell Designs</span></span>
+<span id="cb4-52"><a href="#cb4-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-53"><a href="#cb4-53" aria-hidden="true" tabindex="-1"></a>Recall the single-agent model from <span class="co">[</span><span class="ot">Report 1</span><span class="co">](01_abstract_formulation.qmd)</span>: a single sensitivity parameter $\alpha$ governs how choices track expected utility via the softmax rule $P(\text{choose } r) \propto \exp(\alpha \cdot \eta_r)$. All $M$ observations are generated by one agent with one $\alpha$.</span>
+<span id="cb4-54"><a href="#cb4-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-55"><a href="#cb4-55" aria-hidden="true" tabindex="-1"></a>Now consider the experimental design setting: $J$ cells indexed by $j \in <span class="sc">\{</span>1, \ldots, J<span class="sc">\}</span>$, each with its own population of observations. Cells correspond to distinct experimental conditions — for example, a particular LLM under a particular prompt. Each cell $j$ has its own sensitivity parameter $\alpha_j$.</span>
+<span id="cb4-56"><a href="#cb4-56" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-57"><a href="#cb4-57" aria-hidden="true" tabindex="-1"></a>The key question: how should we relate the $\alpha_j$ across cells?</span>
+<span id="cb4-58"><a href="#cb4-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-59"><a href="#cb4-59" aria-hidden="true" tabindex="-1"></a>Three possible approaches are:</span>
+<span id="cb4-60"><a href="#cb4-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-61"><a href="#cb4-61" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Approach <span class="pp">|</span> Model <span class="pp">|</span> Strengths <span class="pp">|</span> Weaknesses <span class="pp">|</span></span>
+<span id="cb4-62"><a href="#cb4-62" aria-hidden="true" tabindex="-1"></a><span class="pp">|----------|-------|-----------|------------|</span></span>
+<span id="cb4-63"><a href="#cb4-63" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Independent fits <span class="pp">|</span> Fit m_01 separately per cell <span class="pp">|</span> Simple, no assumptions about cross-cell structure <span class="pp">|</span> No information sharing; between-cell comparisons are post-hoc <span class="pp">|</span></span>
+<span id="cb4-64"><a href="#cb4-64" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Exchangeable hierarchy <span class="pp">|</span> $\alpha_j \sim \text{LogNormal}(\mu, \sigma)$ <span class="pp">|</span> Partial pooling, shrinkage <span class="pp">|</span> No formal link to experimental design; effects estimated post-hoc <span class="pp">|</span></span>
+<span id="cb4-65"><a href="#cb4-65" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Regression hierarchy <span class="pp">|</span> $\log(\alpha_j) = \gamma_0 + \mathbf{X}_j \boldsymbol{\gamma} + \sigma_{\text{cell}} \cdot z_j$ <span class="pp">|</span> Formal effect estimates; partial pooling; directly interpretable coefficients <span class="pp">|</span> Requires specifying a design matrix <span class="pp">|</span></span>
+<span id="cb4-66"><a href="#cb4-66" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-67"><a href="#cb4-67" aria-hidden="true" tabindex="-1"></a>: Approaches to multi-cell sensitivity estimation. {#tbl-approaches}</span>
+<span id="cb4-68"><a href="#cb4-68" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-69"><a href="#cb4-69" aria-hidden="true" tabindex="-1"></a>The <span class="in">`h_m01`</span> model takes the **regression hierarchy** approach, which nests the other two as special cases: setting $P = 0$ (no predictors) recovers an exchangeable hierarchy, while $\sigma_{\text{cell}} \to \infty$ effectively recovers independent fits.</span>
+<span id="cb4-70"><a href="#cb4-70" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-71"><a href="#cb4-71" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-72"><a href="#cb4-72" aria-hidden="true" tabindex="-1"></a><span class="fu">## Notation for the Hierarchical Model</span></span>
+<span id="cb4-73"><a href="#cb4-73" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-74"><a href="#cb4-74" aria-hidden="true" tabindex="-1"></a>::: {.callout-note}</span>
+<span id="cb4-75"><a href="#cb4-75" aria-hidden="true" tabindex="-1"></a><span class="fu">## Notation Summary (Hierarchical Extension)</span></span>
+<span id="cb4-76"><a href="#cb4-76" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-77"><a href="#cb4-77" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Symbol <span class="pp">|</span> Description <span class="pp">|</span></span>
+<span id="cb4-78"><a href="#cb4-78" aria-hidden="true" tabindex="-1"></a><span class="pp">|--------|-------------|</span></span>
+<span id="cb4-79"><a href="#cb4-79" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> $J$ <span class="pp">|</span> Number of experimental cells <span class="pp">|</span></span>
+<span id="cb4-80"><a href="#cb4-80" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> $j \in <span class="sc">\{</span>1, \ldots, J<span class="sc">\}</span>$ <span class="pp">|</span> Cell index <span class="pp">|</span></span>
+<span id="cb4-81"><a href="#cb4-81" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> $\alpha_j$ <span class="pp">|</span> Sensitivity parameter for cell $j$ <span class="pp">|</span></span>
+<span id="cb4-82"><a href="#cb4-82" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> $\mathbf{X} \in \mathbb{R}^{J \times P}$ <span class="pp">|</span> Design matrix (no intercept column) <span class="pp">|</span></span>
+<span id="cb4-83"><a href="#cb4-83" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> $\gamma_0 \in \mathbb{R}$ <span class="pp">|</span> Intercept of log-$\alpha$ regression <span class="pp">|</span></span>
+<span id="cb4-84"><a href="#cb4-84" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> $\boldsymbol{\gamma} \in \mathbb{R}^P$ <span class="pp">|</span> Regression coefficients <span class="pp">|</span></span>
+<span id="cb4-85"><a href="#cb4-85" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> $\sigma_{\text{cell}} \geq 0$ <span class="pp">|</span> Cell-level residual SD <span class="pp">|</span></span>
+<span id="cb4-86"><a href="#cb4-86" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> $z_j \sim \mathcal{N}(0, 1)$ <span class="pp">|</span> Standardized cell deviations <span class="pp">|</span></span>
+<span id="cb4-87"><a href="#cb4-87" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> $\boldsymbol{\beta}_j \in \mathbb{R}^{K \times D}$ <span class="pp">|</span> Cell-specific feature-to-probability mapping <span class="pp">|</span></span>
+<span id="cb4-88"><a href="#cb4-88" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> $\boldsymbol{\delta} \in \Delta^{K-2}$ <span class="pp">|</span> Shared utility increments (unchanged from m_01) <span class="pp">|</span></span>
+<span id="cb4-89"><a href="#cb4-89" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> $M_{\text{total}}$ <span class="pp">|</span> Total observations across all cells <span class="pp">|</span></span>
+<span id="cb4-90"><a href="#cb4-90" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> $\text{cell}<span class="co">[</span><span class="ot">m</span><span class="co">]</span> \in <span class="sc">\{</span>1, \ldots, J<span class="sc">\}</span>$ <span class="pp">|</span> Cell membership for observation $m$ <span class="pp">|</span></span>
+<span id="cb4-91"><a href="#cb4-91" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-92"><a href="#cb4-92" aria-hidden="true" tabindex="-1"></a>**Unchanged from Reports 01–02:** $K$ (consequences), $D$ (feature dimensions), $R$ (distinct alternatives), $\mathbf{w}_r$ (feature vectors), $I_{m,r}$ (availability indicators), $y_m$ (observed choices), $\boldsymbol{\psi}_r$ (subjective probabilities), $\boldsymbol{\upsilon}$ (utilities), $\eta_r$ (expected utilities).</span>
+<span id="cb4-93"><a href="#cb4-93" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb4-94"><a href="#cb4-94" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-95"><a href="#cb4-95" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-96"><a href="#cb4-96" aria-hidden="true" tabindex="-1"></a><span class="fu">## The Regression on Log-Sensitivity {#sec-regression}</span></span>
+<span id="cb4-97"><a href="#cb4-97" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-98"><a href="#cb4-98" aria-hidden="true" tabindex="-1"></a>This section presents the core theoretical contribution: a regression structure that links cell-level sensitivity to experimental factors.</span>
+<span id="cb4-99"><a href="#cb4-99" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-100"><a href="#cb4-100" aria-hidden="true" tabindex="-1"></a>The hierarchical structure is:</span>
+<span id="cb4-101"><a href="#cb4-101" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-102"><a href="#cb4-102" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb4-103"><a href="#cb4-103" aria-hidden="true" tabindex="-1"></a>\log(\alpha_j) = \gamma_0 + \mathbf{X}_j \boldsymbol{\gamma} + \sigma_{\text{cell}} \cdot z_j, \quad z_j \sim \mathcal{N}(0, 1)</span>
+<span id="cb4-104"><a href="#cb4-104" aria-hidden="true" tabindex="-1"></a>$$ {#eq-regression}</span>
+<span id="cb4-105"><a href="#cb4-105" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-106"><a href="#cb4-106" aria-hidden="true" tabindex="-1"></a>Equivalently:</span>
+<span id="cb4-107"><a href="#cb4-107" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-108"><a href="#cb4-108" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb4-109"><a href="#cb4-109" aria-hidden="true" tabindex="-1"></a>\alpha_j = \exp<span class="sc">\!</span>\bigl(\gamma_0 + \mathbf{X}_j \boldsymbol{\gamma} + \sigma_{\text{cell}} \cdot z_j\bigr)</span>
+<span id="cb4-110"><a href="#cb4-110" aria-hidden="true" tabindex="-1"></a>$$ {#eq-alpha-exp}</span>
+<span id="cb4-111"><a href="#cb4-111" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-112"><a href="#cb4-112" aria-hidden="true" tabindex="-1"></a><span class="fu">### Why the log scale?</span></span>
+<span id="cb4-113"><a href="#cb4-113" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-114"><a href="#cb4-114" aria-hidden="true" tabindex="-1"></a>The sensitivity parameter $\alpha$ is strictly positive. Working on the log scale maps to the real line, permitting standard normal regression mechanics. The lognormal prior on $\alpha$ in m_01 ($\text{LogNormal}(3.0, 0.75)$) already operates on the log scale — $\gamma_0$ takes the role of the prior mean (3.0) and $\sigma_{\text{cell}}$ plays a role analogous to the prior SD (0.75), but now conditional on predictors.</span>
+<span id="cb4-115"><a href="#cb4-115" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-116"><a href="#cb4-116" aria-hidden="true" tabindex="-1"></a><span class="fu">### Interpretation of $\boldsymbol{\gamma}$</span></span>
+<span id="cb4-117"><a href="#cb4-117" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-118"><a href="#cb4-118" aria-hidden="true" tabindex="-1"></a>Each $\gamma_p$ represents the **multiplicative change** in $\alpha$ associated with a unit change in $X_{j,p}$, all else equal. Specifically, $\exp(\gamma_p)$ is the multiplicative factor. If $\gamma_p = 0.5$, then a one-unit increase in predictor $p$ multiplies $\alpha$ by $\exp(0.5) \approx 1.65$, i.e., a 65% increase in sensitivity.</span>
+<span id="cb4-119"><a href="#cb4-119" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-120"><a href="#cb4-120" aria-hidden="true" tabindex="-1"></a><span class="fu">### Non-centered parameterization</span></span>
+<span id="cb4-121"><a href="#cb4-121" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-122"><a href="#cb4-122" aria-hidden="true" tabindex="-1"></a>We parameterize via $z_j \sim \mathcal{N}(0, 1)$ and construct $\log(\alpha_j) = \gamma_0 + \mathbf{X}_j \boldsymbol{\gamma} + \sigma_{\text{cell}} \cdot z_j$, rather than directly placing a normal prior on $\log(\alpha_j)$. These two formulations are mathematically equivalent, but the non-centered form performs better computationally when $\sigma_{\text{cell}}$ is small relative to the data information, because it avoids the "funnel" geometry that causes divergent transitions in the $(\sigma_{\text{cell}}, z_j)$ joint posterior <span class="co">[</span><span class="ot">@carpenter2017</span><span class="co">]</span>.</span>
+<span id="cb4-123"><a href="#cb4-123" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-124"><a href="#cb4-124" aria-hidden="true" tabindex="-1"></a>::: {.callout-important}</span>
+<span id="cb4-125"><a href="#cb4-125" aria-hidden="true" tabindex="-1"></a><span class="fu">## Interpreting Regression Coefficients</span></span>
+<span id="cb4-126"><a href="#cb4-126" aria-hidden="true" tabindex="-1"></a>With a treatment-coded design matrix:</span>
+<span id="cb4-127"><a href="#cb4-127" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-128"><a href="#cb4-128" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**$\gamma_0$** is the log-sensitivity of the reference cell (all predictors = 0)</span>
+<span id="cb4-129"><a href="#cb4-129" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**$\gamma_p$** is the log-ratio of sensitivity between the treatment and reference level for factor $p$</span>
+<span id="cb4-130"><a href="#cb4-130" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**$\exp(\gamma_p)$** is the multiplicative effect on $\alpha$</span>
+<span id="cb4-131"><a href="#cb4-131" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-132"><a href="#cb4-132" aria-hidden="true" tabindex="-1"></a>Example: If $\gamma_0 = 3.0$ and $\gamma_1 = -0.5$ (for an LLM indicator), the reference LLM has median $\alpha \approx 20$ and the treatment LLM has median $\alpha \approx 20 \cdot \exp(-0.5) \approx 12$. The treatment LLM is approximately 40% less sensitive to SEU maximization.</span>
+<span id="cb4-133"><a href="#cb4-133" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb4-134"><a href="#cb4-134" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-135"><a href="#cb4-135" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-138"><a href="#cb4-138" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb4-139"><a href="#cb4-139" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-regression-illustration</span></span>
+<span id="cb4-140"><a href="#cb4-140" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Illustration of how regression coefficients map to cell-level sensitivity distributions in a 2×2 factorial design. Left: design matrix structure. Right: resulting log(α) distributions for each cell, showing how γ coefficients shift the location."</span></span>
+<span id="cb4-141"><a href="#cb4-141" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-142"><a href="#cb4-142" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">12</span>, <span class="dv">5</span>), gridspec_kw<span class="op">=</span>{<span class="st">'width_ratios'</span>: [<span class="dv">1</span>, <span class="fl">1.5</span>]})</span>
+<span id="cb4-143"><a href="#cb4-143" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-144"><a href="#cb4-144" aria-hidden="true" tabindex="-1"></a><span class="co"># Left panel: Design matrix visualization</span></span>
+<span id="cb4-145"><a href="#cb4-145" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> axes[<span class="dv">0</span>]</span>
+<span id="cb4-146"><a href="#cb4-146" aria-hidden="true" tabindex="-1"></a><span class="co"># 2x2 factorial: LLM (A vs B) × Prompt (neutral vs directive)</span></span>
+<span id="cb4-147"><a href="#cb4-147" aria-hidden="true" tabindex="-1"></a>cell_labels <span class="op">=</span> [<span class="st">'A × neutral'</span>, <span class="st">'A × directive'</span>, <span class="st">'B × neutral'</span>, <span class="st">'B × directive'</span>]</span>
+<span id="cb4-148"><a href="#cb4-148" aria-hidden="true" tabindex="-1"></a>X_example <span class="op">=</span> np.array([</span>
+<span id="cb4-149"><a href="#cb4-149" aria-hidden="true" tabindex="-1"></a>    [<span class="dv">0</span>, <span class="dv">0</span>],  <span class="co"># reference: LLM A, neutral</span></span>
+<span id="cb4-150"><a href="#cb4-150" aria-hidden="true" tabindex="-1"></a>    [<span class="dv">0</span>, <span class="dv">1</span>],  <span class="co"># LLM A, directive</span></span>
+<span id="cb4-151"><a href="#cb4-151" aria-hidden="true" tabindex="-1"></a>    [<span class="dv">1</span>, <span class="dv">0</span>],  <span class="co"># LLM B, neutral</span></span>
+<span id="cb4-152"><a href="#cb4-152" aria-hidden="true" tabindex="-1"></a>    [<span class="dv">1</span>, <span class="dv">1</span>],  <span class="co"># LLM B, directive</span></span>
+<span id="cb4-153"><a href="#cb4-153" aria-hidden="true" tabindex="-1"></a>])</span>
+<span id="cb4-154"><a href="#cb4-154" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-155"><a href="#cb4-155" aria-hidden="true" tabindex="-1"></a>im <span class="op">=</span> ax.imshow(X_example, cmap<span class="op">=</span><span class="st">'Blues'</span>, aspect<span class="op">=</span><span class="st">'auto'</span>, vmin<span class="op">=-</span><span class="fl">0.5</span>, vmax<span class="op">=</span><span class="fl">1.5</span>)</span>
+<span id="cb4-156"><a href="#cb4-156" aria-hidden="true" tabindex="-1"></a>ax.set_xticks([<span class="dv">0</span>, <span class="dv">1</span>])</span>
+<span id="cb4-157"><a href="#cb4-157" aria-hidden="true" tabindex="-1"></a>ax.set_xticklabels([<span class="st">'$X_1$ (LLM B)'</span>, <span class="st">'$X_2$ (directive)'</span>], fontsize<span class="op">=</span><span class="dv">10</span>)</span>
+<span id="cb4-158"><a href="#cb4-158" aria-hidden="true" tabindex="-1"></a>ax.set_yticks(<span class="bu">range</span>(<span class="dv">4</span>))</span>
+<span id="cb4-159"><a href="#cb4-159" aria-hidden="true" tabindex="-1"></a>ax.set_yticklabels(cell_labels, fontsize<span class="op">=</span><span class="dv">10</span>)</span>
+<span id="cb4-160"><a href="#cb4-160" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">4</span>):</span>
+<span id="cb4-161"><a href="#cb4-161" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> j_col <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">2</span>):</span>
+<span id="cb4-162"><a href="#cb4-162" aria-hidden="true" tabindex="-1"></a>        ax.text(j_col, i, <span class="bu">str</span>(X_example[i, j_col]),</span>
+<span id="cb4-163"><a href="#cb4-163" aria-hidden="true" tabindex="-1"></a>                ha<span class="op">=</span><span class="st">'center'</span>, va<span class="op">=</span><span class="st">'center'</span>, fontsize<span class="op">=</span><span class="dv">14</span>, fontweight<span class="op">=</span><span class="st">'bold'</span>,</span>
+<span id="cb4-164"><a href="#cb4-164" aria-hidden="true" tabindex="-1"></a>                color<span class="op">=</span><span class="st">'white'</span> <span class="cf">if</span> X_example[i, j_col] <span class="op">==</span> <span class="dv">1</span> <span class="cf">else</span> <span class="st">'black'</span>)</span>
+<span id="cb4-165"><a href="#cb4-165" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">'Design Matrix $</span><span class="ch">\\</span><span class="st">mathbf</span><span class="sc">{X}</span><span class="st">$'</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb4-166"><a href="#cb4-166" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-167"><a href="#cb4-167" aria-hidden="true" tabindex="-1"></a><span class="co"># Right panel: Resulting log(alpha) distributions</span></span>
+<span id="cb4-168"><a href="#cb4-168" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> axes[<span class="dv">1</span>]</span>
+<span id="cb4-169"><a href="#cb4-169" aria-hidden="true" tabindex="-1"></a>gamma0 <span class="op">=</span> <span class="fl">3.0</span></span>
+<span id="cb4-170"><a href="#cb4-170" aria-hidden="true" tabindex="-1"></a>gamma1 <span class="op">=</span> <span class="op">-</span><span class="fl">0.5</span>  <span class="co"># LLM B effect</span></span>
+<span id="cb4-171"><a href="#cb4-171" aria-hidden="true" tabindex="-1"></a>gamma2 <span class="op">=</span> <span class="fl">0.3</span>   <span class="co"># directive prompt effect</span></span>
+<span id="cb4-172"><a href="#cb4-172" aria-hidden="true" tabindex="-1"></a>sigma_cell <span class="op">=</span> <span class="fl">0.3</span></span>
+<span id="cb4-173"><a href="#cb4-173" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-174"><a href="#cb4-174" aria-hidden="true" tabindex="-1"></a>x_range <span class="op">=</span> np.linspace(<span class="fl">0.5</span>, <span class="fl">5.5</span>, <span class="dv">300</span>)</span>
+<span id="cb4-175"><a href="#cb4-175" aria-hidden="true" tabindex="-1"></a>colors <span class="op">=</span> [<span class="st">'#1f77b4'</span>, <span class="st">'#ff7f0e'</span>, <span class="st">'#2ca02c'</span>, <span class="st">'#d62728'</span>]</span>
+<span id="cb4-176"><a href="#cb4-176" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-177"><a href="#cb4-177" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i, (label, x_row) <span class="kw">in</span> <span class="bu">enumerate</span>(<span class="bu">zip</span>(cell_labels, X_example)):</span>
+<span id="cb4-178"><a href="#cb4-178" aria-hidden="true" tabindex="-1"></a>    mu <span class="op">=</span> gamma0 <span class="op">+</span> x_row[<span class="dv">0</span>] <span class="op">*</span> gamma1 <span class="op">+</span> x_row[<span class="dv">1</span>] <span class="op">*</span> gamma2</span>
+<span id="cb4-179"><a href="#cb4-179" aria-hidden="true" tabindex="-1"></a>    density <span class="op">=</span> norm.pdf(x_range, loc<span class="op">=</span>mu, scale<span class="op">=</span>sigma_cell)</span>
+<span id="cb4-180"><a href="#cb4-180" aria-hidden="true" tabindex="-1"></a>    ax.plot(x_range, density, color<span class="op">=</span>colors[i], linewidth<span class="op">=</span><span class="dv">2</span>, label<span class="op">=</span><span class="ss">f'</span><span class="sc">{</span>label<span class="sc">}</span><span class="ch">\n</span><span class="ss">$</span><span class="ch">\\</span><span class="ss">mu = </span><span class="sc">{</span>mu<span class="sc">:.1f}</span><span class="ss">$'</span>)</span>
+<span id="cb4-181"><a href="#cb4-181" aria-hidden="true" tabindex="-1"></a>    ax.fill_between(x_range, density, alpha<span class="op">=</span><span class="fl">0.15</span>, color<span class="op">=</span>colors[i])</span>
+<span id="cb4-182"><a href="#cb4-182" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-183"><a href="#cb4-183" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="st">'$</span><span class="ch">\\</span><span class="st">log(</span><span class="ch">\\</span><span class="st">alpha_j)$'</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb4-184"><a href="#cb4-184" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">'Density'</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb4-185"><a href="#cb4-185" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="ss">f'Cell-level $</span><span class="ch">\\</span><span class="ss">log(</span><span class="ch">\\</span><span class="ss">alpha)$ distributions</span><span class="ch">\n</span><span class="ss">($</span><span class="ch">\\</span><span class="ss">gamma_0=</span><span class="sc">{</span>gamma0<span class="sc">}</span><span class="ss">$, $</span><span class="ch">\\</span><span class="ss">gamma_1=</span><span class="sc">{</span>gamma1<span class="sc">}</span><span class="ss">$, $</span><span class="ch">\\</span><span class="ss">gamma_2=</span><span class="sc">{</span>gamma2<span class="sc">}</span><span class="ss">$, $</span><span class="ch">\\</span><span class="ss">sigma_</span><span class="ch">{{\\</span><span class="ss">mathrm</span><span class="ch">{{</span><span class="ss">cell</span><span class="ch">}}}}</span><span class="ss">=</span><span class="sc">{</span>sigma_cell<span class="sc">}</span><span class="ss">$)'</span>, fontsize<span class="op">=</span><span class="dv">11</span>)</span>
+<span id="cb4-186"><a href="#cb4-186" aria-hidden="true" tabindex="-1"></a>ax.legend(fontsize<span class="op">=</span><span class="dv">9</span>, loc<span class="op">=</span><span class="st">'upper right'</span>)</span>
+<span id="cb4-187"><a href="#cb4-187" aria-hidden="true" tabindex="-1"></a>ax.set_xlim(<span class="fl">0.5</span>, <span class="fl">5.5</span>)</span>
+<span id="cb4-188"><a href="#cb4-188" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-189"><a href="#cb4-189" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb4-190"><a href="#cb4-190" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb4-191"><a href="#cb4-191" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb4-192"><a href="#cb4-192" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-193"><a href="#cb4-193" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-194"><a href="#cb4-194" aria-hidden="true" tabindex="-1"></a><span class="fu">## What Is Shared, What Varies</span></span>
+<span id="cb4-195"><a href="#cb4-195" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-196"><a href="#cb4-196" aria-hidden="true" tabindex="-1"></a>A key design decision in any hierarchical model is which parameters are shared across cells and which vary. In <span class="in">`h_m01`</span>, these choices are:</span>
+<span id="cb4-197"><a href="#cb4-197" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-198"><a href="#cb4-198" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Component <span class="pp">|</span> Shared/Varies <span class="pp">|</span> Rationale <span class="pp">|</span></span>
+<span id="cb4-199"><a href="#cb4-199" aria-hidden="true" tabindex="-1"></a><span class="pp">|-----------|:-------------:|-----------|</span></span>
+<span id="cb4-200"><a href="#cb4-200" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> $\alpha_j$ (sensitivity) <span class="pp">|</span> Varies by cell (via regression) <span class="pp">|</span> Primary quantity of interest <span class="pp">|</span></span>
+<span id="cb4-201"><a href="#cb4-201" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> $\boldsymbol{\beta}_j$ (feature → probability) <span class="pp">|</span> Varies by cell <span class="pp">|</span> Different LLMs/prompts may form different beliefs <span class="pp">|</span></span>
+<span id="cb4-202"><a href="#cb4-202" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> $\boldsymbol{\delta}$ (utility increments) <span class="pp">|</span> Shared across cells <span class="pp">|</span> Consequence structure is constant across cells <span class="pp">|</span></span>
+<span id="cb4-203"><a href="#cb4-203" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> $\boldsymbol{\upsilon}$ (utilities) <span class="pp">|</span> Shared (derived from $\boldsymbol{\delta}$) <span class="pp">|</span> Same as above <span class="pp">|</span></span>
+<span id="cb4-204"><a href="#cb4-204" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> $\mathbf{w}_r$ (features) <span class="pp">|</span> Shared <span class="pp">|</span> Same alternative pool across all cells <span class="pp">|</span></span>
+<span id="cb4-205"><a href="#cb4-205" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-206"><a href="#cb4-206" aria-hidden="true" tabindex="-1"></a>: Shared vs. cell-specific components in h_m01. {#tbl-shared-varies}</span>
+<span id="cb4-207"><a href="#cb4-207" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-208"><a href="#cb4-208" aria-hidden="true" tabindex="-1"></a><span class="fu">### Cell-specific $\boldsymbol{\beta}_j$</span></span>
+<span id="cb4-209"><a href="#cb4-209" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-210"><a href="#cb4-210" aria-hidden="true" tabindex="-1"></a>Each cell represents a different agent (LLM) under a different prompt. There is no reason to assume they form identical subjective probabilities from the same features. In fact, differences in $\boldsymbol{\beta}_j$ capture an important part of how LLMs differ — two models may agree on the utility ranking of consequences but disagree about which consequences follow from a given alternative.</span>
+<span id="cb4-211"><a href="#cb4-211" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-212"><a href="#cb4-212" aria-hidden="true" tabindex="-1"></a><span class="fu">### Shared $\boldsymbol{\delta}$</span></span>
+<span id="cb4-213"><a href="#cb4-213" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-214"><a href="#cb4-214" aria-hidden="true" tabindex="-1"></a>The utility structure represents the consequence rank-ordering. For a fixed task (e.g., insurance triage), the consequences and their relative desirability are the same regardless of which LLM is deciding or what prompt was used. Sharing $\boldsymbol{\delta}$ introduces a useful constraint and improves identification: the shared utility scale provides a common frame of reference against which cell-specific sensitivities and beliefs are estimated.</span>
+<span id="cb4-215"><a href="#cb4-215" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-216"><a href="#cb4-216" aria-hidden="true" tabindex="-1"></a><span class="fu">### Shared alternatives</span></span>
+<span id="cb4-217"><a href="#cb4-217" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-218"><a href="#cb4-218" aria-hidden="true" tabindex="-1"></a>The experimental design uses a common pool of decision problems across all cells, so that differences in behavior are attributable to the experimental factors, not to different stimuli. This is a standard feature of factorial designs.</span>
+<span id="cb4-219"><a href="#cb4-219" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-220"><a href="#cb4-220" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-221"><a href="#cb4-221" aria-hidden="true" tabindex="-1"></a><span class="fu">## The Stacked Data Structure {#sec-stacked-data}</span></span>
+<span id="cb4-222"><a href="#cb4-222" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-223"><a href="#cb4-223" aria-hidden="true" tabindex="-1"></a>The hierarchical model requires a specific data format: all $M_{\text{total}}$ observations across all cells are **concatenated** into a single dataset, with a cell-membership vector $\text{cell}<span class="co">[</span><span class="ot">m</span><span class="co">]</span>$ identifying which cell observation $m$ belongs to.</span>
+<span id="cb4-224"><a href="#cb4-224" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-225"><a href="#cb4-225" aria-hidden="true" tabindex="-1"></a>This stacked structure is more efficient than separate per-cell fits because:</span>
+<span id="cb4-226"><a href="#cb4-226" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-227"><a href="#cb4-227" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>The shared parameters ($\boldsymbol{\delta}$) are estimated jointly</span>
+<span id="cb4-228"><a href="#cb4-228" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>The regression structure ($\gamma_0, \boldsymbol{\gamma}, \sigma_{\text{cell}}$) pools information across cells</span>
+<span id="cb4-229"><a href="#cb4-229" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>A single MCMC run produces joint posterior samples, enabling coherent inference about all parameters simultaneously</span>
+<span id="cb4-230"><a href="#cb4-230" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-233"><a href="#cb4-233" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb4-234"><a href="#cb4-234" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-stacked-data</span></span>
+<span id="cb4-235"><a href="#cb4-235" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Schematic of the stacked data structure. Observations from J cells are concatenated into a single data array. The cell[m] vector indexes back to the cell of origin, enabling shared and cell-specific parameter estimation within a single model."</span></span>
+<span id="cb4-236"><a href="#cb4-236" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-237"><a href="#cb4-237" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">4</span>))</span>
+<span id="cb4-238"><a href="#cb4-238" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-239"><a href="#cb4-239" aria-hidden="true" tabindex="-1"></a><span class="co"># Draw stacked blocks</span></span>
+<span id="cb4-240"><a href="#cb4-240" aria-hidden="true" tabindex="-1"></a>J <span class="op">=</span> <span class="dv">4</span></span>
+<span id="cb4-241"><a href="#cb4-241" aria-hidden="true" tabindex="-1"></a>M_per_cell <span class="op">=</span> [<span class="dv">8</span>, <span class="dv">12</span>, <span class="dv">6</span>, <span class="dv">10</span>]</span>
+<span id="cb4-242"><a href="#cb4-242" aria-hidden="true" tabindex="-1"></a>colors <span class="op">=</span> [<span class="st">'#1f77b4'</span>, <span class="st">'#ff7f0e'</span>, <span class="st">'#2ca02c'</span>, <span class="st">'#d62728'</span>]</span>
+<span id="cb4-243"><a href="#cb4-243" aria-hidden="true" tabindex="-1"></a>cell_labels <span class="op">=</span> [<span class="ss">f'Cell </span><span class="sc">{</span>j<span class="op">+</span><span class="dv">1</span><span class="sc">}</span><span class="ch">\n</span><span class="ss">($M_</span><span class="sc">{</span>j<span class="op">+</span><span class="dv">1</span><span class="sc">}</span><span class="ss">=</span><span class="sc">{</span>M_per_cell[j]<span class="sc">}</span><span class="ss">$)'</span> <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(J)]</span>
+<span id="cb4-244"><a href="#cb4-244" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-245"><a href="#cb4-245" aria-hidden="true" tabindex="-1"></a>total <span class="op">=</span> <span class="bu">sum</span>(M_per_cell)</span>
+<span id="cb4-246"><a href="#cb4-246" aria-hidden="true" tabindex="-1"></a>left <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb4-247"><a href="#cb4-247" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(J):</span>
+<span id="cb4-248"><a href="#cb4-248" aria-hidden="true" tabindex="-1"></a>    width <span class="op">=</span> M_per_cell[j] <span class="op">/</span> total</span>
+<span id="cb4-249"><a href="#cb4-249" aria-hidden="true" tabindex="-1"></a>    rect <span class="op">=</span> plt.Rectangle((left, <span class="fl">0.3</span>), width, <span class="fl">0.3</span>, facecolor<span class="op">=</span>colors[j], edgecolor<span class="op">=</span><span class="st">'black'</span>, linewidth<span class="op">=</span><span class="fl">1.5</span>, alpha<span class="op">=</span><span class="fl">0.7</span>)</span>
+<span id="cb4-250"><a href="#cb4-250" aria-hidden="true" tabindex="-1"></a>    ax.add_patch(rect)</span>
+<span id="cb4-251"><a href="#cb4-251" aria-hidden="true" tabindex="-1"></a>    ax.text(left <span class="op">+</span> width <span class="op">/</span> <span class="dv">2</span>, <span class="fl">0.45</span>, cell_labels[j], ha<span class="op">=</span><span class="st">'center'</span>, va<span class="op">=</span><span class="st">'center'</span>, fontsize<span class="op">=</span><span class="dv">9</span>, fontweight<span class="op">=</span><span class="st">'bold'</span>)</span>
+<span id="cb4-252"><a href="#cb4-252" aria-hidden="true" tabindex="-1"></a>    left <span class="op">+=</span> width</span>
+<span id="cb4-253"><a href="#cb4-253" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-254"><a href="#cb4-254" aria-hidden="true" tabindex="-1"></a><span class="co"># Label the full array</span></span>
+<span id="cb4-255"><a href="#cb4-255" aria-hidden="true" tabindex="-1"></a>ax.annotate(<span class="st">''</span>, xy<span class="op">=</span>(<span class="dv">0</span>, <span class="fl">0.25</span>), xytext<span class="op">=</span>(<span class="dv">1</span>, <span class="fl">0.25</span>),</span>
+<span id="cb4-256"><a href="#cb4-256" aria-hidden="true" tabindex="-1"></a>            arrowprops<span class="op">=</span><span class="bu">dict</span>(arrowstyle<span class="op">=</span><span class="st">'&lt;-&gt;'</span>, color<span class="op">=</span><span class="st">'black'</span>, lw<span class="op">=</span><span class="fl">1.5</span>))</span>
+<span id="cb4-257"><a href="#cb4-257" aria-hidden="true" tabindex="-1"></a>ax.text(<span class="fl">0.5</span>, <span class="fl">0.18</span>, <span class="ss">f'$M_</span><span class="ch">{{\\</span><span class="ss">mathrm</span><span class="ch">{{</span><span class="ss">total</span><span class="ch">}}}}</span><span class="ss"> = </span><span class="sc">{</span>total<span class="sc">}</span><span class="ss">$ stacked observations'</span>, ha<span class="op">=</span><span class="st">'center'</span>, fontsize<span class="op">=</span><span class="dv">11</span>)</span>
+<span id="cb4-258"><a href="#cb4-258" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-259"><a href="#cb4-259" aria-hidden="true" tabindex="-1"></a><span class="co"># cell[m] vector</span></span>
+<span id="cb4-260"><a href="#cb4-260" aria-hidden="true" tabindex="-1"></a>ax.text(<span class="fl">0.5</span>, <span class="fl">0.72</span>, <span class="st">'cell[$m$] = [1, 1, ..., 1, 2, 2, ..., 2, 3, 3, ..., 3, 4, 4, ..., 4]'</span>,</span>
+<span id="cb4-261"><a href="#cb4-261" aria-hidden="true" tabindex="-1"></a>        ha<span class="op">=</span><span class="st">'center'</span>, fontsize<span class="op">=</span><span class="dv">10</span>, family<span class="op">=</span><span class="st">'monospace'</span>,</span>
+<span id="cb4-262"><a href="#cb4-262" aria-hidden="true" tabindex="-1"></a>        bbox<span class="op">=</span><span class="bu">dict</span>(boxstyle<span class="op">=</span><span class="st">'round,pad=0.3'</span>, facecolor<span class="op">=</span><span class="st">'lightyellow'</span>, edgecolor<span class="op">=</span><span class="st">'gray'</span>))</span>
+<span id="cb4-263"><a href="#cb4-263" aria-hidden="true" tabindex="-1"></a>ax.annotate(<span class="st">''</span>, xy<span class="op">=</span>(<span class="fl">0.5</span>, <span class="fl">0.65</span>), xytext<span class="op">=</span>(<span class="fl">0.5</span>, <span class="fl">0.63</span>),</span>
+<span id="cb4-264"><a href="#cb4-264" aria-hidden="true" tabindex="-1"></a>            arrowprops<span class="op">=</span><span class="bu">dict</span>(arrowstyle<span class="op">=</span><span class="st">'-&gt;'</span>, color<span class="op">=</span><span class="st">'gray'</span>, lw<span class="op">=</span><span class="dv">1</span>))</span>
+<span id="cb4-265"><a href="#cb4-265" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-266"><a href="#cb4-266" aria-hidden="true" tabindex="-1"></a><span class="co"># Arrows from cell vector to blocks</span></span>
+<span id="cb4-267"><a href="#cb4-267" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(J):</span>
+<span id="cb4-268"><a href="#cb4-268" aria-hidden="true" tabindex="-1"></a>    x_center <span class="op">=</span> <span class="bu">sum</span>(M_per_cell[:j]) <span class="op">/</span> total <span class="op">+</span> M_per_cell[j] <span class="op">/</span> (<span class="dv">2</span> <span class="op">*</span> total)</span>
+<span id="cb4-269"><a href="#cb4-269" aria-hidden="true" tabindex="-1"></a>    ax.annotate(<span class="st">''</span>, xy<span class="op">=</span>(x_center, <span class="fl">0.6</span>), xytext<span class="op">=</span>(x_center, <span class="fl">0.63</span>),</span>
+<span id="cb4-270"><a href="#cb4-270" aria-hidden="true" tabindex="-1"></a>                arrowprops<span class="op">=</span><span class="bu">dict</span>(arrowstyle<span class="op">=</span><span class="st">'-&gt;'</span>, color<span class="op">=</span>colors[j], lw<span class="op">=</span><span class="fl">1.5</span>))</span>
+<span id="cb4-271"><a href="#cb4-271" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-272"><a href="#cb4-272" aria-hidden="true" tabindex="-1"></a>ax.set_xlim(<span class="op">-</span><span class="fl">0.05</span>, <span class="fl">1.05</span>)</span>
+<span id="cb4-273"><a href="#cb4-273" aria-hidden="true" tabindex="-1"></a>ax.set_ylim(<span class="fl">0.05</span>, <span class="fl">0.85</span>)</span>
+<span id="cb4-274"><a href="#cb4-274" aria-hidden="true" tabindex="-1"></a>ax.axis(<span class="st">'off'</span>)</span>
+<span id="cb4-275"><a href="#cb4-275" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">'Stacked Data Structure for Hierarchical Model'</span>, fontsize<span class="op">=</span><span class="dv">13</span>, pad<span class="op">=</span><span class="dv">15</span>)</span>
+<span id="cb4-276"><a href="#cb4-276" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-277"><a href="#cb4-277" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb4-278"><a href="#cb4-278" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb4-279"><a href="#cb4-279" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb4-280"><a href="#cb4-280" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-281"><a href="#cb4-281" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-282"><a href="#cb4-282" aria-hidden="true" tabindex="-1"></a><span class="fu">## Relationship to the Base Model {#sec-reduction}</span></span>
+<span id="cb4-283"><a href="#cb4-283" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-284"><a href="#cb4-284" aria-hidden="true" tabindex="-1"></a>The hierarchical model <span class="in">`h_m01`</span> nests the base model <span class="in">`m_01`</span> as a special case, and interpolates between complete pooling and independent estimation.</span>
+<span id="cb4-285"><a href="#cb4-285" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-286"><a href="#cb4-286" aria-hidden="true" tabindex="-1"></a>::: {.callout-note appearance="minimal"}</span>
+<span id="cb4-287"><a href="#cb4-287" aria-hidden="true" tabindex="-1"></a><span class="fu">### Proposition (Reduction to m_01)</span></span>
+<span id="cb4-288"><a href="#cb4-288" aria-hidden="true" tabindex="-1"></a>If $J = 1$ and $P = 0$, then <span class="in">`h_m01`</span> reduces to <span class="in">`m_01`</span> with $\alpha \sim \text{LogNormal}(\gamma_0, \sigma_{\text{cell}})$.</span>
+<span id="cb4-289"><a href="#cb4-289" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb4-290"><a href="#cb4-290" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-291"><a href="#cb4-291" aria-hidden="true" tabindex="-1"></a>::: {.callout-tip collapse="true"}</span>
+<span id="cb4-292"><a href="#cb4-292" aria-hidden="true" tabindex="-1"></a><span class="fu">### Proof</span></span>
+<span id="cb4-293"><a href="#cb4-293" aria-hidden="true" tabindex="-1"></a>With $J = 1$, the design matrix $\mathbf{X}$ is empty (no columns), so:</span>
+<span id="cb4-294"><a href="#cb4-294" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-295"><a href="#cb4-295" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb4-296"><a href="#cb4-296" aria-hidden="true" tabindex="-1"></a>\log(\alpha_1) = \gamma_0 + \sigma_{\text{cell}} \cdot z_1, \quad z_1 \sim \mathcal{N}(0, 1)</span>
+<span id="cb4-297"><a href="#cb4-297" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb4-298"><a href="#cb4-298" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-299"><a href="#cb4-299" aria-hidden="true" tabindex="-1"></a>This is equivalent to $\log(\alpha_1) \sim \mathcal{N}(\gamma_0, \sigma_{\text{cell}})$, i.e., $\alpha_1 \sim \text{LogNormal}(\gamma_0, \sigma_{\text{cell}})$.</span>
+<span id="cb4-300"><a href="#cb4-300" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-301"><a href="#cb4-301" aria-hidden="true" tabindex="-1"></a>Since there is only one cell and one $\boldsymbol{\beta}_1$, the model reduces to a single-cell softmax choice model — exactly <span class="in">`m_01`</span>.</span>
+<span id="cb4-302"><a href="#cb4-302" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb4-303"><a href="#cb4-303" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-304"><a href="#cb4-304" aria-hidden="true" tabindex="-1"></a>::: {.callout-note appearance="minimal"}</span>
+<span id="cb4-305"><a href="#cb4-305" aria-hidden="true" tabindex="-1"></a><span class="fu">### Proposition (Independent cells)</span></span>
+<span id="cb4-306"><a href="#cb4-306" aria-hidden="true" tabindex="-1"></a>As $\sigma_{\text{cell}} \to \infty$, the cell-level deviations dominate the regression, and estimating per-cell $\alpha_j$ approaches independent estimation.</span>
+<span id="cb4-307"><a href="#cb4-307" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb4-308"><a href="#cb4-308" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-309"><a href="#cb4-309" aria-hidden="true" tabindex="-1"></a>The regression hierarchy thus interpolates between **complete pooling** ($\sigma_{\text{cell}} = 0$, all cells have the same $\alpha$ determined by the regression) and **no pooling** ($\sigma_{\text{cell}} \to \infty$, each cell's $\alpha$ is essentially unconstrained). The data determine where along this continuum the model settles — this is the essence of partial pooling <span class="co">[</span><span class="ot">@gelman2007</span><span class="co">]</span>.</span>
+<span id="cb4-310"><a href="#cb4-310" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-311"><a href="#cb4-311" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-312"><a href="#cb4-312" aria-hidden="true" tabindex="-1"></a><span class="fu">## Properties of the Hierarchical Extension</span></span>
+<span id="cb4-313"><a href="#cb4-313" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-314"><a href="#cb4-314" aria-hidden="true" tabindex="-1"></a>The three fundamental properties from <span class="co">[</span><span class="ot">Report 1</span><span class="co">](01_abstract_formulation.qmd)</span> — monotonicity, perfect optimization limit, and random choice limit — continue to hold **within each cell**. Conditional on $\alpha_j$, the choice model for cell $j$ is exactly the softmax model from Report 1. The proofs are identical; no new derivations are needed.</span>
+<span id="cb4-315"><a href="#cb4-315" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-316"><a href="#cb4-316" aria-hidden="true" tabindex="-1"></a>The new structural contribution is the **cross-cell** relationship: the regression structure enables testing hypotheses about what drives sensitivity differences across experimental conditions.</span>
+<span id="cb4-317"><a href="#cb4-317" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-318"><a href="#cb4-318" aria-hidden="true" tabindex="-1"></a>::: {.callout-note}</span>
+<span id="cb4-319"><a href="#cb4-319" aria-hidden="true" tabindex="-1"></a><span class="fu">## Example Testable Hypotheses</span></span>
+<span id="cb4-320"><a href="#cb4-320" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-321"><a href="#cb4-321" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>**LLM main effect**: $\gamma_{\text{LLM}} \neq 0$ — different LLMs have systematically different sensitivity</span>
+<span id="cb4-322"><a href="#cb4-322" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>**Prompt main effect**: $\gamma_{\text{prompt}} \neq 0$ — prompt framing shifts sensitivity</span>
+<span id="cb4-323"><a href="#cb4-323" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>**Interaction**: A coefficient on the product term — the prompt effect differs by LLM</span>
+<span id="cb4-324"><a href="#cb4-324" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span>**Heterogeneity**: $\sigma_{\text{cell}} &gt; 0$ — there is residual cell-level variation beyond what the design matrix explains</span>
+<span id="cb4-325"><a href="#cb4-325" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb4-326"><a href="#cb4-326" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-327"><a href="#cb4-327" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-328"><a href="#cb4-328" aria-hidden="true" tabindex="-1"></a><span class="fu">## Design Matrix Construction {#sec-design-matrix}</span></span>
+<span id="cb4-329"><a href="#cb4-329" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-330"><a href="#cb4-330" aria-hidden="true" tabindex="-1"></a>The design matrix $\mathbf{X} \in \mathbb{R}^{J \times P}$ encodes the experimental structure. Common coding schemes include:</span>
+<span id="cb4-331"><a href="#cb4-331" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-332"><a href="#cb4-332" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Treatment coding** (dummy/indicator coding): One reference cell; each predictor is an indicator for a treatment level. $\gamma_p$ measures the difference from the reference on the log-$\alpha$ scale. This is the default in <span class="in">`h_m01`</span>.</span>
+<span id="cb4-333"><a href="#cb4-333" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Effect coding**: Coefficients represent deviations from the grand mean rather than from a reference level.</span>
+<span id="cb4-334"><a href="#cb4-334" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Interaction terms**: Products of main-effect columns capture non-additive effects on log-sensitivity.</span>
+<span id="cb4-335"><a href="#cb4-335" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-336"><a href="#cb4-336" aria-hidden="true" tabindex="-1"></a>The following figure illustrates a treatment-coded design matrix for a 6-model × 3-prompt factorial study ($J = 18$ cells, $P = 7$ predictors: 5 model dummies + 2 prompt dummies), with GPT-4o under the neutral prompt as the reference cell.</span>
+<span id="cb4-337"><a href="#cb4-337" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-340"><a href="#cb4-340" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb4-341"><a href="#cb4-341" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-design-matrix</span></span>
+<span id="cb4-342"><a href="#cb4-342" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Treatment-coded design matrix for a 6-model × 3-prompt factorial study (J=18 cells, P=7 predictors). GPT-4o under the neutral prompt is the reference cell (all zeros). Each row corresponds to one experimental cell."</span></span>
+<span id="cb4-343"><a href="#cb4-343" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-344"><a href="#cb4-344" aria-hidden="true" tabindex="-1"></a>models <span class="op">=</span> [<span class="st">'GPT-4o'</span>, <span class="st">'GPT-4o-mini'</span>, <span class="st">'Claude 3.5S'</span>, <span class="st">'Claude 3.5H'</span>, <span class="st">'Gemini 1.5P'</span>, <span class="st">'Gemini 1.5F'</span>]</span>
+<span id="cb4-345"><a href="#cb4-345" aria-hidden="true" tabindex="-1"></a>prompts <span class="op">=</span> [<span class="st">'neutral'</span>, <span class="st">'chain-of-thought'</span>, <span class="st">'role-play'</span>]</span>
+<span id="cb4-346"><a href="#cb4-346" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-347"><a href="#cb4-347" aria-hidden="true" tabindex="-1"></a><span class="co"># Build design matrix: 5 model dummies + 2 prompt dummies</span></span>
+<span id="cb4-348"><a href="#cb4-348" aria-hidden="true" tabindex="-1"></a>J <span class="op">=</span> <span class="bu">len</span>(models) <span class="op">*</span> <span class="bu">len</span>(prompts)</span>
+<span id="cb4-349"><a href="#cb4-349" aria-hidden="true" tabindex="-1"></a>P <span class="op">=</span> (<span class="bu">len</span>(models) <span class="op">-</span> <span class="dv">1</span>) <span class="op">+</span> (<span class="bu">len</span>(prompts) <span class="op">-</span> <span class="dv">1</span>)  <span class="co"># 5 + 2 = 7</span></span>
+<span id="cb4-350"><a href="#cb4-350" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> np.zeros((J, P))</span>
+<span id="cb4-351"><a href="#cb4-351" aria-hidden="true" tabindex="-1"></a>cell_labels <span class="op">=</span> []</span>
+<span id="cb4-352"><a href="#cb4-352" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-353"><a href="#cb4-353" aria-hidden="true" tabindex="-1"></a>row <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb4-354"><a href="#cb4-354" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i, model <span class="kw">in</span> <span class="bu">enumerate</span>(models):</span>
+<span id="cb4-355"><a href="#cb4-355" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> k, prompt <span class="kw">in</span> <span class="bu">enumerate</span>(prompts):</span>
+<span id="cb4-356"><a href="#cb4-356" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Model dummies (GPT-4o is reference = 0)</span></span>
+<span id="cb4-357"><a href="#cb4-357" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> i <span class="op">&gt;</span> <span class="dv">0</span>:</span>
+<span id="cb4-358"><a href="#cb4-358" aria-hidden="true" tabindex="-1"></a>            X[row, i <span class="op">-</span> <span class="dv">1</span>] <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb4-359"><a href="#cb4-359" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Prompt dummies (neutral is reference = 0)</span></span>
+<span id="cb4-360"><a href="#cb4-360" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> k <span class="op">&gt;</span> <span class="dv">0</span>:</span>
+<span id="cb4-361"><a href="#cb4-361" aria-hidden="true" tabindex="-1"></a>            X[row, <span class="bu">len</span>(models) <span class="op">-</span> <span class="dv">1</span> <span class="op">+</span> k <span class="op">-</span> <span class="dv">1</span>] <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb4-362"><a href="#cb4-362" aria-hidden="true" tabindex="-1"></a>        cell_labels.append(<span class="ss">f'</span><span class="sc">{</span>model<span class="sc">}</span><span class="ss"> × </span><span class="sc">{</span>prompt<span class="sc">}</span><span class="ss">'</span>)</span>
+<span id="cb4-363"><a href="#cb4-363" aria-hidden="true" tabindex="-1"></a>        row <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb4-364"><a href="#cb4-364" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-365"><a href="#cb4-365" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">8</span>))</span>
+<span id="cb4-366"><a href="#cb4-366" aria-hidden="true" tabindex="-1"></a>im <span class="op">=</span> ax.imshow(X, cmap<span class="op">=</span><span class="st">'Blues'</span>, aspect<span class="op">=</span><span class="st">'auto'</span>, vmin<span class="op">=-</span><span class="fl">0.3</span>, vmax<span class="op">=</span><span class="fl">1.3</span>)</span>
+<span id="cb4-367"><a href="#cb4-367" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-368"><a href="#cb4-368" aria-hidden="true" tabindex="-1"></a><span class="co"># Column labels</span></span>
+<span id="cb4-369"><a href="#cb4-369" aria-hidden="true" tabindex="-1"></a>col_labels <span class="op">=</span> [<span class="ss">f'$</span><span class="ch">\\</span><span class="ss">gamma_</span><span class="ch">{{</span><span class="sc">{</span>i<span class="op">+</span><span class="dv">1</span><span class="sc">}</span><span class="ch">}}</span><span class="ss">$</span><span class="ch">\n</span><span class="sc">{</span>models[i<span class="op">+</span><span class="dv">1</span>]<span class="sc">}</span><span class="ss">'</span> <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(models)<span class="op">-</span><span class="dv">1</span>)]</span>
+<span id="cb4-370"><a href="#cb4-370" aria-hidden="true" tabindex="-1"></a>col_labels <span class="op">+=</span> [<span class="ss">f'$</span><span class="ch">\\</span><span class="ss">gamma_</span><span class="ch">{{</span><span class="sc">{</span><span class="bu">len</span>(models)<span class="op">+</span>k<span class="sc">}</span><span class="ch">}}</span><span class="ss">$</span><span class="ch">\n</span><span class="sc">{</span>prompts[k<span class="op">+</span><span class="dv">1</span>]<span class="sc">}</span><span class="ss">'</span> <span class="cf">for</span> k <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(prompts)<span class="op">-</span><span class="dv">1</span>)]</span>
+<span id="cb4-371"><a href="#cb4-371" aria-hidden="true" tabindex="-1"></a>ax.set_xticks(<span class="bu">range</span>(P))</span>
+<span id="cb4-372"><a href="#cb4-372" aria-hidden="true" tabindex="-1"></a>ax.set_xticklabels(col_labels, fontsize<span class="op">=</span><span class="dv">8</span>, ha<span class="op">=</span><span class="st">'center'</span>)</span>
+<span id="cb4-373"><a href="#cb4-373" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-374"><a href="#cb4-374" aria-hidden="true" tabindex="-1"></a>ax.set_yticks(<span class="bu">range</span>(J))</span>
+<span id="cb4-375"><a href="#cb4-375" aria-hidden="true" tabindex="-1"></a>ax.set_yticklabels(cell_labels, fontsize<span class="op">=</span><span class="dv">8</span>)</span>
+<span id="cb4-376"><a href="#cb4-376" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-377"><a href="#cb4-377" aria-hidden="true" tabindex="-1"></a><span class="co"># Add text values</span></span>
+<span id="cb4-378"><a href="#cb4-378" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(J):</span>
+<span id="cb4-379"><a href="#cb4-379" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> j_col <span class="kw">in</span> <span class="bu">range</span>(P):</span>
+<span id="cb4-380"><a href="#cb4-380" aria-hidden="true" tabindex="-1"></a>        val <span class="op">=</span> <span class="bu">int</span>(X[i, j_col])</span>
+<span id="cb4-381"><a href="#cb4-381" aria-hidden="true" tabindex="-1"></a>        color <span class="op">=</span> <span class="st">'white'</span> <span class="cf">if</span> val <span class="op">==</span> <span class="dv">1</span> <span class="cf">else</span> <span class="st">'gray'</span></span>
+<span id="cb4-382"><a href="#cb4-382" aria-hidden="true" tabindex="-1"></a>        ax.text(j_col, i, <span class="bu">str</span>(val), ha<span class="op">=</span><span class="st">'center'</span>, va<span class="op">=</span><span class="st">'center'</span>, fontsize<span class="op">=</span><span class="dv">9</span>, color<span class="op">=</span>color, fontweight<span class="op">=</span><span class="st">'bold'</span>)</span>
+<span id="cb4-383"><a href="#cb4-383" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-384"><a href="#cb4-384" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">'Treatment-Coded Design Matrix (6 × 3 Factorial)'</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb4-385"><a href="#cb4-385" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="st">'Predictors ($</span><span class="ch">\\</span><span class="st">gamma_0$ intercept not shown)'</span>, fontsize<span class="op">=</span><span class="dv">11</span>)</span>
+<span id="cb4-386"><a href="#cb4-386" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-387"><a href="#cb4-387" aria-hidden="true" tabindex="-1"></a><span class="co"># Highlight reference row</span></span>
+<span id="cb4-388"><a href="#cb4-388" aria-hidden="true" tabindex="-1"></a>ax.axhspan(<span class="op">-</span><span class="fl">0.5</span>, <span class="fl">0.5</span>, color<span class="op">=</span><span class="st">'gold'</span>, alpha<span class="op">=</span><span class="fl">0.15</span>)</span>
+<span id="cb4-389"><a href="#cb4-389" aria-hidden="true" tabindex="-1"></a>ax.text(P <span class="op">+</span> <span class="fl">0.3</span>, <span class="dv">0</span>, <span class="st">'← reference'</span>, va<span class="op">=</span><span class="st">'center'</span>, fontsize<span class="op">=</span><span class="dv">9</span>, color<span class="op">=</span><span class="st">'goldenrod'</span>, fontstyle<span class="op">=</span><span class="st">'italic'</span>,</span>
+<span id="cb4-390"><a href="#cb4-390" aria-hidden="true" tabindex="-1"></a>        clip_on<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb4-391"><a href="#cb4-391" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-392"><a href="#cb4-392" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb4-393"><a href="#cb4-393" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb4-394"><a href="#cb4-394" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb4-395"><a href="#cb4-395" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-396"><a href="#cb4-396" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-397"><a href="#cb4-397" aria-hidden="true" tabindex="-1"></a><span class="fu">## Summary</span></span>
+<span id="cb4-398"><a href="#cb4-398" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-399"><a href="#cb4-399" aria-hidden="true" tabindex="-1"></a>This report extended the single-agent SEU sensitivity framework to multi-cell experimental designs. The key contributions are:</span>
+<span id="cb4-400"><a href="#cb4-400" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-401"><a href="#cb4-401" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>**Regression on log-sensitivity.** A hierarchical structure ($@eq-regression$) formally links cell-level $\alpha_j$ to experimental factors via a design matrix, producing interpretable regression coefficients.</span>
+<span id="cb4-402"><a href="#cb4-402" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-403"><a href="#cb4-403" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>**Shared-vs-varying parameter choices.** Sensitivity and beliefs vary by cell; utilities and alternatives are shared — reflecting the structure of factorial experiments where the task is constant but the decision-maker (LLM × prompt) varies.</span>
+<span id="cb4-404"><a href="#cb4-404" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-405"><a href="#cb4-405" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>**Nesting of the base model.** The hierarchical framework reduces to <span class="in">`m_01`</span> when $J = 1$ and $P = 0$ (@sec-reduction), and interpolates between complete pooling and independent estimation via $\sigma_{\text{cell}}$.</span>
+<span id="cb4-406"><a href="#cb4-406" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-407"><a href="#cb4-407" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span>**Preservation of fundamental properties.** The three properties of softmax choice (monotonicity, perfect optimization limit, random choice limit) hold within each cell, unchanged.</span>
+<span id="cb4-408"><a href="#cb4-408" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-409"><a href="#cb4-409" aria-hidden="true" tabindex="-1"></a><span class="ss">5. </span>**Design matrix construction.** Treatment coding provides directly interpretable coefficients for factorial experiments (@sec-design-matrix).</span>
+<span id="cb4-410"><a href="#cb4-410" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-411"><a href="#cb4-411" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">Report 9</span><span class="co">](09_hierarchical_implementation.qmd)</span> presents the concrete implementation of this formulation in Stan, detailing the data structure, parameterization, and generated quantities.</span>
+<span id="cb4-412"><a href="#cb4-412" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-413"><a href="#cb4-413" aria-hidden="true" tabindex="-1"></a>::: {.callout-note}</span>
+<span id="cb4-414"><a href="#cb4-414" aria-hidden="true" tabindex="-1"></a><span class="fu">## Connection to Earlier Reports</span></span>
+<span id="cb4-415"><a href="#cb4-415" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-416"><a href="#cb4-416" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="co">[</span><span class="ot">Report 1</span><span class="co">](01_abstract_formulation.qmd)</span>: The three properties of softmax choice continue to hold within each cell</span>
+<span id="cb4-417"><a href="#cb4-417" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="co">[</span><span class="ot">Report 2</span><span class="co">](02_concrete_implementation.qmd)</span>: The concrete implementation choices (softmax beliefs, incremental utilities) carry forward in h_m01</span>
+<span id="cb4-418"><a href="#cb4-418" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="co">[</span><span class="ot">Reports 5–7</span><span class="co">](05_adding_risky_choices.qmd)</span>: The risky-choice extensions (m_1, m_2, m_3) could in principle also be hierarchicalized; h_m01 extends m_01 specifically</span>
+<span id="cb4-419"><a href="#cb4-419" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="co">[</span><span class="ot">Factorial Synthesis</span><span class="co">](../applications/factorial_synthesis/01_factorial_synthesis.qmd)</span>: Retrospective motivation — demonstrated limitations of independent per-cell fits</span>
+<span id="cb4-420"><a href="#cb4-420" aria-hidden="true" tabindex="-1"></a>:::</span>
+</code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
+</div></div></div></div></div>
+</div> <!-- /content -->
+
+
+
+
+<script src="../site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>

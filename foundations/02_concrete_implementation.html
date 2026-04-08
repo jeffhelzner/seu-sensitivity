@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Jeff Helzner">
-<meta name="dcterms.date" content="2026-04-06">
+<meta name="dcterms.date" content="2026-04-08">
 <meta name="description" content="A detailed walkthrough of the m_0.stan implementation, showing how the abstract formulation from Report 1 is realized in a concrete Bayesian model with specific parameterizations for subjective probabilities and utilities.">
 
 <title>Concrete Implementation: The m_0 Stan Model – SEU Sensitivity</title>
@@ -166,10 +166,10 @@ window.Quarto = {
 <link rel="stylesheet" href="../styles/seu-sensitivity.css">
 <meta name="citation_title" content="Concrete Implementation: The m_0 Stan Model">
 <meta name="citation_author" content="Jeff Helzner">
-<meta name="citation_publication_date" content="2026-04-06">
-<meta name="citation_cover_date" content="2026-04-06">
+<meta name="citation_publication_date" content="2026-04-08">
+<meta name="citation_cover_date" content="2026-04-08">
 <meta name="citation_year" content="2026">
-<meta name="citation_online_date" content="2026-04-06">
+<meta name="citation_online_date" content="2026-04-08">
 <meta name="citation_fulltext_html_url" content="https://jeffhelzner.github.io/seu-sensitivity/foundations/02_concrete_implementation.html">
 <meta name="citation_language" content="en">
 <meta name="citation_journal_title" content="SEU Sensitivity Project">
@@ -198,6 +198,7 @@ window.Quarto = {
 <meta name="citation_reference" content="citation_title=Identification in parametric models;,citation_author=Thomas J. Rothenberg;,citation_publication_date=1971;,citation_cover_date=1971;,citation_year=1971;,citation_issue=3;,citation_volume=39;,citation_journal_title=Econometrica;,citation_publisher=Wiley;">
 <meta name="citation_reference" content="citation_title=Telling more than we can know: Verbal reports on mental processes;,citation_author=Richard E. Nisbett;,citation_author=Timothy D. Wilson;,citation_publication_date=1977;,citation_cover_date=1977;,citation_year=1977;,citation_issue=3;,citation_volume=84;,citation_journal_title=Psychological Review;,citation_publisher=American Psychological Association;">
 <meta name="citation_reference" content="citation_title=Verbal overshadowing of visual memories: Some things are better left unsaid;,citation_author=Jonathan W. Schooler;,citation_author=Tonya Y. Engstler-Schooler;,citation_publication_date=1990;,citation_cover_date=1990;,citation_year=1990;,citation_issue=1;,citation_volume=22;,citation_journal_title=Cognitive Psychology;,citation_publisher=Elsevier;">
+<meta name="citation_reference" content="citation_title=Data analysis using regression and multilevel/hierarchical models;,citation_author=Andrew Gelman;,citation_author=Jennifer Hill;,citation_publication_date=2007;,citation_cover_date=2007;,citation_year=2007;">
 </head>
 
 <body class="nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
@@ -416,6 +417,14 @@ window.Quarto = {
     <a class="dropdown-item" href="../foundations/07_generalizing_sensitivity.html">
  <span class="dropdown-text">7. Generalizing Sensitivity</span></a>
   </li>  
+        <li>
+    <a class="dropdown-item" href="../foundations/08_hierarchical_formulation.html">
+ <span class="dropdown-text">8. Hierarchical Formulation</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../foundations/09_hierarchical_implementation.html">
+ <span class="dropdown-text">9. Hierarchical Implementation</span></a>
+  </li>  
     </ul>
   </li>
   <li class="nav-item dropdown ">
@@ -577,7 +586,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">April 6, 2026</p>
+      <p class="date">April 8, 2026</p>
     </div>
   </div>
   
@@ -1338,13 +1347,13 @@ Figure&nbsp;2: The incremental utility construction. Left: Three sample δ vecto
 <div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{helzner2026,
   author = {Helzner, Jeff},
   title = {Concrete {Implementation:} {The} m\_0 {Stan} {Model}},
-  date = {2026-04-06},
+  date = {2026-04-08},
   url = {https://jeffhelzner.github.io/seu-sensitivity/foundations/02_concrete_implementation.html},
   langid = {en}
 }
 </code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-helzner2026" class="csl-entry quarto-appendix-citeas" role="listitem">
 Helzner, Jeff. 2026. <span>“Concrete Implementation: The m_0 Stan
-Model.”</span> SEU Sensitivity Project, April 6. <a href="https://jeffhelzner.github.io/seu-sensitivity/foundations/02_concrete_implementation.html">https://jeffhelzner.github.io/seu-sensitivity/foundations/02_concrete_implementation.html</a>.
+Model.”</span> SEU Sensitivity Project, April 8. <a href="https://jeffhelzner.github.io/seu-sensitivity/foundations/02_concrete_implementation.html">https://jeffhelzner.github.io/seu-sensitivity/foundations/02_concrete_implementation.html</a>.
 </div></div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {

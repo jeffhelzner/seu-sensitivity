@@ -20,6 +20,8 @@ These reports establish the theoretical and methodological foundations:
 5. **[Adding Risky Choices](foundations/05_adding_risky_choices.qmd)** — Extension to model m_1 for utility identification
 6. **[SBC Validation](foundations/06_sbc_validation.qmd)** — Simulation-based calibration results
 7. **[Generalizing Sensitivity](foundations/07_generalizing_sensitivity.qmd)** — Generalized models m_2 and m_3
+8. **[Hierarchical Formulation](foundations/08_hierarchical_formulation.qmd)** — Hierarchical extension for population-level inference
+9. **[Hierarchical Implementation](foundations/09_hierarchical_implementation.qmd)** — Stan implementation and validation of hierarchical models
 
 ### Application Reports
 

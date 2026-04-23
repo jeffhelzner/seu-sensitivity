@@ -1,0 +1,27 @@
+{
+  "sim_model_path": "models/h_m01_sim.stan",
+  "output_dir": "results/prior_predictive/h_m01_prior_analysis",
+  "n_param_samples": 200,
+  "n_choice_samples": 5,
+  "study_design_config": {
+    "J": 6,
+    "K": 3,
+    "D": 2,
+    "R": 10,
+    "P": 2,
+    "M_per_cell": 20,
+    "min_alts_per_problem": 2,
+    "max_alts_per_problem": 4,
+    "feature_dist": "normal",
+    "feature_params": {"loc": 0, "scale": 1},
+    "X": [[0, 0], [1, 0], [0, 1], [1, 1], [1, 0], [0, 1]],
+    "design_name": "h_m01_prior_analysis"
+  },
+  "hyperparameters": {
+    "gamma0_mean": 3.0,
+    "gamma0_sd": 1.0,
+    "gamma_sd": 1.0,
+    "sigma_cell_sd": 0.5,
+    "beta_sd": 1.0
+  }
+}

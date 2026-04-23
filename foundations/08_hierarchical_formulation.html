@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Jeff Helzner">
-<meta name="dcterms.date" content="2026-04-22">
+<meta name="dcterms.date" content="2026-04-23">
 <meta name="description" content="Abstract formulation of the hierarchical SEU sensitivity model. Extends the single-agent softmax framework to multi-cell experimental designs where sensitivity varies systematically across cells via regression on log(α).">
 
 <title>Hierarchical Formulation of Multi-Cell SEU Sensitivity – SEU Sensitivity</title>
@@ -166,10 +166,10 @@ window.Quarto = {
 <link rel="stylesheet" href="../styles/seu-sensitivity.css">
 <meta name="citation_title" content="Hierarchical Formulation of Multi-Cell SEU Sensitivity">
 <meta name="citation_author" content="Jeff Helzner">
-<meta name="citation_publication_date" content="2026-04-22">
-<meta name="citation_cover_date" content="2026-04-22">
+<meta name="citation_publication_date" content="2026-04-23">
+<meta name="citation_cover_date" content="2026-04-23">
 <meta name="citation_year" content="2026">
-<meta name="citation_online_date" content="2026-04-22">
+<meta name="citation_online_date" content="2026-04-23">
 <meta name="citation_fulltext_html_url" content="https://jeffhelzner.github.io/seu-sensitivity/foundations/08_hierarchical_formulation.html">
 <meta name="citation_language" content="en">
 <meta name="citation_journal_title" content="SEU Sensitivity Project">
@@ -559,7 +559,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">April 22, 2026</p>
+      <p class="date">April 23, 2026</p>
     </div>
   </div>
   
@@ -771,7 +771,7 @@ Table&nbsp;1: Approaches to multi-cell sensitivity estimation.
 <p>Example: If <span class="math inline">\(\gamma_0 = 3.0\)</span> and <span class="math inline">\(\gamma_1 = -0.5\)</span> (for an LLM indicator), the reference LLM has median <span class="math inline">\(\alpha \approx 20\)</span> and the treatment LLM has median <span class="math inline">\(\alpha \approx 20 \cdot \exp(-0.5) \approx 12\)</span>. The treatment LLM is approximately 40% less sensitive to SEU maximization.</p>
 </div>
 </div>
-<div id="cell-fig-regression-illustration" class="cell" data-execution_count="2">
+<div id="cell-fig-regression-illustration" class="cell" data-execution_count="3">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">12</span>, <span class="dv">5</span>), gridspec_kw<span class="op">=</span>{<span class="st">'width_ratios'</span>: [<span class="dv">1</span>, <span class="fl">1.5</span>]})</span>
@@ -914,7 +914,7 @@ Table&nbsp;2: Shared vs.&nbsp;cell-specific components in h_m01.
 <li>The regression structure (<span class="math inline">\(\gamma_0, \boldsymbol{\gamma}, \sigma_{\text{cell}}\)</span>) pools information across cells</li>
 <li>A single MCMC run produces joint posterior samples, enabling coherent inference about all parameters simultaneously</li>
 </ul>
-<div id="cell-fig-stacked-data" class="cell" data-execution_count="3">
+<div id="cell-fig-stacked-data" class="cell" data-execution_count="4">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">4</span>))</span>
@@ -1058,7 +1058,7 @@ Figure&nbsp;2: Schematic of the stacked data structure. Observations from J cell
 <li><strong>Interaction terms</strong>: Products of main-effect columns capture non-additive effects on log-sensitivity.</li>
 </ul>
 <p>The following figure illustrates a treatment-coded design matrix for a 6-model × 3-prompt factorial study (<span class="math inline">\(J = 18\)</span> cells, <span class="math inline">\(P = 7\)</span> predictors: 5 model dummies + 2 prompt dummies), with GPT-4o under the neutral prompt as the reference cell.</p>
-<div id="cell-fig-design-matrix" class="cell" data-execution_count="4">
+<div id="cell-fig-design-matrix" class="cell" data-execution_count="5">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>models <span class="op">=</span> [<span class="st">'GPT-4o'</span>, <span class="st">'GPT-4o-mini'</span>, <span class="st">'Claude 3.5S'</span>, <span class="st">'Claude 3.5H'</span>, <span class="st">'Gemini 1.5P'</span>, <span class="st">'Gemini 1.5F'</span>]</span>
@@ -1173,13 +1173,13 @@ Gelman, Andrew, and Jennifer Hill. 2007. <em>Data Analysis Using Regression and 
   author = {Helzner, Jeff},
   title = {Hierarchical {Formulation} of {Multi-Cell} {SEU}
     {Sensitivity}},
-  date = {2026-04-22},
+  date = {2026-04-23},
   url = {https://jeffhelzner.github.io/seu-sensitivity/foundations/08_hierarchical_formulation.html},
   langid = {en}
 }
 </code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-helzner2026" class="csl-entry quarto-appendix-citeas" role="listitem">
 Helzner, Jeff. 2026. <span>“Hierarchical Formulation of Multi-Cell SEU
-Sensitivity.”</span> SEU Sensitivity Project, April 22. <a href="https://jeffhelzner.github.io/seu-sensitivity/foundations/08_hierarchical_formulation.html">https://jeffhelzner.github.io/seu-sensitivity/foundations/08_hierarchical_formulation.html</a>.
+Sensitivity.”</span> SEU Sensitivity Project, April 23. <a href="https://jeffhelzner.github.io/seu-sensitivity/foundations/08_hierarchical_formulation.html">https://jeffhelzner.github.io/seu-sensitivity/foundations/08_hierarchical_formulation.html</a>.
 </div></div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {

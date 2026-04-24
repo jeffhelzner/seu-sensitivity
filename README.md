@@ -63,7 +63,12 @@ seu-sensitivity/
 │   │   ├── 04_parameter_recovery.qmd     # Parameter recovery study
 │   │   ├── 05_adding_risky_choices.qmd   # m_1 model development
 │   │   ├── 06_sbc_validation.qmd         # Simulation-based calibration
-│   │   └── 07_generalizing_sensitivity.qmd # m_2 and m_3 model development
+│   │   ├── 07_generalizing_sensitivity.qmd # m_2 and m_3 model development
+│   │   ├── 08_hierarchical_formulation.qmd   # Hierarchical model theory
+│   │   ├── 09_hierarchical_implementation.qmd # h_m01 Stan implementation
+│   │   ├── 10_hierarchical_prior_analysis.qmd # Hierarchical prior predictive
+│   │   ├── 11_hierarchical_parameter_recovery.qmd # Hierarchical recovery
+│   │   └── 12_hierarchical_sbc_validation.qmd # Hierarchical SBC
 │   ├── applications/       # Applied research reports
 │   │   ├── temperature_study/
 │   │   ├── temperature_study_with_eu_prompt/
@@ -114,6 +119,7 @@ seu-sensitivity/
 │   ├── prior_predictive.py # Prior predictive checks
 │   ├── sbc.py              # Simulation-based calibration
 │   ├── sample_size_estimation.py # Sample size planning
+│   ├── hierarchical_prior_predictive.py # Prior predictive for h_m01
 │   ├── hierarchical_parameter_recovery.py # Recovery for h_m01
 │   └── hierarchical_sbc.py # SBC for h_m01
 ├── applications/            # Applied research projects
@@ -135,6 +141,9 @@ seu-sensitivity/
 │   ├── run_prior_predictive_grid_augmented.py # Prior predictive grid search (m_1/m_2/m_3)
 │   ├── run_sbc.py          # SBC validation
 │   ├── run_sample_size_estimation.py # Sample size analysis
+│   ├── run_hierarchical_prior_predictive.py # Hierarchical prior predictive
+│   ├── run_hierarchical_parameter_recovery.py # Hierarchical recovery
+│   ├── run_hierarchical_sbc.py # Hierarchical SBC
 │   ├── run_temperature_analysis.py # Temperature study analysis
 │   ├── run_ellsberg_study.py # Ellsberg study entry point
 │   ├── refit_with_ppc.py   # Refit models with posterior predictive checks
@@ -145,6 +154,11 @@ seu-sensitivity/
 │   ├── generate_ellsberg_primary_analysis.py # Generate primary analysis for Ellsberg study
 │   ├── copy_figures_for_report.py # Copy figures into reports
 │   ├── cleanup_temp_files.py # Clean up temporary files
+│   ├── smoke_test_design.py # Study design smoke test
+│   ├── smoke_test_sim.py   # Simulation smoke test
+│   ├── smoke_test_inference.py # Inference smoke test
+│   ├── smoke_test_recovery.py # Parameter recovery smoke test
+│   ├── smoke_test_sbc.py   # SBC smoke test
 │   └── test_m1_model.py    # m_1 model tests
 ├── configs/                 # Configuration files for studies
 ├── results/                 # Generated results and outputs
@@ -296,7 +310,18 @@ python scripts/run_sbc.py --config configs/sbc_config.json
 python scripts/run_sample_size_estimation.py --config configs/sample_size_config.json
 ```
 
-For m_1, m_2, and m_3 models, use the corresponding `m1_*`, `m2_*`, and `m3_*` config files.
+For m_1, m_2, and m_3 models, use the corresponding `m1_*`, `m2_*`, and `m3_*` config files. For the hierarchical model h_m01, use the `run_hierarchical_*` scripts with `h_m01_*` configs:
+
+```bash
+# Hierarchical prior predictive
+python scripts/run_hierarchical_prior_predictive.py --config configs/h_m01_prior_analysis_config.json
+
+# Hierarchical parameter recovery
+python scripts/run_hierarchical_parameter_recovery.py --config configs/h_m01_parameter_recovery_config.json
+
+# Hierarchical SBC
+python scripts/run_hierarchical_sbc.py --config configs/h_m01_sbc_config.json
+```
 
 ## Theoretical Background
 
@@ -505,7 +530,7 @@ A 6-model × 3-prompt factorial study measuring how LLM identity and prompt fram
 **Research Question**: Do different LLMs and prompt framings produce systematically different levels of decision-theoretic rationality?
 
 **Key Features:**
-- 18 experimental cells: 6 LLMs (GPT-4o, GPT-4o-mini, o3-mini, Claude 3.5 Sonnet, Claude 3.7 Sonnet, Gemini 2.0 Flash) × 3 prompts (neutral, EU-maximizing, deliberative)
+- 18 experimental cells: 6 LLMs (GPT-4o, GPT-4o-mini, o3-mini, Claude Sonnet 4, Claude 3.5 Haiku, Claude 3.7 Sonnet) × 3 prompts (neutral, EU-maximizing, deliberative)
 - Hierarchical model with treatment-coded design matrix regressing on log(α)
 - Non-centered parameterization for cell-level α
 - Support for reasoning models (o3-mini) and extended thinking (Claude 3.7)

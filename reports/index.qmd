@@ -22,6 +22,9 @@ These reports establish the theoretical and methodological foundations:
 7. **[Generalizing Sensitivity](foundations/07_generalizing_sensitivity.qmd)** — Generalized models m_2 and m_3
 8. **[Hierarchical Formulation](foundations/08_hierarchical_formulation.qmd)** — Hierarchical extension for population-level inference
 9. **[Hierarchical Implementation](foundations/09_hierarchical_implementation.qmd)** — Stan implementation and validation of hierarchical models
+10. **[Hierarchical Prior Analysis](foundations/10_hierarchical_prior_analysis.qmd)** — Prior predictive analysis for `h_m01`
+11. **[Hierarchical Parameter Recovery](foundations/11_hierarchical_parameter_recovery.qmd)** — Recovery validation for the hierarchical model
+12. **[Hierarchical SBC Validation](foundations/12_hierarchical_sbc_validation.qmd)** — Simulation-based calibration for `h_m01`
 
 ### Application Reports
 

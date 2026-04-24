@@ -105,7 +105,7 @@ temperature_study/
 │   └── prompts.yaml           # Deliberation & choice prompt templates
 ├── data/
 │   └── claims.json            # 30-claim pool (C001–C030)
-└── tests/                     # 122 tests
+└── tests/                     # 125 tests
 ```
 
 ### Pipeline phases

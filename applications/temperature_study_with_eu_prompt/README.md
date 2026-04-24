@@ -75,7 +75,7 @@ This module does **not** re-collect assessments, embeddings, or problem definiti
 
 ### Stan model
 
-Fits the `m_0` model at each temperature level, producing α posteriors that can be directly compared to the base temperature study's posteriors.
+Fits the Stan model specified by `stan_model` in the config (default: `m_01`, the calibrated variant of `m_0` with prior `alpha ~ lognormal(3.0, 0.75)`) at each temperature level, producing α posteriors that can be directly compared to the base temperature study's posteriors.
 
 ---
 

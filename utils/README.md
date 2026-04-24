@@ -9,6 +9,7 @@ This directory contains utility modules for the SEU sensitivity project, includi
 | `__init__.py` | Shared utilities: model detection, default parameters |
 | `study_design.py` | Base study design for m_0 (uncertain choice only) |
 | `study_design_m1.py` | Extended design for m_1 (risky + uncertain choice) |
+| `study_design_hierarchical.py` | Hierarchical design (stacked cells) for h_m01 |
 
 ## Shared Utilities (`__init__.py`)
 
@@ -161,3 +162,15 @@ Study designs can be configured via JSON files. See `configs/` directory for exa
 
 - `study_config.json` - Base m_0 study design
 - `m1_study_config.json` - m_1 study design with risky choices
+
+## Hierarchical Study Design (`study_design_hierarchical.py`)
+
+The `study_design_hierarchical.py` module supports the hierarchical model `h_m01`, which pools information across `J` experimental cells via a regression on log-α. It stacks per-cell designs and produces a combined Stan data dictionary with a `cell[m]` membership vector and a `J×P` design matrix `X` of treatment contrasts.
+
+### Key Features
+
+- Generate stacked designs for `J` cells with shared structure (K, D, R)
+- Treatment-coded design matrix `X` of regression covariates on log-α
+- Combined data dict keyed for `models/h_m01.stan`
+
+See `configs/h_m01_parameter_recovery_config.json` and `configs/h_m01_sbc_config.json` for example hierarchical configurations.

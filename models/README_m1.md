@@ -302,9 +302,9 @@ All validation tests have been completed successfully:
 
 ## References
 
-- Original instructions: `instructions.md`
 - Base model: `models/m_0.stan`
-- Study design utilities: `utils/study_design.py`
+- Study design utilities: `utils/study_design.py`, `utils/study_design_m1.py`
+- Foundational report: `reports/foundations/05_adding_risky_choices.qmd`
 - CmdStanPy documentation: https://mc-stan.org/cmdstanpy/
 
 ---

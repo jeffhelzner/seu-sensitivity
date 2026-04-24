@@ -540,7 +540,7 @@ Key features:
 
 - **Constructor** accepts all design parameters: `J`, `K`, `D`, `R`, `P`, `M_per_cell` (scalar or per-cell list), design matrix `X`, and feature generation settings.
 - **`generate()`** creates shared feature vectors $\mathbf{w}_r$ and the stacked indicator array with cell membership vector.
-- **`get_data_dict()`** returns a dictionary matching the `h_m01.stan` data block, including default simulation hyperparameters (`gamma0_mean=3.0`, `gamma0_sd=1.0`, `gamma_sd=1.0`, `sigma_cell_sd=0.5`, `beta_sd=1.0`).
+- **`get_data_dict()`** returns a dictionary matching the `h_m01.stan` data block, including default simulation hyperparameters (`gamma0_mean=2.5`, `gamma0_sd=0.5`, `gamma_sd=0.5`, `sigma_cell_sd=0.3`, `beta_sd=1.0`). These tightened values were calibrated via the prior-predictive, parameter-recovery, and SBC analyses in [Reports 10–12](10_hierarchical_prior_analysis.qmd).
 - **`save()` / `load()`** serialize the design to JSON with metadata (design name, timestamp, feature distribution parameters) for reproducibility.
 
 

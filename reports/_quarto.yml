@@ -30,6 +30,12 @@ website:
             href: foundations/08_hierarchical_formulation.qmd
           - text: "9. Hierarchical Implementation"
             href: foundations/09_hierarchical_implementation.qmd
+          - text: "10. Hierarchical Prior Analysis"
+            href: foundations/10_hierarchical_prior_analysis.qmd
+          - text: "11. Hierarchical Parameter Recovery"
+            href: foundations/11_hierarchical_parameter_recovery.qmd
+          - text: "12. Hierarchical SBC Validation"
+            href: foundations/12_hierarchical_sbc_validation.qmd
       - text: "Applications"
         menu:
           - text: "---"

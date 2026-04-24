@@ -7,18 +7,17 @@
   "n_mcmc_chains": 1,
   "thin": 3,
   "study_design_config": {
-    "J": 6,
+    "factors": [6, 3],
+    "reference_indices": [0, 0],
+    "include_interactions": false,
     "K": 3,
     "D": 2,
     "R": 10,
-    "P": 7,
     "M_per_cell": 20,
     "min_alts_per_problem": 2,
     "max_alts_per_problem": 4,
     "feature_dist": "normal",
     "feature_params": {"loc": 0, "scale": 1},
-    "design_matrix_type": "treatment",
-    "reference_model": "gpt4o",
-    "reference_prompt": "neutral"
+    "design_name": "alignment_6x3_main_effects_sbc"
   }
 }

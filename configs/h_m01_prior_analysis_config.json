@@ -4,18 +4,18 @@
   "n_param_samples": 200,
   "n_choice_samples": 5,
   "study_design_config": {
-    "J": 6,
+    "factors": [6, 3],
+    "reference_indices": [0, 0],
+    "include_interactions": false,
     "K": 3,
     "D": 2,
     "R": 10,
-    "P": 2,
     "M_per_cell": 20,
     "min_alts_per_problem": 2,
     "max_alts_per_problem": 4,
     "feature_dist": "normal",
     "feature_params": {"loc": 0, "scale": 1},
-    "X": [[0, 0], [1, 0], [0, 1], [1, 1], [1, 0], [0, 1]],
-    "design_name": "h_m01_prior_analysis"
+    "design_name": "alignment_6x3_main_effects_prior"
   },
   "hyperparameters": {
     "gamma0_mean": 2.5,

@@ -2,10 +2,10 @@
   "inference_model_path": "models/h_m01.stan",
   "sim_model_path": "models/h_m01_sim.stan",
   "study_design_path": null,
-  "output_dir": "results/parameter_recovery/h_m01_recovery",
-  "n_mcmc_samples": 2000,
-  "n_mcmc_chains": 4,
-  "n_iterations": 20,
+  "output_dir": "results/parameter_recovery/h_m01_factorial_smoke",
+  "n_mcmc_samples": 300,
+  "n_mcmc_chains": 2,
+  "n_iterations": 2,
   "study_design_config": {
     "factors": [6, 3],
     "reference_indices": [0, 0],
@@ -13,11 +13,11 @@
     "K": 3,
     "D": 2,
     "R": 10,
-    "M_per_cell": 20,
+    "M_per_cell": 10,
     "min_alts_per_problem": 2,
     "max_alts_per_problem": 4,
     "feature_dist": "normal",
     "feature_params": {"loc": 0, "scale": 1},
-    "design_name": "alignment_6x3_main_effects"
+    "design_name": "alignment_6x3_smoke"
   }
 }

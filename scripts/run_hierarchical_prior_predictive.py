@@ -50,7 +50,37 @@ from utils.study_design_hierarchical import HierarchicalStudyDesign
 
 
 def _build_study_design(design_config: dict) -> HierarchicalStudyDesign:
-    """Instantiate and generate a HierarchicalStudyDesign from config."""
+    """Instantiate and generate a HierarchicalStudyDesign from config.
+
+    Supports two modes:
+    - Factorial: specify ``factors: [k1, k2, ...]`` (optionally
+      ``reference_indices`` and ``include_interactions``). J and P are
+      derived automatically via treatment coding.
+    - Manual: specify J and P directly; X is taken from ``X`` if present,
+      otherwise a default bit-pattern design is used.
+    """
+    if "factors" in design_config:
+        design = HierarchicalStudyDesign.from_factorial(
+            factors=design_config["factors"],
+            K=design_config.get("K", 3),
+            D=design_config.get("D", 2),
+            R=design_config.get("R", 10),
+            M_per_cell=design_config.get("M_per_cell", 20),
+            reference_indices=design_config.get("reference_indices"),
+            include_interactions=design_config.get(
+                "include_interactions", False
+            ),
+            min_alts_per_problem=design_config.get("min_alts_per_problem", 2),
+            max_alts_per_problem=design_config.get("max_alts_per_problem", 4),
+            feature_dist=design_config.get("feature_dist", "normal"),
+            feature_params=design_config.get(
+                "feature_params", {"loc": 0, "scale": 1}
+            ),
+            design_name=design_config.get("design_name", "h_m01_prior_analysis"),
+        )
+        design.generate()
+        return design
+
     X = design_config.get("X")
     if X is not None:
         X = np.asarray(X, dtype=float)

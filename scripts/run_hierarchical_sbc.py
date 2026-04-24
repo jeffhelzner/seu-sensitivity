@@ -1,33 +1,32 @@
 """
-Hierarchical Parameter Recovery Analysis Script
+Hierarchical Simulation-Based Calibration Script
 
-Runs parameter recovery for the h_m01 hierarchical model, using
-``h_m01_sim.stan`` to simulate data and ``h_m01.stan`` to recover
-parameters, with a ``HierarchicalStudyDesign``.
+Runs SBC for the h_m01 hierarchical model using ``h_m01_sbc.stan`` with a
+``HierarchicalStudyDesign``.
 
 Usage:
-    python scripts/run_hierarchical_parameter_recovery.py \
-        [--config configs/h_m01_parameter_recovery_config.json]
+    python scripts/run_hierarchical_sbc.py \
+        [--config configs/h_m01_sbc_config.json]
 
 The config file is a JSON object with the following optional keys::
 
     {
-      "inference_model_path": "models/h_m01.stan",
-      "sim_model_path": "models/h_m01_sim.stan",
+      "sbc_model_path": "models/h_m01_sbc.stan",
       "study_design_path": "path/to/design.json",       # existing design, or
       "study_design_config": {                           # generate a new one
-        "J": 6, "K": 3, "D": 2, "R": 10, "P": 2,
+        "J": 6, "K": 3, "D": 2, "R": 10, "P": 3,
         "M_per_cell": 20,
         "min_alts_per_problem": 2,
         "max_alts_per_problem": 4,
         "feature_dist": "normal",
         "feature_params": {"loc": 0, "scale": 1},
-        "X": [[0,0],[1,0],[0,1],[1,1],[1,0],[0,1]]       # optional explicit X
+        "X": [[...], ...]                                 # optional explicit X
       },
-      "output_dir": "results/parameter_recovery/h_m01_recovery",
-      "n_mcmc_samples": 2000,
-      "n_mcmc_chains": 4,
-      "n_iterations": 20
+      "output_dir": "results/sbc/h_m01_sbc",
+      "n_sbc_sims": 100,
+      "n_mcmc_samples": 1000,
+      "n_mcmc_chains": 1,
+      "thin": 3
     }
 """
 import os
@@ -39,7 +38,7 @@ import numpy as np
 # Add project root to path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from analysis.hierarchical_parameter_recovery import HierarchicalParameterRecovery
+from analysis.hierarchical_sbc import HierarchicalSBC
 from utils.study_design_hierarchical import HierarchicalStudyDesign
 
 
@@ -66,7 +65,7 @@ def _build_study_design(design_config: dict) -> HierarchicalStudyDesign:
             feature_params=design_config.get(
                 "feature_params", {"loc": 0, "scale": 1}
             ),
-            design_name=design_config.get("design_name", "h_m01_parameter_recovery"),
+            design_name=design_config.get("design_name", "h_m01_sbc"),
         )
         design.generate()
         return design
@@ -89,23 +88,23 @@ def _build_study_design(design_config: dict) -> HierarchicalStudyDesign:
         feature_params=design_config.get(
             "feature_params", {"loc": 0, "scale": 1}
         ),
-        design_name=design_config.get("design_name", "h_m01_parameter_recovery"),
+        design_name=design_config.get("design_name", "h_m01_sbc"),
     )
     design.generate()
     return design
 
 
-def run_from_config(config_path: str) -> HierarchicalParameterRecovery:
-    """Run hierarchical parameter recovery analysis from a JSON config."""
+def run_from_config(config_path: str) -> HierarchicalSBC:
+    """Run hierarchical SBC analysis from a JSON config."""
     with open(config_path, "r") as f:
         config = json.load(f)
 
-    inference_model_path = config.get("inference_model_path")
-    sim_model_path = config.get("sim_model_path")
+    sbc_model_path = config.get("sbc_model_path")
     output_dir = config.get("output_dir")
-    n_mcmc_samples = config.get("n_mcmc_samples", 2000)
-    n_mcmc_chains = config.get("n_mcmc_chains", 4)
-    n_iterations = config.get("n_iterations", 20)
+    n_sbc_sims = config.get("n_sbc_sims", 100)
+    n_mcmc_samples = config.get("n_mcmc_samples", 1000)
+    n_mcmc_chains = config.get("n_mcmc_chains", 1)
+    thin = config.get("thin", 3)
 
     study_design = None
     if config.get("study_design_path"):
@@ -119,31 +118,31 @@ def run_from_config(config_path: str) -> HierarchicalParameterRecovery:
             f"P={study_design.P}, M_total={study_design.M_total}"
         )
 
-    recovery = HierarchicalParameterRecovery(
-        inference_model_path=inference_model_path,
-        sim_model_path=sim_model_path,
+    sbc = HierarchicalSBC(
+        sbc_model_path=sbc_model_path,
         study_design=study_design,
         output_dir=output_dir,
+        n_sbc_sims=n_sbc_sims,
         n_mcmc_samples=n_mcmc_samples,
         n_mcmc_chains=n_mcmc_chains,
-        n_iterations=n_iterations,
+        thin=thin,
     )
 
-    true_params, posterior_summaries = recovery.run()
+    ranks, true_params = sbc.run()
 
-    print("Hierarchical parameter recovery analysis completed.")
-    print(f"Results saved to: {recovery.output_dir}")
-    return recovery
+    print("Hierarchical SBC analysis completed.")
+    print(f"Results saved to: {sbc.output_dir}")
+    return sbc
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Run hierarchical parameter recovery analysis for h_m01"
+        description="Run hierarchical SBC analysis for h_m01"
     )
     parser.add_argument(
         "--config",
         type=str,
-        default="configs/h_m01_parameter_recovery_config.json",
+        default="configs/h_m01_sbc_config.json",
         help="Path to configuration JSON",
     )
     args = parser.parse_args()

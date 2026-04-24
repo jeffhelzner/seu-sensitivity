@@ -89,7 +89,18 @@ generated quantities {
 
   // Compute expected utilities and generate choices
   array[M_total] int y;
+  // Indicator: 1 if selected alternative has (tied) max expected utility
+  array[M_total] int<lower=0,upper=1> selected_seu_max;
+  // Total number of problems where SEU maximizer was selected (overall)
+  int<lower=0,upper=M_total> total_seu_max_selected;
+  // Per-cell totals (number of problems in cell j where SEU max was selected)
+  array[J] int seu_max_by_cell;
+
   {
+    for (j in 1:J) {
+      seu_max_by_cell[j] = 0;
+    }
+
     int pos = 1;
     for (m in 1:M_total) {
       int j = cell[m];
@@ -100,6 +111,17 @@ generated quantities {
         pos += 1;
       }
       y[m] = categorical_rng(softmax(alpha[j] * problem_eta));
+
+      // SEU maximizer check (within numerical tolerance)
+      real max_eta = max(problem_eta);
+      if (abs(problem_eta[y[m]] - max_eta) < 1e-10) {
+        selected_seu_max[m] = 1;
+        seu_max_by_cell[j] += 1;
+      } else {
+        selected_seu_max[m] = 0;
+      }
     }
+
+    total_seu_max_selected = sum(selected_seu_max);
   }
 }

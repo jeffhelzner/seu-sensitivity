@@ -1,0 +1,21 @@
+{
+  "inference_model_path": "models/h_m01.stan",
+  "sim_model_path": "models/h_m01_sim.stan",
+  "study_design_path": null,
+  "output_dir": "results/parameter_recovery/h_m01_smoke",
+  "n_mcmc_samples": 200,
+  "n_mcmc_chains": 2,
+  "n_iterations": 2,
+  "study_design_config": {
+    "J": 6,
+    "K": 3,
+    "D": 2,
+    "R": 10,
+    "P": 3,
+    "M_per_cell": 10,
+    "min_alts_per_problem": 2,
+    "max_alts_per_problem": 4,
+    "feature_dist": "normal",
+    "feature_params": {"loc": 0, "scale": 1}
+  }
+}

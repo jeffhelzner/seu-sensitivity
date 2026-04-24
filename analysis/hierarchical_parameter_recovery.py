@@ -166,6 +166,8 @@ class HierarchicalParameterRecovery:
                     iter_sampling=self.n_mcmc_samples,
                     iter_warmup=self.n_mcmc_samples // 2,
                     chains=self.n_mcmc_chains,
+                    adapt_delta=0.95,
+                    max_treedepth=12,
                     show_console=False,
                 )
             except RuntimeError as e:

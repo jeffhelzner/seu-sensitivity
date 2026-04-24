@@ -193,11 +193,11 @@ class HierarchicalStudyDesign:
             "I": self.I.tolist(),
             "M_per_cell": self._M_per_cell,
             "X": self._X.tolist(),
-            # Default sim hyperparams
-            "gamma0_mean": 3.0,
-            "gamma0_sd": 1.0,
-            "gamma_sd": 1.0,
-            "sigma_cell_sd": 0.5,
+            # Default sim hyperparams (match h_m01.stan priors; tightened 2026-04-23)
+            "gamma0_mean": 2.5,
+            "gamma0_sd": 0.5,
+            "gamma_sd": 0.5,
+            "sigma_cell_sd": 0.3,
             "beta_sd": 1.0,
         }
         return data

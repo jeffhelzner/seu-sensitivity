@@ -18,10 +18,10 @@
     "design_name": "h_m01_prior_analysis"
   },
   "hyperparameters": {
-    "gamma0_mean": 3.0,
-    "gamma0_sd": 1.0,
-    "gamma_sd": 1.0,
-    "sigma_cell_sd": 0.5,
+    "gamma0_mean": 2.5,
+    "gamma0_sd": 0.5,
+    "gamma_sd": 0.5,
+    "sigma_cell_sd": 0.3,
     "beta_sd": 1.0
   }
 }

@@ -49,14 +49,15 @@ transformed data {
   }
 
   // --- Draw true parameters ---
-  real gamma0_ = normal_rng(3.0, 1.0);
+  // Priors tightened 2026-04-23 to match h_m01.stan
+  real gamma0_ = normal_rng(2.5, 0.5);
 
   vector[P] gamma_;
   for (p in 1:P) {
-    gamma_[p] = normal_rng(0, 1.0);
+    gamma_[p] = normal_rng(0, 0.5);
   }
 
-  real<lower=0> sigma_cell_ = abs(normal_rng(0, 0.5));
+  real<lower=0> sigma_cell_ = abs(normal_rng(0, 0.3));
 
   vector[J] z_alpha_;
   vector[J] log_alpha_;
@@ -119,9 +120,9 @@ transformed parameters {
 
 model {
   // Priors (must match generation in transformed data)
-  gamma0 ~ normal(3.0, 1.0);
-  gamma ~ normal(0, 1.0);
-  sigma_cell ~ normal(0, 0.5);
+  gamma0 ~ normal(2.5, 0.5);
+  gamma ~ normal(0, 0.5);
+  sigma_cell ~ normal(0, 0.3);
   z_alpha ~ std_normal();
 
   for (j in 1:J) {

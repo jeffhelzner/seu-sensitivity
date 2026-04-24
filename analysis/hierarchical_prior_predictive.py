@@ -51,10 +51,10 @@ from utils.study_design_hierarchical import HierarchicalStudyDesign
 # defaults used elsewhere in the hierarchical pipeline (see
 # HierarchicalStudyDesign.get_data_dict).
 DEFAULT_H_M01_HYPERPARAMS = {
-    "gamma0_mean": 3.0,
-    "gamma0_sd": 1.0,
-    "gamma_sd": 1.0,
-    "sigma_cell_sd": 0.5,
+    "gamma0_mean": 2.5,
+    "gamma0_sd": 0.5,
+    "gamma_sd": 0.5,
+    "sigma_cell_sd": 0.3,
     "beta_sd": 1.0,
 }
 
@@ -171,6 +171,7 @@ class HierarchicalPriorPredictiveAnalysis:
         self._analyze_shared_utilities()
         self._analyze_betas()
         self._analyze_choices()
+        self._analyze_seu_maximizer_selection()
         self._write_summary()
 
         print(f"Prior predictive analysis complete. Results in {self.output_dir}")
@@ -460,6 +461,256 @@ class HierarchicalPriorPredictiveAnalysis:
 
         with open(os.path.join(choices_dir, "choice_summary.json"), "w") as f:
             json.dump(cell_summary, f, indent=2)
+
+    # --------------------------------------------- seu maximizer selection
+    def _analyze_seu_maximizer_selection(self):
+        """
+        Analyze the selection of SEU maximizers across decision problems,
+        overall and broken down by experimental cell.
+
+        Uses ``selected_seu_max[m]`` and ``total_seu_max_selected`` (+
+        per-cell totals ``seu_max_by_cell[j]``) emitted by h_m01_sim.stan.
+
+        Outputs (under ``seu_maximizer_selection/``):
+          - ``prob_seu_max_by_problem.png``: per-problem selection probability
+          - ``prob_seu_max_by_cell.png``: mean selection probability per cell
+          - ``total_seu_max_distribution.png``: overall distribution
+          - ``total_seu_max_by_cell.png``: per-cell distributions
+          - ``seu_maximizer_summary.json``: numeric summary
+        """
+        seu_dir = os.path.join(self.output_dir, "seu_maximizer_selection")
+        os.makedirs(seu_dir, exist_ok=True)
+
+        M_total = self.study_design.M_total
+        J = self.study_design.J
+        cell = np.asarray(self.study_design.cell)  # 1-indexed
+
+        # Per-problem probability of SEU-max selection
+        prob_by_problem: dict[int, float] = {}
+        for m in range(1, M_total + 1):
+            col = f"selected_seu_max[{m}]"
+            if col in self.samples.columns:
+                prob_by_problem[m] = float(self.samples[col].mean())
+
+        if not prob_by_problem:
+            print(
+                "  [seu_max] No selected_seu_max[...] columns found — "
+                "skipping SEU maximizer analysis."
+            )
+            return
+
+        # Plot: probability by problem, coloured by cell
+        plt.figure(figsize=(max(8, 0.2 * M_total), 5))
+        problems = np.array(sorted(prob_by_problem.keys()))
+        probs = np.array([prob_by_problem[m] for m in problems])
+        cell_ids = cell[problems - 1]
+
+        cmap = plt.get_cmap("tab10")
+        for j in range(1, J + 1):
+            mask = cell_ids == j
+            if np.any(mask):
+                plt.bar(
+                    problems[mask],
+                    probs[mask],
+                    alpha=0.8,
+                    edgecolor="black",
+                    color=cmap((j - 1) % 10),
+                    label=f"Cell {j}",
+                )
+        plt.axhline(
+            np.mean(probs),
+            color="red",
+            linestyle="--",
+            label=f"Overall mean: {np.mean(probs):.3f}",
+        )
+        plt.xlabel("Decision problem")
+        plt.ylabel("Prob. of selecting SEU maximizer")
+        plt.title("Prior prob. of SEU-maximizer selection by problem")
+        plt.legend(loc="best", fontsize=8, ncol=2)
+        plt.grid(axis="y", alpha=0.3)
+        plt.tight_layout()
+        plt.savefig(
+            os.path.join(seu_dir, "prob_seu_max_by_problem.png"), dpi=150
+        )
+        plt.close()
+
+        # Per-cell mean selection probability (averaged across problems in cell)
+        cell_prob_mean: dict[int, float] = {}
+        cell_prob_std: dict[int, float] = {}
+        for j in range(1, J + 1):
+            mask = cell_ids == j
+            if np.any(mask):
+                cell_prob_mean[j] = float(np.mean(probs[mask]))
+                cell_prob_std[j] = float(np.std(probs[mask]))
+
+        plt.figure(figsize=(max(6, 1.1 * J), 5))
+        xs = sorted(cell_prob_mean.keys())
+        ys = [cell_prob_mean[j] for j in xs]
+        yerrs = [cell_prob_std[j] for j in xs]
+        plt.bar(xs, ys, yerr=yerrs, capsize=5, alpha=0.8, edgecolor="black")
+        plt.axhline(
+            np.mean(probs),
+            color="red",
+            linestyle="--",
+            label=f"Overall mean: {np.mean(probs):.3f}",
+        )
+        plt.xlabel("Cell")
+        plt.ylabel("Mean prob. of SEU-max selection")
+        plt.title("Prior prob. of SEU-maximizer selection by cell")
+        plt.xticks(xs)
+        plt.legend()
+        plt.grid(axis="y", alpha=0.3)
+        plt.tight_layout()
+        plt.savefig(os.path.join(seu_dir, "prob_seu_max_by_cell.png"), dpi=150)
+        plt.close()
+
+        # Overall distribution of total_seu_max_selected
+        overall_summary = {}
+        if "total_seu_max_selected" in self.samples.columns:
+            total = self.samples["total_seu_max_selected"].astype(float)
+            plt.figure(figsize=(10, 6))
+            plt.hist(
+                total,
+                bins=range(0, M_total + 2),
+                align="left",
+                rwidth=0.8,
+                alpha=0.7,
+                edgecolor="black",
+            )
+            plt.axvline(
+                total.mean(),
+                color="red",
+                linestyle="--",
+                label=f"Mean: {total.mean():.2f}",
+            )
+            plt.axvline(
+                total.median(),
+                color="blue",
+                linestyle="--",
+                label=f"Median: {total.median():.0f}",
+            )
+            plt.xlabel(
+                f"# problems where SEU maximizer selected (out of {M_total})"
+            )
+            plt.ylabel("Frequency")
+            plt.title("Prior distribution of total SEU maximizers selected")
+            plt.legend()
+            plt.grid(axis="y", alpha=0.3)
+            plt.tight_layout()
+            plt.savefig(
+                os.path.join(seu_dir, "total_seu_max_distribution.png"),
+                dpi=150,
+            )
+            plt.close()
+
+            overall_summary = {
+                "mean": float(total.mean()),
+                "std": float(total.std()),
+                "median": float(total.median()),
+                "min": int(total.min()),
+                "max": int(total.max()),
+                "q25": float(total.quantile(0.25)),
+                "q75": float(total.quantile(0.75)),
+            }
+
+        # Per-cell distributions (seu_max_by_cell[j])
+        cell_total_summary: dict[int, dict] = {}
+        cell_cols = [
+            f"seu_max_by_cell[{j}]"
+            for j in range(1, J + 1)
+            if f"seu_max_by_cell[{j}]" in self.samples.columns
+        ]
+        if cell_cols:
+            ncols = min(J, 3)
+            nrows = (J + ncols - 1) // ncols
+            fig, axes = plt.subplots(
+                nrows, ncols, figsize=(5 * ncols, 4 * nrows), squeeze=False
+            )
+            for j in range(1, J + 1):
+                col = f"seu_max_by_cell[{j}]"
+                ax = axes[(j - 1) // ncols][(j - 1) % ncols]
+                if col not in self.samples.columns:
+                    ax.set_visible(False)
+                    continue
+                vals = self.samples[col].astype(float)
+                M_j = int(np.sum(cell == j))
+                ax.hist(
+                    vals,
+                    bins=range(0, M_j + 2),
+                    align="left",
+                    rwidth=0.8,
+                    alpha=0.7,
+                    edgecolor="black",
+                )
+                ax.axvline(
+                    vals.mean(),
+                    color="red",
+                    linestyle="--",
+                    label=f"Mean: {vals.mean():.2f}",
+                )
+                ax.set_title(f"Cell {j} (M_j = {M_j})")
+                ax.set_xlabel("# SEU-max selections")
+                ax.set_ylabel("Frequency")
+                ax.legend(fontsize=8)
+                cell_total_summary[j] = {
+                    "M_j": M_j,
+                    "mean": float(vals.mean()),
+                    "std": float(vals.std()),
+                    "median": float(vals.median()),
+                    "mean_prob": float(vals.mean() / M_j) if M_j > 0 else None,
+                }
+            for idx in range(J, nrows * ncols):
+                axes[idx // ncols][idx % ncols].set_visible(False)
+            plt.tight_layout()
+            plt.savefig(
+                os.path.join(seu_dir, "total_seu_max_by_cell.png"), dpi=150
+            )
+            plt.close()
+
+        # JSON summary
+        summary = {
+            "total_problems": M_total,
+            "overall_prob_seu_max": float(np.mean(probs)),
+            "prob_seu_max_by_problem": {
+                int(m): float(p) for m, p in prob_by_problem.items()
+            },
+            "prob_seu_max_by_cell": {
+                int(j): {
+                    "mean": cell_prob_mean[j],
+                    "std": cell_prob_std[j],
+                }
+                for j in cell_prob_mean
+            },
+            "total_seu_max_selected": overall_summary,
+            "seu_max_by_cell": cell_total_summary,
+        }
+        with open(os.path.join(seu_dir, "seu_maximizer_summary.json"), "w") as f:
+            json.dump(summary, f, indent=2)
+
+        # Console summary
+        print("\n" + "=" * 60)
+        print("SEU MAXIMIZER SELECTION SUMMARY (h_m01 prior predictive)")
+        print("=" * 60)
+        print(f"Total problems: {M_total}")
+        print(
+            f"Overall prob. of SEU-max selection: "
+            f"{summary['overall_prob_seu_max']:.3f}"
+        )
+        if overall_summary:
+            print(
+                f"Total SEU max selected: mean={overall_summary['mean']:.2f}, "
+                f"median={overall_summary['median']:.0f}, "
+                f"range=[{overall_summary['min']}, {overall_summary['max']}]"
+            )
+        for j in sorted(cell_total_summary.keys()):
+            s = cell_total_summary[j]
+            mp = s["mean_prob"]
+            mp_str = f"{mp:.3f}" if mp is not None else "NA"
+            print(
+                f"  Cell {j}: mean={s['mean']:.2f} / M_j={s['M_j']}  "
+                f"(mean prob={mp_str})"
+            )
+        print("=" * 60 + "\n")
 
     # --------------------------------------------------------------- summary
     def _write_summary(self):

@@ -116,10 +116,11 @@ transformed parameters {
 
 model {
   // --- Priors ---
-  // Regression
-  gamma0 ~ normal(3.0, 1.0);             // prior on intercept: median alpha ~ 20, same scale as m_01
-  gamma ~ normal(0, 1.0);                // shrinkage toward no effect
-  sigma_cell ~ normal(0, 0.5);           // half-normal (constrained positive): modest cell variation
+  // Regression (tightened 2026-04-23 after parameter recovery showed soft
+  // identifiability of alpha with heavy right tail under the original priors)
+  gamma0 ~ normal(2.5, 0.5);             // prior on intercept: median alpha ~ 12, 97.5th pct ~ 33
+  gamma ~ normal(0, 0.5);                // stronger shrinkage toward no effect
+  sigma_cell ~ normal(0, 0.3);           // half-normal: modest cell variation (J=6 weakly identifies)
   z_alpha ~ std_normal();                // non-centered parameterization
 
   // Beliefs: per-cell, same prior as m_01

@@ -924,7 +924,7 @@ The pairwise ω comparison clarifies whether the temperature–sensitivity gradi
 
 ```{python}
 #| label: fig-cross-study
-#| fig-cap: "Cross-study comparison of α posteriors from the initial m_01 study and the augmented m_11, m_21, and m_31 models. The qualitative pattern is consistent across all four models. Labels: m_01 (Report 1, uncertain only), m_11 (shared α, this report), m_21 (separate α and ω, this report), m_31 (proportional ω = κ·α, this report)."
+#| fig-cap: "Cross-model consistency check of α posteriors from the initial m_01 study and the augmented m_11, m_21, and m_31 models *fit to the same uncertain-choice data*. Labels: m_01 (Report 1, uncertain only), m_11 (shared α, this report), m_21 (separate α and ω, this report), m_31 (proportional ω = κ·α, this report). Because all four fits share the uncertain-choice data, the agreement across models is a within-dataset consistency check on the augmented model structure, not an independent replication of the temperature pattern."
 #| fig-height: 6
 
 fig, ax = plt.subplots(figsize=(10, 6))

@@ -320,8 +320,8 @@ metrics
 ```
 
 ::: {.callout-note}
-## SBC Not Performed
-Simulation-based calibration (SBC) was not performed for this cell. The m_02 model passed SBC in the [Ellsberg study report](../ellsberg_study/01_ellsberg_study.qmd), and the model structure is identical here — SBC validates the prior–likelihood geometry, which is invariant to the data source. The parameter recovery analysis above (which *was* performed with this study's specific design parameters) provides the complementary, data-specific assurance that the posterior concentrates correctly around known true values under realistic conditions.
+## SBC Inherited, Not Re-Run
+Simulation-Based Calibration (SBC) was *not* performed on this dataset. We rely on the SBC validation from the [Ellsberg study report](../ellsberg_study/01_ellsberg_study.qmd), which used the same `m_02.stan` model and the same `α ~ LogNormal(3.5, 0.75)` prior; SBC tests the sampler under the prior-and-likelihood geometry and is therefore inherited validly across applications that share both the model and the prior. The same convention is used (and labelled consistently) in the [Claude insurance study](../claude_insurance_study/01_claude_insurance_study.qmd) limitations section. The parameter recovery analysis above (which *was* performed with this study's specific design parameters) provides the complementary, data-specific assurance that the posterior concentrates correctly around known true values under realistic conditions.
 :::
 
 

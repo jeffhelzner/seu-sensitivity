@@ -146,7 +146,7 @@ Unlike the matched-pair comparison in [Report 5](05_adding_risky_choices.qmd), w
 # ε ≈ 0.043, roughly 3× narrower than the previous n = 100 design.
 
 n_sbc_sims = 999            # Number of SBC iterations (N)
-n_mcmc_chains = 1           # Single chain (standard for SBC)
+n_mcmc_chains = 1           # Single chain (standard for SBC; see note below)
 thin = 4                    # Thinning factor
 n_mcmc_samples = thin * n_sbc_sims   # 3996 total draws → 999 post-thinned
 max_rank = n_mcmc_samples // thin     # 999 (= L)
@@ -280,7 +280,7 @@ print(f"  Parameters: {ranks_m1.shape[1]}")
 
 ## MCMC Diagnostics {#mcmc-diagnostics}
 
-SBC relies on each individual MCMC fit producing valid posterior samples. With a single chain, $\hat{R}$ is not available, but we can verify MCMC health through effective sample size (ESS) and other single-chain diagnostics. The SBC infrastructure saves detailed posterior summaries for the first 10 iterations of each model, allowing us to inspect MCMC performance.
+SBC relies on each individual MCMC fit producing valid posterior samples. We follow the standard SBC convention of running a single chain per simulation [@talts2018]: SBC's calibration test depends on each fit returning approximately exact draws from the posterior, and using one chain (rather than splitting a fixed compute budget across multiple chains) maximises the post-thinned sample size $L$ per simulation, which controls the rank-statistic resolution and the chi-square / KS power. The trade-off is that single-chain runs preclude the cross-chain $\hat{R}$ diagnostic; we therefore verify MCMC health through effective sample size (ESS) and other single-chain diagnostics. The SBC infrastructure saves detailed posterior summaries for the first 10 iterations of each model, allowing us to inspect MCMC performance.
 
 ```{python}
 #| label: mcmc-diagnostics

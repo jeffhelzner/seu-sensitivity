@@ -284,7 +284,7 @@ except Exception:
 The hierarchical parameter recovery analysis confirms that under the tightened priors:
 
 1. **HMC geometry is healthy**: 0.01 % divergence rate, E-BFMI always satisfactory, no treedepth saturation.
-2. **Population-level effects are identifiable**: near-zero biases for $(\gamma_0, \boldsymbol{\gamma})$; prompt effects are identified ~15 % more sharply than LLM effects, reflecting the $6 \times 3$ imbalance — as expected from the information structure of the design.
+2. **Population-level effects are identifiable**: near-zero biases for $(\gamma_0, \boldsymbol{\gamma})$ — for example $\gamma_0$ coverage is 0.95 (MCSE $\approx 0.067$ at 20 iterations, so consistent with the nominal 0.90 target); prompt effects are identified ~15 % more sharply than LLM effects, reflecting the $6 \times 3$ imbalance — as expected from the information structure of the design.
 3. **Cell-level sensitivities recover cleanly**: modest biases and CI widths consistent with the 200-observation-per-cell information budget.
 4. **Partial pooling works as intended**: $\sigma_{\text{cell}}$ shrinks mildly toward zero, with full coverage of the true value.
 

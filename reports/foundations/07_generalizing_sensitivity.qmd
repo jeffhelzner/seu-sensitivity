@@ -579,7 +579,7 @@ The critical new diagnostic is the recovery of ω, the risky-choice sensitivity.
 
 ```{python}
 #| label: fig-omega-recovery
-#| fig-cap: "Recovery of the risky-choice sensitivity ω. Left: m_2 estimates ω directly as a free parameter. Center: m_3 estimates κ (the proportionality factor). Right: derived ω = κ · α from m_3."
+#| fig-cap: "Recovery of the risky-choice sensitivity ω. Left: m_2 estimates ω directly as a free parameter. Center: m_3 estimates κ (the proportionality factor). Right: derived ω = κ · α from m_3, computed as the product of posterior means; see the *Note on Derived ω Estimation in m_3* below for the Jensen-inequality caveat."
 
 fig, axes = plt.subplots(1, 3, figsize=(16, 5))
 
@@ -714,7 +714,7 @@ plt.show()
 
 ```{python}
 #| label: tbl-recovery-summary
-#| tbl-cap: "Parameter recovery comparison across m_1, m_2, and m_3. RMSE, 90% CI coverage, and CI width are shown. The ω row applies only to m_2 (free) and m_3 (derived); the κ row applies only to m_3."
+#| tbl-cap: "Parameter recovery comparison across m_1, m_2, and m_3. RMSE, 90% CI coverage, and CI width are shown. The ω row applies only to m_2 (free) and m_3 (derived); the κ row applies only to m_3. The m_3 ω column reports the product of posterior means $\hat{\kappa} \cdot \hat{\alpha}$, which is an approximation — see the *Note on Derived ω Estimation in m_3* for the Jensen-inequality caveat."
 
 rows = []
 
@@ -1416,9 +1416,9 @@ This report completes the foundational validation cycle for the model family:
 - **Report 7** (this report): Extended validation to m_2 and m_3, confirming that relaxing the shared-α assumption does not introduce computational or identification pathologies
 :::
 
-### Series Summary
+### Closing the m_0 / m_1 / m_2 / m_3 Arc
 
-This report concludes the foundational series. Across seven reports, we have developed and validated a family of Bayesian decision-theoretic models:
+This report concludes the **single-context arc** of the foundational series — the development and validation of the m_0, m_1, m_2, and m_3 family, all of which assume a single (possibly context-split) sensitivity parameter applied uniformly across observations. Across seven reports, we have developed and validated a family of Bayesian decision-theoretic models:
 
 1. **Abstract Formulation** (Report 1): Established the theoretical framework—subjective expected utility with softmax choice, feature-based probability inference, and the Dirichlet-increment utility parameterization.
 2. **Concrete Implementation** (Report 2): Translated the framework into the m_0 Stan model for decisions under uncertainty.
@@ -1428,7 +1428,7 @@ This report concludes the foundational series. Across seven reports, we have dev
 6. **SBC Validation** (Report 6): Confirmed via 999-simulation SBC that the m_0 and m_1 posteriors are well-calibrated.
 7. **Generalizing Sensitivity** (this report): Extended the model family with m_2 (independent sensitivities) and m_3 (proportional sensitivities), confirming that the generalizations are computationally well-behaved.
 
-The foundational series establishes the *methodology*. The open questions concern *application*: Which model (m_1, m_2, or m_3) is appropriate for a given empirical setting? Does the data support context-dependent sensitivity? How do the models perform on real choice data? These questions are addressed in the application reports.
+The single-context arc establishes the *methodology* for the m_0/m_1/m_2/m_3 family. The foundational series continues in Reports [8](08_hierarchical_formulation.qmd)–[12](12_hierarchical_sbc_validation.qmd), which relax the shared-α assumption flagged in [Report 5](05_adding_risky_choices.qmd) and develop the hierarchical regression-on-log(α) model `h_m01` together with its prior predictive, parameter recovery, and SBC validation. The open questions for the present arc concern *application*: Which model (m_1, m_2, or m_3) is appropriate for a given empirical setting? Does the data support context-dependent sensitivity? How do the models perform on real choice data? These questions are addressed in the application reports.
 
 ### Open Directions
 

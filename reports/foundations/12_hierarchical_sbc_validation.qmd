@@ -229,9 +229,9 @@ $\boldsymbol{\delta}$ is calibrated cleanly — a reassuring result given its ce
 
 Taken together, the SBC diagnostics confirm that:
 
-1. **The posterior is well-calibrated across all 29 parameters** of `h_m01` at the alignment-study factorial scale.
+1. **The posterior is well-calibrated across all 29 parameters** of `h_m01` at the alignment-study factorial scale, *to the resolution that $N = 100$ SBC simulations affords*. With 29 parameters under Bonferroni correction this is at the lower end of conventionally adequate sample sizes [@talts2018]: the test detects gross miscalibration but has limited power against subtle deviations, and a future hierarchical SBC at larger $N$ would tighten the conclusion.
 2. **The 3 of 29 uncorrected $\chi^2$ flags are consistent with multiple-testing noise**: Bonferroni yields zero rejections, the observed p-value distribution tracks Uniform(0, 1), and the ECDF plots remain inside the simultaneous envelope for every parameter.
-3. **The hierarchical model is ready for use on real alignment data**. Combined with the recovery analysis ([Report 11](11_hierarchical_parameter_recovery.qmd)) and the healthy HMC geometry under the tightened priors, there are no remaining calibration concerns at $J = 18$, $P = 7$.
+3. **The hierarchical model is ready for use on real alignment data**, subject to the $N = 100$ power qualification above. Combined with the recovery analysis ([Report 11](11_hierarchical_parameter_recovery.qmd)) and the healthy HMC geometry under the tightened priors, there are no remaining calibration concerns at $J = 18$, $P = 7$.
 
 ::: {.callout-note}
 ## What would miscalibration look like?
@@ -274,7 +274,7 @@ The hierarchical SBC completes the validation trilogy for `h_m01`:
 |---|---|---|
 | Prior predictive is scientifically reasonable | α medians ≈ 12, overall P(SEU-max) ≈ 0.77 | [10](10_hierarchical_prior_analysis.qmd) |
 | Parameters are identifiable and recovered | 0.01 % divergences, coverage near nominal | [11](11_hierarchical_parameter_recovery.qmd) |
-| Posterior is calibrated | 0 / 29 Bonferroni failures | 12 (this report) |
+| Posterior is calibrated | 0 / 29 Bonferroni failures (at $N = 100$ SBC sims) | 12 (this report) |
 
 : Hierarchical validation summary at $J = 18$, $P = 7$. {#tbl-hm01-validation}
 

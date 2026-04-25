@@ -292,10 +292,11 @@ The `model` block specifies priors and the likelihood.
 ```{.stan filename="h_m01.stan (model block — priors)"}
 model {
   // --- Priors ---
-  // Regression
-  gamma0 ~ normal(3.0, 1.0);             // prior on intercept: median alpha ~ 20
-  gamma ~ normal(0, 1.0);                // shrinkage toward no effect
-  sigma_cell ~ normal(0, 0.5);           // half-normal (constrained positive): modest cell variation
+  // Regression (tightened 2026-04-23 after parameter recovery showed soft
+  // identifiability of alpha with heavy right tail under the original priors)
+  gamma0 ~ normal(2.5, 0.5);             // prior on intercept: median alpha ~ 12, 97.5th pct ~ 33
+  gamma ~ normal(0, 0.5);                // stronger shrinkage toward no effect
+  sigma_cell ~ normal(0, 0.3);           // half-normal: modest cell variation (J=6 weakly identifies)
   z_alpha ~ std_normal();                // non-centered parameterization
 
   // Beliefs: per-cell, same prior as m_01
@@ -313,9 +314,9 @@ Each prior is motivated by its role in the model:
 
 | Parameter | Prior | m_01 Analogue | Rationale |
 |-----------|-------|---------------|-----------|
-| $\gamma_0$ | $\mathcal{N}(3.0, 1.0)$ | $\alpha \sim \text{LogNormal}(3.0, 0.75)$ | Centers the grand mean at the m_01 calibrated prior location |
-| $\boldsymbol{\gamma}$ | $\mathcal{N}(0, 1.0)$ | — (new) | Shrinkage toward no effect; a priori, experimental factors don't shift $\alpha$ |
-| $\sigma_{\text{cell}}$ | $\text{HalfNormal}(0, 0.5)$ | — (new) | Modest cell-level variation; 0.5 on log scale $\approx$ factor of 1.6 |
+| $\gamma_0$ | $\mathcal{N}(2.5, 0.5)$ | $\alpha \sim \text{LogNormal}(3.0, 0.75)$ | Tightened intercept centred so that the prior on $\alpha$ has median $\approx 12$ and 97.5th percentile $\approx 33$, controlling the heavy right tail seen under the original $\mathcal{N}(3.0, 1.0)$ prior |
+| $\boldsymbol{\gamma}$ | $\mathcal{N}(0, 0.5)$ | — (new) | Stronger shrinkage toward no effect; a priori, experimental factors don't shift $\alpha$ |
+| $\sigma_{\text{cell}}$ | $\text{HalfNormal}(0, 0.3)$ | — (new) | Modest cell-level variation; 0.3 on log scale $\approx$ factor of 1.35. The $J=6$ design weakly identifies $\sigma_{\text{cell}}$, motivating the tighter scale |
 | $z_j$ | $\mathcal{N}(0, 1)$ | — (new) | Non-centered parameterization; computational device |
 | $\boldsymbol{\beta}_j$ | $\mathcal{N}(0, 1)$ per element | $\boldsymbol{\beta} \sim \mathcal{N}(0, 1)$ per element | Identical to m_01, applied independently per cell |
 | $\boldsymbol{\delta}$ | $\text{Dirichlet}(\mathbf{1})$ | $\boldsymbol{\delta} \sim \text{Dirichlet}(\mathbf{1})$ | Unchanged |
@@ -324,7 +325,7 @@ Each prior is motivated by its role in the model:
 
 ::: {.callout-note}
 ## Connection to m_01 Prior Calibration
-The m_01 prior $\alpha \sim \text{LogNormal}(3.0, 0.75)$ was calibrated via prior predictive analysis ([Report 3](03_prior_analysis.qmd)) to yield a prior-implied SEU-max rate of approximately 0.78. In h_m01, $\gamma_0 \sim \mathcal{N}(3.0, 1.0)$ centers the grand mean of $\log(\alpha)$ at the same location. The slightly wider SD (1.0 vs 0.75) accommodates uncertainty from the regression structure, while $\sigma_{\text{cell}}$ captures additional cell-level variation.
+The m_01 prior $\alpha \sim \text{LogNormal}(3.0, 0.75)$ was calibrated via prior predictive analysis ([Report 3](03_prior_analysis.qmd)) to yield a prior-implied SEU-max rate of approximately 0.78. The h_m01 priors above are the **tightened** values that match the current `models/h_m01.stan` (commit on 2026-04-24). They were tightened from an earlier $\gamma_0 \sim \mathcal{N}(3.0, 1.0)$, $\boldsymbol{\gamma} \sim \mathcal{N}(0, 1.0)$, $\sigma_{\text{cell}} \sim \text{HalfNormal}(0, 0.5)$ specification after parameter recovery ([Report 11](11_hierarchical_parameter_recovery.qmd)) showed soft identifiability of $\alpha$ with a heavy right tail. The hierarchical prior predictive ([Report 10](10_hierarchical_prior_analysis.qmd)), parameter recovery ([Report 11](11_hierarchical_parameter_recovery.qmd)), and SBC validation ([Report 12](12_hierarchical_sbc_validation.qmd)) all use the tightened priors shown here.
 :::
 
 

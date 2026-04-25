@@ -1066,7 +1066,7 @@ print(f"  Parameters with p < 0.05: {n_flagged} (expected by chance: {n_params *
 print(f"  α: χ² p = {alpha_sbc['p_value']:.3f}")
 ```
 
-The distribution of p-values across all 132 parameters is consistent with a uniform distribution, and the number of nominally significant results (9 of 132) falls within the range expected by chance. The SBC confirms that m_02's posterior sampling is well-calibrated, particularly for the primary parameter α.
+The distribution of p-values across all 132 parameters is consistent with a uniform distribution, and the number of nominally significant results (9 of 132) falls within the range expected by chance: the expectation under the null is $132 \times 0.05 \approx 6.6$ with binomial standard deviation $\sqrt{132 \times 0.05 \times 0.95} \approx 2.5$, so 9 is roughly one standard deviation above the mean and not unusual. The SBC confirms that m_02's posterior sampling is well-calibrated, particularly for the primary parameter α, subject to the modest power of the reduced 75-iteration design noted above.
 
 
 ## References

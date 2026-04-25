@@ -987,7 +987,7 @@ Values near 1.0 indicate that the lower-temperature condition almost certainly y
 
 ```{python}
 #| label: tbl-pairwise
-#| tbl-cap: "Posterior probability that α is higher at the lower temperature in each pair. Values above 0.95 indicate strong separation; values near 0.5 indicate indistinguishability."
+#| tbl-cap: "Posterior probability that α is higher at the lower temperature in each pair, treating the per-temperature posteriors as if independent. Values above 0.95 indicate apparent separation under that simplifying assumption; values near 0.5 indicate indistinguishability. See the *Independence Caveat* above: shared stimuli induce between-condition correlations that the independent-fits comparison does not capture, so the apparent separation is likely an upper bound on the evidence."
 
 pairs = analysis['pairwise_comparisons']
 
@@ -1004,10 +1004,10 @@ for key, prob in pairs.items():
 pd.DataFrame(pair_rows)
 ```
 
-The pairwise analysis reveals a structured pattern:
+The pairwise analysis reveals a structured pattern (interpret these probabilities in light of the *Independence Caveat* above; they treat the per-temperature posteriors as independent and so likely overstate the true between-condition evidence):
 
-- **Strong separation** ($P > 0.95$): $T = 0.0$ vs $T = 1.0$ and $T = 1.5$
-- **Moderate separation** ($P > 0.8$): $T = 0.3$ vs $T \geq 1.0$; $T = 0.7$ vs $T \geq 1.0$
+- **Apparent separation** ($P > 0.95$ under independence): $T = 0.0$ vs $T = 1.0$ and $T = 1.5$
+- **Moderate apparent separation** ($P > 0.8$): $T = 0.3$ vs $T \geq 1.0$; $T = 0.7$ vs $T \geq 1.0$
 - **Weak/no separation** ($P \approx 0.5$): $T = 0.3$ vs $T = 0.7$
 
 ### Strict Monotonicity

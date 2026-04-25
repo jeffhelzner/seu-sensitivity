@@ -124,7 +124,7 @@ This report presents the results of a **$2 \times 2$ factorial design** that dis
 
 ::: {.callout-important}
 ## Preview of Key Finding
-The **LLM factor accounts for most of the qualitative variation** in temperature–sensitivity patterns. GPT-4o shows a clear negative temperature–$\alpha$ relationship on *both* tasks, while Claude 3.5 Sonnet shows weak or absent effects on *both* tasks. The task domain plays a secondary role — Ellsberg gambles may amplify the effect for GPT-4o but do not create it for Claude. The between-LLM comparison, while directionally clear, carries more uncertainty than the within-LLM evidence (see @sec-discussion for calibrated claims).
+The **LLM factor accounts for most of the qualitative variation** in temperature–sensitivity patterns. GPT-4o shows a clear negative temperature–$\alpha$ relationship on *both* tasks (within-cell $P(\text{slope} < 0) > 0.98$), while Claude 3.5 Sonnet shows weak or absent effects on *both* tasks. The task domain plays a secondary role — Ellsberg gambles may amplify the effect for GPT-4o but do not create it for Claude. The between-LLM comparison is directionally clear but quantitatively weaker (between-cell $P(\text{GPT slope} < \text{Claude slope}) \approx 0.80\text{–}0.82$); see @sec-discussion for calibrated claims and the independent-fits caveat.
 :::
 
 

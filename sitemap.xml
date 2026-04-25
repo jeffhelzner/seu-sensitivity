@@ -2,82 +2,94 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://jeffhelzner.github.io/seu-sensitivity/applications/gpt4o_ellsberg_study/01_gpt4o_ellsberg_study.html</loc>
-    <lastmod>2026-04-24T20:45:41.640Z</lastmod>
+    <lastmod>2026-04-25T14:35:53.740Z</lastmod>
   </url>
   <url>
     <loc>https://jeffhelzner.github.io/seu-sensitivity/applications/ellsberg_study/01_ellsberg_study.html</loc>
-    <lastmod>2026-04-24T20:45:41.638Z</lastmod>
+    <lastmod>2026-04-25T14:35:53.737Z</lastmod>
   </url>
   <url>
     <loc>https://jeffhelzner.github.io/seu-sensitivity/applications/temperature_study_with_risky_alts/01_risky_alternatives_study.html</loc>
-    <lastmod>2026-04-24T20:45:41.646Z</lastmod>
+    <lastmod>2026-04-25T14:35:53.746Z</lastmod>
   </url>
   <url>
     <loc>https://jeffhelzner.github.io/seu-sensitivity/applications/factorial_synthesis/01_factorial_synthesis.html</loc>
-    <lastmod>2026-04-24T20:45:41.640Z</lastmod>
+    <lastmod>2026-04-25T14:35:53.740Z</lastmod>
   </url>
   <url>
     <loc>https://jeffhelzner.github.io/seu-sensitivity/blog/index.html</loc>
-    <lastmod>2026-04-24T20:45:41.652Z</lastmod>
+    <lastmod>2026-04-25T14:35:53.751Z</lastmod>
   </url>
   <url>
     <loc>https://jeffhelzner.github.io/seu-sensitivity/foundations/08_hierarchical_formulation.html</loc>
-    <lastmod>2026-04-24T20:45:41.654Z</lastmod>
+    <lastmod>2026-04-25T14:35:53.753Z</lastmod>
   </url>
   <url>
-    <loc>https://jeffhelzner.github.io/seu-sensitivity/foundations/03_prior_analysis.html</loc>
-    <lastmod>2026-04-24T20:45:41.654Z</lastmod>
-  </url>
-  <url>
-    <loc>https://jeffhelzner.github.io/seu-sensitivity/foundations/07_generalizing_sensitivity.html</loc>
-    <lastmod>2026-04-24T20:45:41.654Z</lastmod>
-  </url>
-  <url>
-    <loc>https://jeffhelzner.github.io/seu-sensitivity/foundations/06_sbc_validation.html</loc>
-    <lastmod>2026-04-24T20:45:41.654Z</lastmod>
-  </url>
-  <url>
-    <loc>https://jeffhelzner.github.io/seu-sensitivity/foundations/04_parameter_recovery.html</loc>
-    <lastmod>2026-04-24T20:45:41.654Z</lastmod>
-  </url>
-  <url>
-    <loc>https://jeffhelzner.github.io/seu-sensitivity/legacy/seu_sensitivity_from_theory_to_implementation.html</loc>
-    <lastmod>2026-04-24T20:45:41.655Z</lastmod>
-  </url>
-  <url>
-    <loc>https://jeffhelzner.github.io/seu-sensitivity/legacy/theory/m_0_theory.html</loc>
-    <lastmod>2026-04-24T20:45:41.656Z</lastmod>
-  </url>
-  <url>
-    <loc>https://jeffhelzner.github.io/seu-sensitivity/foundations/05_adding_risky_choices.html</loc>
-    <lastmod>2026-04-24T20:45:41.654Z</lastmod>
-  </url>
-  <url>
-    <loc>https://jeffhelzner.github.io/seu-sensitivity/foundations/09_hierarchical_implementation.html</loc>
-    <lastmod>2026-04-24T20:45:41.654Z</lastmod>
+    <loc>https://jeffhelzner.github.io/seu-sensitivity/foundations/12_hierarchical_sbc_validation.html</loc>
+    <lastmod>2026-04-25T14:35:53.753Z</lastmod>
   </url>
   <url>
     <loc>https://jeffhelzner.github.io/seu-sensitivity/foundations/02_concrete_implementation.html</loc>
-    <lastmod>2026-04-24T20:45:41.654Z</lastmod>
+    <lastmod>2026-04-25T14:35:53.752Z</lastmod>
+  </url>
+  <url>
+    <loc>https://jeffhelzner.github.io/seu-sensitivity/foundations/09_hierarchical_implementation.html</loc>
+    <lastmod>2026-04-25T14:35:53.753Z</lastmod>
+  </url>
+  <url>
+    <loc>https://jeffhelzner.github.io/seu-sensitivity/foundations/06_sbc_validation.html</loc>
+    <lastmod>2026-04-25T14:35:53.752Z</lastmod>
+  </url>
+  <url>
+    <loc>https://jeffhelzner.github.io/seu-sensitivity/foundations/05_adding_risky_choices.html</loc>
+    <lastmod>2026-04-25T14:35:53.752Z</lastmod>
+  </url>
+  <url>
+    <loc>https://jeffhelzner.github.io/seu-sensitivity/legacy/theory/m_0_theory.html</loc>
+    <lastmod>2026-04-25T14:35:53.754Z</lastmod>
+  </url>
+  <url>
+    <loc>https://jeffhelzner.github.io/seu-sensitivity/legacy/seu_sensitivity_from_theory_to_implementation.html</loc>
+    <lastmod>2026-04-25T14:35:53.753Z</lastmod>
+  </url>
+  <url>
+    <loc>https://jeffhelzner.github.io/seu-sensitivity/foundations/04_parameter_recovery.html</loc>
+    <lastmod>2026-04-25T14:35:53.752Z</lastmod>
+  </url>
+  <url>
+    <loc>https://jeffhelzner.github.io/seu-sensitivity/foundations/10_hierarchical_prior_analysis.html</loc>
+    <lastmod>2026-04-25T14:35:53.753Z</lastmod>
+  </url>
+  <url>
+    <loc>https://jeffhelzner.github.io/seu-sensitivity/foundations/11_hierarchical_parameter_recovery.html</loc>
+    <lastmod>2026-04-25T14:35:53.753Z</lastmod>
+  </url>
+  <url>
+    <loc>https://jeffhelzner.github.io/seu-sensitivity/foundations/07_generalizing_sensitivity.html</loc>
+    <lastmod>2026-04-25T14:35:53.753Z</lastmod>
+  </url>
+  <url>
+    <loc>https://jeffhelzner.github.io/seu-sensitivity/foundations/03_prior_analysis.html</loc>
+    <lastmod>2026-04-25T14:35:53.752Z</lastmod>
   </url>
   <url>
     <loc>https://jeffhelzner.github.io/seu-sensitivity/foundations/01_abstract_formulation.html</loc>
-    <lastmod>2026-04-24T20:45:41.653Z</lastmod>
+    <lastmod>2026-04-25T14:35:53.752Z</lastmod>
   </url>
   <url>
     <loc>https://jeffhelzner.github.io/seu-sensitivity/index.html</loc>
-    <lastmod>2026-04-24T20:45:41.655Z</lastmod>
+    <lastmod>2026-04-25T14:35:53.753Z</lastmod>
   </url>
   <url>
     <loc>https://jeffhelzner.github.io/seu-sensitivity/applications/temperature_study/01_initial_study.html</loc>
-    <lastmod>2026-04-24T20:45:41.643Z</lastmod>
+    <lastmod>2026-04-25T14:35:53.742Z</lastmod>
   </url>
   <url>
     <loc>https://jeffhelzner.github.io/seu-sensitivity/applications/temperature_study_with_eu_prompt/01_eu_prompt_study.html</loc>
-    <lastmod>2026-04-24T20:45:41.645Z</lastmod>
+    <lastmod>2026-04-25T14:35:53.744Z</lastmod>
   </url>
   <url>
     <loc>https://jeffhelzner.github.io/seu-sensitivity/applications/claude_insurance_study/01_claude_insurance_study.html</loc>
-    <lastmod>2026-04-24T20:45:41.637Z</lastmod>
+    <lastmod>2026-04-25T14:35:53.736Z</lastmod>
   </url>
 </urlset>

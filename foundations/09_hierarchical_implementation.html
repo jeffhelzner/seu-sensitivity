@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Jeff Helzner">
-<meta name="dcterms.date" content="2026-04-24">
+<meta name="dcterms.date" content="2026-04-25">
 <meta name="description" content="Concrete implementation of the hierarchical SEU sensitivity model in Stan. Details the data structure, non-centered parameterization, cell-specific belief formation, and generated quantities for model checking.">
 
 <title>Hierarchical Implementation: The h_m01 Stan Model – SEU Sensitivity</title>
@@ -166,10 +166,10 @@ window.Quarto = {
 <link rel="stylesheet" href="../styles/seu-sensitivity.css">
 <meta name="citation_title" content="Hierarchical Implementation: The h_m01 Stan Model">
 <meta name="citation_author" content="Jeff Helzner">
-<meta name="citation_publication_date" content="2026-04-24">
-<meta name="citation_cover_date" content="2026-04-24">
+<meta name="citation_publication_date" content="2026-04-25">
+<meta name="citation_cover_date" content="2026-04-25">
 <meta name="citation_year" content="2026">
-<meta name="citation_online_date" content="2026-04-24">
+<meta name="citation_online_date" content="2026-04-25">
 <meta name="citation_fulltext_html_url" content="https://jeffhelzner.github.io/seu-sensitivity/foundations/09_hierarchical_implementation.html">
 <meta name="citation_language" content="en">
 <meta name="citation_journal_title" content="SEU Sensitivity Project">
@@ -425,6 +425,18 @@ window.Quarto = {
     <a class="dropdown-item" href="../foundations/09_hierarchical_implementation.html">
  <span class="dropdown-text">9. Hierarchical Implementation</span></a>
   </li>  
+        <li>
+    <a class="dropdown-item" href="../foundations/10_hierarchical_prior_analysis.html">
+ <span class="dropdown-text">10. Hierarchical Prior Analysis</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../foundations/11_hierarchical_parameter_recovery.html">
+ <span class="dropdown-text">11. Hierarchical Parameter Recovery</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../foundations/12_hierarchical_sbc_validation.html">
+ <span class="dropdown-text">12. Hierarchical SBC Validation</span></a>
+  </li>  
     </ul>
   </li>
   <li class="nav-item dropdown ">
@@ -551,7 +563,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">April 24, 2026</p>
+      <p class="date">April 25, 2026</p>
     </div>
   </div>
   
@@ -829,7 +841,7 @@ window.Quarto = {
 <li><strong>Cell-specific <span class="math inline">\(\boldsymbol{\beta}_j\)</span> → expected utilities</strong>: For each observation <span class="math inline">\(m\)</span> in cell <span class="math inline">\(j\)</span>, the belief parameters <span class="math inline">\(\boldsymbol{\beta}_j\)</span> map features to subjective probabilities <span class="math inline">\(\boldsymbol{\psi}\)</span>, which are then dotted with utilities to produce expected utilities <span class="math inline">\(\eta\)</span>.</li>
 </ol>
 <p>The key difference from <code>m_01</code> is the indexing: <code>beta[j]</code> (cell <span class="math inline">\(j\)</span>’s belief matrix) replaces the single <code>beta</code>, and <code>alpha[cell[m]]</code> replaces the scalar <code>alpha</code>.</p>
-<div id="cell-fig-parameter-flow" class="cell" data-execution_count="2">
+<div id="cell-fig-parameter-flow" class="cell" data-execution_count="3">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">11</span>, <span class="dv">6</span>))</span>
@@ -1244,7 +1256,7 @@ Table&nbsp;1: Prior distributions in h_m01 and their m_01 analogues.
 <ul>
 <li><strong>Constructor</strong> accepts all design parameters: <code>J</code>, <code>K</code>, <code>D</code>, <code>R</code>, <code>P</code>, <code>M_per_cell</code> (scalar or per-cell list), design matrix <code>X</code>, and feature generation settings.</li>
 <li><strong><code>generate()</code></strong> creates shared feature vectors <span class="math inline">\(\mathbf{w}_r\)</span> and the stacked indicator array with cell membership vector.</li>
-<li><strong><code>get_data_dict()</code></strong> returns a dictionary matching the <code>h_m01.stan</code> data block, including default simulation hyperparameters (<code>gamma0_mean=3.0</code>, <code>gamma0_sd=1.0</code>, <code>gamma_sd=1.0</code>, <code>sigma_cell_sd=0.5</code>, <code>beta_sd=1.0</code>).</li>
+<li><strong><code>get_data_dict()</code></strong> returns a dictionary matching the <code>h_m01.stan</code> data block, including default simulation hyperparameters (<code>gamma0_mean=2.5</code>, <code>gamma0_sd=0.5</code>, <code>gamma_sd=0.5</code>, <code>sigma_cell_sd=0.3</code>, <code>beta_sd=1.0</code>). These tightened values were calibrated via the prior-predictive, parameter-recovery, and SBC analyses in <a href="../foundations/10_hierarchical_prior_analysis.html">Reports 10–12</a>.</li>
 <li><strong><code>save()</code> / <code>load()</code></strong> serialize the design to JSON with metadata (design name, timestamp, feature distribution parameters) for reproducibility.</li>
 </ul>
 </section>
@@ -1334,13 +1346,13 @@ Talts, Sean, Michael Betancourt, Daniel Simpson, Aki Vehtari, and Andrew Gelman.
 </div></section><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{helzner2026,
   author = {Helzner, Jeff},
   title = {Hierarchical {Implementation:} {The} h\_m01 {Stan} {Model}},
-  date = {2026-04-24},
+  date = {2026-04-25},
   url = {https://jeffhelzner.github.io/seu-sensitivity/foundations/09_hierarchical_implementation.html},
   langid = {en}
 }
 </code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-helzner2026" class="csl-entry quarto-appendix-citeas" role="listitem">
 Helzner, Jeff. 2026. <span>“Hierarchical Implementation: The h_m01 Stan
-Model.”</span> SEU Sensitivity Project, April 24. <a href="https://jeffhelzner.github.io/seu-sensitivity/foundations/09_hierarchical_implementation.html">https://jeffhelzner.github.io/seu-sensitivity/foundations/09_hierarchical_implementation.html</a>.
+Model.”</span> SEU Sensitivity Project, April 25. <a href="https://jeffhelzner.github.io/seu-sensitivity/foundations/09_hierarchical_implementation.html">https://jeffhelzner.github.io/seu-sensitivity/foundations/09_hierarchical_implementation.html</a>.
 </div></div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
@@ -2348,7 +2360,7 @@ Model.”</span> SEU Sensitivity Project, April 24. <a href="https://jeffhelzner
 <span id="cb14-544"><a href="#cb14-544" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb14-545"><a href="#cb14-545" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Constructor** accepts all design parameters: <span class="in">`J`</span>, <span class="in">`K`</span>, <span class="in">`D`</span>, <span class="in">`R`</span>, <span class="in">`P`</span>, <span class="in">`M_per_cell`</span> (scalar or per-cell list), design matrix <span class="in">`X`</span>, and feature generation settings.</span>
 <span id="cb14-546"><a href="#cb14-546" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**`generate()`** creates shared feature vectors $\mathbf{w}_r$ and the stacked indicator array with cell membership vector.</span>
-<span id="cb14-547"><a href="#cb14-547" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**`get_data_dict()`** returns a dictionary matching the <span class="in">`h_m01.stan`</span> data block, including default simulation hyperparameters (<span class="in">`gamma0_mean=3.0`</span>, <span class="in">`gamma0_sd=1.0`</span>, <span class="in">`gamma_sd=1.0`</span>, <span class="in">`sigma_cell_sd=0.5`</span>, <span class="in">`beta_sd=1.0`</span>).</span>
+<span id="cb14-547"><a href="#cb14-547" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**`get_data_dict()`** returns a dictionary matching the <span class="in">`h_m01.stan`</span> data block, including default simulation hyperparameters (<span class="in">`gamma0_mean=2.5`</span>, <span class="in">`gamma0_sd=0.5`</span>, <span class="in">`gamma_sd=0.5`</span>, <span class="in">`sigma_cell_sd=0.3`</span>, <span class="in">`beta_sd=1.0`</span>). These tightened values were calibrated via the prior-predictive, parameter-recovery, and SBC analyses in <span class="co">[</span><span class="ot">Reports 10–12</span><span class="co">](10_hierarchical_prior_analysis.qmd)</span>.</span>
 <span id="cb14-548"><a href="#cb14-548" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**`save()` / `load()`** serialize the design to JSON with metadata (design name, timestamp, feature distribution parameters) for reproducibility.</span>
 <span id="cb14-549"><a href="#cb14-549" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb14-550"><a href="#cb14-550" aria-hidden="true" tabindex="-1"></a></span>

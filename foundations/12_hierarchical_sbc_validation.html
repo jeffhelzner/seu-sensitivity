@@ -591,7 +591,7 @@ window.Quarto = {
 <section id="sbc-configuration" class="level2" data-number="0.2">
 <h2 data-number="0.2" class="anchored" data-anchor-id="sbc-configuration"><span class="header-section-number">0.2</span> SBC Configuration</h2>
 <p>SBC is run live inside the report; Quarto caches the result so the analysis re-executes only when this report changes.</p>
-<div id="run-sbc" class="cell" data-execution_count="2">
+<div id="run-sbc" class="cell" data-execution_count="3">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> utils.study_design_hierarchical <span class="im">import</span> HierarchicalStudyDesign</span>
@@ -622,7 +622,7 @@ window.Quarto = {
 <span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> Image(filename<span class="op">=</span>os.path.join(output_dir, path), width<span class="op">=</span>width)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
-<div id="config" class="cell" data-execution_count="3">
+<div id="config" class="cell" data-execution_count="4">
 <div class="cell-output cell-output-stdout">
 <pre><code>SBC configuration:
   n_sbc_sims      = 100
@@ -654,7 +654,7 @@ Parameters tracked: 29
 <section id="diagnostics" class="level2" data-number="0.3">
 <h2 data-number="0.3" class="anchored" data-anchor-id="diagnostics"><span class="header-section-number">0.3</span> Diagnostics</h2>
 <p>For each of the 29 parameters we report the <span class="math inline">\(\chi^2\)</span> bin-count test (20 bins, 19 d.f.) and the KS test against the discrete uniform.</p>
-<div id="load-summary" class="cell" data-execution_count="4">
+<div id="load-summary" class="cell" data-execution_count="5">
 <div class="cell-output cell-output-stdout">
 <pre><code>     param  chi2  chi2_p    ks   ks_p
     gamma0 24.40  0.1813 0.093 0.3379
@@ -695,7 +695,7 @@ sigma_cell 25.20  0.1541 0.102 0.2371
 <li>29 × 0.05 ≈ 1.45 uncorrected failures at <span class="math inline">\(\alpha = 0.05\)</span>;</li>
 <li>0 Bonferroni-corrected failures.</li>
 </ul>
-<div id="multiplicity" class="cell" data-execution_count="5">
+<div id="multiplicity" class="cell" data-execution_count="6">
 <div class="cell-output cell-output-stdout">
 <pre><code>chi2:
   p &lt; 0.05 (expected ~1.45): []
@@ -717,7 +717,7 @@ Quantiles of p-values (a flat uniform would centre on 0.5):
 <h2 data-number="0.4" class="anchored" data-anchor-id="visual-diagnostics"><span class="header-section-number">0.4</span> Visual Diagnostics</h2>
 <section id="regression-coefficients" class="level3" data-number="0.4.1">
 <h3 data-number="0.4.1" class="anchored" data-anchor-id="regression-coefficients"><span class="header-section-number">0.4.1</span> Regression coefficients</h3>
-<div id="cell-fig-regression-ranks" class="cell" data-execution_count="6">
+<div id="cell-fig-regression-ranks" class="cell" data-execution_count="7">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>_img(<span class="st">"sbc_results/regression_ranks.png"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -735,7 +735,7 @@ Figure&nbsp;1: Rank histograms for <span class="math inline">\((\gamma_0, \bolds
 </div>
 </div>
 </div>
-<div id="cell-fig-regression-ecdf" class="cell" data-execution_count="7">
+<div id="cell-fig-regression-ecdf" class="cell" data-execution_count="8">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>_img(<span class="st">"sbc_results/regression_ecdf.png"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -757,7 +757,7 @@ Figure&nbsp;2: ECDF of normalised ranks versus the Uniform(0, 1) diagonal for th
 </section>
 <section id="cell-level-sensitivities" class="level3" data-number="0.4.2">
 <h3 data-number="0.4.2" class="anchored" data-anchor-id="cell-level-sensitivities"><span class="header-section-number">0.4.2</span> Cell-level sensitivities</h3>
-<div id="cell-fig-alpha-ranks" class="cell" data-execution_count="8">
+<div id="cell-fig-alpha-ranks" class="cell" data-execution_count="9">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>_img(<span class="st">"sbc_results/alpha_ranks.png"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -775,7 +775,7 @@ Figure&nbsp;3: Rank histograms for the 18 cell-level <span class="math inline">\
 </div>
 </div>
 </div>
-<div id="cell-fig-alpha-ecdf" class="cell" data-execution_count="9">
+<div id="cell-fig-alpha-ecdf" class="cell" data-execution_count="10">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>_img(<span class="st">"sbc_results/alpha_ecdf.png"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -797,7 +797,7 @@ Figure&nbsp;4: ECDF plots for cell-level <span class="math inline">\(\alpha\)</s
 </section>
 <section id="utility-simplex" class="level3" data-number="0.4.3">
 <h3 data-number="0.4.3" class="anchored" data-anchor-id="utility-simplex"><span class="header-section-number">0.4.3</span> Utility simplex</h3>
-<div id="cell-fig-delta-ranks" class="cell" data-execution_count="10">
+<div id="cell-fig-delta-ranks" class="cell" data-execution_count="11">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>_img(<span class="st">"sbc_results/delta_ranks.png"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -815,7 +815,7 @@ Figure&nbsp;5: Rank histograms for the shared utility simplex <span class="math 
 </div>
 </div>
 </div>
-<div id="cell-fig-delta-ecdf" class="cell" data-execution_count="11">
+<div id="cell-fig-delta-ecdf" class="cell" data-execution_count="12">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>_img(<span class="st">"sbc_results/delta_ecdf.png"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>

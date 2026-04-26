@@ -714,7 +714,7 @@ plt.show()
 
 ```{python}
 #| label: tbl-recovery-summary
-#| tbl-cap: "Parameter recovery comparison across m_1, m_2, and m_3. RMSE, 90% CI coverage, and CI width are shown. The ω row applies only to m_2 (free) and m_3 (derived); the κ row applies only to m_3. The m_3 ω column reports the product of posterior means $\hat{\kappa} \cdot \hat{\alpha}$, which is an approximation — see the *Note on Derived ω Estimation in m_3* for the Jensen-inequality caveat."
+#| tbl-cap: "Parameter recovery comparison across m_1, m_2, and m_3. RMSE, 90% CI coverage, and CI width are shown. The ω row applies only to m_2 (free) and m_3 (derived); the κ row applies only to m_3. The m_3 ω column reports the product of posterior means (mean κ × mean α), which is an approximation — see the *Note on Derived ω Estimation in m_3* for the Jensen-inequality caveat."
 
 rows = []
 

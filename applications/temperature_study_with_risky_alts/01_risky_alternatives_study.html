@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Jeff Helzner">
-<meta name="dcterms.date" content="2026-04-25">
+<meta name="dcterms.date" content="2026-04-26">
 <meta name="description" content="Extends the initial temperature study by introducing risky alternatives alongside the original uncertain alternatives, enabling joint estimation under models m_11, m_21, and m_31.">
 
 <title>Temperature and SEU Sensitivity: Risky Alternatives Extension – SEU Sensitivity</title>
@@ -150,10 +150,10 @@ window.Quarto = {
 <link rel="stylesheet" href="../../styles/seu-sensitivity.css">
 <meta name="citation_title" content="Temperature and SEU Sensitivity: Risky Alternatives Extension">
 <meta name="citation_author" content="Jeff Helzner">
-<meta name="citation_publication_date" content="2026-04-25">
-<meta name="citation_cover_date" content="2026-04-25">
+<meta name="citation_publication_date" content="2026-04-26">
+<meta name="citation_cover_date" content="2026-04-26">
 <meta name="citation_year" content="2026">
-<meta name="citation_online_date" content="2026-04-25">
+<meta name="citation_online_date" content="2026-04-26">
 <meta name="citation_fulltext_html_url" content="https://jeffhelzner.github.io/seu-sensitivity/applications/temperature_study_with_risky_alts/01_risky_alternatives_study.html">
 <meta name="citation_language" content="en">
 <meta name="citation_journal_title" content="SEU Sensitivity Project">
@@ -593,7 +593,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">April 25, 2026</p>
+      <p class="date">April 26, 2026</p>
     </div>
   </div>
   
@@ -638,7 +638,7 @@ window.Quarto = {
 <section id="risky-alternatives" class="level3" data-number="0.2.1">
 <h3 data-number="0.2.1" class="anchored" data-anchor-id="risky-alternatives"><span class="header-section-number">0.2.1</span> Risky Alternatives</h3>
 <p>The uncertain alternatives from the initial study use the same insurance claims triage task: embedded natural-language assessments produce features <span class="math inline">\(w_r \in \mathbb{R}^D\)</span>, and the model infers subjective probabilities <span class="math inline">\(\psi_r = \text{softmax}(\beta \cdot w_r)\)</span> over <span class="math inline">\(K = 3\)</span> consequences. The <em>risky</em> alternatives replace this inference step with explicitly stated probability simplexes:</p>
-<div id="cell-risky-pool" class="cell" data-execution_count="3">
+<div id="cell-risky-pool" class="cell" data-execution_count="2">
 <div class="cell-output cell-output-stdout">
 <pre><code>Risky alternatives pool: S = 30
 Each alternative specifies a simplex over K = 3 consequences.
@@ -724,7 +724,7 @@ Each alternative specifies a simplex over K = 3 consequences.
 </section>
 <section id="design-parameters" class="level3" data-number="0.2.2">
 <h3 data-number="0.2.2" class="anchored" data-anchor-id="design-parameters"><span class="header-section-number">0.2.2</span> Design Parameters</h3>
-<div id="design-params" class="cell" data-execution_count="4">
+<div id="design-params" class="cell" data-execution_count="3">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> <span class="bu">open</span>(data_dir <span class="op">/</span> <span class="st">"study_config.yaml"</span>) <span class="im">as</span> f:</span>
@@ -758,8 +758,8 @@ Each alternative specifies a simplex over K = 3 consequences.
   Temperature conditions:   [0.0, 0.3, 0.7, 1.0, 1.5]</code></pre>
 </div>
 </div>
-<div class="cell" data-execution_count="5">
-<div id="tbl-design-comparison" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="5">
+<div class="cell" data-execution_count="4">
+<div id="tbl-design-comparison" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="4">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-design-comparison-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;1: Comparison of uncertain and risky decision contexts.
@@ -812,7 +812,7 @@ Table&nbsp;1: Comparison of uncertain and risky decision contexts.
 </section>
 <section id="data-quality" class="level3" data-number="0.2.3">
 <h3 data-number="0.2.3" class="anchored" data-anchor-id="data-quality"><span class="header-section-number">0.2.3</span> Data Quality</h3>
-<div id="data-quality" class="cell" data-execution_count="6">
+<div id="data-quality" class="cell" data-execution_count="5">
 <div class="cell-output cell-output-stdout">
 <pre><code>Risky Choice NA Summary:
   Overall: 1 / 1500 (0.07%)
@@ -844,8 +844,8 @@ Table&nbsp;1: Comparison of uncertain and risky decision contexts.
 <p>All three augmented models share: (1) the same utility function <span class="math inline">\(\upsilon = \text{cumulative\_sum}([0, \delta])\)</span> with <span class="math inline">\(\delta \sim \text{Dirichlet}(\mathbf{1})\)</span>, (2) subjective probabilities <span class="math inline">\(\psi_r = \text{softmax}(\beta \cdot w_r)\)</span> for uncertain alternatives with <span class="math inline">\(\beta \sim \mathcal{N}(0, 1)\)</span>, and (3) the calibrated prior <span class="math inline">\(\alpha \sim \text{Lognormal}(3.0, 0.75)\)</span> from <a href="../../applications/temperature_study/01_initial_study.html">Report 1</a>. They differ only in how sensitivity governs risky choices.</p>
 <section id="model-specifications" class="level3" data-number="0.3.1">
 <h3 data-number="0.3.1" class="anchored" data-anchor-id="model-specifications"><span class="header-section-number">0.3.1</span> Model Specifications</h3>
-<div class="cell" data-execution_count="7">
-<div id="tbl-model-specs" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="7">
+<div class="cell" data-execution_count="6">
+<div id="tbl-model-specs" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="6">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-model-specs-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;2: Parameter specifications for the three augmented models. All models share the same utility and subjective probability structure.
@@ -915,7 +915,7 @@ Table&nbsp;2: Parameter specifications for the three augmented models. All model
 <section id="sec-prior-calibration" class="level2" data-number="0.4">
 <h2 data-number="0.4" class="anchored" data-anchor-id="sec-prior-calibration"><span class="header-section-number">0.4</span> Prior Predictive Calibration</h2>
 <p>Prior predictive simulation was performed using the <code>_sim.stan</code> variants of each model on the actual augmented study design. For each candidate prior, we drew parameter values and simulated choices, computing the SEU-maximizer selection rate separately for uncertain and risky contexts.</p>
-<div id="cell-fig-prior-grid-m1" class="cell" data-fig-height="5" data-execution_count="8">
+<div id="cell-fig-prior-grid-m1" class="cell" data-fig-height="5" data-execution_count="7">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> <span class="bu">open</span>(data_dir <span class="op">/</span> <span class="st">"prior_predictive"</span> <span class="op">/</span> <span class="st">"m_1_grid_results.json"</span>) <span class="im">as</span> f:</span>
@@ -974,7 +974,7 @@ Figure&nbsp;1: Prior predictive SEU-maximizer selection rates for m_1 across can
 <h2 data-number="0.5" class="anchored" data-anchor-id="sec-results"><span class="header-section-number">0.5</span> Results</h2>
 <section id="loading-posterior-draws" class="level3" data-number="0.5.1">
 <h3 data-number="0.5.1" class="anchored" data-anchor-id="loading-posterior-draws"><span class="header-section-number">0.5.1</span> Loading Posterior Draws</h3>
-<div id="load-posteriors" class="cell" data-execution_count="9">
+<div id="load-posteriors" class="cell" data-execution_count="8">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load all draws</span></span>
@@ -1009,7 +1009,7 @@ Figure&nbsp;1: Prior predictive SEU-maximizer selection rates for m_1 across can
 <span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a>    m01_analysis <span class="op">=</span> json.load(f)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
-<div id="ada65b67" class="cell" data-execution_count="10">
+<div id="8ec88e44" class="cell" data-execution_count="9">
 <div class="cell-output cell-output-stdout">
 <pre><code>  m_11: 4,000 posterior draws per temperature
   m_21: 4,000 posterior draws per temperature
@@ -1020,8 +1020,8 @@ Figure&nbsp;1: Prior predictive SEU-maximizer selection rates for m_1 across can
 <section id="mcmc-diagnostics" class="level3" data-number="0.5.2">
 <h3 data-number="0.5.2" class="anchored" data-anchor-id="mcmc-diagnostics"><span class="header-section-number">0.5.2</span> MCMC Diagnostics</h3>
 <p>All 15 fits (3 models × 5 temperatures) achieved clean MCMC diagnostics: no divergences, no treedepth warnings, satisfactory E-BFMI, and <span class="math inline">\(\hat{R} &lt; 1.005\)</span> for all parameters.</p>
-<div class="cell" data-execution_count="11">
-<div id="tbl-diagnostics" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="11">
+<div class="cell" data-execution_count="10">
+<div id="tbl-diagnostics" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="10">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-diagnostics-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;3: MCMC diagnostics for key parameters across all models and temperatures. All fits used 4 chains × 1,000 warmup + 1,000 sampling iterations.
@@ -1223,8 +1223,8 @@ Table&nbsp;3: MCMC diagnostics for key parameters across all models and temperat
 </section>
 <section id="posterior-summaries-m_11-shared-α" class="level3" data-number="0.5.3">
 <h3 data-number="0.5.3" class="anchored" data-anchor-id="posterior-summaries-m_11-shared-α"><span class="header-section-number">0.5.3</span> Posterior Summaries: m_11 (Shared α)</h3>
-<div class="cell" data-execution_count="12">
-<div id="tbl-m11-posteriors" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="12">
+<div class="cell" data-execution_count="11">
+<div id="tbl-m11-posteriors" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="11">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-m11-posteriors-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;4: m_11: Posterior summaries for the shared sensitivity parameter α. Intervals are 90% credible intervals.
@@ -1298,8 +1298,8 @@ Table&nbsp;4: m_11: Posterior summaries for the shared sensitivity parameter α.
 </section>
 <section id="posterior-summaries-m_21-separate-α-ω" class="level3" data-number="0.5.4">
 <h3 data-number="0.5.4" class="anchored" data-anchor-id="posterior-summaries-m_21-separate-α-ω"><span class="header-section-number">0.5.4</span> Posterior Summaries: m_21 (Separate α, ω)</h3>
-<div class="cell" data-execution_count="13">
-<div id="tbl-m21-posteriors" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="13">
+<div class="cell" data-execution_count="12">
+<div id="tbl-m21-posteriors" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="12">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-m21-posteriors-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;5: m_21: Posterior summaries for α (uncertain) and ω (risky). The separate parametrization reveals systematically lower sensitivity in the risky context.
@@ -1373,8 +1373,8 @@ Table&nbsp;5: m_21: Posterior summaries for α (uncertain) and ω (risky). The s
 </section>
 <section id="posterior-summaries-m_31-ω-κα" class="level3" data-number="0.5.5">
 <h3 data-number="0.5.5" class="anchored" data-anchor-id="posterior-summaries-m_31-ω-κα"><span class="header-section-number">0.5.5</span> Posterior Summaries: m_31 (ω = κ·α)</h3>
-<div class="cell" data-execution_count="14">
-<div id="tbl-m31-posteriors" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="14">
+<div class="cell" data-execution_count="13">
+<div id="tbl-m31-posteriors" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="13">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-m31-posteriors-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;6: m_31: Posterior summaries for α, κ, and the derived ω = κ·α. The proportionality parameter κ clusters below 1.0, confirming reduced risky sensitivity.
@@ -1460,7 +1460,7 @@ Table&nbsp;6: m_31: Posterior summaries for α, κ, and the derived ω = κ·α.
 </section>
 <section id="forest-plot-α-across-models" class="level3" data-number="0.5.6">
 <h3 data-number="0.5.6" class="anchored" data-anchor-id="forest-plot-α-across-models"><span class="header-section-number">0.5.6</span> Forest Plot: α Across Models</h3>
-<div id="cell-fig-forest-alpha" class="cell" data-fig-height="7" data-execution_count="15">
+<div id="cell-fig-forest-alpha" class="cell" data-fig-height="7" data-execution_count="14">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy.stats <span class="im">import</span> gaussian_kde</span>
@@ -1514,7 +1514,7 @@ Figure&nbsp;2: Forest plot of posterior α distributions across models and tempe
 </section>
 <section id="risky-sensitivity-ω-and-κ" class="level3" data-number="0.5.7">
 <h3 data-number="0.5.7" class="anchored" data-anchor-id="risky-sensitivity-ω-and-κ"><span class="header-section-number">0.5.7</span> Risky Sensitivity: ω and κ</h3>
-<div id="cell-fig-omega-kappa" class="cell" data-fig-height="5" data-execution_count="16">
+<div id="cell-fig-omega-kappa" class="cell" data-fig-height="5" data-execution_count="15">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>fig, (ax1, ax2) <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">12</span>, <span class="dv">5</span>))</span>
@@ -1591,7 +1591,7 @@ Figure&nbsp;3: Left: Posterior ω (risky sensitivity) from m_21 and m_31 across 
 </section>
 <section id="posterior-densities" class="level3" data-number="0.5.8">
 <h3 data-number="0.5.8" class="anchored" data-anchor-id="posterior-densities"><span class="header-section-number">0.5.8</span> Posterior Densities</h3>
-<div id="cell-fig-density-alpha" class="cell" data-fig-height="5" data-execution_count="17">
+<div id="cell-fig-density-alpha" class="cell" data-fig-height="5" data-execution_count="16">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">8</span>, <span class="dv">5</span>))</span>
@@ -1624,7 +1624,7 @@ Figure&nbsp;4: Posterior density of α for each temperature under m_11 (shared �
 </div>
 </div>
 </div>
-<div id="cell-fig-density-omega" class="cell" data-fig-height="5" data-execution_count="18">
+<div id="cell-fig-density-omega" class="cell" data-fig-height="5" data-execution_count="17">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">8</span>, <span class="dv">5</span>))</span>
@@ -1670,8 +1670,8 @@ Figure&nbsp;5: Posterior density of ω (risky sensitivity) from m_21 at each tem
 <p>The posterior predictive p-value is the proportion of replicated datasets where the statistic equals or exceeds the observed value; 0.5 indicates perfect calibration.</p>
 <section id="m_11-ppcs" class="level3" data-number="0.6.1">
 <h3 data-number="0.6.1" class="anchored" data-anchor-id="m_11-ppcs"><span class="header-section-number">0.6.1</span> m_11 PPCs</h3>
-<div class="cell" data-execution_count="19">
-<div id="tbl-ppc-m11" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="19">
+<div class="cell" data-execution_count="18">
+<div id="tbl-ppc-m11" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="18">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-ppc-m11-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;7: m_11 posterior predictive p-values. The uncertain-choice statistics are well-calibrated. The risky-choice modal and prob statistics run high, suggesting the model’s shared α may be somewhat too low to fully account for the risky context’s regularity.
@@ -1763,8 +1763,8 @@ Table&nbsp;7: m_11 posterior predictive p-values. The uncertain-choice statistic
 </section>
 <section id="m_21-ppcs" class="level3" data-number="0.6.2">
 <h3 data-number="0.6.2" class="anchored" data-anchor-id="m_21-ppcs"><span class="header-section-number">0.6.2</span> m_21 PPCs</h3>
-<div class="cell" data-execution_count="20">
-<div id="tbl-ppc-m21" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="20">
+<div class="cell" data-execution_count="19">
+<div id="tbl-ppc-m21" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="19">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-ppc-m21-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;8: m_21 posterior predictive p-values. With a separate ω for risky choices, the risky PPCs are better calibrated than under m_11—particularly the modal and prob statistics, which no longer show systematic upward bias.
@@ -1856,8 +1856,8 @@ Table&nbsp;8: m_21 posterior predictive p-values. With a separate ω for risky c
 </section>
 <section id="m_31-ppcs" class="level3" data-number="0.6.3">
 <h3 data-number="0.6.3" class="anchored" data-anchor-id="m_31-ppcs"><span class="header-section-number">0.6.3</span> m_31 PPCs</h3>
-<div class="cell" data-execution_count="21">
-<div id="tbl-ppc-m31" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="21">
+<div class="cell" data-execution_count="20">
+<div id="tbl-ppc-m31" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="20">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-ppc-m31-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;9: m_31 posterior predictive p-values. The proportional model (ω = κ·α) produces PPC calibration intermediate between m_11 and m_21, consistent with its intermediate structural flexibility.
@@ -1949,7 +1949,7 @@ Table&nbsp;9: m_31 posterior predictive p-values. The proportional model (ω = �
 </section>
 <section id="ppc-comparison" class="level3" data-number="0.6.4">
 <h3 data-number="0.6.4" class="anchored" data-anchor-id="ppc-comparison"><span class="header-section-number">0.6.4</span> PPC Comparison</h3>
-<div id="cell-fig-ppc-comparison" class="cell" data-fig-height="5" data-execution_count="22">
+<div id="cell-fig-ppc-comparison" class="cell" data-fig-height="5" data-execution_count="21">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>fig, (ax1, ax2) <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">12</span>, <span class="dv">5</span>))</span>
@@ -2036,7 +2036,7 @@ Figure&nbsp;6: PPC p-values across models and contexts. Left: uncertain choices.
 <section id="global-slope-α" class="level3" data-number="0.7.1">
 <h3 data-number="0.7.1" class="anchored" data-anchor-id="global-slope-α"><span class="header-section-number">0.7.1</span> Global Slope: α</h3>
 <p>We replicate the draw-wise slope analysis from <a href="../../applications/temperature_study/01_initial_study.html">Report 1</a>. For each posterior draw, we regress <span class="math inline">\(\alpha\)</span> on temperature across the five conditions and collect the slope coefficient.</p>
-<div id="cell-fig-slope-alpha" class="cell" data-fig-height="5" data-execution_count="23">
+<div id="cell-fig-slope-alpha" class="cell" data-fig-height="5" data-execution_count="22">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>temp_array <span class="op">=</span> np.array(temperatures)</span>
@@ -2091,7 +2091,7 @@ Figure&nbsp;7: Posterior distribution of the slope Δα/ΔT for each model. All 
 </section>
 <section id="global-slope-ω" class="level3" data-number="0.7.2">
 <h3 data-number="0.7.2" class="anchored" data-anchor-id="global-slope-ω"><span class="header-section-number">0.7.2</span> Global Slope: ω</h3>
-<div id="cell-fig-slope-omega" class="cell" data-fig-height="4" data-execution_count="24">
+<div id="cell-fig-slope-omega" class="cell" data-fig-height="4" data-execution_count="23">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>fig, (ax1, ax2) <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">11</span>, <span class="dv">4</span>))</span>
@@ -2143,8 +2143,8 @@ Figure&nbsp;8: Posterior distribution of the slope Δω/ΔT from m_21 (free ω) 
 </section>
 <section id="pairwise-comparisons-m_11" class="level3" data-number="0.7.3">
 <h3 data-number="0.7.3" class="anchored" data-anchor-id="pairwise-comparisons-m_11"><span class="header-section-number">0.7.3</span> Pairwise Comparisons (m_11)</h3>
-<div class="cell" data-execution_count="25">
-<div id="tbl-pairwise-m11" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="25">
+<div class="cell" data-execution_count="24">
+<div id="tbl-pairwise-m11" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="24">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-pairwise-m11-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;10: m_11: Posterior probability that α is higher at the lower temperature. The strong-separation / weak-separation pattern from the m_01 analysis (Report 1) replicates exactly.
@@ -2241,8 +2241,8 @@ Table&nbsp;10: m_11: Posterior probability that α is higher at the lower temper
 <p>The most novel finding of this report is that the LLM exhibits lower EU sensitivity in the risky context than in the uncertain context. This section provides formal quantification of that claim.</p>
 <section id="posterior-probability-of-α-ω-m_21" class="level3" data-number="0.8.1">
 <h3 data-number="0.8.1" class="anchored" data-anchor-id="posterior-probability-of-α-ω-m_21"><span class="header-section-number">0.8.1</span> Posterior Probability of α &gt; ω (m_21)</h3>
-<div class="cell" data-execution_count="26">
-<div id="tbl-alpha-gt-omega" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="26">
+<div class="cell" data-execution_count="25">
+<div id="tbl-alpha-gt-omega" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="25">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-alpha-gt-omega-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;11: m_21: Posterior probability that uncertain sensitivity α exceeds risky sensitivity ω at each temperature, with the median difference Δ = α − ω.
@@ -2310,7 +2310,7 @@ Table&nbsp;11: m_21: Posterior probability that uncertain sensitivity α exceeds
 </section>
 <section id="aggregate-test-mean-difference-across-temperatures-m_21" class="level3" data-number="0.8.2">
 <h3 data-number="0.8.2" class="anchored" data-anchor-id="aggregate-test-mean-difference-across-temperatures-m_21"><span class="header-section-number">0.8.2</span> Aggregate Test: Mean Difference Across Temperatures (m_21)</h3>
-<div id="tbl-aggregate-context" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="27">
+<div id="tbl-aggregate-context" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="26">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-aggregate-context-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;12: Aggregate measure of the context-dependent sensitivity gap. For each posterior draw, the five per-temperature α − ω differences are averaged, yielding a single summary of the overall gap.
@@ -2341,8 +2341,8 @@ Table&nbsp;12: Aggregate measure of the context-dependent sensitivity gap. For e
 </section>
 <section id="posterior-probability-of-κ-1-m_31" class="level3" data-number="0.8.3">
 <h3 data-number="0.8.3" class="anchored" data-anchor-id="posterior-probability-of-κ-1-m_31"><span class="header-section-number">0.8.3</span> Posterior Probability of κ &lt; 1 (m_31)</h3>
-<div class="cell" data-execution_count="28">
-<div id="tbl-kappa-lt-1" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="28">
+<div class="cell" data-execution_count="27">
+<div id="tbl-kappa-lt-1" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="27">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-kappa-lt-1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;13: m_31: Posterior probability that the proportionality parameter κ is below 1.0 at each temperature. κ &lt; 1 indicates lower risky sensitivity relative to uncertain sensitivity.
@@ -2410,8 +2410,8 @@ Table&nbsp;13: m_31: Posterior probability that the proportionality parameter κ
 </section>
 <section id="pairwise-comparisons-ω-m_21" class="level3" data-number="0.8.4">
 <h3 data-number="0.8.4" class="anchored" data-anchor-id="pairwise-comparisons-ω-m_21"><span class="header-section-number">0.8.4</span> Pairwise Comparisons: ω (m_21)</h3>
-<div class="cell" data-execution_count="29">
-<div id="tbl-pairwise-omega" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="29">
+<div class="cell" data-execution_count="28">
+<div id="tbl-pairwise-omega" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="28">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-pairwise-omega-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;14: m_21: Posterior probability that ω (risky sensitivity) is higher at the lower temperature. The temperature–sensitivity gradient is present but may differ in strength from the α gradient.
@@ -2505,7 +2505,7 @@ Table&nbsp;14: m_21: Posterior probability that ω (risky sensitivity) is higher
 </section>
 <section id="sec-cross-study" class="level2" data-number="0.9">
 <h2 data-number="0.9" class="anchored" data-anchor-id="sec-cross-study"><span class="header-section-number">0.9</span> Cross-Study Comparison</h2>
-<div id="cell-fig-cross-study" class="cell" data-fig-height="6" data-execution_count="30">
+<div id="cell-fig-cross-study" class="cell" data-fig-height="6" data-execution_count="29">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">6</span>))</span>
@@ -2556,7 +2556,7 @@ Table&nbsp;14: m_21: Posterior probability that ω (risky sensitivity) is higher
 <img src="01_risky_alternatives_study_files/figure-html/fig-cross-study-output-1.svg" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-cross-study-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9: Cross-study comparison of α posteriors from the initial m_01 study and the augmented m_11, m_21, and m_31 models. The qualitative pattern is consistent across all four models. Labels: m_01 (Report 1, uncertain only), m_11 (shared α, this report), m_21 (separate α and ω, this report), m_31 (proportional ω = κ·α, this report).
+Figure&nbsp;9: Cross-model consistency check of α posteriors from the initial m_01 study and the augmented m_11, m_21, and m_31 models <em>fit to the same uncertain-choice data</em>. Labels: m_01 (Report 1, uncertain only), m_11 (shared α, this report), m_21 (separate α and ω, this report), m_31 (proportional ω = κ·α, this report). Because all four fits share the uncertain-choice data, the agreement across models is a within-dataset consistency check on the augmented model structure, not an independent replication of the temperature pattern.
 </figcaption>
 </figure>
 </div>
@@ -2632,13 +2632,13 @@ Figure&nbsp;9: Cross-study comparison of α posteriors from the initial m_01 stu
   author = {Helzner, Jeff},
   title = {Temperature and {SEU} {Sensitivity:} {Risky} {Alternatives}
     {Extension}},
-  date = {2026-04-25},
+  date = {2026-04-26},
   url = {https://jeffhelzner.github.io/seu-sensitivity/applications/temperature_study_with_risky_alts/01_risky_alternatives_study.html},
   langid = {en}
 }
 </code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-helzner2026" class="csl-entry quarto-appendix-citeas" role="listitem">
 Helzner, Jeff. 2026. <span>“Temperature and SEU Sensitivity: Risky
-Alternatives Extension.”</span> SEU Sensitivity Project, April 25. <a href="https://jeffhelzner.github.io/seu-sensitivity/applications/temperature_study_with_risky_alts/01_risky_alternatives_study.html">https://jeffhelzner.github.io/seu-sensitivity/applications/temperature_study_with_risky_alts/01_risky_alternatives_study.html</a>.
+Alternatives Extension.”</span> SEU Sensitivity Project, April 26. <a href="https://jeffhelzner.github.io/seu-sensitivity/applications/temperature_study_with_risky_alts/01_risky_alternatives_study.html">https://jeffhelzner.github.io/seu-sensitivity/applications/temperature_study_with_risky_alts/01_risky_alternatives_study.html</a>.
 </div></div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
@@ -4030,7 +4030,7 @@ Alternatives Extension.”</span> SEU Sensitivity Project, April 25. <a href="ht
 <span id="cb17-980"><a href="#cb17-980" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb17-983"><a href="#cb17-983" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
 <span id="cb17-984"><a href="#cb17-984" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-cross-study</span></span>
-<span id="cb17-985"><a href="#cb17-985" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Cross-study comparison of α posteriors from the initial m_01 study and the augmented m_11, m_21, and m_31 models. The qualitative pattern is consistent across all four models. Labels: m_01 (Report 1, uncertain only), m_11 (shared α, this report), m_21 (separate α and ω, this report), m_31 (proportional ω = κ·α, this report)."</span></span>
+<span id="cb17-985"><a href="#cb17-985" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Cross-model consistency check of α posteriors from the initial m_01 study and the augmented m_11, m_21, and m_31 models *fit to the same uncertain-choice data*. Labels: m_01 (Report 1, uncertain only), m_11 (shared α, this report), m_21 (separate α and ω, this report), m_31 (proportional ω = κ·α, this report). Because all four fits share the uncertain-choice data, the agreement across models is a within-dataset consistency check on the augmented model structure, not an independent replication of the temperature pattern."</span></span>
 <span id="cb17-986"><a href="#cb17-986" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-height: 6</span></span>
 <span id="cb17-987"><a href="#cb17-987" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb17-988"><a href="#cb17-988" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">6</span>))</span>

@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Jeff Helzner">
-<meta name="dcterms.date" content="2026-04-25">
+<meta name="dcterms.date" content="2026-04-26">
 <meta name="description" content="An investigation of how LLM sampling temperature affects estimated sensitivity (α) to subjective expected utility maximization, using Ellsberg-style urn gambles (K=4) and Claude 3.5 Sonnet (Anthropic). This study tests whether the monotonic temperature–α relationship found in the initial temperature study (GPT-4o, insurance triage) generalises to a different task domain and a different foundational model.">
 
 <title>Temperature and SEU Sensitivity: Ellsberg Study – SEU Sensitivity</title>
@@ -169,10 +169,10 @@ window.Quarto = {
 <link rel="stylesheet" href="../../styles/seu-sensitivity.css">
 <meta name="citation_title" content="Temperature and SEU Sensitivity: Ellsberg Study">
 <meta name="citation_author" content="Jeff Helzner">
-<meta name="citation_publication_date" content="2026-04-25">
-<meta name="citation_cover_date" content="2026-04-25">
+<meta name="citation_publication_date" content="2026-04-26">
+<meta name="citation_cover_date" content="2026-04-26">
 <meta name="citation_year" content="2026">
-<meta name="citation_online_date" content="2026-04-25">
+<meta name="citation_online_date" content="2026-04-26">
 <meta name="citation_fulltext_html_url" content="https://jeffhelzner.github.io/seu-sensitivity/applications/ellsberg_study/01_ellsberg_study.html">
 <meta name="citation_language" content="en">
 <meta name="citation_journal_title" content="SEU Sensitivity Project">
@@ -611,7 +611,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">April 25, 2026</p>
+      <p class="date">April 26, 2026</p>
     </div>
   </div>
   
@@ -653,7 +653,7 @@ window.Quarto = {
 <h3 data-number="0.2.1" class="anchored" data-anchor-id="task-and-conditions"><span class="header-section-number">0.2.1</span> Task and Conditions</h3>
 <p>We use Ellsberg-style urn gambles in which Claude 3.5 Sonnet selects which gamble to play from a set of alternatives. Each gamble describes an urn containing coloured balls with specified (or partially specified) counts, and payout rules mapping ball colours to one of <span class="math inline">\(K = 4\)</span> monetary consequences (<span class="math inline">\(\$0, \$1, \$2, \$3\)</span>). In each decision problem, the LLM is presented with a subset of these gambles. The LLM first <em>assesses</em> each gamble individually (producing text that is then embedded), and subsequently makes a <em>choice</em> among the gambles in a given problem.</p>
 <p>Five temperature levels define the between-condition factor:</p>
-<div class="cell" data-execution_count="2">
+<div class="cell" data-execution_count="3">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>conditions <span class="op">=</span> pd.DataFrame({</span>
@@ -669,7 +669,7 @@ window.Quarto = {
 <span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>})</span>
 <span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>conditions</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div id="tbl-conditions" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="2">
+<div id="tbl-conditions" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="3">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-conditions-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;1: Experimental conditions. Each temperature level constitutes a separate model fit.
@@ -751,7 +751,7 @@ Table&nbsp;1: Experimental conditions. Each temperature level constitutes a sepa
 <li><strong>Tier 2 (moderate ambiguity, E09–E20):</strong> Some ball counts are bounded by “at least” or “at most” constraints. The total is always stated.</li>
 <li><strong>Tier 3 (high ambiguity, E21–E30):</strong> Only one colour’s count is known; the rest is described as an unknown mixture. This is closest to Ellsberg’s original setup.</li>
 </ul>
-<div class="cell" data-execution_count="3">
+<div class="cell" data-execution_count="4">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>pool_summary <span class="op">=</span> pd.DataFrame({</span>
@@ -762,7 +762,7 @@ Table&nbsp;1: Experimental conditions. Each temperature level constitutes a sepa
 <span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>})</span>
 <span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>pool_summary</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div id="tbl-pool-summary" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="3">
+<div id="tbl-pool-summary" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="4">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-pool-summary-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;2: Alternative pool summary. All 30 gambles use K=4 monetary consequences.
@@ -823,7 +823,7 @@ Table&nbsp;2: Alternative pool summary. All 30 gambles use K=4 monetary conseque
 </section>
 <section id="design-parameters" class="level3" data-number="0.2.3">
 <h3 data-number="0.2.3" class="anchored" data-anchor-id="design-parameters"><span class="header-section-number">0.2.3</span> Design Parameters</h3>
-<div id="design-params" class="cell" data-execution_count="4">
+<div id="design-params" class="cell" data-execution_count="5">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load frozen study configuration</span></span>
@@ -880,7 +880,7 @@ Table&nbsp;2: Alternative pool summary. All 30 gambles use K=4 monetary conseque
 <h3 data-number="0.2.4" class="anchored" data-anchor-id="feature-construction"><span class="header-section-number">0.2.4</span> Feature Construction</h3>
 <p>Alternative features are constructed through the same two-stage process used in the initial temperature study. First, Claude 3.5 Sonnet assesses each gamble at the relevant temperature, producing a natural-language evaluation. These assessments are embedded using <code>text-embedding-3-small</code> (OpenAI), yielding high-dimensional vectors. Second, all embeddings across temperature conditions are pooled and projected via PCA to <span class="math inline">\(D = 32\)</span> dimensions.</p>
 <p>Pooling embeddings across temperatures before PCA means the resulting basis reflects a mixture of temperature-dependent and gamble-specific variation. Since the embedding model (<code>text-embedding-3-small</code>) is deterministic and operates on Claude’s assessment text — which may vary in length and phrasing at higher temperatures — some temperature-induced embedding shift is possible. However, the PCA variance analysis below shows that the dominant components capture gamble-level structure (the first component alone explains 27% of variance), and the 87.8% total variance retained by 32 components is comparable to the initial study’s figure. Across-temperature variation in embeddings for the same gamble is expected to be small relative to across-gamble variation, since the assessments describe the same underlying urn structure regardless of temperature.</p>
-<div id="pca-variance" class="cell" data-execution_count="5">
+<div id="pca-variance" class="cell" data-execution_count="6">
 <div class="cell-output cell-output-stdout">
 <pre><code>PCA Summary:
   Components retained: 32
@@ -908,7 +908,7 @@ Table&nbsp;2: Alternative pool summary. All 30 gambles use K=4 monetary conseque
 </div>
 </div>
 </div>
-<div id="data-quality" class="cell" data-execution_count="6">
+<div id="data-quality" class="cell" data-execution_count="7">
 <div class="cell-output cell-output-stdout">
 <pre><code>NA Summary:
   Overall: 21 / 1500 (1.4%)
@@ -923,7 +923,7 @@ Table&nbsp;2: Alternative pool summary. All 30 gambles use K=4 monetary conseque
 </section>
 <section id="comparison-with-initial-temperature-study" class="level3" data-number="0.2.6">
 <h3 data-number="0.2.6" class="anchored" data-anchor-id="comparison-with-initial-temperature-study"><span class="header-section-number">0.2.6</span> Comparison with Initial Temperature Study</h3>
-<div class="cell" data-execution_count="7">
+<div class="cell" data-execution_count="8">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>comparison <span class="op">=</span> pd.DataFrame({</span>
@@ -939,7 +939,7 @@ Table&nbsp;2: Alternative pool summary. All 30 gambles use K=4 monetary conseque
 <span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>})</span>
 <span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>comparison</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div id="tbl-design-comparison" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="7">
+<div id="tbl-design-comparison" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="8">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-design-comparison-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;3: Design comparison between the initial temperature study and the Ellsberg study.
@@ -1123,7 +1123,7 @@ Table&nbsp;3: Design comparison between the initial temperature study and the El
 <section id="prior-predictive-grid-search" class="level3" data-number="0.3.2">
 <h3 data-number="0.3.2" class="anchored" data-anchor-id="prior-predictive-grid-search"><span class="header-section-number">0.3.2</span> Prior Predictive Grid Search</h3>
 <p>We conducted the same grid-search procedure used for the initial study, but with the Ellsberg study’s Stan data (<span class="math inline">\(K = 4\)</span>, <span class="math inline">\(D = 32\)</span>, <span class="math inline">\(R = 30\)</span>).</p>
-<div id="cell-fig-grid-search" class="cell" data-execution_count="8">
+<div id="cell-fig-grid-search" class="cell" data-execution_count="9">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> <span class="bu">open</span>(data_dir <span class="op">/</span> <span class="st">"grid_results.json"</span>) <span class="im">as</span> f:</span>
@@ -1199,7 +1199,7 @@ Figure&nbsp;1: Prior predictive grid search results for K=4 Ellsberg gambles. Th
 <section id="sec-parameter-recovery" class="level3" data-number="0.4.1">
 <h3 data-number="0.4.1" class="anchored" data-anchor-id="sec-parameter-recovery"><span class="header-section-number">0.4.1</span> Parameter Recovery</h3>
 <p>We validate that m_02’s parameters are identifiable under the Ellsberg study design (<span class="math inline">\(M \approx 300\)</span>, <span class="math inline">\(K = 4\)</span>, <span class="math inline">\(D = 32\)</span>, <span class="math inline">\(R = 30\)</span>) via 20 iterations of parameter recovery. For each iteration, we draw parameters from the m_02 prior, simulate choice data via <code>m_02_sim.stan</code>, fit <code>m_02.stan</code>, and compare posterior estimates to the true values.</p>
-<div id="load-recovery" class="cell" data-execution_count="9">
+<div id="load-recovery" class="cell" data-execution_count="10">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> glob</span>
@@ -1231,7 +1231,7 @@ Figure&nbsp;1: Prior predictive grid search results for K=4 Ellsberg gambles. Th
 <span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Loaded </span><span class="sc">{</span>n_successful<span class="sc">}</span><span class="ss"> recovery iterations"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
-<div id="cell-fig-alpha-recovery" class="cell" data-execution_count="10">
+<div id="cell-fig-alpha-recovery" class="cell" data-execution_count="11">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>alpha_true <span class="op">=</span> np.array([p[<span class="st">'alpha'</span>] <span class="cf">for</span> p <span class="kw">in</span> true_params_list])</span>
@@ -1292,7 +1292,7 @@ Figure&nbsp;2: Recovery of the sensitivity parameter α under the m_02 prior wit
 </div>
 </div>
 </div>
-<div class="cell" data-execution_count="11">
+<div class="cell" data-execution_count="12">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>K_val <span class="op">=</span> <span class="dv">4</span></span>
@@ -1339,7 +1339,7 @@ Figure&nbsp;2: Recovery of the sensitivity parameter α under the m_02 prior wit
 <span id="cb11-42"><a href="#cb11-42" aria-hidden="true" tabindex="-1"></a>])</span>
 <span id="cb11-43"><a href="#cb11-43" aria-hidden="true" tabindex="-1"></a>metrics</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div id="tbl-recovery-metrics" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="11">
+<div id="tbl-recovery-metrics" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="12">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-recovery-metrics-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;4: Parameter recovery metrics for m_02 with the Ellsberg study design (M≈300, K=4, D=32, R=30).
@@ -1414,7 +1414,7 @@ Table&nbsp;4: Parameter recovery metrics for m_02 with the Ellsberg study design
 <h2 data-number="0.5" class="anchored" data-anchor-id="sec-results"><span class="header-section-number">0.5</span> Results</h2>
 <section id="loading-posterior-draws" class="level3" data-number="0.5.1">
 <h3 data-number="0.5.1" class="anchored" data-anchor-id="loading-posterior-draws"><span class="header-section-number">0.5.1</span> Loading Posterior Draws</h3>
-<div id="load-posteriors" class="cell" data-execution_count="12">
+<div id="load-posteriors" class="cell" data-execution_count="13">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>temperatures <span class="op">=</span> [<span class="fl">0.0</span>, <span class="fl">0.2</span>, <span class="fl">0.5</span>, <span class="fl">0.8</span>, <span class="fl">1.0</span>]</span>
@@ -1436,7 +1436,7 @@ Table&nbsp;4: Parameter recovery metrics for m_02 with the Ellsberg study design
 <span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>    fit_summary <span class="op">=</span> json.load(f)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
-<div id="fda240b1" class="cell" data-execution_count="13">
+<div id="fda240b1" class="cell" data-execution_count="14">
 <div class="cell-output cell-output-stdout">
 <pre><code>  T=0.0: 4,000 posterior draws loaded
   T=0.2: 4,000 posterior draws loaded
@@ -1448,7 +1448,7 @@ Table&nbsp;4: Parameter recovery metrics for m_02 with the Ellsberg study design
 </section>
 <section id="mcmc-diagnostics" class="level3" data-number="0.5.2">
 <h3 data-number="0.5.2" class="anchored" data-anchor-id="mcmc-diagnostics"><span class="header-section-number">0.5.2</span> MCMC Diagnostics</h3>
-<div class="cell" data-execution_count="14">
+<div class="cell" data-execution_count="15">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>diag_rows <span class="op">=</span> []</span>
@@ -1478,7 +1478,7 @@ Table&nbsp;4: Parameter recovery metrics for m_02 with the Ellsberg study design
 <span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a>pd.DataFrame(diag_rows)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div id="tbl-diagnostics" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="14">
+<div id="tbl-diagnostics" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="15">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-diagnostics-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;5: MCMC diagnostics for all five temperature conditions. All fits used 4 chains with 1,000 warmup and 1,000 sampling iterations each (4,000 post-warmup draws total).
@@ -1553,7 +1553,7 @@ Table&nbsp;5: MCMC diagnostics for all five temperature conditions. All fits use
 </section>
 <section id="posterior-summaries" class="level3" data-number="0.5.3">
 <h3 data-number="0.5.3" class="anchored" data-anchor-id="posterior-summaries"><span class="header-section-number">0.5.3</span> Posterior Summaries</h3>
-<div class="cell" data-execution_count="15">
+<div class="cell" data-execution_count="16">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>summary <span class="op">=</span> analysis[<span class="st">'summary_table'</span>]</span>
@@ -1570,7 +1570,7 @@ Table&nbsp;5: MCMC diagnostics for all five temperature conditions. All fits use
 <span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>pd.DataFrame(rows)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div id="tbl-posteriors" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="15">
+<div id="tbl-posteriors" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="16">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-posteriors-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;6: Posterior summaries for the sensitivity parameter α at each temperature level. Intervals are 90% credible intervals.
@@ -1645,7 +1645,7 @@ Table&nbsp;6: Posterior summaries for the sensitivity parameter α at each tempe
 </section>
 <section id="forest-plot" class="level3" data-number="0.5.4">
 <h3 data-number="0.5.4" class="anchored" data-anchor-id="forest-plot"><span class="header-section-number">0.5.4</span> Forest Plot</h3>
-<div id="cell-fig-forest" class="cell" data-fig-height="5" data-execution_count="16">
+<div id="cell-fig-forest" class="cell" data-fig-height="5" data-execution_count="17">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">8</span>, <span class="dv">5</span>))</span>
@@ -1693,7 +1693,7 @@ Figure&nbsp;3: Forest plot of posterior α distributions across temperature cond
 </section>
 <section id="posterior-densities" class="level3" data-number="0.5.5">
 <h3 data-number="0.5.5" class="anchored" data-anchor-id="posterior-densities"><span class="header-section-number">0.5.5</span> Posterior Densities</h3>
-<div id="cell-fig-density" class="cell" data-fig-height="5" data-execution_count="17">
+<div id="cell-fig-density" class="cell" data-fig-height="5" data-execution_count="18">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy.stats <span class="im">import</span> gaussian_kde</span>
@@ -1732,7 +1732,7 @@ Figure&nbsp;4: Kernel density estimates of the posterior α distributions. The p
 </section>
 <section id="posterior-predictive-checks" class="level3" data-number="0.5.6">
 <h3 data-number="0.5.6" class="anchored" data-anchor-id="posterior-predictive-checks"><span class="header-section-number">0.5.6</span> Posterior Predictive Checks</h3>
-<div class="cell" data-execution_count="18">
+<div class="cell" data-execution_count="19">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>ppc_rows <span class="op">=</span> []</span>
@@ -1751,7 +1751,7 @@ Figure&nbsp;4: Kernel density estimates of the posterior α distributions. The p
 <span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>pd.DataFrame(ppc_rows)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div id="tbl-ppc" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="18">
+<div id="tbl-ppc" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="19">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-ppc-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;7: Posterior predictive check p-values for each temperature condition. Values near 0.5 indicate good calibration; values near 0 or 1 indicate model misfit. Three test statistics are used: log-likelihood (ll), modal choice frequency (modal), and mean choice probability (prob).
@@ -1823,7 +1823,7 @@ Table&nbsp;7: Posterior predictive check p-values for each temperature condition
 <h2 data-number="0.6" class="anchored" data-anchor-id="sec-monotonicity"><span class="header-section-number">0.6</span> Monotonicity Analysis</h2>
 <section id="global-slope" class="level3" data-number="0.6.1">
 <h3 data-number="0.6.1" class="anchored" data-anchor-id="global-slope"><span class="header-section-number">0.6.1</span> Global Slope</h3>
-<div id="cell-fig-slope" class="cell" data-execution_count="19">
+<div id="cell-fig-slope" class="cell" data-execution_count="20">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>slopes <span class="op">=</span> analysis[<span class="st">'slope'</span>]</span>
@@ -1893,7 +1893,7 @@ Figure&nbsp;5: Posterior distribution of the slope Δα/ΔT. Unlike the initial 
 </section>
 <section id="pairwise-comparisons" class="level3" data-number="0.6.2">
 <h3 data-number="0.6.2" class="anchored" data-anchor-id="pairwise-comparisons"><span class="header-section-number">0.6.2</span> Pairwise Comparisons</h3>
-<div class="cell" data-execution_count="20">
+<div class="cell" data-execution_count="21">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>pairs <span class="op">=</span> analysis[<span class="st">'pairwise_comparisons'</span>]</span>
@@ -1919,7 +1919,7 @@ Figure&nbsp;5: Posterior distribution of the slope Δα/ΔT. Unlike the initial 
 <span id="cb21-21"><a href="#cb21-21" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb21-22"><a href="#cb21-22" aria-hidden="true" tabindex="-1"></a>pd.DataFrame(pair_rows)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div id="tbl-pairwise" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="20">
+<div id="tbl-pairwise" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="21">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-pairwise-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;8: Posterior probability that α is higher at the lower temperature in each pair. Unlike the initial study, several pairwise comparisons reverse the expected direction.
@@ -2018,7 +2018,7 @@ Table&nbsp;8: Posterior probability that α is higher at the lower temperature i
 </section>
 <section id="strict-monotonicity" class="level3" data-number="0.6.3">
 <h3 data-number="0.6.3" class="anchored" data-anchor-id="strict-monotonicity"><span class="header-section-number">0.6.3</span> Strict Monotonicity</h3>
-<div id="monotonicity" class="cell" data-execution_count="21">
+<div id="monotonicity" class="cell" data-execution_count="22">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># P(α(T=0.0) &gt; α(T=0.2) &gt; α(T=0.5) &gt; α(T=0.8) &gt; α(T=1.0))</span></span>
@@ -2042,7 +2042,7 @@ Table&nbsp;8: Posterior probability that α is higher at the lower temperature i
 </section>
 <section id="sec-comparison" class="level2" data-number="0.7">
 <h2 data-number="0.7" class="anchored" data-anchor-id="sec-comparison"><span class="header-section-number">0.7</span> Comparison with Initial Temperature Study</h2>
-<div id="cell-fig-cross-study" class="cell" data-execution_count="22">
+<div id="cell-fig-cross-study" class="cell" data-execution_count="23">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load initial study data</span></span>
@@ -2107,7 +2107,7 @@ Figure&nbsp;6: Cross-study comparison of posterior α estimates by temperature. 
 </div>
 </div>
 </div>
-<div class="cell" data-execution_count="23">
+<div class="cell" data-execution_count="24">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>cross <span class="op">=</span> pd.DataFrame([</span>
@@ -2124,7 +2124,7 @@ Figure&nbsp;6: Cross-study comparison of posterior α estimates by temperature. 
 <span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a>])</span>
 <span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a>cross</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div id="tbl-cross-study" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="23">
+<div id="tbl-cross-study" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="24">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-cross-study-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;9: Cross-study comparison of slope estimates and monotonicity. The initial study shows a clear negative relationship; the Ellsberg study does not.
@@ -2173,7 +2173,7 @@ Table&nbsp;9: Cross-study comparison of slope estimates and monotonicity. The in
 </div>
 <section id="pairwise-separation-heatmap" class="level3" data-number="0.7.1">
 <h3 data-number="0.7.1" class="anchored" data-anchor-id="pairwise-separation-heatmap"><span class="header-section-number">0.7.1</span> Pairwise Separation Heatmap</h3>
-<div id="cell-fig-summary" class="cell" data-execution_count="24">
+<div id="cell-fig-summary" class="cell" data-execution_count="25">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>pairs <span class="op">=</span> analysis[<span class="st">'pairwise_comparisons'</span>]</span>
@@ -2359,7 +2359,7 @@ Figure&nbsp;7: Summary of the temperature–sensitivity relationship. Left: post
 </section>
 <section id="refitting-from-source" class="level3" data-number="0.9.2">
 <h3 data-number="0.9.2" class="anchored" data-anchor-id="refitting-from-source"><span class="header-section-number">0.9.2</span> Refitting from Source</h3>
-<div id="refit-example" class="cell" data-execution_count="25">
+<div id="refit-example" class="cell" data-execution_count="26">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Uncomment to refit from source data (requires CmdStanPy)</span></span>
@@ -2384,7 +2384,7 @@ Figure&nbsp;7: Summary of the temperature–sensitivity relationship. Left: post
 <section id="sec-appendix-sbc" class="level2" data-number="0.10">
 <h2 data-number="0.10" class="anchored" data-anchor-id="sec-appendix-sbc"><span class="header-section-number">0.10</span> Appendix: SBC Results for m_02</h2>
 <p>Simulation-based calibration was run with 75 iterations using the Ellsberg study design (<span class="math inline">\(M = 300\)</span>, <span class="math inline">\(K = 4\)</span>, <span class="math inline">\(D = 32\)</span>, <span class="math inline">\(R = 30\)</span>). Each iteration drew parameters from the m_02 prior, simulated choice data via <code>m_02_sbc.stan</code>, fit the model with 1 chain (500 warmup, 1000 sampling, thinning factor 3), and computed the rank of each true parameter value within the posterior draws.</p>
-<div id="cell-fig-sbc-alpha" class="cell" data-execution_count="26">
+<div id="cell-fig-sbc-alpha" class="cell" data-execution_count="27">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>sbc_data_path <span class="op">=</span> data_dir <span class="op">/</span> <span class="st">"sbc_summary.json"</span></span>
@@ -2460,7 +2460,7 @@ Figure&nbsp;8: SBC rank histogram for α (75 iterations). Uniform distribution i
   α: χ² p = 0.179</code></pre>
 </div>
 </div>
-<p>The distribution of p-values across all 132 parameters is consistent with a uniform distribution, and the number of nominally significant results (9 of 132) falls within the range expected by chance. The SBC confirms that m_02’s posterior sampling is well-calibrated, particularly for the primary parameter α.</p>
+<p>The distribution of p-values across all 132 parameters is consistent with a uniform distribution, and the number of nominally significant results (9 of 132) falls within the range expected by chance: the expectation under the null is <span class="math inline">\(132 \times 0.05 \approx 6.6\)</span> with binomial standard deviation <span class="math inline">\(\sqrt{132 \times 0.05 \times 0.95} \approx 2.5\)</span>, so 9 is roughly one standard deviation above the mean and not unusual. The SBC confirms that m_02’s posterior sampling is well-calibrated, particularly for the primary parameter α, subject to the modest power of the reduced 75-iteration design noted above.</p>
 </section>
 <section id="references" class="level2" data-number="0.11">
 <h2 data-number="0.11" class="anchored" data-anchor-id="references"><span class="header-section-number">0.11</span> References</h2>
@@ -2476,13 +2476,13 @@ Figure&nbsp;8: SBC rank histogram for α (75 iterations). Uniform distribution i
 <div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{helzner2026,
   author = {Helzner, Jeff},
   title = {Temperature and {SEU} {Sensitivity:} {Ellsberg} {Study}},
-  date = {2026-04-25},
+  date = {2026-04-26},
   url = {https://jeffhelzner.github.io/seu-sensitivity/applications/ellsberg_study/01_ellsberg_study.html},
   langid = {en}
 }
 </code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-helzner2026" class="csl-entry quarto-appendix-citeas" role="listitem">
 Helzner, Jeff. 2026. <span>“Temperature and SEU Sensitivity: Ellsberg
-Study.”</span> SEU Sensitivity Project, April 25. <a href="https://jeffhelzner.github.io/seu-sensitivity/applications/ellsberg_study/01_ellsberg_study.html">https://jeffhelzner.github.io/seu-sensitivity/applications/ellsberg_study/01_ellsberg_study.html</a>.
+Study.”</span> SEU Sensitivity Project, April 26. <a href="https://jeffhelzner.github.io/seu-sensitivity/applications/ellsberg_study/01_ellsberg_study.html">https://jeffhelzner.github.io/seu-sensitivity/applications/ellsberg_study/01_ellsberg_study.html</a>.
 </div></div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
@@ -4016,7 +4016,7 @@ Study.”</span> SEU Sensitivity Project, April 25. <a href="https://jeffhelzner
 <span id="cb30-1118"><a href="#cb30-1118" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"  α: χ² p = </span><span class="sc">{</span>alpha_sbc[<span class="st">'p_value'</span>]<span class="sc">:.3f}</span><span class="ss">"</span>)</span>
 <span id="cb30-1119"><a href="#cb30-1119" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb30-1120"><a href="#cb30-1120" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb30-1121"><a href="#cb30-1121" aria-hidden="true" tabindex="-1"></a>The distribution of p-values across all 132 parameters is consistent with a uniform distribution, and the number of nominally significant results (9 of 132) falls within the range expected by chance. The SBC confirms that m_02's posterior sampling is well-calibrated, particularly for the primary parameter α.</span>
+<span id="cb30-1121"><a href="#cb30-1121" aria-hidden="true" tabindex="-1"></a>The distribution of p-values across all 132 parameters is consistent with a uniform distribution, and the number of nominally significant results (9 of 132) falls within the range expected by chance: the expectation under the null is $132 \times 0.05 \approx 6.6$ with binomial standard deviation $\sqrt{132 \times 0.05 \times 0.95} \approx 2.5$, so 9 is roughly one standard deviation above the mean and not unusual. The SBC confirms that m_02's posterior sampling is well-calibrated, particularly for the primary parameter α, subject to the modest power of the reduced 75-iteration design noted above.</span>
 <span id="cb30-1122"><a href="#cb30-1122" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb30-1123"><a href="#cb30-1123" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb30-1124"><a href="#cb30-1124" aria-hidden="true" tabindex="-1"></a><span class="fu">## References</span></span>

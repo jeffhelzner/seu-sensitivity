@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Jeff Helzner">
-<meta name="dcterms.date" content="2026-04-25">
+<meta name="dcterms.date" content="2026-04-26">
 <meta name="description" content="An investigation of how LLM sampling temperature affects estimated sensitivity (α) to subjective expected utility maximisation, using insurance claims triage (K=3) and Claude 3.5 Sonnet (Anthropic). This study isolates the LLM effect by pairing Claude with the same task domain used in the initial temperature study.">
 
 <title>Temperature and SEU Sensitivity: Claude × Insurance Study – SEU Sensitivity</title>
@@ -169,10 +169,10 @@ window.Quarto = {
 <link rel="stylesheet" href="../../styles/seu-sensitivity.css">
 <meta name="citation_title" content="Temperature and SEU Sensitivity: Claude × Insurance Study">
 <meta name="citation_author" content="Jeff Helzner">
-<meta name="citation_publication_date" content="2026-04-25">
-<meta name="citation_cover_date" content="2026-04-25">
+<meta name="citation_publication_date" content="2026-04-26">
+<meta name="citation_cover_date" content="2026-04-26">
 <meta name="citation_year" content="2026">
-<meta name="citation_online_date" content="2026-04-25">
+<meta name="citation_online_date" content="2026-04-26">
 <meta name="citation_fulltext_html_url" content="https://jeffhelzner.github.io/seu-sensitivity/applications/claude_insurance_study/01_claude_insurance_study.html">
 <meta name="citation_language" content="en">
 <meta name="citation_journal_title" content="SEU Sensitivity Project">
@@ -610,7 +610,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">April 25, 2026</p>
+      <p class="date">April 26, 2026</p>
     </div>
   </div>
   
@@ -2154,7 +2154,8 @@ Figure&nbsp;6: Left: α vs.&nbsp;temperature showing the flat, non-monotonic pat
 <ol type="1">
 <li><p><strong>Temperature range and grid comparability.</strong> The Anthropic API constrains temperature to <span class="math inline">\([0.0, 1.0]\)</span>, whereas the initial GPT-4o study used <span class="math inline">\([0.0, 1.5]\)</span>. The narrower range reduces statistical power to detect a temperature effect and complicates quantitative slope comparisons. Additionally, the absolute temperature values may not correspond to equivalent next-token entropy levels across providers. While the qualitative contrast (clear monotonic decline vs.&nbsp;flat pattern) is unambiguous, precise numerical comparisons of slope magnitudes should be interpreted cautiously.</p></li>
 <li><p><strong>Prior sensitivity.</strong> The m_01 prior on α is Lognormal(3.0, 0.75), inherited from the initial temperature study. We did not conduct a formal prior sensitivity analysis for this cell. However, with <span class="math inline">\(M \approx 300\)</span> observations per condition and α posteriors that are substantially narrower than the prior, the likelihood dominates the prior contribution. A formal check under alternative priors (e.g., Lognormal(3.0, 1.0) or Lognormal(2.5, 0.75)) would provide additional reassurance that the null finding is prior-robust, though we expect the conclusion to be unchanged given the data volume.</p></li>
-<li><p><strong>SBC by proxy.</strong> SBC was inherited from the initial study rather than re-run with Claude-generated data. While SBC validates the computational algorithm (which is model-structural, not data-source-specific), the parameter recovery analysis provides direct validation under this study’s conditions.</p></li>
+<li><p><strong>SBC inherited, not re-run.</strong> Simulation-Based Calibration was <em>not</em> performed on this dataset. We rely on the SBC validation from the initial GPT-4o temperature study (<a href="../../applications/temperature_study/01_initial_study.html">Initial Study</a>), which used the same <code>m_01.stan</code> model and the same <code>α ~ LogNormal(3.0, 0.75)</code> prior; SBC tests the sampler under the prior-and-likelihood and is therefore inherited validly across applications that share both. The phrase “SBC by proxy” used in earlier drafts refers to this inheritance and should not be read as evidence that an SBC was conducted on Claude data. Direct validation under this study’s conditions comes from the parameter recovery analysis above.</p></li>
+<li><p><strong>Post-hoc design.</strong> The Claude insurance cell was added <em>after</em> the initial GPT-4o temperature finding, as part of the factorial extension; the design and analysis plan were finalised reactively rather than pre-registered before data collection. Within this study we describe the m_01 fits and slope test as confirmatory in the narrow sense that the model, prior, and slope contrast were fixed before fitting; the broader factorial framing is exploratory and is treated as such in the <a href="../../applications/factorial_synthesis/01_factorial_synthesis.html">factorial synthesis report</a>.</p></li>
 <li><p><strong>Single embedding model.</strong> All studies in the factorial design use text-embedding-3-small (OpenAI) for embedding construction. Different embedding models might yield different feature spaces and hence different α estimates, though the consistency of the PCA variance profile across studies suggests robustness to this choice.</p></li>
 <li><p><strong>Position bias.</strong> While the <span class="math inline">\(3\times\)</span> position counterbalancing design addresses systematic position effects, we did not conduct a separate analysis of whether Claude’s position bias patterns differ from GPT-4o’s. Differential position sensitivity could in principle contribute to the observed differences, though it seems unlikely to explain the qualitative absence of a temperature trend.</p></li>
 <li><p><strong>Formal interaction test deferred.</strong> The full 2×2 interaction test (LLM × Task) is computed in the <a href="../../applications/factorial_synthesis/01_factorial_synthesis.html">factorial synthesis report</a> rather than here, to avoid redundancy and ensure consistency across cells.</p></li>
@@ -2252,13 +2253,13 @@ Figure&nbsp;6: Left: α vs.&nbsp;temperature showing the flat, non-monotonic pat
   author = {Helzner, Jeff},
   title = {Temperature and {SEU} {Sensitivity:} {Claude} × {Insurance}
     {Study}},
-  date = {2026-04-25},
+  date = {2026-04-26},
   url = {https://jeffhelzner.github.io/seu-sensitivity/applications/claude_insurance_study/01_claude_insurance_study.html},
   langid = {en}
 }
 </code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-helzner2026" class="csl-entry quarto-appendix-citeas" role="listitem">
 Helzner, Jeff. 2026. <span>“Temperature and SEU Sensitivity: Claude ×
-Insurance Study.”</span> SEU Sensitivity Project, April 25. <a href="https://jeffhelzner.github.io/seu-sensitivity/applications/claude_insurance_study/01_claude_insurance_study.html">https://jeffhelzner.github.io/seu-sensitivity/applications/claude_insurance_study/01_claude_insurance_study.html</a>.
+Insurance Study.”</span> SEU Sensitivity Project, April 26. <a href="https://jeffhelzner.github.io/seu-sensitivity/applications/claude_insurance_study/01_claude_insurance_study.html">https://jeffhelzner.github.io/seu-sensitivity/applications/claude_insurance_study/01_claude_insurance_study.html</a>.
 </div></div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
@@ -3617,61 +3618,63 @@ Insurance Study.”</span> SEU Sensitivity Project, April 25. <a href="https://j
 <span id="cb31-941"><a href="#cb31-941" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb31-942"><a href="#cb31-942" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>**Prior sensitivity.** The m_01 prior on α is Lognormal(3.0, 0.75), inherited from the initial temperature study. We did not conduct a formal prior sensitivity analysis for this cell. However, with $M \approx 300$ observations per condition and α posteriors that are substantially narrower than the prior, the likelihood dominates the prior contribution. A formal check under alternative priors (e.g., Lognormal(3.0, 1.0) or Lognormal(2.5, 0.75)) would provide additional reassurance that the null finding is prior-robust, though we expect the conclusion to be unchanged given the data volume.</span>
 <span id="cb31-943"><a href="#cb31-943" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-944"><a href="#cb31-944" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>**SBC by proxy.** SBC was inherited from the initial study rather than re-run with Claude-generated data. While SBC validates the computational algorithm (which is model-structural, not data-source-specific), the parameter recovery analysis provides direct validation under this study's conditions.</span>
+<span id="cb31-944"><a href="#cb31-944" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>**SBC inherited, not re-run.** Simulation-Based Calibration was *not* performed on this dataset. We rely on the SBC validation from the initial GPT-4o temperature study (<span class="co">[</span><span class="ot">Initial Study</span><span class="co">](../temperature_study/01_initial_study.qmd)</span>), which used the same <span class="in">`m_01.stan`</span> model and the same <span class="in">`α ~ LogNormal(3.0, 0.75)`</span> prior; SBC tests the sampler under the prior-and-likelihood and is therefore inherited validly across applications that share both. The phrase "SBC by proxy" used in earlier drafts refers to this inheritance and should not be read as evidence that an SBC was conducted on Claude data. Direct validation under this study's conditions comes from the parameter recovery analysis above.</span>
 <span id="cb31-945"><a href="#cb31-945" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-946"><a href="#cb31-946" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span>**Single embedding model.** All studies in the factorial design use text-embedding-3-small (OpenAI) for embedding construction. Different embedding models might yield different feature spaces and hence different α estimates, though the consistency of the PCA variance profile across studies suggests robustness to this choice.</span>
+<span id="cb31-946"><a href="#cb31-946" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span>**Post-hoc design.** The Claude insurance cell was added *after* the initial GPT-4o temperature finding, as part of the factorial extension; the design and analysis plan were finalised reactively rather than pre-registered before data collection. Within this study we describe the m_01 fits and slope test as confirmatory in the narrow sense that the model, prior, and slope contrast were fixed before fitting; the broader factorial framing is exploratory and is treated as such in the <span class="co">[</span><span class="ot">factorial synthesis report</span><span class="co">](../factorial_synthesis/01_factorial_synthesis.qmd)</span>.</span>
 <span id="cb31-947"><a href="#cb31-947" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-948"><a href="#cb31-948" aria-hidden="true" tabindex="-1"></a><span class="ss">5. </span>**Position bias.** While the $3\times$ position counterbalancing design addresses systematic position effects, we did not conduct a separate analysis of whether Claude's position bias patterns differ from GPT-4o's. Differential position sensitivity could in principle contribute to the observed differences, though it seems unlikely to explain the qualitative absence of a temperature trend.</span>
+<span id="cb31-948"><a href="#cb31-948" aria-hidden="true" tabindex="-1"></a><span class="ss">5. </span>**Single embedding model.** All studies in the factorial design use text-embedding-3-small (OpenAI) for embedding construction. Different embedding models might yield different feature spaces and hence different α estimates, though the consistency of the PCA variance profile across studies suggests robustness to this choice.</span>
 <span id="cb31-949"><a href="#cb31-949" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-950"><a href="#cb31-950" aria-hidden="true" tabindex="-1"></a><span class="ss">6. </span>**Formal interaction test deferred.** The full 2×2 interaction test (LLM × Task) is computed in the <span class="co">[</span><span class="ot">factorial synthesis report</span><span class="co">](../factorial_synthesis/01_factorial_synthesis.qmd)</span> rather than here, to avoid redundancy and ensure consistency across cells.</span>
+<span id="cb31-950"><a href="#cb31-950" aria-hidden="true" tabindex="-1"></a><span class="ss">6. </span>**Position bias.** While the $3\times$ position counterbalancing design addresses systematic position effects, we did not conduct a separate analysis of whether Claude's position bias patterns differ from GPT-4o's. Differential position sensitivity could in principle contribute to the observed differences, though it seems unlikely to explain the qualitative absence of a temperature trend.</span>
 <span id="cb31-951"><a href="#cb31-951" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-952"><a href="#cb31-952" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-953"><a href="#cb31-953" aria-hidden="true" tabindex="-1"></a><span class="fu">## Reproducibility {#sec-reproducibility}</span></span>
+<span id="cb31-952"><a href="#cb31-952" aria-hidden="true" tabindex="-1"></a><span class="ss">7. </span>**Formal interaction test deferred.** The full 2×2 interaction test (LLM × Task) is computed in the <span class="co">[</span><span class="ot">factorial synthesis report</span><span class="co">](../factorial_synthesis/01_factorial_synthesis.qmd)</span> rather than here, to avoid redundancy and ensure consistency across cells.</span>
+<span id="cb31-953"><a href="#cb31-953" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb31-954"><a href="#cb31-954" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-955"><a href="#cb31-955" aria-hidden="true" tabindex="-1"></a>**Codebase version:** <span class="in">`21d6883`</span> (git commit hash at time of analysis)</span>
+<span id="cb31-955"><a href="#cb31-955" aria-hidden="true" tabindex="-1"></a><span class="fu">## Reproducibility {#sec-reproducibility}</span></span>
 <span id="cb31-956"><a href="#cb31-956" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-957"><a href="#cb31-957" aria-hidden="true" tabindex="-1"></a><span class="fu">### Data Snapshot</span></span>
+<span id="cb31-957"><a href="#cb31-957" aria-hidden="true" tabindex="-1"></a>**Codebase version:** <span class="in">`21d6883`</span> (git commit hash at time of analysis)</span>
 <span id="cb31-958"><a href="#cb31-958" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-959"><a href="#cb31-959" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> File <span class="pp">|</span> Description <span class="pp">|</span></span>
-<span id="cb31-960"><a href="#cb31-960" aria-hidden="true" tabindex="-1"></a><span class="pp">|------|-------------|</span></span>
-<span id="cb31-961"><a href="#cb31-961" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`alpha_draws_T*.npz`</span> <span class="pp">|</span> Posterior draws of α (4,000 per condition) <span class="pp">|</span></span>
-<span id="cb31-962"><a href="#cb31-962" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`ppc_T*.json`</span> <span class="pp">|</span> Posterior predictive check results <span class="pp">|</span></span>
-<span id="cb31-963"><a href="#cb31-963" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`diagnostics_T*.txt`</span> <span class="pp">|</span> CmdStan diagnostic output <span class="pp">|</span></span>
-<span id="cb31-964"><a href="#cb31-964" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`stan_data_T*.json`</span> <span class="pp">|</span> Stan-ready data (for refitting) <span class="pp">|</span></span>
-<span id="cb31-965"><a href="#cb31-965" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`fit_summary.json`</span> <span class="pp">|</span> Summary statistics across conditions <span class="pp">|</span></span>
-<span id="cb31-966"><a href="#cb31-966" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`primary_analysis.json`</span> <span class="pp">|</span> Pre-computed monotonicity and slope statistics <span class="pp">|</span></span>
-<span id="cb31-967"><a href="#cb31-967" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`run_summary.json`</span> <span class="pp">|</span> Pipeline metadata and configuration <span class="pp">|</span></span>
-<span id="cb31-968"><a href="#cb31-968" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`study_config.yaml`</span> <span class="pp">|</span> Frozen copy of the study configuration <span class="pp">|</span></span>
-<span id="cb31-969"><a href="#cb31-969" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-970"><a href="#cb31-970" aria-hidden="true" tabindex="-1"></a><span class="fu">### Refitting from Source</span></span>
+<span id="cb31-959"><a href="#cb31-959" aria-hidden="true" tabindex="-1"></a><span class="fu">### Data Snapshot</span></span>
+<span id="cb31-960"><a href="#cb31-960" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-961"><a href="#cb31-961" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> File <span class="pp">|</span> Description <span class="pp">|</span></span>
+<span id="cb31-962"><a href="#cb31-962" aria-hidden="true" tabindex="-1"></a><span class="pp">|------|-------------|</span></span>
+<span id="cb31-963"><a href="#cb31-963" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`alpha_draws_T*.npz`</span> <span class="pp">|</span> Posterior draws of α (4,000 per condition) <span class="pp">|</span></span>
+<span id="cb31-964"><a href="#cb31-964" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`ppc_T*.json`</span> <span class="pp">|</span> Posterior predictive check results <span class="pp">|</span></span>
+<span id="cb31-965"><a href="#cb31-965" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`diagnostics_T*.txt`</span> <span class="pp">|</span> CmdStan diagnostic output <span class="pp">|</span></span>
+<span id="cb31-966"><a href="#cb31-966" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`stan_data_T*.json`</span> <span class="pp">|</span> Stan-ready data (for refitting) <span class="pp">|</span></span>
+<span id="cb31-967"><a href="#cb31-967" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`fit_summary.json`</span> <span class="pp">|</span> Summary statistics across conditions <span class="pp">|</span></span>
+<span id="cb31-968"><a href="#cb31-968" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`primary_analysis.json`</span> <span class="pp">|</span> Pre-computed monotonicity and slope statistics <span class="pp">|</span></span>
+<span id="cb31-969"><a href="#cb31-969" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`run_summary.json`</span> <span class="pp">|</span> Pipeline metadata and configuration <span class="pp">|</span></span>
+<span id="cb31-970"><a href="#cb31-970" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`study_config.yaml`</span> <span class="pp">|</span> Frozen copy of the study configuration <span class="pp">|</span></span>
 <span id="cb31-971"><a href="#cb31-971" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-974"><a href="#cb31-974" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb31-975"><a href="#cb31-975" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: refit-example</span></span>
-<span id="cb31-976"><a href="#cb31-976" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: false</span></span>
-<span id="cb31-977"><a href="#cb31-977" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: true</span></span>
-<span id="cb31-978"><a href="#cb31-978" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-979"><a href="#cb31-979" aria-hidden="true" tabindex="-1"></a><span class="co"># Uncomment to refit from source data (requires CmdStanPy)</span></span>
-<span id="cb31-980"><a href="#cb31-980" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
-<span id="cb31-981"><a href="#cb31-981" aria-hidden="true" tabindex="-1"></a><span class="co"># import cmdstanpy</span></span>
-<span id="cb31-982"><a href="#cb31-982" aria-hidden="true" tabindex="-1"></a><span class="co"># model = cmdstanpy.CmdStanModel(stan_file="models/m_01.stan")</span></span>
-<span id="cb31-983"><a href="#cb31-983" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
-<span id="cb31-984"><a href="#cb31-984" aria-hidden="true" tabindex="-1"></a><span class="co"># for t in [0.0, 0.2, 0.5, 0.8, 1.0]:</span></span>
-<span id="cb31-985"><a href="#cb31-985" aria-hidden="true" tabindex="-1"></a><span class="co">#     key = f"T{str(t).replace('.', '_')}"</span></span>
-<span id="cb31-986"><a href="#cb31-986" aria-hidden="true" tabindex="-1"></a><span class="co">#     fit = model.sample(</span></span>
-<span id="cb31-987"><a href="#cb31-987" aria-hidden="true" tabindex="-1"></a><span class="co">#         data=f"data/stan_data_{key}.json",</span></span>
-<span id="cb31-988"><a href="#cb31-988" aria-hidden="true" tabindex="-1"></a><span class="co">#         chains=4,</span></span>
-<span id="cb31-989"><a href="#cb31-989" aria-hidden="true" tabindex="-1"></a><span class="co">#         iter_warmup=1000,</span></span>
-<span id="cb31-990"><a href="#cb31-990" aria-hidden="true" tabindex="-1"></a><span class="co">#         iter_sampling=1000,</span></span>
-<span id="cb31-991"><a href="#cb31-991" aria-hidden="true" tabindex="-1"></a><span class="co">#         seed=42,</span></span>
-<span id="cb31-992"><a href="#cb31-992" aria-hidden="true" tabindex="-1"></a><span class="co">#     )</span></span>
-<span id="cb31-993"><a href="#cb31-993" aria-hidden="true" tabindex="-1"></a><span class="co">#     print(f"T={t}: alpha median = {np.median(fit.stan_variable('alpha')):.1f}")</span></span>
-<span id="cb31-994"><a href="#cb31-994" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb31-995"><a href="#cb31-995" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-996"><a href="#cb31-996" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-997"><a href="#cb31-997" aria-hidden="true" tabindex="-1"></a><span class="fu">## References</span></span>
+<span id="cb31-972"><a href="#cb31-972" aria-hidden="true" tabindex="-1"></a><span class="fu">### Refitting from Source</span></span>
+<span id="cb31-973"><a href="#cb31-973" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-976"><a href="#cb31-976" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb31-977"><a href="#cb31-977" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: refit-example</span></span>
+<span id="cb31-978"><a href="#cb31-978" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: false</span></span>
+<span id="cb31-979"><a href="#cb31-979" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: true</span></span>
+<span id="cb31-980"><a href="#cb31-980" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-981"><a href="#cb31-981" aria-hidden="true" tabindex="-1"></a><span class="co"># Uncomment to refit from source data (requires CmdStanPy)</span></span>
+<span id="cb31-982"><a href="#cb31-982" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
+<span id="cb31-983"><a href="#cb31-983" aria-hidden="true" tabindex="-1"></a><span class="co"># import cmdstanpy</span></span>
+<span id="cb31-984"><a href="#cb31-984" aria-hidden="true" tabindex="-1"></a><span class="co"># model = cmdstanpy.CmdStanModel(stan_file="models/m_01.stan")</span></span>
+<span id="cb31-985"><a href="#cb31-985" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
+<span id="cb31-986"><a href="#cb31-986" aria-hidden="true" tabindex="-1"></a><span class="co"># for t in [0.0, 0.2, 0.5, 0.8, 1.0]:</span></span>
+<span id="cb31-987"><a href="#cb31-987" aria-hidden="true" tabindex="-1"></a><span class="co">#     key = f"T{str(t).replace('.', '_')}"</span></span>
+<span id="cb31-988"><a href="#cb31-988" aria-hidden="true" tabindex="-1"></a><span class="co">#     fit = model.sample(</span></span>
+<span id="cb31-989"><a href="#cb31-989" aria-hidden="true" tabindex="-1"></a><span class="co">#         data=f"data/stan_data_{key}.json",</span></span>
+<span id="cb31-990"><a href="#cb31-990" aria-hidden="true" tabindex="-1"></a><span class="co">#         chains=4,</span></span>
+<span id="cb31-991"><a href="#cb31-991" aria-hidden="true" tabindex="-1"></a><span class="co">#         iter_warmup=1000,</span></span>
+<span id="cb31-992"><a href="#cb31-992" aria-hidden="true" tabindex="-1"></a><span class="co">#         iter_sampling=1000,</span></span>
+<span id="cb31-993"><a href="#cb31-993" aria-hidden="true" tabindex="-1"></a><span class="co">#         seed=42,</span></span>
+<span id="cb31-994"><a href="#cb31-994" aria-hidden="true" tabindex="-1"></a><span class="co">#     )</span></span>
+<span id="cb31-995"><a href="#cb31-995" aria-hidden="true" tabindex="-1"></a><span class="co">#     print(f"T={t}: alpha median = {np.median(fit.stan_variable('alpha')):.1f}")</span></span>
+<span id="cb31-996"><a href="#cb31-996" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb31-997"><a href="#cb31-997" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb31-998"><a href="#cb31-998" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-999"><a href="#cb31-999" aria-hidden="true" tabindex="-1"></a>::: {#refs}</span>
-<span id="cb31-1000"><a href="#cb31-1000" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb31-999"><a href="#cb31-999" aria-hidden="true" tabindex="-1"></a><span class="fu">## References</span></span>
+<span id="cb31-1000"><a href="#cb31-1000" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-1001"><a href="#cb31-1001" aria-hidden="true" tabindex="-1"></a>::: {#refs}</span>
+<span id="cb31-1002"><a href="#cb31-1002" aria-hidden="true" tabindex="-1"></a>:::</span>
 </code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->

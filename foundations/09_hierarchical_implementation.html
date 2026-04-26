@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Jeff Helzner">
-<meta name="dcterms.date" content="2026-04-25">
+<meta name="dcterms.date" content="2026-04-26">
 <meta name="description" content="Concrete implementation of the hierarchical SEU sensitivity model in Stan. Details the data structure, non-centered parameterization, cell-specific belief formation, and generated quantities for model checking.">
 
 <title>Hierarchical Implementation: The h_m01 Stan Model – SEU Sensitivity</title>
@@ -166,10 +166,10 @@ window.Quarto = {
 <link rel="stylesheet" href="../styles/seu-sensitivity.css">
 <meta name="citation_title" content="Hierarchical Implementation: The h_m01 Stan Model">
 <meta name="citation_author" content="Jeff Helzner">
-<meta name="citation_publication_date" content="2026-04-25">
-<meta name="citation_cover_date" content="2026-04-25">
+<meta name="citation_publication_date" content="2026-04-26">
+<meta name="citation_cover_date" content="2026-04-26">
 <meta name="citation_year" content="2026">
-<meta name="citation_online_date" content="2026-04-25">
+<meta name="citation_online_date" content="2026-04-26">
 <meta name="citation_fulltext_html_url" content="https://jeffhelzner.github.io/seu-sensitivity/foundations/09_hierarchical_implementation.html">
 <meta name="citation_language" content="en">
 <meta name="citation_journal_title" content="SEU Sensitivity Project">
@@ -563,7 +563,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">April 25, 2026</p>
+      <p class="date">April 26, 2026</p>
     </div>
   </div>
   
@@ -943,21 +943,22 @@ Figure&nbsp;1: Parameter flow in h_m01. Regression parameters (γ₀, γ, σ_cel
 </div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6" data-filename="h_m01.stan (model block — priors)"><pre class="sourceCode stan code-with-copy"><code class="sourceCode stan"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">model</span> {</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="co">// --- Priors ---</span></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Regression</span></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  gamma0 ~ normal(<span class="fl">3.0</span>, <span class="fl">1.0</span>);             <span class="co">// prior on intercept: median alpha ~ 20</span></span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  gamma ~ normal(<span class="dv">0</span>, <span class="fl">1.0</span>);                <span class="co">// shrinkage toward no effect</span></span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  sigma_cell ~ normal(<span class="dv">0</span>, <span class="fl">0.5</span>);           <span class="co">// half-normal (constrained positive): modest cell variation</span></span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  z_alpha ~ std_normal();                <span class="co">// non-centered parameterization</span></span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Beliefs: per-cell, same prior as m_01</span></span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (j <span class="cf">in</span> <span class="dv">1</span>:J) {</span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>    to_vector(beta[j]) ~ std_normal();</span>
-<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Utilities: shared</span></span>
-<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>  delta ~ dirichlet(rep_vector(<span class="dv">1</span>, K<span class="dv">-1</span>));</span>
-<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ...</span></span>
-<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Regression (tightened 2026-04-23 after parameter recovery showed soft</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="co">// identifiability of alpha with heavy right tail under the original priors)</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  gamma0 ~ normal(<span class="fl">2.5</span>, <span class="fl">0.5</span>);             <span class="co">// prior on intercept: median alpha ~ 12, 97.5th pct ~ 33</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  gamma ~ normal(<span class="dv">0</span>, <span class="fl">0.5</span>);                <span class="co">// stronger shrinkage toward no effect</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  sigma_cell ~ normal(<span class="dv">0</span>, <span class="fl">0.3</span>);           <span class="co">// half-normal: modest cell variation (J=6 weakly identifies)</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  z_alpha ~ std_normal();                <span class="co">// non-centered parameterization</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Beliefs: per-cell, same prior as m_01</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (j <span class="cf">in</span> <span class="dv">1</span>:J) {</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>    to_vector(beta[j]) ~ std_normal();</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Utilities: shared</span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>  delta ~ dirichlet(rep_vector(<span class="dv">1</span>, K<span class="dv">-1</span>));</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ...</span></span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Each prior is motivated by its role in the model:</p>
 <div id="tbl-priors" class="quarto-float quarto-figure quarto-figure-center anchored">
@@ -984,21 +985,21 @@ Table&nbsp;1: Prior distributions in h_m01 and their m_01 analogues.
 <tbody>
 <tr class="odd">
 <td><span class="math inline">\(\gamma_0\)</span></td>
-<td><span class="math inline">\(\mathcal{N}(3.0, 1.0)\)</span></td>
+<td><span class="math inline">\(\mathcal{N}(2.5, 0.5)\)</span></td>
 <td><span class="math inline">\(\alpha \sim \text{LogNormal}(3.0, 0.75)\)</span></td>
-<td>Centers the grand mean at the m_01 calibrated prior location</td>
+<td>Tightened intercept centred so that the prior on <span class="math inline">\(\alpha\)</span> has median <span class="math inline">\(\approx 12\)</span> and 97.5th percentile <span class="math inline">\(\approx 33\)</span>, controlling the heavy right tail seen under the original <span class="math inline">\(\mathcal{N}(3.0, 1.0)\)</span> prior</td>
 </tr>
 <tr class="even">
 <td><span class="math inline">\(\boldsymbol{\gamma}\)</span></td>
-<td><span class="math inline">\(\mathcal{N}(0, 1.0)\)</span></td>
+<td><span class="math inline">\(\mathcal{N}(0, 0.5)\)</span></td>
 <td>— (new)</td>
-<td>Shrinkage toward no effect; a priori, experimental factors don’t shift <span class="math inline">\(\alpha\)</span></td>
+<td>Stronger shrinkage toward no effect; a priori, experimental factors don’t shift <span class="math inline">\(\alpha\)</span></td>
 </tr>
 <tr class="odd">
 <td><span class="math inline">\(\sigma_{\text{cell}}\)</span></td>
-<td><span class="math inline">\(\text{HalfNormal}(0, 0.5)\)</span></td>
+<td><span class="math inline">\(\text{HalfNormal}(0, 0.3)\)</span></td>
 <td>— (new)</td>
-<td>Modest cell-level variation; 0.5 on log scale <span class="math inline">\(\approx\)</span> factor of 1.6</td>
+<td>Modest cell-level variation; 0.3 on log scale <span class="math inline">\(\approx\)</span> factor of 1.35. The <span class="math inline">\(J=6\)</span> design weakly identifies <span class="math inline">\(\sigma_{\text{cell}}\)</span>, motivating the tighter scale</td>
 </tr>
 <tr class="even">
 <td><span class="math inline">\(z_j\)</span></td>
@@ -1033,7 +1034,7 @@ Table&nbsp;1: Prior distributions in h_m01 and their m_01 analogues.
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>The m_01 prior <span class="math inline">\(\alpha \sim \text{LogNormal}(3.0, 0.75)\)</span> was calibrated via prior predictive analysis (<a href="../foundations/03_prior_analysis.html">Report 3</a>) to yield a prior-implied SEU-max rate of approximately 0.78. In h_m01, <span class="math inline">\(\gamma_0 \sim \mathcal{N}(3.0, 1.0)\)</span> centers the grand mean of <span class="math inline">\(\log(\alpha)\)</span> at the same location. The slightly wider SD (1.0 vs 0.75) accommodates uncertainty from the regression structure, while <span class="math inline">\(\sigma_{\text{cell}}\)</span> captures additional cell-level variation.</p>
+<p>The m_01 prior <span class="math inline">\(\alpha \sim \text{LogNormal}(3.0, 0.75)\)</span> was calibrated via prior predictive analysis (<a href="../foundations/03_prior_analysis.html">Report 3</a>) to yield a prior-implied SEU-max rate of approximately 0.78. The h_m01 priors above are the <strong>tightened</strong> values that match the current <code>models/h_m01.stan</code> (commit on 2026-04-24). They were tightened from an earlier <span class="math inline">\(\gamma_0 \sim \mathcal{N}(3.0, 1.0)\)</span>, <span class="math inline">\(\boldsymbol{\gamma} \sim \mathcal{N}(0, 1.0)\)</span>, <span class="math inline">\(\sigma_{\text{cell}} \sim \text{HalfNormal}(0, 0.5)\)</span> specification after parameter recovery (<a href="../foundations/11_hierarchical_parameter_recovery.html">Report 11</a>) showed soft identifiability of <span class="math inline">\(\alpha\)</span> with a heavy right tail. The hierarchical prior predictive (<a href="../foundations/10_hierarchical_prior_analysis.html">Report 10</a>), parameter recovery (<a href="../foundations/11_hierarchical_parameter_recovery.html">Report 11</a>), and SBC validation (<a href="../foundations/12_hierarchical_sbc_validation.html">Report 12</a>) all use the tightened priors shown here.</p>
 </div>
 </div>
 </section>
@@ -1346,13 +1347,13 @@ Talts, Sean, Michael Betancourt, Daniel Simpson, Aki Vehtari, and Andrew Gelman.
 </div></section><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{helzner2026,
   author = {Helzner, Jeff},
   title = {Hierarchical {Implementation:} {The} h\_m01 {Stan} {Model}},
-  date = {2026-04-25},
+  date = {2026-04-26},
   url = {https://jeffhelzner.github.io/seu-sensitivity/foundations/09_hierarchical_implementation.html},
   langid = {en}
 }
 </code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-helzner2026" class="csl-entry quarto-appendix-citeas" role="listitem">
 Helzner, Jeff. 2026. <span>“Hierarchical Implementation: The h_m01 Stan
-Model.”</span> SEU Sensitivity Project, April 25. <a href="https://jeffhelzner.github.io/seu-sensitivity/foundations/09_hierarchical_implementation.html">https://jeffhelzner.github.io/seu-sensitivity/foundations/09_hierarchical_implementation.html</a>.
+Model.”</span> SEU Sensitivity Project, April 26. <a href="https://jeffhelzner.github.io/seu-sensitivity/foundations/09_hierarchical_implementation.html">https://jeffhelzner.github.io/seu-sensitivity/foundations/09_hierarchical_implementation.html</a>.
 </div></div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
@@ -2112,282 +2113,283 @@ Model.”</span> SEU Sensitivity Project, April 25. <a href="https://jeffhelzner
 <span id="cb14-296"><a href="#cb14-296" aria-hidden="true" tabindex="-1"></a><span class="in">```{.stan filename="h_m01.stan (model block — priors)"}</span></span>
 <span id="cb14-297"><a href="#cb14-297" aria-hidden="true" tabindex="-1"></a><span class="in">model {</span></span>
 <span id="cb14-298"><a href="#cb14-298" aria-hidden="true" tabindex="-1"></a><span class="in">  // --- Priors ---</span></span>
-<span id="cb14-299"><a href="#cb14-299" aria-hidden="true" tabindex="-1"></a><span class="in">  // Regression</span></span>
-<span id="cb14-300"><a href="#cb14-300" aria-hidden="true" tabindex="-1"></a><span class="in">  gamma0 ~ normal(3.0, 1.0);             // prior on intercept: median alpha ~ 20</span></span>
-<span id="cb14-301"><a href="#cb14-301" aria-hidden="true" tabindex="-1"></a><span class="in">  gamma ~ normal(0, 1.0);                // shrinkage toward no effect</span></span>
-<span id="cb14-302"><a href="#cb14-302" aria-hidden="true" tabindex="-1"></a><span class="in">  sigma_cell ~ normal(0, 0.5);           // half-normal (constrained positive): modest cell variation</span></span>
-<span id="cb14-303"><a href="#cb14-303" aria-hidden="true" tabindex="-1"></a><span class="in">  z_alpha ~ std_normal();                // non-centered parameterization</span></span>
-<span id="cb14-304"><a href="#cb14-304" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-305"><a href="#cb14-305" aria-hidden="true" tabindex="-1"></a><span class="in">  // Beliefs: per-cell, same prior as m_01</span></span>
-<span id="cb14-306"><a href="#cb14-306" aria-hidden="true" tabindex="-1"></a><span class="in">  for (j in 1:J) {</span></span>
-<span id="cb14-307"><a href="#cb14-307" aria-hidden="true" tabindex="-1"></a><span class="in">    to_vector(beta[j]) ~ std_normal();</span></span>
-<span id="cb14-308"><a href="#cb14-308" aria-hidden="true" tabindex="-1"></a><span class="in">  }</span></span>
-<span id="cb14-309"><a href="#cb14-309" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-310"><a href="#cb14-310" aria-hidden="true" tabindex="-1"></a><span class="in">  // Utilities: shared</span></span>
-<span id="cb14-311"><a href="#cb14-311" aria-hidden="true" tabindex="-1"></a><span class="in">  delta ~ dirichlet(rep_vector(1, K-1));</span></span>
-<span id="cb14-312"><a href="#cb14-312" aria-hidden="true" tabindex="-1"></a><span class="in">  // ...</span></span>
-<span id="cb14-313"><a href="#cb14-313" aria-hidden="true" tabindex="-1"></a><span class="in">}</span></span>
-<span id="cb14-314"><a href="#cb14-314" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb14-315"><a href="#cb14-315" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-316"><a href="#cb14-316" aria-hidden="true" tabindex="-1"></a>Each prior is motivated by its role in the model:</span>
-<span id="cb14-317"><a href="#cb14-317" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-318"><a href="#cb14-318" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Parameter <span class="pp">|</span> Prior <span class="pp">|</span> m_01 Analogue <span class="pp">|</span> Rationale <span class="pp">|</span></span>
-<span id="cb14-319"><a href="#cb14-319" aria-hidden="true" tabindex="-1"></a><span class="pp">|-----------|-------|---------------|-----------|</span></span>
-<span id="cb14-320"><a href="#cb14-320" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> $\gamma_0$ <span class="pp">|</span> $\mathcal{N}(3.0, 1.0)$ <span class="pp">|</span> $\alpha \sim \text{LogNormal}(3.0, 0.75)$ <span class="pp">|</span> Centers the grand mean at the m_01 calibrated prior location <span class="pp">|</span></span>
-<span id="cb14-321"><a href="#cb14-321" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> $\boldsymbol{\gamma}$ <span class="pp">|</span> $\mathcal{N}(0, 1.0)$ <span class="pp">|</span> — (new) <span class="pp">|</span> Shrinkage toward no effect; a priori, experimental factors don't shift $\alpha$ <span class="pp">|</span></span>
-<span id="cb14-322"><a href="#cb14-322" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> $\sigma_{\text{cell}}$ <span class="pp">|</span> $\text{HalfNormal}(0, 0.5)$ <span class="pp">|</span> — (new) <span class="pp">|</span> Modest cell-level variation; 0.5 on log scale $\approx$ factor of 1.6 <span class="pp">|</span></span>
-<span id="cb14-323"><a href="#cb14-323" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> $z_j$ <span class="pp">|</span> $\mathcal{N}(0, 1)$ <span class="pp">|</span> — (new) <span class="pp">|</span> Non-centered parameterization; computational device <span class="pp">|</span></span>
-<span id="cb14-324"><a href="#cb14-324" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> $\boldsymbol{\beta}_j$ <span class="pp">|</span> $\mathcal{N}(0, 1)$ per element <span class="pp">|</span> $\boldsymbol{\beta} \sim \mathcal{N}(0, 1)$ per element <span class="pp">|</span> Identical to m_01, applied independently per cell <span class="pp">|</span></span>
-<span id="cb14-325"><a href="#cb14-325" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> $\boldsymbol{\delta}$ <span class="pp">|</span> $\text{Dirichlet}(\mathbf{1})$ <span class="pp">|</span> $\boldsymbol{\delta} \sim \text{Dirichlet}(\mathbf{1})$ <span class="pp">|</span> Unchanged <span class="pp">|</span></span>
-<span id="cb14-326"><a href="#cb14-326" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-327"><a href="#cb14-327" aria-hidden="true" tabindex="-1"></a>: Prior distributions in h_m01 and their m_01 analogues. {#tbl-priors}</span>
-<span id="cb14-328"><a href="#cb14-328" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-329"><a href="#cb14-329" aria-hidden="true" tabindex="-1"></a>::: {.callout-note}</span>
-<span id="cb14-330"><a href="#cb14-330" aria-hidden="true" tabindex="-1"></a><span class="fu">## Connection to m_01 Prior Calibration</span></span>
-<span id="cb14-331"><a href="#cb14-331" aria-hidden="true" tabindex="-1"></a>The m_01 prior $\alpha \sim \text{LogNormal}(3.0, 0.75)$ was calibrated via prior predictive analysis (<span class="co">[</span><span class="ot">Report 3</span><span class="co">](03_prior_analysis.qmd)</span>) to yield a prior-implied SEU-max rate of approximately 0.78. In h_m01, $\gamma_0 \sim \mathcal{N}(3.0, 1.0)$ centers the grand mean of $\log(\alpha)$ at the same location. The slightly wider SD (1.0 vs 0.75) accommodates uncertainty from the regression structure, while $\sigma_{\text{cell}}$ captures additional cell-level variation.</span>
-<span id="cb14-332"><a href="#cb14-332" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb14-333"><a href="#cb14-333" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-299"><a href="#cb14-299" aria-hidden="true" tabindex="-1"></a><span class="in">  // Regression (tightened 2026-04-23 after parameter recovery showed soft</span></span>
+<span id="cb14-300"><a href="#cb14-300" aria-hidden="true" tabindex="-1"></a><span class="in">  // identifiability of alpha with heavy right tail under the original priors)</span></span>
+<span id="cb14-301"><a href="#cb14-301" aria-hidden="true" tabindex="-1"></a><span class="in">  gamma0 ~ normal(2.5, 0.5);             // prior on intercept: median alpha ~ 12, 97.5th pct ~ 33</span></span>
+<span id="cb14-302"><a href="#cb14-302" aria-hidden="true" tabindex="-1"></a><span class="in">  gamma ~ normal(0, 0.5);                // stronger shrinkage toward no effect</span></span>
+<span id="cb14-303"><a href="#cb14-303" aria-hidden="true" tabindex="-1"></a><span class="in">  sigma_cell ~ normal(0, 0.3);           // half-normal: modest cell variation (J=6 weakly identifies)</span></span>
+<span id="cb14-304"><a href="#cb14-304" aria-hidden="true" tabindex="-1"></a><span class="in">  z_alpha ~ std_normal();                // non-centered parameterization</span></span>
+<span id="cb14-305"><a href="#cb14-305" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-306"><a href="#cb14-306" aria-hidden="true" tabindex="-1"></a><span class="in">  // Beliefs: per-cell, same prior as m_01</span></span>
+<span id="cb14-307"><a href="#cb14-307" aria-hidden="true" tabindex="-1"></a><span class="in">  for (j in 1:J) {</span></span>
+<span id="cb14-308"><a href="#cb14-308" aria-hidden="true" tabindex="-1"></a><span class="in">    to_vector(beta[j]) ~ std_normal();</span></span>
+<span id="cb14-309"><a href="#cb14-309" aria-hidden="true" tabindex="-1"></a><span class="in">  }</span></span>
+<span id="cb14-310"><a href="#cb14-310" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-311"><a href="#cb14-311" aria-hidden="true" tabindex="-1"></a><span class="in">  // Utilities: shared</span></span>
+<span id="cb14-312"><a href="#cb14-312" aria-hidden="true" tabindex="-1"></a><span class="in">  delta ~ dirichlet(rep_vector(1, K-1));</span></span>
+<span id="cb14-313"><a href="#cb14-313" aria-hidden="true" tabindex="-1"></a><span class="in">  // ...</span></span>
+<span id="cb14-314"><a href="#cb14-314" aria-hidden="true" tabindex="-1"></a><span class="in">}</span></span>
+<span id="cb14-315"><a href="#cb14-315" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb14-316"><a href="#cb14-316" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-317"><a href="#cb14-317" aria-hidden="true" tabindex="-1"></a>Each prior is motivated by its role in the model:</span>
+<span id="cb14-318"><a href="#cb14-318" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-319"><a href="#cb14-319" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Parameter <span class="pp">|</span> Prior <span class="pp">|</span> m_01 Analogue <span class="pp">|</span> Rationale <span class="pp">|</span></span>
+<span id="cb14-320"><a href="#cb14-320" aria-hidden="true" tabindex="-1"></a><span class="pp">|-----------|-------|---------------|-----------|</span></span>
+<span id="cb14-321"><a href="#cb14-321" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> $\gamma_0$ <span class="pp">|</span> $\mathcal{N}(2.5, 0.5)$ <span class="pp">|</span> $\alpha \sim \text{LogNormal}(3.0, 0.75)$ <span class="pp">|</span> Tightened intercept centred so that the prior on $\alpha$ has median $\approx 12$ and 97.5th percentile $\approx 33$, controlling the heavy right tail seen under the original $\mathcal{N}(3.0, 1.0)$ prior <span class="pp">|</span></span>
+<span id="cb14-322"><a href="#cb14-322" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> $\boldsymbol{\gamma}$ <span class="pp">|</span> $\mathcal{N}(0, 0.5)$ <span class="pp">|</span> — (new) <span class="pp">|</span> Stronger shrinkage toward no effect; a priori, experimental factors don't shift $\alpha$ <span class="pp">|</span></span>
+<span id="cb14-323"><a href="#cb14-323" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> $\sigma_{\text{cell}}$ <span class="pp">|</span> $\text{HalfNormal}(0, 0.3)$ <span class="pp">|</span> — (new) <span class="pp">|</span> Modest cell-level variation; 0.3 on log scale $\approx$ factor of 1.35. The $J=6$ design weakly identifies $\sigma_{\text{cell}}$, motivating the tighter scale <span class="pp">|</span></span>
+<span id="cb14-324"><a href="#cb14-324" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> $z_j$ <span class="pp">|</span> $\mathcal{N}(0, 1)$ <span class="pp">|</span> — (new) <span class="pp">|</span> Non-centered parameterization; computational device <span class="pp">|</span></span>
+<span id="cb14-325"><a href="#cb14-325" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> $\boldsymbol{\beta}_j$ <span class="pp">|</span> $\mathcal{N}(0, 1)$ per element <span class="pp">|</span> $\boldsymbol{\beta} \sim \mathcal{N}(0, 1)$ per element <span class="pp">|</span> Identical to m_01, applied independently per cell <span class="pp">|</span></span>
+<span id="cb14-326"><a href="#cb14-326" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> $\boldsymbol{\delta}$ <span class="pp">|</span> $\text{Dirichlet}(\mathbf{1})$ <span class="pp">|</span> $\boldsymbol{\delta} \sim \text{Dirichlet}(\mathbf{1})$ <span class="pp">|</span> Unchanged <span class="pp">|</span></span>
+<span id="cb14-327"><a href="#cb14-327" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-328"><a href="#cb14-328" aria-hidden="true" tabindex="-1"></a>: Prior distributions in h_m01 and their m_01 analogues. {#tbl-priors}</span>
+<span id="cb14-329"><a href="#cb14-329" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-330"><a href="#cb14-330" aria-hidden="true" tabindex="-1"></a>::: {.callout-note}</span>
+<span id="cb14-331"><a href="#cb14-331" aria-hidden="true" tabindex="-1"></a><span class="fu">## Connection to m_01 Prior Calibration</span></span>
+<span id="cb14-332"><a href="#cb14-332" aria-hidden="true" tabindex="-1"></a>The m_01 prior $\alpha \sim \text{LogNormal}(3.0, 0.75)$ was calibrated via prior predictive analysis (<span class="co">[</span><span class="ot">Report 3</span><span class="co">](03_prior_analysis.qmd)</span>) to yield a prior-implied SEU-max rate of approximately 0.78. The h_m01 priors above are the **tightened** values that match the current <span class="in">`models/h_m01.stan`</span> (commit on 2026-04-24). They were tightened from an earlier $\gamma_0 \sim \mathcal{N}(3.0, 1.0)$, $\boldsymbol{\gamma} \sim \mathcal{N}(0, 1.0)$, $\sigma_{\text{cell}} \sim \text{HalfNormal}(0, 0.5)$ specification after parameter recovery (<span class="co">[</span><span class="ot">Report 11</span><span class="co">](11_hierarchical_parameter_recovery.qmd)</span>) showed soft identifiability of $\alpha$ with a heavy right tail. The hierarchical prior predictive (<span class="co">[</span><span class="ot">Report 10</span><span class="co">](10_hierarchical_prior_analysis.qmd)</span>), parameter recovery (<span class="co">[</span><span class="ot">Report 11</span><span class="co">](11_hierarchical_parameter_recovery.qmd)</span>), and SBC validation (<span class="co">[</span><span class="ot">Report 12</span><span class="co">](12_hierarchical_sbc_validation.qmd)</span>) all use the tightened priors shown here.</span>
+<span id="cb14-333"><a href="#cb14-333" aria-hidden="true" tabindex="-1"></a>:::</span>
 <span id="cb14-334"><a href="#cb14-334" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-335"><a href="#cb14-335" aria-hidden="true" tabindex="-1"></a><span class="fu">## Likelihood</span></span>
-<span id="cb14-336"><a href="#cb14-336" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-337"><a href="#cb14-337" aria-hidden="true" tabindex="-1"></a>The likelihood is structurally identical to <span class="in">`m_01`</span>, with one change: <span class="in">`alpha`</span> is indexed by <span class="in">`cell[m]`</span>.</span>
-<span id="cb14-338"><a href="#cb14-338" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-339"><a href="#cb14-339" aria-hidden="true" tabindex="-1"></a><span class="in">```{.stan filename="h_m01.stan (model block — likelihood)"}</span></span>
-<span id="cb14-340"><a href="#cb14-340" aria-hidden="true" tabindex="-1"></a><span class="in">  // --- Likelihood ---</span></span>
-<span id="cb14-341"><a href="#cb14-341" aria-hidden="true" tabindex="-1"></a><span class="in">  {</span></span>
-<span id="cb14-342"><a href="#cb14-342" aria-hidden="true" tabindex="-1"></a><span class="in">    int pos = 1;</span></span>
-<span id="cb14-343"><a href="#cb14-343" aria-hidden="true" tabindex="-1"></a><span class="in">    for (m in 1:M_total) {</span></span>
-<span id="cb14-344"><a href="#cb14-344" aria-hidden="true" tabindex="-1"></a><span class="in">      vector[N_obs[m]] problem_eta = segment(eta, pos, N_obs[m]);</span></span>
-<span id="cb14-345"><a href="#cb14-345" aria-hidden="true" tabindex="-1"></a><span class="in">      y[m] ~ categorical(softmax(alpha[cell[m]] * problem_eta));</span></span>
-<span id="cb14-346"><a href="#cb14-346" aria-hidden="true" tabindex="-1"></a><span class="in">      pos += N_obs[m];</span></span>
-<span id="cb14-347"><a href="#cb14-347" aria-hidden="true" tabindex="-1"></a><span class="in">    }</span></span>
-<span id="cb14-348"><a href="#cb14-348" aria-hidden="true" tabindex="-1"></a><span class="in">  }</span></span>
-<span id="cb14-349"><a href="#cb14-349" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb14-350"><a href="#cb14-350" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-351"><a href="#cb14-351" aria-hidden="true" tabindex="-1"></a>Compare to <span class="in">`m_01`</span>:</span>
-<span id="cb14-352"><a href="#cb14-352" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-353"><a href="#cb14-353" aria-hidden="true" tabindex="-1"></a><span class="in">```{.stan filename="m_01.stan (likelihood)"}</span></span>
-<span id="cb14-354"><a href="#cb14-354" aria-hidden="true" tabindex="-1"></a><span class="in">      y[m] ~ categorical(softmax(alpha * problem_eta));</span></span>
-<span id="cb14-355"><a href="#cb14-355" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb14-356"><a href="#cb14-356" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-357"><a href="#cb14-357" aria-hidden="true" tabindex="-1"></a>The only change is <span class="in">`alpha[cell[m]]`</span> replacing the scalar <span class="in">`alpha`</span>. This minimal modification connects the hierarchical regression structure to the observation model: each observation is generated according to its cell's sensitivity parameter.</span>
-<span id="cb14-358"><a href="#cb14-358" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-335"><a href="#cb14-335" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-336"><a href="#cb14-336" aria-hidden="true" tabindex="-1"></a><span class="fu">## Likelihood</span></span>
+<span id="cb14-337"><a href="#cb14-337" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-338"><a href="#cb14-338" aria-hidden="true" tabindex="-1"></a>The likelihood is structurally identical to <span class="in">`m_01`</span>, with one change: <span class="in">`alpha`</span> is indexed by <span class="in">`cell[m]`</span>.</span>
+<span id="cb14-339"><a href="#cb14-339" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-340"><a href="#cb14-340" aria-hidden="true" tabindex="-1"></a><span class="in">```{.stan filename="h_m01.stan (model block — likelihood)"}</span></span>
+<span id="cb14-341"><a href="#cb14-341" aria-hidden="true" tabindex="-1"></a><span class="in">  // --- Likelihood ---</span></span>
+<span id="cb14-342"><a href="#cb14-342" aria-hidden="true" tabindex="-1"></a><span class="in">  {</span></span>
+<span id="cb14-343"><a href="#cb14-343" aria-hidden="true" tabindex="-1"></a><span class="in">    int pos = 1;</span></span>
+<span id="cb14-344"><a href="#cb14-344" aria-hidden="true" tabindex="-1"></a><span class="in">    for (m in 1:M_total) {</span></span>
+<span id="cb14-345"><a href="#cb14-345" aria-hidden="true" tabindex="-1"></a><span class="in">      vector[N_obs[m]] problem_eta = segment(eta, pos, N_obs[m]);</span></span>
+<span id="cb14-346"><a href="#cb14-346" aria-hidden="true" tabindex="-1"></a><span class="in">      y[m] ~ categorical(softmax(alpha[cell[m]] * problem_eta));</span></span>
+<span id="cb14-347"><a href="#cb14-347" aria-hidden="true" tabindex="-1"></a><span class="in">      pos += N_obs[m];</span></span>
+<span id="cb14-348"><a href="#cb14-348" aria-hidden="true" tabindex="-1"></a><span class="in">    }</span></span>
+<span id="cb14-349"><a href="#cb14-349" aria-hidden="true" tabindex="-1"></a><span class="in">  }</span></span>
+<span id="cb14-350"><a href="#cb14-350" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb14-351"><a href="#cb14-351" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-352"><a href="#cb14-352" aria-hidden="true" tabindex="-1"></a>Compare to <span class="in">`m_01`</span>:</span>
+<span id="cb14-353"><a href="#cb14-353" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-354"><a href="#cb14-354" aria-hidden="true" tabindex="-1"></a><span class="in">```{.stan filename="m_01.stan (likelihood)"}</span></span>
+<span id="cb14-355"><a href="#cb14-355" aria-hidden="true" tabindex="-1"></a><span class="in">      y[m] ~ categorical(softmax(alpha * problem_eta));</span></span>
+<span id="cb14-356"><a href="#cb14-356" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb14-357"><a href="#cb14-357" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-358"><a href="#cb14-358" aria-hidden="true" tabindex="-1"></a>The only change is <span class="in">`alpha[cell[m]]`</span> replacing the scalar <span class="in">`alpha`</span>. This minimal modification connects the hierarchical regression structure to the observation model: each observation is generated according to its cell's sensitivity parameter.</span>
 <span id="cb14-359"><a href="#cb14-359" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-360"><a href="#cb14-360" aria-hidden="true" tabindex="-1"></a><span class="fu">## Generated Quantities</span></span>
-<span id="cb14-361"><a href="#cb14-361" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-362"><a href="#cb14-362" aria-hidden="true" tabindex="-1"></a>The <span class="in">`generated quantities`</span> block computes diagnostics for model checking and comparison.</span>
-<span id="cb14-363"><a href="#cb14-363" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-364"><a href="#cb14-364" aria-hidden="true" tabindex="-1"></a><span class="in">```{.stan filename="h_m01.stan (generated quantities — log-likelihood and predictions)"}</span></span>
-<span id="cb14-365"><a href="#cb14-365" aria-hidden="true" tabindex="-1"></a><span class="in">generated quantities {</span></span>
-<span id="cb14-366"><a href="#cb14-366" aria-hidden="true" tabindex="-1"></a><span class="in">  // Log-likelihood per observation</span></span>
-<span id="cb14-367"><a href="#cb14-367" aria-hidden="true" tabindex="-1"></a><span class="in">  vector[M_total] log_lik;</span></span>
-<span id="cb14-368"><a href="#cb14-368" aria-hidden="true" tabindex="-1"></a><span class="in">  {</span></span>
-<span id="cb14-369"><a href="#cb14-369" aria-hidden="true" tabindex="-1"></a><span class="in">    int pos = 1;</span></span>
-<span id="cb14-370"><a href="#cb14-370" aria-hidden="true" tabindex="-1"></a><span class="in">    for (m in 1:M_total) {</span></span>
-<span id="cb14-371"><a href="#cb14-371" aria-hidden="true" tabindex="-1"></a><span class="in">      vector[N_obs[m]] problem_eta = segment(eta, pos, N_obs[m]);</span></span>
-<span id="cb14-372"><a href="#cb14-372" aria-hidden="true" tabindex="-1"></a><span class="in">      log_lik[m] = categorical_lpmf(y[m] | softmax(alpha[cell[m]] * problem_eta));</span></span>
-<span id="cb14-373"><a href="#cb14-373" aria-hidden="true" tabindex="-1"></a><span class="in">      pos += N_obs[m];</span></span>
-<span id="cb14-374"><a href="#cb14-374" aria-hidden="true" tabindex="-1"></a><span class="in">    }</span></span>
-<span id="cb14-375"><a href="#cb14-375" aria-hidden="true" tabindex="-1"></a><span class="in">  }</span></span>
-<span id="cb14-376"><a href="#cb14-376" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-377"><a href="#cb14-377" aria-hidden="true" tabindex="-1"></a><span class="in">  // Posterior predictive samples</span></span>
-<span id="cb14-378"><a href="#cb14-378" aria-hidden="true" tabindex="-1"></a><span class="in">  array[M_total] int y_pred;</span></span>
-<span id="cb14-379"><a href="#cb14-379" aria-hidden="true" tabindex="-1"></a><span class="in">  {</span></span>
-<span id="cb14-380"><a href="#cb14-380" aria-hidden="true" tabindex="-1"></a><span class="in">    int pos = 1;</span></span>
-<span id="cb14-381"><a href="#cb14-381" aria-hidden="true" tabindex="-1"></a><span class="in">    for (m in 1:M_total) {</span></span>
-<span id="cb14-382"><a href="#cb14-382" aria-hidden="true" tabindex="-1"></a><span class="in">      vector[N_obs[m]] problem_eta = segment(eta, pos, N_obs[m]);</span></span>
-<span id="cb14-383"><a href="#cb14-383" aria-hidden="true" tabindex="-1"></a><span class="in">      y_pred[m] = categorical_rng(softmax(alpha[cell[m]] * problem_eta));</span></span>
-<span id="cb14-384"><a href="#cb14-384" aria-hidden="true" tabindex="-1"></a><span class="in">      pos += N_obs[m];</span></span>
-<span id="cb14-385"><a href="#cb14-385" aria-hidden="true" tabindex="-1"></a><span class="in">    }</span></span>
-<span id="cb14-386"><a href="#cb14-386" aria-hidden="true" tabindex="-1"></a><span class="in">  }</span></span>
-<span id="cb14-387"><a href="#cb14-387" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb14-388"><a href="#cb14-388" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-389"><a href="#cb14-389" aria-hidden="true" tabindex="-1"></a>Four categories of generated quantities are produced:</span>
-<span id="cb14-390"><a href="#cb14-390" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-391"><a href="#cb14-391" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>**Log-likelihood** (<span class="in">`log_lik`</span>): Pointwise, for LOO-CV via the <span class="in">`loo`</span> package. Same structure as <span class="in">`m_01`</span> but with cell-indexed alpha.</span>
-<span id="cb14-392"><a href="#cb14-392" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>**Posterior predictive samples** (<span class="in">`y_pred`</span>): For posterior predictive checks. Same structure as <span class="in">`m_01`</span>.</span>
-<span id="cb14-393"><a href="#cb14-393" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>**PPC statistics**: Log-likelihood discrepancy, modal choice accuracy, sum of chosen probabilities — all computed globally across all cells, following the same pattern as <span class="in">`m_01`</span>.</span>
-<span id="cb14-394"><a href="#cb14-394" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span>**Per-cell log-likelihoods** (`log_lik_cell`): **New** — aggregates pointwise log-likelihoods by cell.</span>
-<span id="cb14-395"><a href="#cb14-395" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-396"><a href="#cb14-396" aria-hidden="true" tabindex="-1"></a><span class="in">```{.stan filename="h_m01.stan (generated quantities — per-cell log-likelihoods)"}</span></span>
-<span id="cb14-397"><a href="#cb14-397" aria-hidden="true" tabindex="-1"></a><span class="in">  // Per-cell log-likelihoods (for cell-level model comparison)</span></span>
-<span id="cb14-398"><a href="#cb14-398" aria-hidden="true" tabindex="-1"></a><span class="in">  vector[J] log_lik_cell = rep_vector(0, J);</span></span>
-<span id="cb14-399"><a href="#cb14-399" aria-hidden="true" tabindex="-1"></a><span class="in">  for (m in 1:M_total) {</span></span>
-<span id="cb14-400"><a href="#cb14-400" aria-hidden="true" tabindex="-1"></a><span class="in">    log_lik_cell[cell[m]] += log_lik[m];</span></span>
-<span id="cb14-401"><a href="#cb14-401" aria-hidden="true" tabindex="-1"></a><span class="in">  }</span></span>
-<span id="cb14-402"><a href="#cb14-402" aria-hidden="true" tabindex="-1"></a><span class="in">}</span></span>
-<span id="cb14-403"><a href="#cb14-403" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb14-404"><a href="#cb14-404" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-405"><a href="#cb14-405" aria-hidden="true" tabindex="-1"></a>The <span class="in">`log_lik_cell`</span> vector enables diagnosing cells where the model fits poorly — a form of cell-level residual analysis that is unique to the hierarchical setting.</span>
-<span id="cb14-406"><a href="#cb14-406" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-360"><a href="#cb14-360" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-361"><a href="#cb14-361" aria-hidden="true" tabindex="-1"></a><span class="fu">## Generated Quantities</span></span>
+<span id="cb14-362"><a href="#cb14-362" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-363"><a href="#cb14-363" aria-hidden="true" tabindex="-1"></a>The <span class="in">`generated quantities`</span> block computes diagnostics for model checking and comparison.</span>
+<span id="cb14-364"><a href="#cb14-364" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-365"><a href="#cb14-365" aria-hidden="true" tabindex="-1"></a><span class="in">```{.stan filename="h_m01.stan (generated quantities — log-likelihood and predictions)"}</span></span>
+<span id="cb14-366"><a href="#cb14-366" aria-hidden="true" tabindex="-1"></a><span class="in">generated quantities {</span></span>
+<span id="cb14-367"><a href="#cb14-367" aria-hidden="true" tabindex="-1"></a><span class="in">  // Log-likelihood per observation</span></span>
+<span id="cb14-368"><a href="#cb14-368" aria-hidden="true" tabindex="-1"></a><span class="in">  vector[M_total] log_lik;</span></span>
+<span id="cb14-369"><a href="#cb14-369" aria-hidden="true" tabindex="-1"></a><span class="in">  {</span></span>
+<span id="cb14-370"><a href="#cb14-370" aria-hidden="true" tabindex="-1"></a><span class="in">    int pos = 1;</span></span>
+<span id="cb14-371"><a href="#cb14-371" aria-hidden="true" tabindex="-1"></a><span class="in">    for (m in 1:M_total) {</span></span>
+<span id="cb14-372"><a href="#cb14-372" aria-hidden="true" tabindex="-1"></a><span class="in">      vector[N_obs[m]] problem_eta = segment(eta, pos, N_obs[m]);</span></span>
+<span id="cb14-373"><a href="#cb14-373" aria-hidden="true" tabindex="-1"></a><span class="in">      log_lik[m] = categorical_lpmf(y[m] | softmax(alpha[cell[m]] * problem_eta));</span></span>
+<span id="cb14-374"><a href="#cb14-374" aria-hidden="true" tabindex="-1"></a><span class="in">      pos += N_obs[m];</span></span>
+<span id="cb14-375"><a href="#cb14-375" aria-hidden="true" tabindex="-1"></a><span class="in">    }</span></span>
+<span id="cb14-376"><a href="#cb14-376" aria-hidden="true" tabindex="-1"></a><span class="in">  }</span></span>
+<span id="cb14-377"><a href="#cb14-377" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-378"><a href="#cb14-378" aria-hidden="true" tabindex="-1"></a><span class="in">  // Posterior predictive samples</span></span>
+<span id="cb14-379"><a href="#cb14-379" aria-hidden="true" tabindex="-1"></a><span class="in">  array[M_total] int y_pred;</span></span>
+<span id="cb14-380"><a href="#cb14-380" aria-hidden="true" tabindex="-1"></a><span class="in">  {</span></span>
+<span id="cb14-381"><a href="#cb14-381" aria-hidden="true" tabindex="-1"></a><span class="in">    int pos = 1;</span></span>
+<span id="cb14-382"><a href="#cb14-382" aria-hidden="true" tabindex="-1"></a><span class="in">    for (m in 1:M_total) {</span></span>
+<span id="cb14-383"><a href="#cb14-383" aria-hidden="true" tabindex="-1"></a><span class="in">      vector[N_obs[m]] problem_eta = segment(eta, pos, N_obs[m]);</span></span>
+<span id="cb14-384"><a href="#cb14-384" aria-hidden="true" tabindex="-1"></a><span class="in">      y_pred[m] = categorical_rng(softmax(alpha[cell[m]] * problem_eta));</span></span>
+<span id="cb14-385"><a href="#cb14-385" aria-hidden="true" tabindex="-1"></a><span class="in">      pos += N_obs[m];</span></span>
+<span id="cb14-386"><a href="#cb14-386" aria-hidden="true" tabindex="-1"></a><span class="in">    }</span></span>
+<span id="cb14-387"><a href="#cb14-387" aria-hidden="true" tabindex="-1"></a><span class="in">  }</span></span>
+<span id="cb14-388"><a href="#cb14-388" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb14-389"><a href="#cb14-389" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-390"><a href="#cb14-390" aria-hidden="true" tabindex="-1"></a>Four categories of generated quantities are produced:</span>
+<span id="cb14-391"><a href="#cb14-391" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-392"><a href="#cb14-392" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>**Log-likelihood** (<span class="in">`log_lik`</span>): Pointwise, for LOO-CV via the <span class="in">`loo`</span> package. Same structure as <span class="in">`m_01`</span> but with cell-indexed alpha.</span>
+<span id="cb14-393"><a href="#cb14-393" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>**Posterior predictive samples** (<span class="in">`y_pred`</span>): For posterior predictive checks. Same structure as <span class="in">`m_01`</span>.</span>
+<span id="cb14-394"><a href="#cb14-394" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>**PPC statistics**: Log-likelihood discrepancy, modal choice accuracy, sum of chosen probabilities — all computed globally across all cells, following the same pattern as <span class="in">`m_01`</span>.</span>
+<span id="cb14-395"><a href="#cb14-395" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span>**Per-cell log-likelihoods** (`log_lik_cell`): **New** — aggregates pointwise log-likelihoods by cell.</span>
+<span id="cb14-396"><a href="#cb14-396" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-397"><a href="#cb14-397" aria-hidden="true" tabindex="-1"></a><span class="in">```{.stan filename="h_m01.stan (generated quantities — per-cell log-likelihoods)"}</span></span>
+<span id="cb14-398"><a href="#cb14-398" aria-hidden="true" tabindex="-1"></a><span class="in">  // Per-cell log-likelihoods (for cell-level model comparison)</span></span>
+<span id="cb14-399"><a href="#cb14-399" aria-hidden="true" tabindex="-1"></a><span class="in">  vector[J] log_lik_cell = rep_vector(0, J);</span></span>
+<span id="cb14-400"><a href="#cb14-400" aria-hidden="true" tabindex="-1"></a><span class="in">  for (m in 1:M_total) {</span></span>
+<span id="cb14-401"><a href="#cb14-401" aria-hidden="true" tabindex="-1"></a><span class="in">    log_lik_cell[cell[m]] += log_lik[m];</span></span>
+<span id="cb14-402"><a href="#cb14-402" aria-hidden="true" tabindex="-1"></a><span class="in">  }</span></span>
+<span id="cb14-403"><a href="#cb14-403" aria-hidden="true" tabindex="-1"></a><span class="in">}</span></span>
+<span id="cb14-404"><a href="#cb14-404" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb14-405"><a href="#cb14-405" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-406"><a href="#cb14-406" aria-hidden="true" tabindex="-1"></a>The <span class="in">`log_lik_cell`</span> vector enables diagnosing cells where the model fits poorly — a form of cell-level residual analysis that is unique to the hierarchical setting.</span>
 <span id="cb14-407"><a href="#cb14-407" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-408"><a href="#cb14-408" aria-hidden="true" tabindex="-1"></a><span class="fu">## The Simulation Model (`h_m01_sim.stan`) {#sec-sim-model}</span></span>
-<span id="cb14-409"><a href="#cb14-409" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-410"><a href="#cb14-410" aria-hidden="true" tabindex="-1"></a>The simulation model generates synthetic choice data from the <span class="in">`h_m01`</span> prior, for use in prior predictive analysis and parameter recovery studies. All parameter generation occurs in <span class="in">`generated quantities`</span> with <span class="in">`fixed_param=True`</span> (no sampling needed).</span>
-<span id="cb14-411"><a href="#cb14-411" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-412"><a href="#cb14-412" aria-hidden="true" tabindex="-1"></a><span class="in">```{.stan filename="h_m01_sim.stan (generated quantities — parameter generation)"}</span></span>
-<span id="cb14-413"><a href="#cb14-413" aria-hidden="true" tabindex="-1"></a><span class="in">generated quantities {</span></span>
-<span id="cb14-414"><a href="#cb14-414" aria-hidden="true" tabindex="-1"></a><span class="in">  // Draw regression parameters</span></span>
-<span id="cb14-415"><a href="#cb14-415" aria-hidden="true" tabindex="-1"></a><span class="in">  real gamma0 = normal_rng(gamma0_mean, gamma0_sd);</span></span>
-<span id="cb14-416"><a href="#cb14-416" aria-hidden="true" tabindex="-1"></a><span class="in">  vector[P] gamma;</span></span>
-<span id="cb14-417"><a href="#cb14-417" aria-hidden="true" tabindex="-1"></a><span class="in">  for (p in 1:P) {</span></span>
-<span id="cb14-418"><a href="#cb14-418" aria-hidden="true" tabindex="-1"></a><span class="in">    gamma[p] = normal_rng(0, gamma_sd);</span></span>
-<span id="cb14-419"><a href="#cb14-419" aria-hidden="true" tabindex="-1"></a><span class="in">  }</span></span>
-<span id="cb14-420"><a href="#cb14-420" aria-hidden="true" tabindex="-1"></a><span class="in">  real&lt;lower=0&gt; sigma_cell = abs(normal_rng(0, sigma_cell_sd));</span></span>
-<span id="cb14-421"><a href="#cb14-421" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-422"><a href="#cb14-422" aria-hidden="true" tabindex="-1"></a><span class="in">  // Draw cell-level alphas</span></span>
-<span id="cb14-423"><a href="#cb14-423" aria-hidden="true" tabindex="-1"></a><span class="in">  vector[J] log_alpha;</span></span>
-<span id="cb14-424"><a href="#cb14-424" aria-hidden="true" tabindex="-1"></a><span class="in">  vector[J] alpha;</span></span>
-<span id="cb14-425"><a href="#cb14-425" aria-hidden="true" tabindex="-1"></a><span class="in">  for (j in 1:J) {</span></span>
-<span id="cb14-426"><a href="#cb14-426" aria-hidden="true" tabindex="-1"></a><span class="in">    real z_j = normal_rng(0, 1);</span></span>
-<span id="cb14-427"><a href="#cb14-427" aria-hidden="true" tabindex="-1"></a><span class="in">    log_alpha[j] = gamma0 + X[j] * gamma + sigma_cell * z_j;</span></span>
-<span id="cb14-428"><a href="#cb14-428" aria-hidden="true" tabindex="-1"></a><span class="in">    alpha[j] = exp(log_alpha[j]);</span></span>
-<span id="cb14-429"><a href="#cb14-429" aria-hidden="true" tabindex="-1"></a><span class="in">  }</span></span>
-<span id="cb14-430"><a href="#cb14-430" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-431"><a href="#cb14-431" aria-hidden="true" tabindex="-1"></a><span class="in">  // Draw per-cell betas</span></span>
-<span id="cb14-432"><a href="#cb14-432" aria-hidden="true" tabindex="-1"></a><span class="in">  array[J] matrix[K, D] beta;</span></span>
-<span id="cb14-433"><a href="#cb14-433" aria-hidden="true" tabindex="-1"></a><span class="in">  for (j in 1:J) {</span></span>
-<span id="cb14-434"><a href="#cb14-434" aria-hidden="true" tabindex="-1"></a><span class="in">    for (k in 1:K) {</span></span>
-<span id="cb14-435"><a href="#cb14-435" aria-hidden="true" tabindex="-1"></a><span class="in">      for (d in 1:D) {</span></span>
-<span id="cb14-436"><a href="#cb14-436" aria-hidden="true" tabindex="-1"></a><span class="in">        beta[j][k, d] = normal_rng(0, beta_sd);</span></span>
-<span id="cb14-437"><a href="#cb14-437" aria-hidden="true" tabindex="-1"></a><span class="in">      }</span></span>
-<span id="cb14-438"><a href="#cb14-438" aria-hidden="true" tabindex="-1"></a><span class="in">    }</span></span>
-<span id="cb14-439"><a href="#cb14-439" aria-hidden="true" tabindex="-1"></a><span class="in">  }</span></span>
-<span id="cb14-440"><a href="#cb14-440" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-441"><a href="#cb14-441" aria-hidden="true" tabindex="-1"></a><span class="in">  // Draw shared utilities</span></span>
-<span id="cb14-442"><a href="#cb14-442" aria-hidden="true" tabindex="-1"></a><span class="in">  simplex[K-1] delta = dirichlet_rng(rep_vector(1.0, K-1));</span></span>
-<span id="cb14-443"><a href="#cb14-443" aria-hidden="true" tabindex="-1"></a><span class="in">  vector[K] upsilon = cumulative_sum(append_row(0, delta));</span></span>
-<span id="cb14-444"><a href="#cb14-444" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-445"><a href="#cb14-445" aria-hidden="true" tabindex="-1"></a><span class="in">  // Compute expected utilities and generate choices</span></span>
-<span id="cb14-446"><a href="#cb14-446" aria-hidden="true" tabindex="-1"></a><span class="in">  array[M_total] int y;</span></span>
-<span id="cb14-447"><a href="#cb14-447" aria-hidden="true" tabindex="-1"></a><span class="in">  {</span></span>
-<span id="cb14-448"><a href="#cb14-448" aria-hidden="true" tabindex="-1"></a><span class="in">    int pos = 1;</span></span>
-<span id="cb14-449"><a href="#cb14-449" aria-hidden="true" tabindex="-1"></a><span class="in">    for (m in 1:M_total) {</span></span>
-<span id="cb14-450"><a href="#cb14-450" aria-hidden="true" tabindex="-1"></a><span class="in">      int j = cell[m];</span></span>
-<span id="cb14-451"><a href="#cb14-451" aria-hidden="true" tabindex="-1"></a><span class="in">      vector[N_obs[m]] problem_eta;</span></span>
-<span id="cb14-452"><a href="#cb14-452" aria-hidden="true" tabindex="-1"></a><span class="in">      for (idx in 1:N_obs[m]) {</span></span>
-<span id="cb14-453"><a href="#cb14-453" aria-hidden="true" tabindex="-1"></a><span class="in">        vector[K] psi_i = softmax(beta[j] * x_flat[pos]);</span></span>
-<span id="cb14-454"><a href="#cb14-454" aria-hidden="true" tabindex="-1"></a><span class="in">        problem_eta[idx] = dot_product(psi_i, upsilon);</span></span>
-<span id="cb14-455"><a href="#cb14-455" aria-hidden="true" tabindex="-1"></a><span class="in">        pos += 1;</span></span>
-<span id="cb14-456"><a href="#cb14-456" aria-hidden="true" tabindex="-1"></a><span class="in">      }</span></span>
-<span id="cb14-457"><a href="#cb14-457" aria-hidden="true" tabindex="-1"></a><span class="in">      y[m] = categorical_rng(softmax(alpha[j] * problem_eta));</span></span>
-<span id="cb14-458"><a href="#cb14-458" aria-hidden="true" tabindex="-1"></a><span class="in">    }</span></span>
-<span id="cb14-459"><a href="#cb14-459" aria-hidden="true" tabindex="-1"></a><span class="in">  }</span></span>
-<span id="cb14-460"><a href="#cb14-460" aria-hidden="true" tabindex="-1"></a><span class="in">}</span></span>
-<span id="cb14-461"><a href="#cb14-461" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb14-462"><a href="#cb14-462" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-463"><a href="#cb14-463" aria-hidden="true" tabindex="-1"></a>Key design features:</span>
-<span id="cb14-464"><a href="#cb14-464" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-465"><a href="#cb14-465" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Hyperparameter controls** (<span class="in">`gamma0_mean`</span>, <span class="in">`gamma0_sd`</span>, <span class="in">`gamma_sd`</span>, <span class="in">`sigma_cell_sd`</span>, <span class="in">`beta_sd`</span>) are passed as data, allowing the prior to be varied without recompiling the model.</span>
-<span id="cb14-466"><a href="#cb14-466" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>The structure mirrors <span class="co">[</span><span class="ot">Report 2</span><span class="co">](02_concrete_implementation.qmd)</span>'s <span class="in">`m_01_sim.stan`</span>, extended for the hierarchical regression and per-cell beliefs.</span>
-<span id="cb14-467"><a href="#cb14-467" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-408"><a href="#cb14-408" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-409"><a href="#cb14-409" aria-hidden="true" tabindex="-1"></a><span class="fu">## The Simulation Model (`h_m01_sim.stan`) {#sec-sim-model}</span></span>
+<span id="cb14-410"><a href="#cb14-410" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-411"><a href="#cb14-411" aria-hidden="true" tabindex="-1"></a>The simulation model generates synthetic choice data from the <span class="in">`h_m01`</span> prior, for use in prior predictive analysis and parameter recovery studies. All parameter generation occurs in <span class="in">`generated quantities`</span> with <span class="in">`fixed_param=True`</span> (no sampling needed).</span>
+<span id="cb14-412"><a href="#cb14-412" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-413"><a href="#cb14-413" aria-hidden="true" tabindex="-1"></a><span class="in">```{.stan filename="h_m01_sim.stan (generated quantities — parameter generation)"}</span></span>
+<span id="cb14-414"><a href="#cb14-414" aria-hidden="true" tabindex="-1"></a><span class="in">generated quantities {</span></span>
+<span id="cb14-415"><a href="#cb14-415" aria-hidden="true" tabindex="-1"></a><span class="in">  // Draw regression parameters</span></span>
+<span id="cb14-416"><a href="#cb14-416" aria-hidden="true" tabindex="-1"></a><span class="in">  real gamma0 = normal_rng(gamma0_mean, gamma0_sd);</span></span>
+<span id="cb14-417"><a href="#cb14-417" aria-hidden="true" tabindex="-1"></a><span class="in">  vector[P] gamma;</span></span>
+<span id="cb14-418"><a href="#cb14-418" aria-hidden="true" tabindex="-1"></a><span class="in">  for (p in 1:P) {</span></span>
+<span id="cb14-419"><a href="#cb14-419" aria-hidden="true" tabindex="-1"></a><span class="in">    gamma[p] = normal_rng(0, gamma_sd);</span></span>
+<span id="cb14-420"><a href="#cb14-420" aria-hidden="true" tabindex="-1"></a><span class="in">  }</span></span>
+<span id="cb14-421"><a href="#cb14-421" aria-hidden="true" tabindex="-1"></a><span class="in">  real&lt;lower=0&gt; sigma_cell = abs(normal_rng(0, sigma_cell_sd));</span></span>
+<span id="cb14-422"><a href="#cb14-422" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-423"><a href="#cb14-423" aria-hidden="true" tabindex="-1"></a><span class="in">  // Draw cell-level alphas</span></span>
+<span id="cb14-424"><a href="#cb14-424" aria-hidden="true" tabindex="-1"></a><span class="in">  vector[J] log_alpha;</span></span>
+<span id="cb14-425"><a href="#cb14-425" aria-hidden="true" tabindex="-1"></a><span class="in">  vector[J] alpha;</span></span>
+<span id="cb14-426"><a href="#cb14-426" aria-hidden="true" tabindex="-1"></a><span class="in">  for (j in 1:J) {</span></span>
+<span id="cb14-427"><a href="#cb14-427" aria-hidden="true" tabindex="-1"></a><span class="in">    real z_j = normal_rng(0, 1);</span></span>
+<span id="cb14-428"><a href="#cb14-428" aria-hidden="true" tabindex="-1"></a><span class="in">    log_alpha[j] = gamma0 + X[j] * gamma + sigma_cell * z_j;</span></span>
+<span id="cb14-429"><a href="#cb14-429" aria-hidden="true" tabindex="-1"></a><span class="in">    alpha[j] = exp(log_alpha[j]);</span></span>
+<span id="cb14-430"><a href="#cb14-430" aria-hidden="true" tabindex="-1"></a><span class="in">  }</span></span>
+<span id="cb14-431"><a href="#cb14-431" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-432"><a href="#cb14-432" aria-hidden="true" tabindex="-1"></a><span class="in">  // Draw per-cell betas</span></span>
+<span id="cb14-433"><a href="#cb14-433" aria-hidden="true" tabindex="-1"></a><span class="in">  array[J] matrix[K, D] beta;</span></span>
+<span id="cb14-434"><a href="#cb14-434" aria-hidden="true" tabindex="-1"></a><span class="in">  for (j in 1:J) {</span></span>
+<span id="cb14-435"><a href="#cb14-435" aria-hidden="true" tabindex="-1"></a><span class="in">    for (k in 1:K) {</span></span>
+<span id="cb14-436"><a href="#cb14-436" aria-hidden="true" tabindex="-1"></a><span class="in">      for (d in 1:D) {</span></span>
+<span id="cb14-437"><a href="#cb14-437" aria-hidden="true" tabindex="-1"></a><span class="in">        beta[j][k, d] = normal_rng(0, beta_sd);</span></span>
+<span id="cb14-438"><a href="#cb14-438" aria-hidden="true" tabindex="-1"></a><span class="in">      }</span></span>
+<span id="cb14-439"><a href="#cb14-439" aria-hidden="true" tabindex="-1"></a><span class="in">    }</span></span>
+<span id="cb14-440"><a href="#cb14-440" aria-hidden="true" tabindex="-1"></a><span class="in">  }</span></span>
+<span id="cb14-441"><a href="#cb14-441" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-442"><a href="#cb14-442" aria-hidden="true" tabindex="-1"></a><span class="in">  // Draw shared utilities</span></span>
+<span id="cb14-443"><a href="#cb14-443" aria-hidden="true" tabindex="-1"></a><span class="in">  simplex[K-1] delta = dirichlet_rng(rep_vector(1.0, K-1));</span></span>
+<span id="cb14-444"><a href="#cb14-444" aria-hidden="true" tabindex="-1"></a><span class="in">  vector[K] upsilon = cumulative_sum(append_row(0, delta));</span></span>
+<span id="cb14-445"><a href="#cb14-445" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-446"><a href="#cb14-446" aria-hidden="true" tabindex="-1"></a><span class="in">  // Compute expected utilities and generate choices</span></span>
+<span id="cb14-447"><a href="#cb14-447" aria-hidden="true" tabindex="-1"></a><span class="in">  array[M_total] int y;</span></span>
+<span id="cb14-448"><a href="#cb14-448" aria-hidden="true" tabindex="-1"></a><span class="in">  {</span></span>
+<span id="cb14-449"><a href="#cb14-449" aria-hidden="true" tabindex="-1"></a><span class="in">    int pos = 1;</span></span>
+<span id="cb14-450"><a href="#cb14-450" aria-hidden="true" tabindex="-1"></a><span class="in">    for (m in 1:M_total) {</span></span>
+<span id="cb14-451"><a href="#cb14-451" aria-hidden="true" tabindex="-1"></a><span class="in">      int j = cell[m];</span></span>
+<span id="cb14-452"><a href="#cb14-452" aria-hidden="true" tabindex="-1"></a><span class="in">      vector[N_obs[m]] problem_eta;</span></span>
+<span id="cb14-453"><a href="#cb14-453" aria-hidden="true" tabindex="-1"></a><span class="in">      for (idx in 1:N_obs[m]) {</span></span>
+<span id="cb14-454"><a href="#cb14-454" aria-hidden="true" tabindex="-1"></a><span class="in">        vector[K] psi_i = softmax(beta[j] * x_flat[pos]);</span></span>
+<span id="cb14-455"><a href="#cb14-455" aria-hidden="true" tabindex="-1"></a><span class="in">        problem_eta[idx] = dot_product(psi_i, upsilon);</span></span>
+<span id="cb14-456"><a href="#cb14-456" aria-hidden="true" tabindex="-1"></a><span class="in">        pos += 1;</span></span>
+<span id="cb14-457"><a href="#cb14-457" aria-hidden="true" tabindex="-1"></a><span class="in">      }</span></span>
+<span id="cb14-458"><a href="#cb14-458" aria-hidden="true" tabindex="-1"></a><span class="in">      y[m] = categorical_rng(softmax(alpha[j] * problem_eta));</span></span>
+<span id="cb14-459"><a href="#cb14-459" aria-hidden="true" tabindex="-1"></a><span class="in">    }</span></span>
+<span id="cb14-460"><a href="#cb14-460" aria-hidden="true" tabindex="-1"></a><span class="in">  }</span></span>
+<span id="cb14-461"><a href="#cb14-461" aria-hidden="true" tabindex="-1"></a><span class="in">}</span></span>
+<span id="cb14-462"><a href="#cb14-462" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb14-463"><a href="#cb14-463" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-464"><a href="#cb14-464" aria-hidden="true" tabindex="-1"></a>Key design features:</span>
+<span id="cb14-465"><a href="#cb14-465" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-466"><a href="#cb14-466" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Hyperparameter controls** (<span class="in">`gamma0_mean`</span>, <span class="in">`gamma0_sd`</span>, <span class="in">`gamma_sd`</span>, <span class="in">`sigma_cell_sd`</span>, <span class="in">`beta_sd`</span>) are passed as data, allowing the prior to be varied without recompiling the model.</span>
+<span id="cb14-467"><a href="#cb14-467" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>The structure mirrors <span class="co">[</span><span class="ot">Report 2</span><span class="co">](02_concrete_implementation.qmd)</span>'s <span class="in">`m_01_sim.stan`</span>, extended for the hierarchical regression and per-cell beliefs.</span>
 <span id="cb14-468"><a href="#cb14-468" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-469"><a href="#cb14-469" aria-hidden="true" tabindex="-1"></a><span class="fu">## The SBC Model (`h_m01_sbc.stan`) {#sec-sbc-model}</span></span>
-<span id="cb14-470"><a href="#cb14-470" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-471"><a href="#cb14-471" aria-hidden="true" tabindex="-1"></a>The SBC (simulation-based calibration) model <span class="co">[</span><span class="ot">@talts2018</span><span class="co">]</span> combines parameter generation, data generation, and model fitting in a single Stan program. True parameters are drawn in <span class="in">`transformed data`</span> (so they are fixed per chain), synthetic data are generated from those parameters, and the model is fit in the <span class="in">`model`</span> block. The <span class="in">`generated quantities`</span> block produces rank statistics for calibration checking.</span>
-<span id="cb14-472"><a href="#cb14-472" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-473"><a href="#cb14-473" aria-hidden="true" tabindex="-1"></a><span class="in">```{.stan filename="h_m01_sbc.stan (generated quantities — rank statistics)"}</span></span>
-<span id="cb14-474"><a href="#cb14-474" aria-hidden="true" tabindex="-1"></a><span class="in">generated quantities {</span></span>
-<span id="cb14-475"><a href="#cb14-475" aria-hidden="true" tabindex="-1"></a><span class="in">  // Copy generated data</span></span>
-<span id="cb14-476"><a href="#cb14-476" aria-hidden="true" tabindex="-1"></a><span class="in">  array[M_total] int y_ = y;</span></span>
-<span id="cb14-477"><a href="#cb14-477" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-478"><a href="#cb14-478" aria-hidden="true" tabindex="-1"></a><span class="in">  vector[2 + P + J + (K - 1)] pars_;</span></span>
-<span id="cb14-479"><a href="#cb14-479" aria-hidden="true" tabindex="-1"></a><span class="in">  vector[2 + P + J + (K - 1)] ranks_;</span></span>
-<span id="cb14-480"><a href="#cb14-480" aria-hidden="true" tabindex="-1"></a><span class="in">  {</span></span>
-<span id="cb14-481"><a href="#cb14-481" aria-hidden="true" tabindex="-1"></a><span class="in">    int idx = 1;</span></span>
-<span id="cb14-482"><a href="#cb14-482" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-483"><a href="#cb14-483" aria-hidden="true" tabindex="-1"></a><span class="in">    // gamma0</span></span>
-<span id="cb14-484"><a href="#cb14-484" aria-hidden="true" tabindex="-1"></a><span class="in">    pars_[idx] = gamma0_;</span></span>
-<span id="cb14-485"><a href="#cb14-485" aria-hidden="true" tabindex="-1"></a><span class="in">    ranks_[idx] = (gamma0 &gt; gamma0_) ? 1 : 0;</span></span>
-<span id="cb14-486"><a href="#cb14-486" aria-hidden="true" tabindex="-1"></a><span class="in">    idx += 1;</span></span>
-<span id="cb14-487"><a href="#cb14-487" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-488"><a href="#cb14-488" aria-hidden="true" tabindex="-1"></a><span class="in">    // gamma</span></span>
-<span id="cb14-489"><a href="#cb14-489" aria-hidden="true" tabindex="-1"></a><span class="in">    for (p in 1:P) {</span></span>
-<span id="cb14-490"><a href="#cb14-490" aria-hidden="true" tabindex="-1"></a><span class="in">      pars_[idx] = gamma_[p];</span></span>
-<span id="cb14-491"><a href="#cb14-491" aria-hidden="true" tabindex="-1"></a><span class="in">      ranks_[idx] = (gamma[p] &gt; gamma_[p]) ? 1 : 0;</span></span>
-<span id="cb14-492"><a href="#cb14-492" aria-hidden="true" tabindex="-1"></a><span class="in">      idx += 1;</span></span>
-<span id="cb14-493"><a href="#cb14-493" aria-hidden="true" tabindex="-1"></a><span class="in">    }</span></span>
-<span id="cb14-494"><a href="#cb14-494" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-495"><a href="#cb14-495" aria-hidden="true" tabindex="-1"></a><span class="in">    // sigma_cell</span></span>
-<span id="cb14-496"><a href="#cb14-496" aria-hidden="true" tabindex="-1"></a><span class="in">    pars_[idx] = sigma_cell_;</span></span>
-<span id="cb14-497"><a href="#cb14-497" aria-hidden="true" tabindex="-1"></a><span class="in">    ranks_[idx] = (sigma_cell &gt; sigma_cell_) ? 1 : 0;</span></span>
-<span id="cb14-498"><a href="#cb14-498" aria-hidden="true" tabindex="-1"></a><span class="in">    idx += 1;</span></span>
-<span id="cb14-499"><a href="#cb14-499" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-500"><a href="#cb14-500" aria-hidden="true" tabindex="-1"></a><span class="in">    // alpha (per cell)</span></span>
-<span id="cb14-501"><a href="#cb14-501" aria-hidden="true" tabindex="-1"></a><span class="in">    for (j in 1:J) {</span></span>
-<span id="cb14-502"><a href="#cb14-502" aria-hidden="true" tabindex="-1"></a><span class="in">      pars_[idx] = alpha_[j];</span></span>
-<span id="cb14-503"><a href="#cb14-503" aria-hidden="true" tabindex="-1"></a><span class="in">      ranks_[idx] = (alpha[j] &gt; alpha_[j]) ? 1 : 0;</span></span>
-<span id="cb14-504"><a href="#cb14-504" aria-hidden="true" tabindex="-1"></a><span class="in">      idx += 1;</span></span>
-<span id="cb14-505"><a href="#cb14-505" aria-hidden="true" tabindex="-1"></a><span class="in">    }</span></span>
-<span id="cb14-506"><a href="#cb14-506" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-507"><a href="#cb14-507" aria-hidden="true" tabindex="-1"></a><span class="in">    // delta</span></span>
-<span id="cb14-508"><a href="#cb14-508" aria-hidden="true" tabindex="-1"></a><span class="in">    for (k in 1:(K-1)) {</span></span>
-<span id="cb14-509"><a href="#cb14-509" aria-hidden="true" tabindex="-1"></a><span class="in">      pars_[idx] = delta_[k];</span></span>
-<span id="cb14-510"><a href="#cb14-510" aria-hidden="true" tabindex="-1"></a><span class="in">      ranks_[idx] = (delta[k] &gt; delta_[k]) ? 1 : 0;</span></span>
-<span id="cb14-511"><a href="#cb14-511" aria-hidden="true" tabindex="-1"></a><span class="in">      idx += 1;</span></span>
-<span id="cb14-512"><a href="#cb14-512" aria-hidden="true" tabindex="-1"></a><span class="in">    }</span></span>
-<span id="cb14-513"><a href="#cb14-513" aria-hidden="true" tabindex="-1"></a><span class="in">  }</span></span>
-<span id="cb14-514"><a href="#cb14-514" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb14-515"><a href="#cb14-515" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-516"><a href="#cb14-516" aria-hidden="true" tabindex="-1"></a>The parameter ordering in <span class="in">`pars_`</span>/<span class="in">`ranks_`</span> is: $\gamma_0$, $\gamma_1, \ldots, \gamma_P$, $\sigma_{\text{cell}}$, $\alpha_1, \ldots, \alpha_J$, $\delta_1, \ldots, \delta_{K-1}$.</span>
-<span id="cb14-517"><a href="#cb14-517" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-518"><a href="#cb14-518" aria-hidden="true" tabindex="-1"></a>::: {.callout-note}</span>
-<span id="cb14-519"><a href="#cb14-519" aria-hidden="true" tabindex="-1"></a><span class="fu">## Design Decision: Which Parameters to Track</span></span>
-<span id="cb14-520"><a href="#cb14-520" aria-hidden="true" tabindex="-1"></a>Per-cell $\boldsymbol{\beta}_j$ matrices are **not** tracked in SBC — with $J \times K \times D$ elements, rank histograms would be unreadable. $\boldsymbol{\beta}$ calibration can be spot-checked separately. The tracked parameters are those with direct scientific interpretation: the regression structure ($\gamma_0, \boldsymbol{\gamma}, \sigma_{\text{cell}}$), cell-level sensitivities ($\alpha_j$), and utilities ($\boldsymbol{\delta}$).</span>
-<span id="cb14-521"><a href="#cb14-521" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb14-522"><a href="#cb14-522" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-523"><a href="#cb14-523" aria-hidden="true" tabindex="-1"></a>Note that the <span class="in">`pars_`</span>/<span class="in">`ranks_`</span> vector size is computed inline as <span class="in">`2 + P + J + (K - 1)`</span> rather than stored in a local variable. This is a necessary workaround: Stan does not permit non-data variables in top-level size declarations.</span>
-<span id="cb14-524"><a href="#cb14-524" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-469"><a href="#cb14-469" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-470"><a href="#cb14-470" aria-hidden="true" tabindex="-1"></a><span class="fu">## The SBC Model (`h_m01_sbc.stan`) {#sec-sbc-model}</span></span>
+<span id="cb14-471"><a href="#cb14-471" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-472"><a href="#cb14-472" aria-hidden="true" tabindex="-1"></a>The SBC (simulation-based calibration) model <span class="co">[</span><span class="ot">@talts2018</span><span class="co">]</span> combines parameter generation, data generation, and model fitting in a single Stan program. True parameters are drawn in <span class="in">`transformed data`</span> (so they are fixed per chain), synthetic data are generated from those parameters, and the model is fit in the <span class="in">`model`</span> block. The <span class="in">`generated quantities`</span> block produces rank statistics for calibration checking.</span>
+<span id="cb14-473"><a href="#cb14-473" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-474"><a href="#cb14-474" aria-hidden="true" tabindex="-1"></a><span class="in">```{.stan filename="h_m01_sbc.stan (generated quantities — rank statistics)"}</span></span>
+<span id="cb14-475"><a href="#cb14-475" aria-hidden="true" tabindex="-1"></a><span class="in">generated quantities {</span></span>
+<span id="cb14-476"><a href="#cb14-476" aria-hidden="true" tabindex="-1"></a><span class="in">  // Copy generated data</span></span>
+<span id="cb14-477"><a href="#cb14-477" aria-hidden="true" tabindex="-1"></a><span class="in">  array[M_total] int y_ = y;</span></span>
+<span id="cb14-478"><a href="#cb14-478" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-479"><a href="#cb14-479" aria-hidden="true" tabindex="-1"></a><span class="in">  vector[2 + P + J + (K - 1)] pars_;</span></span>
+<span id="cb14-480"><a href="#cb14-480" aria-hidden="true" tabindex="-1"></a><span class="in">  vector[2 + P + J + (K - 1)] ranks_;</span></span>
+<span id="cb14-481"><a href="#cb14-481" aria-hidden="true" tabindex="-1"></a><span class="in">  {</span></span>
+<span id="cb14-482"><a href="#cb14-482" aria-hidden="true" tabindex="-1"></a><span class="in">    int idx = 1;</span></span>
+<span id="cb14-483"><a href="#cb14-483" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-484"><a href="#cb14-484" aria-hidden="true" tabindex="-1"></a><span class="in">    // gamma0</span></span>
+<span id="cb14-485"><a href="#cb14-485" aria-hidden="true" tabindex="-1"></a><span class="in">    pars_[idx] = gamma0_;</span></span>
+<span id="cb14-486"><a href="#cb14-486" aria-hidden="true" tabindex="-1"></a><span class="in">    ranks_[idx] = (gamma0 &gt; gamma0_) ? 1 : 0;</span></span>
+<span id="cb14-487"><a href="#cb14-487" aria-hidden="true" tabindex="-1"></a><span class="in">    idx += 1;</span></span>
+<span id="cb14-488"><a href="#cb14-488" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-489"><a href="#cb14-489" aria-hidden="true" tabindex="-1"></a><span class="in">    // gamma</span></span>
+<span id="cb14-490"><a href="#cb14-490" aria-hidden="true" tabindex="-1"></a><span class="in">    for (p in 1:P) {</span></span>
+<span id="cb14-491"><a href="#cb14-491" aria-hidden="true" tabindex="-1"></a><span class="in">      pars_[idx] = gamma_[p];</span></span>
+<span id="cb14-492"><a href="#cb14-492" aria-hidden="true" tabindex="-1"></a><span class="in">      ranks_[idx] = (gamma[p] &gt; gamma_[p]) ? 1 : 0;</span></span>
+<span id="cb14-493"><a href="#cb14-493" aria-hidden="true" tabindex="-1"></a><span class="in">      idx += 1;</span></span>
+<span id="cb14-494"><a href="#cb14-494" aria-hidden="true" tabindex="-1"></a><span class="in">    }</span></span>
+<span id="cb14-495"><a href="#cb14-495" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-496"><a href="#cb14-496" aria-hidden="true" tabindex="-1"></a><span class="in">    // sigma_cell</span></span>
+<span id="cb14-497"><a href="#cb14-497" aria-hidden="true" tabindex="-1"></a><span class="in">    pars_[idx] = sigma_cell_;</span></span>
+<span id="cb14-498"><a href="#cb14-498" aria-hidden="true" tabindex="-1"></a><span class="in">    ranks_[idx] = (sigma_cell &gt; sigma_cell_) ? 1 : 0;</span></span>
+<span id="cb14-499"><a href="#cb14-499" aria-hidden="true" tabindex="-1"></a><span class="in">    idx += 1;</span></span>
+<span id="cb14-500"><a href="#cb14-500" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-501"><a href="#cb14-501" aria-hidden="true" tabindex="-1"></a><span class="in">    // alpha (per cell)</span></span>
+<span id="cb14-502"><a href="#cb14-502" aria-hidden="true" tabindex="-1"></a><span class="in">    for (j in 1:J) {</span></span>
+<span id="cb14-503"><a href="#cb14-503" aria-hidden="true" tabindex="-1"></a><span class="in">      pars_[idx] = alpha_[j];</span></span>
+<span id="cb14-504"><a href="#cb14-504" aria-hidden="true" tabindex="-1"></a><span class="in">      ranks_[idx] = (alpha[j] &gt; alpha_[j]) ? 1 : 0;</span></span>
+<span id="cb14-505"><a href="#cb14-505" aria-hidden="true" tabindex="-1"></a><span class="in">      idx += 1;</span></span>
+<span id="cb14-506"><a href="#cb14-506" aria-hidden="true" tabindex="-1"></a><span class="in">    }</span></span>
+<span id="cb14-507"><a href="#cb14-507" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-508"><a href="#cb14-508" aria-hidden="true" tabindex="-1"></a><span class="in">    // delta</span></span>
+<span id="cb14-509"><a href="#cb14-509" aria-hidden="true" tabindex="-1"></a><span class="in">    for (k in 1:(K-1)) {</span></span>
+<span id="cb14-510"><a href="#cb14-510" aria-hidden="true" tabindex="-1"></a><span class="in">      pars_[idx] = delta_[k];</span></span>
+<span id="cb14-511"><a href="#cb14-511" aria-hidden="true" tabindex="-1"></a><span class="in">      ranks_[idx] = (delta[k] &gt; delta_[k]) ? 1 : 0;</span></span>
+<span id="cb14-512"><a href="#cb14-512" aria-hidden="true" tabindex="-1"></a><span class="in">      idx += 1;</span></span>
+<span id="cb14-513"><a href="#cb14-513" aria-hidden="true" tabindex="-1"></a><span class="in">    }</span></span>
+<span id="cb14-514"><a href="#cb14-514" aria-hidden="true" tabindex="-1"></a><span class="in">  }</span></span>
+<span id="cb14-515"><a href="#cb14-515" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb14-516"><a href="#cb14-516" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-517"><a href="#cb14-517" aria-hidden="true" tabindex="-1"></a>The parameter ordering in <span class="in">`pars_`</span>/<span class="in">`ranks_`</span> is: $\gamma_0$, $\gamma_1, \ldots, \gamma_P$, $\sigma_{\text{cell}}$, $\alpha_1, \ldots, \alpha_J$, $\delta_1, \ldots, \delta_{K-1}$.</span>
+<span id="cb14-518"><a href="#cb14-518" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-519"><a href="#cb14-519" aria-hidden="true" tabindex="-1"></a>::: {.callout-note}</span>
+<span id="cb14-520"><a href="#cb14-520" aria-hidden="true" tabindex="-1"></a><span class="fu">## Design Decision: Which Parameters to Track</span></span>
+<span id="cb14-521"><a href="#cb14-521" aria-hidden="true" tabindex="-1"></a>Per-cell $\boldsymbol{\beta}_j$ matrices are **not** tracked in SBC — with $J \times K \times D$ elements, rank histograms would be unreadable. $\boldsymbol{\beta}$ calibration can be spot-checked separately. The tracked parameters are those with direct scientific interpretation: the regression structure ($\gamma_0, \boldsymbol{\gamma}, \sigma_{\text{cell}}$), cell-level sensitivities ($\alpha_j$), and utilities ($\boldsymbol{\delta}$).</span>
+<span id="cb14-522"><a href="#cb14-522" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb14-523"><a href="#cb14-523" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-524"><a href="#cb14-524" aria-hidden="true" tabindex="-1"></a>Note that the <span class="in">`pars_`</span>/<span class="in">`ranks_`</span> vector size is computed inline as <span class="in">`2 + P + J + (K - 1)`</span> rather than stored in a local variable. This is a necessary workaround: Stan does not permit non-data variables in top-level size declarations.</span>
 <span id="cb14-525"><a href="#cb14-525" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-526"><a href="#cb14-526" aria-hidden="true" tabindex="-1"></a><span class="fu">## The Study Design Utility {#sec-study-design}</span></span>
-<span id="cb14-527"><a href="#cb14-527" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-528"><a href="#cb14-528" aria-hidden="true" tabindex="-1"></a>The <span class="in">`HierarchicalStudyDesign`</span> class in <span class="in">`utils/study_design_hierarchical.py`</span> generates stacked data structures for <span class="in">`h_m01`</span>. The typical workflow is:</span>
-<span id="cb14-529"><a href="#cb14-529" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-530"><a href="#cb14-530" aria-hidden="true" tabindex="-1"></a><span class="in">```python</span></span>
-<span id="cb14-531"><a href="#cb14-531" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> utils.study_design_hierarchical <span class="im">import</span> HierarchicalStudyDesign</span>
-<span id="cb14-532"><a href="#cb14-532" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-533"><a href="#cb14-533" aria-hidden="true" tabindex="-1"></a>design <span class="op">=</span> HierarchicalStudyDesign(</span>
-<span id="cb14-534"><a href="#cb14-534" aria-hidden="true" tabindex="-1"></a>    J<span class="op">=</span><span class="dv">6</span>, K<span class="op">=</span><span class="dv">3</span>, D<span class="op">=</span><span class="dv">2</span>, R<span class="op">=</span><span class="dv">10</span>, P<span class="op">=</span><span class="dv">2</span>,</span>
-<span id="cb14-535"><a href="#cb14-535" aria-hidden="true" tabindex="-1"></a>    M_per_cell<span class="op">=</span><span class="dv">20</span>,</span>
-<span id="cb14-536"><a href="#cb14-536" aria-hidden="true" tabindex="-1"></a>    X<span class="op">=</span>np.array([[<span class="dv">0</span>,<span class="dv">0</span>], [<span class="dv">0</span>,<span class="dv">1</span>], [<span class="dv">1</span>,<span class="dv">0</span>], [<span class="dv">1</span>,<span class="dv">1</span>], [<span class="dv">1</span>,<span class="dv">0</span>], [<span class="dv">0</span>,<span class="dv">1</span>]])</span>
-<span id="cb14-537"><a href="#cb14-537" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb14-538"><a href="#cb14-538" aria-hidden="true" tabindex="-1"></a>design.generate()           <span class="co"># Generate feature vectors and indicator arrays</span></span>
-<span id="cb14-539"><a href="#cb14-539" aria-hidden="true" tabindex="-1"></a>data <span class="op">=</span> design.get_data_dict()  <span class="co"># Stan-compatible data dictionary</span></span>
-<span id="cb14-540"><a href="#cb14-540" aria-hidden="true" tabindex="-1"></a>design.save(<span class="st">"design.json"</span>)  <span class="co"># Persist for reproducibility</span></span>
-<span id="cb14-541"><a href="#cb14-541" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb14-542"><a href="#cb14-542" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-543"><a href="#cb14-543" aria-hidden="true" tabindex="-1"></a>Key features:</span>
-<span id="cb14-544"><a href="#cb14-544" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-545"><a href="#cb14-545" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Constructor** accepts all design parameters: <span class="in">`J`</span>, <span class="in">`K`</span>, <span class="in">`D`</span>, <span class="in">`R`</span>, <span class="in">`P`</span>, <span class="in">`M_per_cell`</span> (scalar or per-cell list), design matrix <span class="in">`X`</span>, and feature generation settings.</span>
-<span id="cb14-546"><a href="#cb14-546" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**`generate()`** creates shared feature vectors $\mathbf{w}_r$ and the stacked indicator array with cell membership vector.</span>
-<span id="cb14-547"><a href="#cb14-547" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**`get_data_dict()`** returns a dictionary matching the <span class="in">`h_m01.stan`</span> data block, including default simulation hyperparameters (<span class="in">`gamma0_mean=2.5`</span>, <span class="in">`gamma0_sd=0.5`</span>, <span class="in">`gamma_sd=0.5`</span>, <span class="in">`sigma_cell_sd=0.3`</span>, <span class="in">`beta_sd=1.0`</span>). These tightened values were calibrated via the prior-predictive, parameter-recovery, and SBC analyses in <span class="co">[</span><span class="ot">Reports 10–12</span><span class="co">](10_hierarchical_prior_analysis.qmd)</span>.</span>
-<span id="cb14-548"><a href="#cb14-548" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**`save()` / `load()`** serialize the design to JSON with metadata (design name, timestamp, feature distribution parameters) for reproducibility.</span>
-<span id="cb14-549"><a href="#cb14-549" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-526"><a href="#cb14-526" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-527"><a href="#cb14-527" aria-hidden="true" tabindex="-1"></a><span class="fu">## The Study Design Utility {#sec-study-design}</span></span>
+<span id="cb14-528"><a href="#cb14-528" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-529"><a href="#cb14-529" aria-hidden="true" tabindex="-1"></a>The <span class="in">`HierarchicalStudyDesign`</span> class in <span class="in">`utils/study_design_hierarchical.py`</span> generates stacked data structures for <span class="in">`h_m01`</span>. The typical workflow is:</span>
+<span id="cb14-530"><a href="#cb14-530" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-531"><a href="#cb14-531" aria-hidden="true" tabindex="-1"></a><span class="in">```python</span></span>
+<span id="cb14-532"><a href="#cb14-532" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> utils.study_design_hierarchical <span class="im">import</span> HierarchicalStudyDesign</span>
+<span id="cb14-533"><a href="#cb14-533" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-534"><a href="#cb14-534" aria-hidden="true" tabindex="-1"></a>design <span class="op">=</span> HierarchicalStudyDesign(</span>
+<span id="cb14-535"><a href="#cb14-535" aria-hidden="true" tabindex="-1"></a>    J<span class="op">=</span><span class="dv">6</span>, K<span class="op">=</span><span class="dv">3</span>, D<span class="op">=</span><span class="dv">2</span>, R<span class="op">=</span><span class="dv">10</span>, P<span class="op">=</span><span class="dv">2</span>,</span>
+<span id="cb14-536"><a href="#cb14-536" aria-hidden="true" tabindex="-1"></a>    M_per_cell<span class="op">=</span><span class="dv">20</span>,</span>
+<span id="cb14-537"><a href="#cb14-537" aria-hidden="true" tabindex="-1"></a>    X<span class="op">=</span>np.array([[<span class="dv">0</span>,<span class="dv">0</span>], [<span class="dv">0</span>,<span class="dv">1</span>], [<span class="dv">1</span>,<span class="dv">0</span>], [<span class="dv">1</span>,<span class="dv">1</span>], [<span class="dv">1</span>,<span class="dv">0</span>], [<span class="dv">0</span>,<span class="dv">1</span>]])</span>
+<span id="cb14-538"><a href="#cb14-538" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb14-539"><a href="#cb14-539" aria-hidden="true" tabindex="-1"></a>design.generate()           <span class="co"># Generate feature vectors and indicator arrays</span></span>
+<span id="cb14-540"><a href="#cb14-540" aria-hidden="true" tabindex="-1"></a>data <span class="op">=</span> design.get_data_dict()  <span class="co"># Stan-compatible data dictionary</span></span>
+<span id="cb14-541"><a href="#cb14-541" aria-hidden="true" tabindex="-1"></a>design.save(<span class="st">"design.json"</span>)  <span class="co"># Persist for reproducibility</span></span>
+<span id="cb14-542"><a href="#cb14-542" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb14-543"><a href="#cb14-543" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-544"><a href="#cb14-544" aria-hidden="true" tabindex="-1"></a>Key features:</span>
+<span id="cb14-545"><a href="#cb14-545" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-546"><a href="#cb14-546" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Constructor** accepts all design parameters: <span class="in">`J`</span>, <span class="in">`K`</span>, <span class="in">`D`</span>, <span class="in">`R`</span>, <span class="in">`P`</span>, <span class="in">`M_per_cell`</span> (scalar or per-cell list), design matrix <span class="in">`X`</span>, and feature generation settings.</span>
+<span id="cb14-547"><a href="#cb14-547" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**`generate()`** creates shared feature vectors $\mathbf{w}_r$ and the stacked indicator array with cell membership vector.</span>
+<span id="cb14-548"><a href="#cb14-548" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**`get_data_dict()`** returns a dictionary matching the <span class="in">`h_m01.stan`</span> data block, including default simulation hyperparameters (<span class="in">`gamma0_mean=2.5`</span>, <span class="in">`gamma0_sd=0.5`</span>, <span class="in">`gamma_sd=0.5`</span>, <span class="in">`sigma_cell_sd=0.3`</span>, <span class="in">`beta_sd=1.0`</span>). These tightened values were calibrated via the prior-predictive, parameter-recovery, and SBC analyses in <span class="co">[</span><span class="ot">Reports 10–12</span><span class="co">](10_hierarchical_prior_analysis.qmd)</span>.</span>
+<span id="cb14-549"><a href="#cb14-549" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**`save()` / `load()`** serialize the design to JSON with metadata (design name, timestamp, feature distribution parameters) for reproducibility.</span>
 <span id="cb14-550"><a href="#cb14-550" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-551"><a href="#cb14-551" aria-hidden="true" tabindex="-1"></a><span class="fu">## Summary</span></span>
-<span id="cb14-552"><a href="#cb14-552" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-553"><a href="#cb14-553" aria-hidden="true" tabindex="-1"></a>The following table summarizes how each <span class="in">`m_01`</span> component maps to <span class="in">`h_m01`</span>:</span>
-<span id="cb14-554"><a href="#cb14-554" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-555"><a href="#cb14-555" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> m_01 Component <span class="pp">|</span> h_m01 Component <span class="pp">|</span> Change <span class="pp">|</span></span>
-<span id="cb14-556"><a href="#cb14-556" aria-hidden="true" tabindex="-1"></a><span class="pp">|----------------|-----------------|--------|</span></span>
-<span id="cb14-557"><a href="#cb14-557" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`alpha`</span> (scalar) <span class="pp">|</span> <span class="in">`alpha[J]`</span> (vector) <span class="pp">|</span> Scalar → $J$-dimensional, via regression structure <span class="pp">|</span></span>
-<span id="cb14-558"><a href="#cb14-558" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`beta`</span> (matrix) <span class="pp">|</span> <span class="in">`beta[J]`</span> (array of matrices) <span class="pp">|</span> Single → per-cell <span class="pp">|</span></span>
-<span id="cb14-559"><a href="#cb14-559" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`delta`</span> (simplex) <span class="pp">|</span> <span class="in">`delta`</span> (simplex) <span class="pp">|</span> Unchanged <span class="pp">|</span></span>
-<span id="cb14-560"><a href="#cb14-560" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> $M$ observations <span class="pp">|</span> $M_{\text{total}}$ stacked observations + <span class="in">`cell[m]`</span> <span class="pp">|</span> Single group → stacked multi-cell <span class="pp">|</span></span>
-<span id="cb14-561"><a href="#cb14-561" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> $\text{LogNormal}(3.0, 0.75)$ prior on $\alpha$ <span class="pp">|</span> $\mathcal{N}(3.0, 1.0)$ on $\gamma_0$ + regression + half-normal on $\sigma_{\text{cell}}$ <span class="pp">|</span> Prior on $\alpha$ mediated by regression <span class="pp">|</span></span>
-<span id="cb14-562"><a href="#cb14-562" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-563"><a href="#cb14-563" aria-hidden="true" tabindex="-1"></a>: Mapping from m_01 to h_m01 components. {#tbl-component-mapping}</span>
-<span id="cb14-564"><a href="#cb14-564" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-565"><a href="#cb14-565" aria-hidden="true" tabindex="-1"></a>The implementation changes are minimal — the likelihood differs only in indexing <span class="in">`alpha[cell[m]]`</span> rather than a scalar <span class="in">`alpha`</span> — but the inferential consequences are substantial: formal regression coefficients, partial pooling, and principled shrinkage across experimental cells.</span>
-<span id="cb14-566"><a href="#cb14-566" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-567"><a href="#cb14-567" aria-hidden="true" tabindex="-1"></a>::: {.callout-note}</span>
-<span id="cb14-568"><a href="#cb14-568" aria-hidden="true" tabindex="-1"></a><span class="fu">## Connection to Earlier Reports</span></span>
-<span id="cb14-569"><a href="#cb14-569" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-570"><a href="#cb14-570" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="co">[</span><span class="ot">Report 1</span><span class="co">](01_abstract_formulation.qmd)</span>: Softmax choice properties hold within each cell</span>
-<span id="cb14-571"><a href="#cb14-571" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="co">[</span><span class="ot">Report 2</span><span class="co">](02_concrete_implementation.qmd)</span>: Base <span class="in">`m_01`</span> implementation that <span class="in">`h_m01`</span> extends</span>
-<span id="cb14-572"><a href="#cb14-572" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="co">[</span><span class="ot">Reports 5–7</span><span class="co">](05_adding_risky_choices.qmd)</span>: Risky-choice extensions could also be hierarchicalized</span>
-<span id="cb14-573"><a href="#cb14-573" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="co">[</span><span class="ot">Report 8</span><span class="co">](08_hierarchical_formulation.qmd)</span>: Abstract formulation implemented here</span>
-<span id="cb14-574"><a href="#cb14-574" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb14-551"><a href="#cb14-551" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-552"><a href="#cb14-552" aria-hidden="true" tabindex="-1"></a><span class="fu">## Summary</span></span>
+<span id="cb14-553"><a href="#cb14-553" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-554"><a href="#cb14-554" aria-hidden="true" tabindex="-1"></a>The following table summarizes how each <span class="in">`m_01`</span> component maps to <span class="in">`h_m01`</span>:</span>
+<span id="cb14-555"><a href="#cb14-555" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-556"><a href="#cb14-556" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> m_01 Component <span class="pp">|</span> h_m01 Component <span class="pp">|</span> Change <span class="pp">|</span></span>
+<span id="cb14-557"><a href="#cb14-557" aria-hidden="true" tabindex="-1"></a><span class="pp">|----------------|-----------------|--------|</span></span>
+<span id="cb14-558"><a href="#cb14-558" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`alpha`</span> (scalar) <span class="pp">|</span> <span class="in">`alpha[J]`</span> (vector) <span class="pp">|</span> Scalar → $J$-dimensional, via regression structure <span class="pp">|</span></span>
+<span id="cb14-559"><a href="#cb14-559" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`beta`</span> (matrix) <span class="pp">|</span> <span class="in">`beta[J]`</span> (array of matrices) <span class="pp">|</span> Single → per-cell <span class="pp">|</span></span>
+<span id="cb14-560"><a href="#cb14-560" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`delta`</span> (simplex) <span class="pp">|</span> <span class="in">`delta`</span> (simplex) <span class="pp">|</span> Unchanged <span class="pp">|</span></span>
+<span id="cb14-561"><a href="#cb14-561" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> $M$ observations <span class="pp">|</span> $M_{\text{total}}$ stacked observations + <span class="in">`cell[m]`</span> <span class="pp">|</span> Single group → stacked multi-cell <span class="pp">|</span></span>
+<span id="cb14-562"><a href="#cb14-562" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> $\text{LogNormal}(3.0, 0.75)$ prior on $\alpha$ <span class="pp">|</span> $\mathcal{N}(3.0, 1.0)$ on $\gamma_0$ + regression + half-normal on $\sigma_{\text{cell}}$ <span class="pp">|</span> Prior on $\alpha$ mediated by regression <span class="pp">|</span></span>
+<span id="cb14-563"><a href="#cb14-563" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-564"><a href="#cb14-564" aria-hidden="true" tabindex="-1"></a>: Mapping from m_01 to h_m01 components. {#tbl-component-mapping}</span>
+<span id="cb14-565"><a href="#cb14-565" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-566"><a href="#cb14-566" aria-hidden="true" tabindex="-1"></a>The implementation changes are minimal — the likelihood differs only in indexing <span class="in">`alpha[cell[m]]`</span> rather than a scalar <span class="in">`alpha`</span> — but the inferential consequences are substantial: formal regression coefficients, partial pooling, and principled shrinkage across experimental cells.</span>
+<span id="cb14-567"><a href="#cb14-567" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-568"><a href="#cb14-568" aria-hidden="true" tabindex="-1"></a>::: {.callout-note}</span>
+<span id="cb14-569"><a href="#cb14-569" aria-hidden="true" tabindex="-1"></a><span class="fu">## Connection to Earlier Reports</span></span>
+<span id="cb14-570"><a href="#cb14-570" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-571"><a href="#cb14-571" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="co">[</span><span class="ot">Report 1</span><span class="co">](01_abstract_formulation.qmd)</span>: Softmax choice properties hold within each cell</span>
+<span id="cb14-572"><a href="#cb14-572" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="co">[</span><span class="ot">Report 2</span><span class="co">](02_concrete_implementation.qmd)</span>: Base <span class="in">`m_01`</span> implementation that <span class="in">`h_m01`</span> extends</span>
+<span id="cb14-573"><a href="#cb14-573" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="co">[</span><span class="ot">Reports 5–7</span><span class="co">](05_adding_risky_choices.qmd)</span>: Risky-choice extensions could also be hierarchicalized</span>
+<span id="cb14-574"><a href="#cb14-574" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="co">[</span><span class="ot">Report 8</span><span class="co">](08_hierarchical_formulation.qmd)</span>: Abstract formulation implemented here</span>
+<span id="cb14-575"><a href="#cb14-575" aria-hidden="true" tabindex="-1"></a>:::</span>
 </code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->

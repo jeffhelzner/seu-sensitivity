@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Jeff Helzner">
-<meta name="dcterms.date" content="2026-04-25">
+<meta name="dcterms.date" content="2026-04-26">
 <meta name="description" content="A synthesis report for the 2×2 factorial design crossing LLM (GPT-4o vs Claude 3.5 Sonnet) with Task (Insurance triage K=3 vs Ellsberg gambles K=4). Isolates the main effects of LLM and task on the temperature–α relationship.">
 
 <title>2×2 Factorial Synthesis: LLM × Task – SEU Sensitivity</title>
@@ -150,10 +150,10 @@ window.Quarto = {
 <link rel="stylesheet" href="../../styles/seu-sensitivity.css">
 <meta name="citation_title" content="2×2 Factorial Synthesis: LLM × Task">
 <meta name="citation_author" content="Jeff Helzner">
-<meta name="citation_publication_date" content="2026-04-25">
-<meta name="citation_cover_date" content="2026-04-25">
+<meta name="citation_publication_date" content="2026-04-26">
+<meta name="citation_cover_date" content="2026-04-26">
 <meta name="citation_year" content="2026">
-<meta name="citation_online_date" content="2026-04-25">
+<meta name="citation_online_date" content="2026-04-26">
 <meta name="citation_fulltext_html_url" content="https://jeffhelzner.github.io/seu-sensitivity/applications/factorial_synthesis/01_factorial_synthesis.html">
 <meta name="citation_language" content="en">
 <meta name="citation_journal_title" content="SEU Sensitivity Project">
@@ -574,7 +574,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">April 25, 2026</p>
+      <p class="date">April 26, 2026</p>
     </div>
   </div>
   
@@ -621,7 +621,7 @@ window.Quarto = {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>The <strong>LLM factor accounts for most of the qualitative variation</strong> in temperature–sensitivity patterns. GPT-4o shows a clear negative temperature–<span class="math inline">\(\alpha\)</span> relationship on <em>both</em> tasks, while Claude 3.5 Sonnet shows weak or absent effects on <em>both</em> tasks. The task domain plays a secondary role — Ellsberg gambles may amplify the effect for GPT-4o but do not create it for Claude. The between-LLM comparison, while directionally clear, carries more uncertainty than the within-LLM evidence (see <a href="#sec-discussion" class="quarto-xref">Section&nbsp;0.10</a> for calibrated claims).</p>
+<p>The <strong>LLM factor accounts for most of the qualitative variation</strong> in temperature–sensitivity patterns. GPT-4o shows a clear negative temperature–<span class="math inline">\(\alpha\)</span> relationship on <em>both</em> tasks (within-cell <span class="math inline">\(P(\text{slope} &lt; 0) &gt; 0.98\)</span>), while Claude 3.5 Sonnet shows weak or absent effects on <em>both</em> tasks. The task domain plays a secondary role — Ellsberg gambles may amplify the effect for GPT-4o but do not create it for Claude. The between-LLM comparison is directionally clear but quantitatively weaker (between-cell <span class="math inline">\(P(\text{GPT slope} &lt; \text{Claude slope}) \approx 0.80\text{–}0.82\)</span>); see <a href="#sec-discussion" class="quarto-xref">Section&nbsp;0.10</a> for calibrated claims and the independent-fits caveat.</p>
 </div>
 </div>
 </section>
@@ -629,7 +629,7 @@ window.Quarto = {
 <h2 data-number="0.2" class="anchored" data-anchor-id="sec-design"><span class="header-section-number">0.2</span> Design Summary</h2>
 <section id="factorial-structure" class="level3" data-number="0.2.1">
 <h3 data-number="0.2.1" class="anchored" data-anchor-id="factorial-structure"><span class="header-section-number">0.2.1</span> Factorial Structure</h3>
-<div class="cell" data-execution_count="3">
+<div class="cell" data-execution_count="4">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>design <span class="op">=</span> pd.DataFrame({</span>
@@ -648,7 +648,7 @@ window.Quarto = {
 <span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>})</span>
 <span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>design</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div id="tbl-factorial-design" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="3">
+<div id="tbl-factorial-design" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="4">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-factorial-design-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;1: The 2×2 factorial design. Each cell is a separate study with its own data collection, model fit, and analysis.
@@ -785,7 +785,7 @@ Table&nbsp;1: The 2×2 factorial design. Each cell is a separate study with its 
 <h2 data-number="0.5" class="anchored" data-anchor-id="sec-results"><span class="header-section-number">0.5</span> Results Matrix</h2>
 <section id="forest-plots" class="level3" data-number="0.5.1">
 <h3 data-number="0.5.1" class="anchored" data-anchor-id="forest-plots"><span class="header-section-number">0.5.1</span> Forest Plots</h3>
-<div id="cell-fig-forest-2x2" class="cell" data-fig-height="10" data-fig-width="14" data-execution_count="4">
+<div id="cell-fig-forest-2x2" class="cell" data-fig-height="10" data-fig-width="14" data-execution_count="5">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">2</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">14</span>, <span class="dv">10</span>))</span>
@@ -843,7 +843,7 @@ Figure&nbsp;1: Forest plots of posterior α distributions for all four cells of 
 </section>
 <section id="posterior-density-overlays" class="level3" data-number="0.5.2">
 <h3 data-number="0.5.2" class="anchored" data-anchor-id="posterior-density-overlays"><span class="header-section-number">0.5.2</span> Posterior Density Overlays</h3>
-<div id="cell-fig-density-2x2" class="cell" data-fig-height="10" data-fig-width="14" data-execution_count="5">
+<div id="cell-fig-density-2x2" class="cell" data-fig-height="10" data-fig-width="14" data-execution_count="6">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">2</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">14</span>, <span class="dv">10</span>))</span>
@@ -885,7 +885,7 @@ Figure&nbsp;2: Kernel density estimates of posterior α for all four cells. Top 
 </section>
 <section id="sec-monotonicity" class="level2" data-number="0.6">
 <h2 data-number="0.6" class="anchored" data-anchor-id="sec-monotonicity"><span class="header-section-number">0.6</span> Monotonicity Summary</h2>
-<div class="cell" data-execution_count="6">
+<div class="cell" data-execution_count="7">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>rows <span class="op">=</span> []</span>
@@ -906,7 +906,7 @@ Figure&nbsp;2: Kernel density estimates of posterior α for all four cells. Top 
 <span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>pd.DataFrame(rows)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div id="tbl-monotonicity" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="6">
+<div id="tbl-monotonicity" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="7">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-monotonicity-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;2: Summary of temperature–sensitivity relationship across all four cells. P(slope &lt; 0) near 1 indicates strong evidence for a negative relationship; P(strict mono) is the probability that α is strictly decreasing at every consecutive temperature step.
@@ -981,7 +981,7 @@ Table&nbsp;2: Summary of temperature–sensitivity relationship across all four 
 </div>
 <p>The “Pattern” labels in <a href="#tbl-monotonicity" class="quarto-xref">Table&nbsp;2</a> use the following descriptive scheme: “Declining” for P(slope &lt; 0) &gt; 0.9, “Weak decline” for P(slope &lt; 0) &gt; 0.7, and “Flat / non-monotonic” otherwise. These thresholds are intended as interpretive aids, not formal inferential cutoffs. Readers should attend to the continuous P(slope &lt; 0) values rather than the categorical labels.</p>
 <p>Note that the strict monotonicity probabilities — P(strict mono ↓) — are remarkably low even for GPT-4o (0.12 and 0.09), meaning that in roughly 90% of posterior draws, at least one adjacent temperature pair shows a local reversal. The global slope is clearly negative for GPT-4o, but the trajectory is a <em>noisy decline</em> rather than a smooth monotonic function. This is consistent with non-monotonic local variation around a global negative trend, and suggests that the temperature–α relationship, while real, is not a simple step-wise degradation. For Claude, the near-zero strict monotonicity probabilities are expected given the absence of a global trend.</p>
-<div id="cell-fig-slope-comparison" class="cell" data-fig-height="5" data-execution_count="7">
+<div id="cell-fig-slope-comparison" class="cell" data-fig-height="5" data-execution_count="8">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">5</span>))</span>
@@ -1030,7 +1030,7 @@ Figure&nbsp;3: Posterior distributions of the global slope Δα/ΔT for all four
 <section id="sec-llm-effect" class="level3" data-number="0.7.1">
 <h3 data-number="0.7.1" class="anchored" data-anchor-id="sec-llm-effect"><span class="header-section-number">0.7.1</span> LLM Main Effect</h3>
 <p>The <strong>LLM main effect</strong> asks: holding task constant, does switching from GPT-4o to Claude change the temperature–<span class="math inline">\(\alpha\)</span> relationship?</p>
-<div id="cell-fig-llm-effect" class="cell" data-fig-height="5" data-execution_count="8">
+<div id="cell-fig-llm-effect" class="cell" data-fig-height="5" data-execution_count="9">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">14</span>, <span class="dv">5</span>))</span>
@@ -1093,7 +1093,7 @@ Figure&nbsp;4: LLM main effect. Left: Insurance task — GPT-4o shows clear decl
 </div>
 </div>
 </div>
-<div class="cell" data-execution_count="9">
+<div class="cell" data-execution_count="10">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>llm_rows <span class="op">=</span> []</span>
@@ -1116,7 +1116,7 @@ Figure&nbsp;4: LLM main effect. Left: Insurance task — GPT-4o shows clear decl
 <span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>pd.DataFrame(llm_rows)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div id="tbl-llm-effect" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="9">
+<div id="tbl-llm-effect" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="10">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-llm-effect-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;3: LLM main effect: GPT-4o vs Claude within each task.
@@ -1171,7 +1171,7 @@ Table&nbsp;3: LLM main effect: GPT-4o vs Claude within each task.
 <section id="sec-task-effect" class="level3" data-number="0.7.2">
 <h3 data-number="0.7.2" class="anchored" data-anchor-id="sec-task-effect"><span class="header-section-number">0.7.2</span> Task Main Effect</h3>
 <p>The <strong>task main effect</strong> asks: holding LLM constant, does switching from insurance to Ellsberg change the temperature–<span class="math inline">\(\alpha\)</span> relationship?</p>
-<div id="cell-fig-task-effect" class="cell" data-fig-height="5" data-execution_count="10">
+<div id="cell-fig-task-effect" class="cell" data-fig-height="5" data-execution_count="11">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">14</span>, <span class="dv">5</span>))</span>
@@ -1236,7 +1236,7 @@ Figure&nbsp;5: Task main effect. Left: GPT-4o — both tasks show declining α, 
 </div>
 </div>
 </div>
-<div class="cell" data-execution_count="11">
+<div class="cell" data-execution_count="12">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>task_rows <span class="op">=</span> []</span>
@@ -1259,7 +1259,7 @@ Figure&nbsp;5: Task main effect. Left: GPT-4o — both tasks show declining α, 
 <span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>pd.DataFrame(task_rows)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div id="tbl-task-effect" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="11">
+<div id="tbl-task-effect" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="12">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-task-effect-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;4: Task main effect: Insurance vs Ellsberg within each LLM.
@@ -1314,7 +1314,7 @@ Table&nbsp;4: Task main effect: Insurance vs Ellsberg within each LLM.
 <section id="sec-interaction" class="level3" data-number="0.7.3">
 <h3 data-number="0.7.3" class="anchored" data-anchor-id="sec-interaction"><span class="header-section-number">0.7.3</span> Interaction</h3>
 <p>Is the temperature–<span class="math inline">\(\alpha\)</span> relationship <strong>specific to a particular LLM–task combination</strong>, or is it decomposable into additive main effects?</p>
-<div id="cell-fig-interaction-slopes" class="cell" data-fig-height="5" data-execution_count="12">
+<div id="cell-fig-interaction-slopes" class="cell" data-fig-height="5" data-execution_count="13">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">8</span>, <span class="dv">5</span>))</span>
@@ -1352,7 +1352,7 @@ Figure&nbsp;6: Primary interaction plot in terms of slope medians. The GPT-4o li
 </div>
 </div>
 </div>
-<div id="cell-fig-interaction" class="cell" data-fig-height="5" data-execution_count="13">
+<div id="cell-fig-interaction" class="cell" data-fig-height="5" data-execution_count="14">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">8</span>, <span class="dv">5</span>))</span>
@@ -1388,7 +1388,7 @@ Figure&nbsp;7: Supplementary interaction plot using P(slope &lt; 0) as the depen
 </div>
 </div>
 </div>
-<div id="interaction-quantitative" class="cell" data-execution_count="14">
+<div id="interaction-quantitative" class="cell" data-execution_count="15">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Quantitative interaction: difference in slope differences</span></span>
@@ -1427,7 +1427,7 @@ The data are uninformative about the presence or magnitude of an interaction.</c
 </section>
 <section id="sec-pairwise" class="level2" data-number="0.8">
 <h2 data-number="0.8" class="anchored" data-anchor-id="sec-pairwise"><span class="header-section-number">0.8</span> Pairwise Comparison Heatmaps</h2>
-<div id="cell-fig-heatmaps-2x2" class="cell" data-fig-height="10" data-fig-width="14" data-execution_count="15">
+<div id="cell-fig-heatmaps-2x2" class="cell" data-fig-height="10" data-fig-width="14" data-execution_count="16">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">2</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">14</span>, <span class="dv">10</span>))</span>
@@ -1484,7 +1484,7 @@ Figure&nbsp;8: Pairwise posterior probability heatmaps P(α_row &gt; α_col) for
 </section>
 <section id="sec-summary-viz" class="level2" data-number="0.9">
 <h2 data-number="0.9" class="anchored" data-anchor-id="sec-summary-viz"><span class="header-section-number">0.9</span> Summary Visualisation</h2>
-<div id="cell-fig-grand-summary" class="cell" data-fig-height="6" data-execution_count="16">
+<div id="cell-fig-grand-summary" class="cell" data-fig-height="6" data-execution_count="17">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">12</span>, <span class="dv">6</span>))</span>
@@ -1532,7 +1532,7 @@ Figure&nbsp;9: Grand summary: α trajectory (with 90% CIs) for all four factoria
 </div>
 </div>
 </div>
-<div id="cell-fig-summary-bars" class="cell" data-fig-height="5" data-execution_count="17">
+<div id="cell-fig-summary-bars" class="cell" data-fig-height="5" data-execution_count="18">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">5</span>))</span>
@@ -1577,7 +1577,7 @@ Figure&nbsp;10: P(slope &lt; 0) for each cell, arranged in factorial layout. GPT
 <section id="decomposing-the-original-confound" class="level3" data-number="0.10.1">
 <h3 data-number="0.10.1" class="anchored" data-anchor-id="decomposing-the-original-confound"><span class="header-section-number">0.10.1</span> Decomposing the Original Confound</h3>
 <p>The original question was: why did the Claude × Ellsberg study fail to replicate the GPT-4o × Insurance finding? The factorial design provides a clear answer.</p>
-<div class="cell" data-execution_count="18">
+<div class="cell" data-execution_count="19">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>final <span class="op">=</span> pd.DataFrame({</span>
@@ -1593,7 +1593,7 @@ Figure&nbsp;10: P(slope &lt; 0) for each cell, arranged in factorial layout. GPT
 <span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>})</span>
 <span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>final</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div id="tbl-final-summary" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="18">
+<div id="tbl-final-summary" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="19">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-final-summary-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;5: Final factorial summary. The LLM factor (rows) drives the key distinction: GPT-4o consistently shows declining α with temperature, Claude does not.
@@ -1660,7 +1660,7 @@ Table&nbsp;5: Final factorial summary. The LLM factor (rows) drives the key dist
 <h3 data-number="0.10.6" class="anchored" data-anchor-id="sec-temp-confound"><span class="header-section-number">0.10.6</span> Temperature Range Confound</h3>
 <p>The GPT-4o cells use temperatures in <span class="math inline">\(\{0.0, 0.3, 0.7, 1.0, 1.5\}\)</span> while the Claude cells use <span class="math inline">\(\{0.0, 0.2, 0.5, 0.8, 1.0\}\)</span>. Because the slope <span class="math inline">\(\Delta\alpha / \Delta T\)</span> is computed by regression over the full temperature grid, the GPT-4o slopes are estimated over a wider range (<span class="math inline">\(\Delta T = 1.5\)</span>) with different grid spacing than the Claude slopes (<span class="math inline">\(\Delta T = 1.0\)</span>). A flatter true relationship would produce a less negative slope over a narrower range even if the underlying sensitivity function were identical.</p>
 <p>To assess whether this confound drives the LLM comparison, we compute <strong>matched-range slopes</strong> for GPT-4o by restricting to <span class="math inline">\(T \in \{0.0, 0.3, 0.7, 1.0\}\)</span> (dropping <span class="math inline">\(T = 1.5\)</span>) and compare these to the full-range Claude slopes.</p>
-<div id="matched-range-analysis" class="cell" data-execution_count="19">
+<div id="matched-range-analysis" class="cell" data-execution_count="20">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute matched-range slopes for GPT-4o (T ≤ 1.0, dropping T = 1.5)</span></span>
@@ -1791,13 +1791,13 @@ LLM comparison on matched range:
 <div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{helzner2026,
   author = {Helzner, Jeff},
   title = {2×2 {Factorial} {Synthesis:} {LLM} × {Task}},
-  date = {2026-04-25},
+  date = {2026-04-26},
   url = {https://jeffhelzner.github.io/seu-sensitivity/applications/factorial_synthesis/01_factorial_synthesis.html},
   langid = {en}
 }
 </code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-helzner2026" class="csl-entry quarto-appendix-citeas" role="listitem">
 Helzner, Jeff. 2026. <span>“2×2 Factorial Synthesis: LLM × Task.”</span>
-SEU Sensitivity Project, April 25. <a href="https://jeffhelzner.github.io/seu-sensitivity/applications/factorial_synthesis/01_factorial_synthesis.html">https://jeffhelzner.github.io/seu-sensitivity/applications/factorial_synthesis/01_factorial_synthesis.html</a>.
+SEU Sensitivity Project, April 26. <a href="https://jeffhelzner.github.io/seu-sensitivity/applications/factorial_synthesis/01_factorial_synthesis.html">https://jeffhelzner.github.io/seu-sensitivity/applications/factorial_synthesis/01_factorial_synthesis.html</a>.
 </div></div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
@@ -2389,7 +2389,7 @@ SEU Sensitivity Project, April 25. <a href="https://jeffhelzner.github.io/seu-se
 <span id="cb21-128"><a href="#cb21-128" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb21-129"><a href="#cb21-129" aria-hidden="true" tabindex="-1"></a>::: {.callout-important}</span>
 <span id="cb21-130"><a href="#cb21-130" aria-hidden="true" tabindex="-1"></a><span class="fu">## Preview of Key Finding</span></span>
-<span id="cb21-131"><a href="#cb21-131" aria-hidden="true" tabindex="-1"></a>The **LLM factor accounts for most of the qualitative variation** in temperature–sensitivity patterns. GPT-4o shows a clear negative temperature–$\alpha$ relationship on *both* tasks, while Claude 3.5 Sonnet shows weak or absent effects on *both* tasks. The task domain plays a secondary role — Ellsberg gambles may amplify the effect for GPT-4o but do not create it for Claude. The between-LLM comparison, while directionally clear, carries more uncertainty than the within-LLM evidence (see @sec-discussion for calibrated claims).</span>
+<span id="cb21-131"><a href="#cb21-131" aria-hidden="true" tabindex="-1"></a>The **LLM factor accounts for most of the qualitative variation** in temperature–sensitivity patterns. GPT-4o shows a clear negative temperature–$\alpha$ relationship on *both* tasks (within-cell $P(\text{slope} &lt; 0) &gt; 0.98$), while Claude 3.5 Sonnet shows weak or absent effects on *both* tasks. The task domain plays a secondary role — Ellsberg gambles may amplify the effect for GPT-4o but do not create it for Claude. The between-LLM comparison is directionally clear but quantitatively weaker (between-cell $P(\text{GPT slope} &lt; \text{Claude slope}) \approx 0.80\text{–}0.82$); see @sec-discussion for calibrated claims and the independent-fits caveat.</span>
 <span id="cb21-132"><a href="#cb21-132" aria-hidden="true" tabindex="-1"></a>:::</span>
 <span id="cb21-133"><a href="#cb21-133" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb21-134"><a href="#cb21-134" aria-hidden="true" tabindex="-1"></a></span>

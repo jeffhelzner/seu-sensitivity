@@ -122,3 +122,7 @@ articles/
 reports/applications/temperature_study_with_risky_alts/data/stan_data_augmented_*.json
 reports/applications/temperature_study_with_risky_alts/data/summary_*.csv
 plan.txt
+
+# Allow Quarto freeze figure caches (the project-wide *.png rule above would otherwise drop them)
+!reports/_freeze/**/figure-html/*.png
+!reports/_freeze/**/figure-html/*.jpg

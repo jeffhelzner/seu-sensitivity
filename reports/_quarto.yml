@@ -64,8 +64,6 @@ website:
           - text: "Factorial Synthesis"
           - text: "2×2 Factorial Analysis"
             href: applications/factorial_synthesis/01_factorial_synthesis.qmd
-      - text: "Blog"
-        href: blog/index.qmd
     right:
       - icon: github
         href: https://github.com/jeffhelzner/seu-sensitivity

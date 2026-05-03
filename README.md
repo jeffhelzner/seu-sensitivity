@@ -77,7 +77,6 @@ seu-sensitivity/
 │   │   ├── claude_insurance_study/
 │   │   ├── gpt4o_ellsberg_study/
 │   │   └── factorial_synthesis/
-│   ├── blog/               # Blog-style posts
 │   ├── styles/             # Custom CSS/SCSS styles
 │   └── legacy/             # Archived legacy reports
 ├── models/                  # Stan model implementations

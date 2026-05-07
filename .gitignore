@@ -126,3 +126,5 @@ plan.txt
 # Allow Quarto freeze figure caches (the project-wide *.png rule above would otherwise drop them)
 !reports/_freeze/**/figure-html/*.png
 !reports/_freeze/**/figure-html/*.jpg
+
+local

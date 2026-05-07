@@ -534,6 +534,25 @@ A 6-model × 3-prompt factorial study measuring how LLM identity and prompt fram
 - Non-centered parameterization for cell-level α
 - Support for reasoning models (o3-mini) and extended thinking (Claude 3.7)
 
+> **Construct validity scope.** The h_m01 family inherits the
+> partial-identification structure of m_0 / m_01: only uncertain
+> choices are used, so β and δ are not separately identified, and
+> α should be read as the consistency with which each cell's agent
+> chooses in the direction implied by its own *model-implied*
+> utility ranking — not as a portable, agent-level measure of EU
+> rationality. Accordingly, the alignment study is framed as a
+> **contrast study** (regression effects on log α), not a
+> calibration study of absolute rationality. Prompt-factor and
+> model × prompt interaction contrasts are the most cleanly
+> interpretable; raw model-factor contrasts are descriptive
+> rather than rationality-level comparisons. See the §Scientific
+> Scope and Construct Validity section of
+> [`prompts/hierarchical_alignment_study_plan.md`](prompts/hierarchical_alignment_study_plan.md)
+> and the §Construct Validity discussion in
+> [`reports/applications/temperature_study/01_initial_study.qmd`](reports/applications/temperature_study/01_initial_study.qmd)
+> for the full treatment, including the m_1 / m_2 / m_3 follow-up
+> sequencing.
+
 ## Model h_m01 Specification
 
 The hierarchical model (`models/h_m01.stan`) extends m_01 to pool information across J experimental cells via a regression on log-sensitivity:

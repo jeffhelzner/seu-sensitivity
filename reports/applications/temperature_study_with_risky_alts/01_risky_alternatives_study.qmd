@@ -66,6 +66,65 @@ The central questions are: *(i)* Does the temperature–sensitivity relationship
 This report presents data collection, prior calibration, model fitting, posterior predictive checks, and monotonicity analysis for the augmented models. It builds directly on the uncertain-choice data and m_01 results from [Report 1](../temperature_study/01_initial_study.qmd).
 :::
 
+::: {.callout-important}
+## Construct Validity: Why Adding Risky Alternatives Matters
+
+[Report 1](../temperature_study/01_initial_study.qmd) flagged a
+fundamental interpretive limit of the m_0 / m_01 family: because the
+design uses only *uncertain* (assessment-elicited) choices, the
+feature-to-probability weights $\beta$ and the utility increments
+$\delta$ are not separately identified. Operationally, $\alpha$ in
+m_01 measures the consistency with which choices align with the
+*model-implied* utility ranking — not necessarily with the agent's
+"true" subjective expected utility. In the three-layer construct-
+validity scheme of the initial-study report, m_01 supports
+**comparative** claims across conditions sharing a stimulus pool
+(layer 2), but **not absolute, agent-level rationality** claims
+(layer 3).
+
+Risky alternatives are the principled relaxation of that limitation.
+By presenting probabilities *explicitly* — as a $K$-simplex over
+consequences — risky choices give $\delta$ direct identifying
+information that uncertain choices alone cannot provide:
+$\eta^{(r)} = x^\top \upsilon$ depends on $\delta$ through
+$\upsilon = \mathrm{cumsum}([0,\delta])$ but no longer through $\beta$,
+so risky-choice likelihood contributions identify $\delta$ separately
+from the uncertain-choice $\beta$. This is exactly the missing
+identifying information called for in §Construct Validity of
+[Report 1](../temperature_study/01_initial_study.qmd) and motivates
+the m_1 / m_2 / m_3 ladder that this report instantiates as
+m_11 / m_21 / m_31.
+
+The three augmented models map onto the construct-validity layers
+as follows:
+
+* **m_11 (shared $\alpha$).** Stays at layer (2) but with **tighter
+  posteriors**: the risky data adds a second source of evidence
+  about the same sensitivity parameter, sharpening within-condition
+  precision without introducing new claim types.
+* **m_21 (separate $\alpha$ and $\omega$).** Opens a new layer-(2)
+  contrast — *between contexts* (uncertain vs risky) — that the
+  m_0 / m_01 family cannot estimate at all.
+* **m_31 ($\omega = \kappa\alpha$).** The proportionality parameter
+  $\kappa$ is the cleanest summary the project produces of *between-
+  context* sensitivity differences. As a **ratio**, $\kappa$ is
+  robust to the absolute scaling of the model-implied utility:
+  whatever residual identifiability concern attaches to the absolute
+  level of $\alpha$ or $\omega$ cancels in the ratio. This is the
+  closest the m_1 / m_2 / m_3 family comes to a layer-(3)–adjacent
+  quantity.
+
+This setup motivates the three central questions of this report
+listed above. It also explains the methodological status of this
+report in the broader applications programme: it is the empirical
+proof-of-concept for the m_1 / m_2 / m_3 follow-up sequencing flagged
+in §0.5 of
+[`prompts/hierarchical_alignment_study_plan.md`](../../../prompts/hierarchical_alignment_study_plan.md)
+— that is, what an alignment-style follow-up would look like once
+the construct-validity caveats of m_01 / h_m01 motivate the move to
+designs with risky alternatives.
+:::
+
 ## Experimental Design {#sec-design}
 
 ### Risky Alternatives
@@ -1035,6 +1094,46 @@ The finding that temperature affects LLM rationality has implications for AI dep
 **Prior sensitivity.** The $\alpha$ prior — Lognormal(3.0, 0.75) — is carried forward from [Report 1](../temperature_study/01_initial_study.qmd) without robustness checking, and the $\omega$ prior in m_21 adopts the same hyperparameters by symmetry. The $\kappa$ prior in m_31 — Lognormal(0, 0.5) — is moderately informative. Refitting under alternative priors (e.g., $\alpha, \omega \sim \text{Lognormal}(2.5, 1.0)$) and verifying that the qualitative findings — the temperature gradient and the $\omega < \alpha$ pattern — are preserved would strengthen the robustness of the conclusions. Prior-to-posterior contraction ratios for the key parameters would further quantify the data's influence relative to the prior.
 
 **Single LLM and task domain.** All results are from GPT-4o on the insurance triage task. The [Ellsberg study](../ellsberg_study/01_ellsberg_study.qmd) and [GPT-4o Ellsberg study](../gpt4o_ellsberg_study/01_gpt4o_ellsberg_study.qmd) in this series provide some cross-task context, while the [Claude Insurance study](../claude_insurance_study/01_claude_insurance_study.qmd) provides cross-LLM context on the same task domain. The [factorial synthesis](../factorial_synthesis/01_factorial_synthesis.qmd) formally disentangles LLM and task effects.
+
+### Construct Validity Revisited
+
+Returning to the construct-validity framing introduced at the top of
+this report: the empirical results of this study illustrate, in
+miniature, exactly what is gained by moving from the m_0 / m_01
+family to a design with risky alternatives. The temperature–$\alpha$
+relationship from [Report 1](../temperature_study/01_initial_study.qmd)
+is a layer-(2) finding that survives the move (it replicates under
+all three augmented models), but the m_31 estimate of $\kappa$ is a
+layer-(3)–adjacent quantity that the m_0 / m_01 family **cannot
+produce at all** — and the data do indeed locate $\kappa$
+substantively below 1.0 across all temperatures. That this is
+possible only because risky choices give $\delta$ direct identifying
+information is the methodological point.
+
+For the planned alignment study (see
+[`prompts/hierarchical_alignment_study_plan.md`](../../../prompts/hierarchical_alignment_study_plan.md)),
+the implications are concrete:
+
+1. **The h_m01-based first wave is layer (2) by construction** —
+   contrasts on $\log\alpha$ across alignment manipulations — and
+   inherits the m_01 caveats spelled out in [Report 1](../temperature_study/01_initial_study.qmd).
+2. **A second wave that adds risky alternatives** would lift the
+   alignment study into the same identification regime as the
+   present m_11 / m_21 / m_31 family, allowing context-comparison
+   parameters analogous to $\kappa$ — for example, prompt-condition
+   ratios of risky-vs-uncertain sensitivity — that are robust to the
+   absolute scaling of $u_\theta$.
+3. **The wide credible intervals on $\kappa$ here at $N = 300$** are
+   a direct planning input for any such follow-up: precise
+   estimation of context-comparison parameters demands more risky
+   problems per cell than precise estimation of $\alpha$ alone.
+
+In short, the present study should be read both as a substantive
+extension of the temperature finding *and* as the methodological
+template for the m_1 / m_2 / m_3-family follow-up that the
+construct-validity discussion in [Report 1](../temperature_study/01_initial_study.qmd)
+identifies as the principled way to move beyond the m_0 / m_01
+identification limit.
 
 ### Transparency Note
 

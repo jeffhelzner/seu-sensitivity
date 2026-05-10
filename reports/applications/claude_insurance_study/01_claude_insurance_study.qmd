@@ -270,48 +270,115 @@ plt.show()
 
 ```{python}
 #| label: tbl-recovery-metrics
-#| tbl-cap: "Parameter recovery metrics for m_01 with the Claude × Insurance design (M≈300, K=3, D=32, R=30)."
+#| tbl-cap: "Parameter recovery metrics for m_01 with the Claude × Insurance design (M≈300, K=3, D=32, R=30). Column structure mirrors the corresponding table in the initial temperature study to enable direct comparison; the primary parameter of interest is α."
 
 K_val = 3
 D_val = 32
 
+# Beta recovery
+all_beta_bias = []
+all_beta_rmse = []
 all_beta_coverage = []
+all_beta_ci_width = []
+
 for k in range(K_val):
     for d in range(D_val):
         param_name = f"beta[{k+1},{d+1}]"
         try:
             bt = np.array([p['beta'][k][d] for p in true_params_list])
+            bm = np.array([s.loc[param_name, 'Mean'] for s in posterior_summaries])
             bl = np.array([s.loc[param_name, '5%'] for s in posterior_summaries])
             bu = np.array([s.loc[param_name, '95%'] for s in posterior_summaries])
+
+            all_beta_bias.append(np.mean(bm - bt))
+            all_beta_rmse.append(np.sqrt(np.mean((bm - bt)**2)))
             all_beta_coverage.append(np.mean((bt >= bl) & (bt <= bu)))
+            all_beta_ci_width.append(np.mean(bu - bl))
         except (KeyError, IndexError):
             pass
 
+# Delta recovery
+all_delta_bias = []
+all_delta_rmse = []
 all_delta_coverage = []
+all_delta_ci_width = []
+
 for k in range(K_val - 1):
     param_name = f"delta[{k+1}]"
     try:
         dt = np.array([p['delta'][k] for p in true_params_list])
+        dm = np.array([s.loc[param_name, 'Mean'] for s in posterior_summaries])
         dl = np.array([s.loc[param_name, '5%'] for s in posterior_summaries])
         du = np.array([s.loc[param_name, '95%'] for s in posterior_summaries])
+
+        all_delta_bias.append(np.mean(dm - dt))
+        all_delta_rmse.append(np.sqrt(np.mean((dm - dt)**2)))
         all_delta_coverage.append(np.mean((dt >= dl) & (dt <= du)))
+        all_delta_ci_width.append(np.mean(du - dl))
     except (KeyError, IndexError):
         pass
 
+# Scale references for relative metrics. α lives on a wide multiplicative
+# scale (Lognormal(3.0, 0.75) prior → true values typically ~5–100), so
+# absolute Bias and RMSE must be interpreted relative to the magnitude
+# of α; the same caveat is less relevant for β (zero-centred) and δ
+# (modest range), so we report relative metrics for α only.
+alpha_scale = float(np.mean(np.abs(alpha_true)))
+alpha_rel_bias = alpha_bias / alpha_scale
+alpha_rel_rmse = alpha_rmse / alpha_scale
+
 metrics = pd.DataFrame([
     {'Parameter': 'α', 'Bias': f'{alpha_bias:.2f}', 'RMSE': f'{alpha_rmse:.2f}',
-     'Coverage (90%)': f'{alpha_coverage:.0%}', 'CI Width': f'{alpha_ci_width:.1f}'},
+     'Rel. Bias': f'{alpha_rel_bias:+.1%}', 'Rel. RMSE': f'{alpha_rel_rmse:.1%}',
+     'Coverage (90%)': f'{alpha_coverage:.0%}', 'Mean CI Width': f'{alpha_ci_width:.2f}'},
     {'Parameter': f'β (mean over {K_val*D_val})',
-     'Bias': '—', 'RMSE': '—',
+     'Bias': f'{np.mean(all_beta_bias):.3f}' if all_beta_bias else '—',
+     'RMSE': f'{np.mean(all_beta_rmse):.3f}' if all_beta_rmse else '—',
+     'Rel. Bias': '—', 'Rel. RMSE': '—',
      'Coverage (90%)': f'{np.mean(all_beta_coverage):.0%}' if all_beta_coverage else '—',
-     'CI Width': '—'},
+     'Mean CI Width': f'{np.mean(all_beta_ci_width):.2f}' if all_beta_ci_width else '—'},
     {'Parameter': f'δ (mean over {K_val-1})',
-     'Bias': '—', 'RMSE': '—',
+     'Bias': f'{np.mean(all_delta_bias):.3f}' if all_delta_bias else '—',
+     'RMSE': f'{np.mean(all_delta_rmse):.3f}' if all_delta_rmse else '—',
+     'Rel. Bias': '—', 'Rel. RMSE': '—',
      'Coverage (90%)': f'{np.mean(all_delta_coverage):.0%}' if all_delta_coverage else '—',
-     'CI Width': '—'},
+     'Mean CI Width': f'{np.mean(all_delta_ci_width):.2f}' if all_delta_ci_width else '—'},
 ])
 metrics
 ```
+
+::: {.callout-note}
+## Comparing Recovery Metrics with the Initial Temperature Study
+
+A natural question is why the absolute α metrics in this table (Bias,
+RMSE, Mean CI Width) differ from those in the corresponding table of
+the [initial temperature study](../temperature_study/01_initial_study.qmd#sec-parameter-recovery).
+The difference is **not** attributable to LLM-specific calibration:
+parameter recovery in both studies uses *purely synthetic data* drawn
+from the same prior and the same study design (M=300, K=3, D=32, R=30,
+i.i.d. Normal features). True α values are sampled from the same
+Lognormal$(3.0, 0.75)$ prior, and no Claude or GPT-4o response data
+enters the simulation. The two recoveries differ only in the random
+seeds of their 20 iterations.
+
+Because true α lies on a wide multiplicative scale (≈ 5–100 under the
+prior), absolute Bias, RMSE, and CI Width scale roughly with the
+magnitude of the α realisations drawn in any given recovery run.
+Anchoring interpretation on the **relative** columns (Rel. Bias,
+Rel. RMSE) and on **Coverage** removes this source of run-to-run
+variability and is the appropriate basis for cross-study comparison.
+On those metrics the two recoveries are comparable, and α recovery
+is fit for purpose for this study under the same operational
+thresholds used in the initial study (relative bias within roughly
+$\pm 10\%$, relative RMSE comfortably below 25%, 90% credible-interval
+coverage approximately 85–95%).
+
+The β–δ coupling discussed in the
+[foundational reports](../../foundations/04_parameter_recovery.qmd) is
+expected to persist here as it does in the initial study; since this
+study targets α, the weaker recovery of $(\beta,\delta)$ does not
+compromise the primary analysis.
+:::
 
 ::: {.callout-note}
 ## SBC Not Performed

@@ -46,7 +46,7 @@ Parameter recovery is a critical validation step for any Bayesian model:
 
 ::: {.callout-warning}
 ## Preview: A Key Finding
-This report reveals an asymmetry in parameter recovery: while α (sensitivity) is well-identified, the pair (β, δ) that determines the expected utility function shows weaker identification—posteriors concentrate more slowly relative to α. As shown formally in [Report 5](05_adding_risky_choices.qmd), this reflects a **structural identification challenge** where β and δ interact multiplicatively in the expected utility, causing uncertainty in one to propagate to the other. Importantly, this does not prevent good recovery of α, which remains our primary parameter of interest.
+This report reveals an asymmetry in parameter recovery: while α (sensitivity) is well-identified, the pair (β, δ) that determines the expected utility function shows weaker identification — credible intervals narrow more slowly relative to those of α. As shown formally in [Report 5](05_adding_risky_choices.qmd), this reflects a **structural identification challenge** where β and δ interact multiplicatively in the expected utility, causing uncertainty in one to propagate to the other. Importantly, this does not prevent good recovery of α, which remains our primary parameter of interest within the prior range examined here.
 :::
 
 ::: {.callout-note}
@@ -452,11 +452,11 @@ plt.tight_layout()
 plt.show()
 ```
 
-### Utility Increments ($\boldsymbol{\delta}$)
+### Utility Differences ($\boldsymbol{\delta}$)
 
 ```{python}
 #| label: fig-delta-recovery
-#| fig-cap: "Recovery of utility increment parameters δ. Each panel shows true vs. estimated values and coverage for one δ component."
+#| fig-cap: "Recovery of utility difference parameters δ. Each panel shows true vs. estimated values and coverage for one δ component."
 
 K_minus_1 = config['K'] - 1
 fig, axes = plt.subplots(2, K_minus_1, figsize=(6 * K_minus_1, 10))
@@ -587,7 +587,7 @@ The marginal recovery statistics above average over all true parameter values dr
 
 ```{python}
 #| label: fig-conditional-recovery
-#| fig-cap: "Recovery metrics stratified by true α. Left: Absolute error in α recovery vs. true α, showing that very small and very large α are easiest to recover. Center: Absolute error in δ₁ vs. true α, showing that δ recovery degrades when α is small (choices are nearly random and carry little information about utilities). Right: Posterior correlation between β[1,1] and δ₁ vs. true α, illustrating how the β-δ coupling varies with the choice regime."
+#| fig-cap: "Recovery metrics stratified by true α. Left: absolute error in α recovery vs. true α. Center: absolute error in δ₁ vs. true α — δ recovery degrades when α is small, since choices then carry little information about utilities. Right: posterior 90% credible-interval width for δ₁ vs. true α, used as a proxy for how tightly the data constrain δ₁ in each iteration."
 
 fig, axes = plt.subplots(1, 3, figsize=(17, 5))
 
@@ -639,7 +639,7 @@ print(f"  δ₁ mean CI width (low α): {delta_ci_widths[low_mask].mean():.3f}")
 print(f"  δ₁ mean CI width (high α): {delta_ci_widths[high_mask].mean():.3f}")
 ```
 
-When α is small, choices are nearly random—they carry little information about the underlying utilities, so δ (and β) become hard to pin down. When α is large, choices are near-deterministic—the utility ordering is revealed clearly, but the precise *magnitude* of utility differences matters less. This α-dependent information content is consistent with the structural coupling discussed in @sec-utility-identification.
+When α is small, choices are nearly random — they carry little information about the underlying utilities, so δ (and β) become hard to pin down. When α is large, choices are near-deterministic, so the utility *ordering* is revealed clearly but the precise *magnitudes* of utility differences are less leveraged by the choice data. Across the lognormal(0,1) prior range examined here, α recovery error remains modest, while δ posterior uncertainty varies systematically with the choice regime. This α-dependent information content is consistent with the structural coupling discussed in @sec-utility-identification.
 
 ## Discussion
 
@@ -649,12 +649,14 @@ When α is small, choices are nearly random—they carry little information abou
 ## Key Finding: Differential Parameter Recovery
 The results above reveal an asymmetry in parameter recovery:
 
-- **α (sensitivity)** is recovered well, with posterior means clustering tightly around true values
-- **β (feature weights)** and **δ (utility increments)** show significantly weaker recovery, with wider credible intervals and lower precision compared to α
+- **α (sensitivity)** is recovered well, with posterior means clustering tightly around true values across the lognormal(0,1) prior range examined here
+- **β (feature weights)** and **δ (utility differences)** show materially weaker recovery, with wider credible intervals and lower precision compared to α
 
-This pattern reflects the identification structure analyzed formally in [Report 5](05_adding_risky_choices.qmd): while α is globally identified, β and δ are only **weakly identified** through their composite mapping to expected utilities.
+The finding extends to β as well as δ: across all panels and tables in this report, β and δ exhibit the same qualitative pattern of slower posterior concentration, consistent with their structural coupling. We focus the prose on δ as the representative utility-function parameter.
 
-**Importantly for applications focused on estimating sensitivity (α):** The weaker identification of β and δ does not substantially impair α recovery. As the figures above show, α is well-recovered even when β and δ remain uncertain. If the primary research question concerns sensitivity to expected utility differences rather than the decomposition of expected utility into beliefs and values, the identification challenges for (β, δ) may be of secondary concern.
+This pattern reflects the identification structure analyzed formally in [Report 5](05_adding_risky_choices.qmd) (see the proposition there on m_0 vs. m_1 identification): while α is globally identified, β and δ are only **weakly identified** through their composite mapping to expected utilities.
+
+**For applications focused on estimating sensitivity (α):** within the prior range examined here, the weaker identification of β and δ does not substantially impair α recovery. If the primary research question concerns sensitivity to expected-utility differences rather than the decomposition of expected utility into beliefs and values, the identification challenges for (β, δ) may be of secondary concern.
 :::
 
 To understand why β and δ are harder to recover than α, consider the structure of the model. In decisions under uncertainty, choices depend on **expected utilities**:
@@ -670,13 +672,13 @@ This creates a multiplicative coupling between β and δ: different (β, δ) pai
 - **α** directly governs how *sensitively* choices respond to expected utility differences—it is well-identified because choice probabilities depend monotonically on α for any fixed expected utility difference
 - **β and δ** jointly determine expected utilities through their product; uncertainty in one propagates to the other
 
-Note that this does not mean β and δ are completely uninformed by the data—the posteriors do concentrate relative to the prior, as the figures above show—but information accumulates more slowly than for α.
+Note that this does not mean β and δ are completely uninformed by the data — the credible intervals narrow relative to their prior support, as the CI-width diagnostics above imply — but information accumulates more slowly than for α.
 
-This multiplicative coupling is also visible in the posterior correlation structure. When the posterior for β is uncertain in a direction that increases expected utility for consequence $k$, the posterior for $\delta_k$ compensates by shifting downward (and vice versa), producing negative correlations between β and δ within the posterior:
+The multiplicative coupling also leaves a signature *across* recovery iterations: when the posterior mean for β[1,1] errs in a direction that increases expected utility for consequence $k$, the posterior mean for $\delta_k$ tends to compensate in the opposite direction. The figure below visualizes this across-iteration coupling. (We do not directly visualize the within-posterior correlation between β and δ here, since only marginal posterior summaries are saved by the recovery pipeline; the across-iteration error coupling provides a closely related, observable signature.)
 
 ```{python}
 #| label: fig-beta-delta-correlation
-#| fig-cap: "Posterior correlation between β and δ parameters. Left: Distribution of posterior correlations between β[k,d] and δ_k across recovery iterations, showing the expected compensatory (negative) coupling. Right: Relationship between true α and the strength of β-δ posterior correlation; stronger coupling (more negative correlation) tends to occur at intermediate α values where choices are informative but not deterministic."
+#| fig-cap: "Across-iteration signatures of the β–δ coupling. Left: estimation errors in β[1,1] vs. estimation errors in δ₁ across recovery iterations; a negative Pearson r (reported in the title) indicates the predicted compensatory tradeoff. Right: joint posterior uncertainty — δ₁ 90% CI width vs. β[1,1] 90% CI width across iterations, color-coded by the true α; iterations with more informative choices (larger α) cluster toward narrower CI widths for both parameters."
 
 # For each iteration, compute posterior correlation between beta and delta
 # We use CI overlap as a proxy since we only have summaries
@@ -717,7 +719,7 @@ plt.show()
 
 ### Does Increasing Sample Size Help?
 
-A natural question is whether the weaker δ recovery is simply a matter of insufficient data. (Note: β exhibits similar patterns to δ due to their structural coupling, so we focus on δ as representative of the utility-function parameters.) The study design with M=25 decision problems might not provide enough information. Let's test this by doubling the sample size to M=50.
+A natural question is whether the weaker δ recovery is simply a matter of insufficient data. (As noted in the Discussion, β follows the same pattern as δ due to their structural coupling; we focus on δ as the representative utility-function parameter.) The study design with M=25 decision problems might not provide enough information. We test this by doubling the sample size to M=50.
 
 To ensure a valid comparison, we use the `extend()` method to create the larger design from the original M=25 design. This keeps the same alternatives (features) and original problems, adding 25 new problems that use those same alternatives. Any differences in recovery can then be attributed to sample size rather than different feature configurations.
 
@@ -895,9 +897,11 @@ print("Sample Size Comparison (M=25 vs M=50):")
 print(comparison_df.to_string(index=False))
 ```
 
+The table shows the asymmetric sample-size effect anticipated in @sec-utility-identification: doubling M produces a larger relative reduction in α RMSE and CI width than in δ RMSE and CI width. (β follows the same pattern as δ, as noted in the Discussion.) This is consistent with α being globally identified while (β, δ) are only weakly identified through their composite mapping to expected utilities — additional uncertain-choice data sharpens the parameter that the data most directly inform, while improving (β, δ) more slowly.
+
 ### Does Adding New Alternatives Help?
 
-The M=50 extension above adds problems over the **same** alternatives—it doesn't expand the feature space. But we might hypothesize that adding **new** alternatives (with new feature vectors) provides qualitatively different information that could help with δ recovery. (As with the previous section, β exhibits similar patterns to δ.)
+The M=50 extension above adds problems over the **same** alternatives — it does not expand the feature space. We might hypothesize that adding **new** alternatives (with new feature vectors) provides qualitatively different information that could help with δ recovery.
 
 To test this, we use `extend_with_alternatives()` to add 15 new alternatives along with 25 new problems that use those alternatives. This parallels how model m_1 (in [Report 5](05_adding_risky_choices.qmd)) adds new risky alternatives along with new risky problems, enabling a fairer comparison.
 
@@ -1098,12 +1102,12 @@ Comparing the three conditions:
 2. **M=50 (same alternatives)**: Adding 25 problems over the same R=15 alternatives
 3. **M=50 (new alternatives)**: Adding 25 problems using 15 **new** alternatives (R increases to 30)
 
-Key findings:
-- **α recovery** improves with more data regardless of extension type
-- **δ recovery** may benefit differently from new alternatives vs. more problems over existing alternatives
-- Adding new feature vectors expands the feature space, potentially providing different information about how features map to subjective probabilities
+Directional findings from the three-way table:
 
-The comparison between conditions 2 and 3 is particularly important for understanding what helps δ recovery. If new alternatives (condition 3) outperform same alternatives (condition 2), it suggests that expanding the feature space provides qualitatively different information.
+- **α recovery** improves with more data under either extension; the two M=50 conditions are comparable for α.
+- **δ recovery** shows a modest additional benefit from new alternatives over same alternatives, consistent with the idea that expanding the feature space provides qualitatively different information about how features map to subjective probabilities (and thus indirectly about δ through the multiplicative coupling).
+
+These directional comparisons should be read with the precision caveat in mind: with $n = 50$ recovery iterations, the standard error on coverage is roughly four percentage points, and small differences in RMSE or CI width should not be over-interpreted. The definitive across-model comparisons — with substantially more iterations and a calibration-focused framing — are provided in [Report 5](05_adding_risky_choices.qmd) and [Report 6](06_sbc_validation.qmd).
 :::
 
 This three-way comparison sets up a crucial comparison for [Report 5](05_adding_risky_choices.qmd), where we add risky alternatives (lotteries with known probabilities) instead of additional uncertain alternatives. By comparing:
@@ -1134,44 +1138,58 @@ We might consider varying other parameters:
 
 The effectiveness of these changes for (β, δ) recovery is an empirical question worth exploring in future work.
 
-### An Alternative Approach: Adding Risky Choice Data
+### Alternatives to More Uncertain-Choice Data
 
-Decision theory offers a principled alternative to simply increasing sample size: adding **risky choice data** where probabilities are known to the decision-maker. This approach, motivated by the Anscombe-Aumann framework, provides a different type of information that may help constrain utility parameters more directly.
+Beyond simply collecting more uncertain-choice observations, two further routes can sharpen recovery of (β, δ). They differ in *where* the additional information comes from — the design or the prior — and have very different epistemic standing.
 
-In risky decisions, the probabilities are fixed by the experimenter, so choices directly reveal information about utilities without the partial confounding with subjective probabilities that occurs in decisions under uncertainty.
+#### Route 1: Risky alternatives as a direct probe of utility
+
+The history of decision theory suggests the use of alternatives with known probabilities — *risky alternatives* — as a direct probe of the utility function. The mechanical reason is transparent in our notation: for a risky alternative the probability vector $\boldsymbol{\psi}_r$ is fixed exogenously by the experimenter rather than being a function of $\boldsymbol{\beta}$ and the feature vector. Conditional on those observations, the expected utility $\eta_r = \boldsymbol{\psi}_r^\top \boldsymbol{\upsilon}$ is *linear* in $\boldsymbol{\upsilon}$ (and hence in $\boldsymbol{\delta}$), so the multiplicative β–δ coupling that hampers recovery in m_0 is broken for the risky portion of the data.
+
+The use of objectively risky prospects to identify utilities has a long lineage — running through Ramsey, von Neumann–Morgenstern, and the Anscombe–Aumann construction that combines risky and uncertain prospects in a single domain. We do not need the formal Anscombe–Aumann representation theorem to motivate the design choice here; the identification gain is mechanical, as just described. The formal relationship between our parameter-recovery argument and the classical representation result is examined in [Report 5](05_adding_risky_choices.qmd).
+
+#### Route 2: A more concentrated Dirichlet prior on δ
+
+A different lever is available without changing the design at all. In `m_0.stan`, $\boldsymbol{\delta}$ is a `simplex[K-1]` with prior $\boldsymbol{\delta} \sim \text{Dirichlet}(\mathbf{1})$ — i.e., a flat prior over admissible utility differences. Replacing the concentration vector $\mathbf{1}$ with $\alpha_0 \mathbf{1}$ for some $\alpha_0 > 1$ tightens the marginal prior on each $\delta_k$ around $1/(K-1)$. Through the multiplicative coupling between β and δ, this also indirectly tightens β: posterior uncertainty in δ that the likelihood cannot resolve is now absorbed by the prior, leaving less slack for β to drift.
+
+The trade-offs deserve emphasis:
+
+- The identification gain here comes from prior information, not data. It is appropriate only when the analyst has substantive grounds — domain knowledge, pilot data, or a deliberate modeling commitment that consequences are roughly equally spaced on the unit utility scale — for a more concentrated prior.
+- A misspecified concentrated prior biases $\boldsymbol{\delta}$ (and, via coupling, $\boldsymbol{\beta}$) toward the prior mean and shrinks credible intervals below their nominal calibration. Calibration under the concentrated prior should be re-checked via SBC.
+- Unlike adding risky choices, this route does not improve identification *of the data-generating process*; it improves *posterior precision* by importing assumptions.
+
+We do not pursue this route empirically in this report series; we flag it as a methodologically natural option whose evaluation is left to future work.
 
 ::: {.callout-note}
-## Preview of Model m_1
-Model m_1 extends m_0 by adding N risky choice problems where:
+## Two complementary routes beyond more uncertain choices
+1. **Add risky-choice data** (model m_1, [Report 5](05_adding_risky_choices.qmd)). Adds new identifying information by fixing $\boldsymbol{\psi}_r$ exogenously, breaking the β–δ multiplicative coupling for those observations.
+2. **Tighten the Dirichlet concentration on δ.** Adds prior information rather than data; cheap but assumption-laden, and only as defensible as the substantive grounds for the tighter prior.
 
-- Alternatives are lotteries with experimenter-specified probabilities
-- The same utility function υ (and hence δ) governs both choice types
-- Risky choices provide more direct information about utility structure
-
-This provides an alternative route to improving (β, δ) recovery that may be more efficient than simply increasing M. See [Report 5](05_adding_risky_choices.qmd) for the full development and comparison.
+The two are not exclusive and can be combined.
 :::
 
 ## Conclusion
 
 Parameter recovery analysis for model m_0 reveals differential recovery across parameters:
 
-1. **Well-recovered parameter**: α (sensitivity) can be recovered with good precision
-2. **Slower-learning parameters**: β (feature weights) and δ (utility increments) show wider uncertainty, though they do respond to data—posteriors concentrate relative to priors, but more slowly than for α
-3. **Sample size helps, but differentially**: Doubling M improves α recovery more than (β, δ) recovery
+1. **Well-recovered parameter**: α (sensitivity) can be recovered with good precision across the lognormal(0,1) prior range examined here.
+2. **Slower-learning parameters**: β (feature weights) and δ (utility differences) show wider uncertainty; credible intervals do narrow relative to the prior support, but more slowly than for α.
+3. **Sample size helps, but differentially**: doubling M improves α recovery more than (β, δ) recovery, and adding *new* alternatives offers a modest additional benefit over adding more problems over the same alternatives.
 
-This pattern reflects the identification structure of the SEU model analyzed formally in [Report 5](05_adding_risky_choices.qmd): while α is globally identified, β and δ interact multiplicatively in the expected utility, causing uncertainty in one to propagate to the other.
+This pattern reflects the identification structure analyzed formally in [Report 5](05_adding_risky_choices.qmd): while α is globally identified, β and δ interact multiplicatively in the expected utility, causing uncertainty in one to propagate to the other.
 
 **Implications for applications:**
 
-- If the primary research question concerns sensitivity (α)—how strongly choices respond to expected utility differences—model m_0 performs well even with modest sample sizes
-- If precise decomposition of expected utility into beliefs (β) and values (δ) is needed, either larger samples or the addition of risky choice data (model m_1) will be required
+- If the primary research question concerns sensitivity (α) — how strongly choices respond to expected utility differences — model m_0 performs well even with modest sample sizes.
+- If precise decomposition of expected utility into beliefs (β) and values (δ) is needed, additional information is required.
 
-**Two paths forward** for improving (β, δ) recovery:
+**Three routes for sharpening (β, δ):**
 
-1. **More data**: Larger M (and perhaps R) may eventually yield precise (β, δ) estimates, though the rate of improvement is slower than for α
-2. **Different data**: Adding risky choices (model m_1) provides a complementary data source where probabilities are known, breaking the multiplicative coupling and constraining utilities more directly
+1. **More uncertain-choice data**: larger M (and perhaps R) eventually yields more precise (β, δ) estimates, though the rate of improvement is slower than for α.
+2. **Risky-choice data** (model m_1, [Report 5](05_adding_risky_choices.qmd)): adds new identifying information by fixing $\boldsymbol{\psi}_r$ exogenously, breaking the β–δ multiplicative coupling for those observations.
+3. **A more concentrated Dirichlet prior on δ**: imports prior information rather than data; cheap but assumption-laden, and only as defensible as the substantive grounds for the tighter prior. Not pursued empirically in this report series; flagged as future work.
 
-The choice between these approaches—or their combination—depends on practical considerations like study feasibility and the relative importance of precise utility estimation for the research question at hand.
+The choice among these routes — or their combination — depends on practical considerations like study feasibility, the relative importance of precise utility estimation for the research question, and the strength of substantive prior information available.
 
 ```{python}
 #| label: cleanup

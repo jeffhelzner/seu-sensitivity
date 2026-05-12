@@ -46,7 +46,7 @@ Parameter recovery is a critical validation step for any Bayesian model:
 
 ::: {.callout-warning}
 ## Preview: A Key Finding
-This report reveals an asymmetry in parameter recovery: while α (sensitivity) is well-identified, the pair (β, δ) that determines the expected utility function shows weaker identification — credible intervals narrow more slowly relative to those of α. As shown formally in [Report 5](05_adding_risky_choices.qmd), this reflects a **structural identification challenge** where β and δ interact multiplicatively in the expected utility, causing uncertainty in one to propagate to the other. Importantly, this does not prevent good recovery of α, which remains our primary parameter of interest within the prior range examined here.
+This report reveals an asymmetry in parameter recovery: while α (sensitivity) is recovered well in the simulation regime examined here, the pair (β, δ) that determines the expected utility function shows weaker recovery — credible intervals narrow more slowly relative to those of α. As shown formally in [Report 5](05_adding_risky_choices.qmd), this reflects a **structural identification challenge** where β and δ interact multiplicatively in the expected utility, causing uncertainty in one to propagate to the other. Importantly, this does not prevent good recovery of α, which remains our primary parameter of interest within the prior range examined here.
 :::
 
 ::: {.callout-note}
@@ -385,6 +385,11 @@ print(f"  Mean Coverage: {mean_cov:.1%} (SE ≈ {mean_cov_se:.1%})")
 print(f"  Mean CI Width: {beta_df['ci_width'].mean():.3f}")
 ```
 
+::: {.callout-note}
+## Interpreting β Coverage
+The β coverage panel summarizes 15 coefficients, each estimated over 50 recovery iterations. Individual coverage rates therefore have substantial Monte Carlo variation, and the full set of bars should be read as a pattern-level diagnostic rather than as precise evidence about any single β component.
+:::
+
 ```{python}
 #| label: fig-beta-true-vs-estimated
 #| fig-cap: "True vs. estimated values for all β parameters pooled together (left), and for the best- and worst-recovered individual components (right panels). The identity line shows perfect recovery."
@@ -611,10 +616,9 @@ ax.set_ylabel('|Estimated δ₁ − True δ₁|', fontsize=12)
 ax.set_title('δ₁ Recovery Error vs. True α', fontsize=12)
 ax.grid(True, alpha=0.3)
 
-# Posterior correlation between beta[1,1] and delta[1] vs true alpha
+# Delta uncertainty vs true alpha
 ax = axes[2]
-# We can approximate posterior correlation from the summary stats
-# For a richer view, we compute CI width of delta as a proxy for how constrained it is
+# We compute CI width of delta as a proxy for how constrained it is.
 delta_ci_widths = np.array([s.loc['delta[1]', '95%'] - s.loc['delta[1]', '5%'] for s in posterior_summaries])
 ax.scatter(alpha_true, delta_ci_widths, alpha=0.7, s=50, c='coral', edgecolor='white')
 ax.set_xlabel('True α', fontsize=12)
@@ -652,9 +656,9 @@ The results above reveal an asymmetry in parameter recovery:
 - **α (sensitivity)** is recovered well, with posterior means clustering tightly around true values across the lognormal(0,1) prior range examined here
 - **β (feature weights)** and **δ (utility differences)** show materially weaker recovery, with wider credible intervals and lower precision compared to α
 
-The finding extends to β as well as δ: across all panels and tables in this report, β and δ exhibit the same qualitative pattern of slower posterior concentration, consistent with their structural coupling. We focus the prose on δ as the representative utility-function parameter.
+The finding extends to β as well as δ: the β summaries show the same qualitative pattern of slower posterior concentration, consistent with their structural coupling. We focus the prose on δ as the representative utility-function parameter.
 
-This pattern reflects the identification structure analyzed formally in [Report 5](05_adding_risky_choices.qmd) (see the proposition there on m_0 vs. m_1 identification): while α is globally identified, β and δ are only **weakly identified** through their composite mapping to expected utilities.
+This pattern is consistent with the identification structure analyzed formally in [Report 5](05_adding_risky_choices.qmd) (see the proposition there on m_0 vs. m_1 identification): α is identified more directly through choice sensitivity, while β and δ are only **weakly identified** through their composite mapping to expected utilities.
 
 **For applications focused on estimating sensitivity (α):** within the prior range examined here, the weaker identification of β and δ does not substantially impair α recovery. If the primary research question concerns sensitivity to expected-utility differences rather than the decomposition of expected utility into beliefs and values, the identification challenges for (β, δ) may be of secondary concern.
 :::
@@ -669,20 +673,19 @@ where $\boldsymbol{\psi}_r$ are subjective probabilities (determined by β) and 
 
 This creates a multiplicative coupling between β and δ: different (β, δ) pairs can produce similar expected utility functions, making both parameters harder to pin down precisely:
 
-- **α** directly governs how *sensitively* choices respond to expected utility differences—it is well-identified because choice probabilities depend monotonically on α for any fixed expected utility difference
+- **α** directly governs how *sensitively* choices respond to expected utility differences; within the prior and design regime examined here, it is recovered well because choice probabilities depend monotonically on α for any fixed expected utility difference
 - **β and δ** jointly determine expected utilities through their product; uncertainty in one propagates to the other
 
 Note that this does not mean β and δ are completely uninformed by the data — the credible intervals narrow relative to their prior support, as the CI-width diagnostics above imply — but information accumulates more slowly than for α.
 
-The multiplicative coupling also leaves a signature *across* recovery iterations: when the posterior mean for β[1,1] errs in a direction that increases expected utility for consequence $k$, the posterior mean for $\delta_k$ tends to compensate in the opposite direction. The figure below visualizes this across-iteration coupling. (We do not directly visualize the within-posterior correlation between β and δ here, since only marginal posterior summaries are saved by the recovery pipeline; the across-iteration error coupling provides a closely related, observable signature.)
+The multiplicative coupling also leaves an illustrative signature *across* recovery iterations: when the posterior mean for β[1,1] errs in a direction that increases expected utility for consequence $k$, the posterior mean for $\delta_k$ may compensate in the opposite direction. The figure below visualizes this across-iteration error coupling. (We do not directly visualize the within-posterior correlation between β and δ here, since only marginal posterior summaries are saved by the recovery pipeline; the across-iteration diagnostic should therefore be read as suggestive rather than as direct posterior evidence of compensation.)
 
 ```{python}
 #| label: fig-beta-delta-correlation
-#| fig-cap: "Across-iteration signatures of the β–δ coupling. Left: estimation errors in β[1,1] vs. estimation errors in δ₁ across recovery iterations; a negative Pearson r (reported in the title) indicates the predicted compensatory tradeoff. Right: joint posterior uncertainty — δ₁ 90% CI width vs. β[1,1] 90% CI width across iterations, color-coded by the true α; iterations with more informative choices (larger α) cluster toward narrower CI widths for both parameters."
+#| fig-cap: "Across-iteration signatures of the β–δ coupling. Left: estimation errors in β[1,1] vs. estimation errors in δ₁ across recovery iterations; a negative Pearson r (reported in the title) is consistent with the predicted compensatory tradeoff. Right: joint posterior uncertainty proxies — δ₁ 90% CI width vs. β[1,1] 90% CI width across iterations, color-coded by the true α; iterations with more informative choices (larger α) tend to cluster toward narrower CI widths for both parameters."
 
-# For each iteration, compute posterior correlation between beta and delta
-# We use CI overlap as a proxy since we only have summaries
-# Actually, let's compute a simpler diagnostic: co-movement of estimation errors
+# Since only marginal summaries are saved, use across-iteration errors and
+# CI widths as diagnostics rather than direct posterior correlations.
 fig, axes = plt.subplots(1, 2, figsize=(14, 5))
 
 # Left: Distribution of signed errors showing coupling
@@ -897,7 +900,7 @@ print("Sample Size Comparison (M=25 vs M=50):")
 print(comparison_df.to_string(index=False))
 ```
 
-The table shows the asymmetric sample-size effect anticipated in @sec-utility-identification: doubling M produces a larger relative reduction in α RMSE and CI width than in δ RMSE and CI width. (β follows the same pattern as δ, as noted in the Discussion.) This is consistent with α being globally identified while (β, δ) are only weakly identified through their composite mapping to expected utilities — additional uncertain-choice data sharpens the parameter that the data most directly inform, while improving (β, δ) more slowly.
+In these runs, the table shows the asymmetric sample-size pattern anticipated in @sec-utility-identification: doubling M produces a larger relative reduction in α RMSE and CI width than in δ RMSE and CI width. (β follows the same pattern as δ, as noted in the Discussion.) This is consistent with α being informed more directly by choice sensitivity while (β, δ) are weakly identified through their composite mapping to expected utilities — additional uncertain-choice data sharpens the parameter that the data most directly inform, while improving (β, δ) more slowly.
 
 ### Does Adding New Alternatives Help?
 
@@ -1105,9 +1108,9 @@ Comparing the three conditions:
 Directional findings from the three-way table:
 
 - **α recovery** improves with more data under either extension; the two M=50 conditions are comparable for α.
-- **δ recovery** shows a modest additional benefit from new alternatives over same alternatives, consistent with the idea that expanding the feature space provides qualitatively different information about how features map to subjective probabilities (and thus indirectly about δ through the multiplicative coupling).
+- **δ recovery** suggests a possible modest additional benefit from new alternatives over same alternatives, consistent with the idea that expanding the feature space provides qualitatively different information about how features map to subjective probabilities (and thus indirectly about δ through the multiplicative coupling).
 
-These directional comparisons should be read with the precision caveat in mind: with $n = 50$ recovery iterations, the standard error on coverage is roughly four percentage points, and small differences in RMSE or CI width should not be over-interpreted. The definitive across-model comparisons — with substantially more iterations and a calibration-focused framing — are provided in [Report 5](05_adding_risky_choices.qmd) and [Report 6](06_sbc_validation.qmd).
+These directional comparisons should be read with the precision caveat in mind: with $n = 50$ recovery iterations, the standard error on coverage is roughly four percentage points, and small differences in RMSE or CI width should not be over-interpreted. More direct across-model comparisons — with matched designs and/or a calibration-focused framing — are provided in [Report 5](05_adding_risky_choices.qmd) and [Report 6](06_sbc_validation.qmd).
 :::
 
 This three-way comparison sets up a crucial comparison for [Report 5](05_adding_risky_choices.qmd), where we add risky alternatives (lotteries with known probabilities) instead of additional uncertain alternatives. By comparing:
@@ -1115,7 +1118,7 @@ This three-way comparison sets up a crucial comparison for [Report 5](05_adding_
 - **M=50 with new uncertain alternatives** (this report): Expands uncertain feature space
 - **M=25 + N=25 with new risky alternatives** (Report 5): Adds known-probability lotteries
 
-...we can isolate whether improvements come from the *type* of data (risk vs. uncertainty) or simply from adding more diverse choice problems.
+...we can more cleanly distinguish whether improvements come from the *type* of data (risk vs. uncertainty) or simply from adding more diverse choice problems.
 
 The asymmetry in learning rates for (β, δ) versus α reflects the model structure: in decisions under uncertainty, utilities and subjective probabilities enter the likelihood through their product (expected utilities). This creates a multiplicative coupling that makes (β, δ) harder to pin down than α, which more directly governs choice sensitivity.
 
@@ -1140,7 +1143,7 @@ The effectiveness of these changes for (β, δ) recovery is an empirical questio
 
 ### Alternatives to More Uncertain-Choice Data
 
-Beyond simply collecting more uncertain-choice observations, two further routes can sharpen recovery of (β, δ). They differ in *where* the additional information comes from — the design or the prior — and have very different epistemic standing.
+Beyond simply collecting more uncertain-choice observations, three further routes can sharpen recovery of (β, δ). They differ in *where* the additional information comes from — the design, the prior, or cross-agent structure — and have very different epistemic standing.
 
 #### Route 1: Risky alternatives as a direct probe of utility
 
@@ -1160,12 +1163,21 @@ The trade-offs deserve emphasis:
 
 We do not pursue this route empirically in this report series; we flag it as a methodologically natural option whose evaluation is left to future work.
 
+#### Route 3: Hierarchical modeling across agents or cells
+
+A third route becomes available when data are collected from multiple agents, experimental cells, or related contexts. If those agents can defensibly be modeled as sharing a utility scale — or as drawing utilities from a common population distribution — a hierarchical model can borrow strength across datasets. Data from one agent then help constrain the utility parameters for others through the shared or partially pooled structure.
+
+This is the logic developed in the hierarchical sequence ([Reports 08–12](08_hierarchical_formulation.qmd)). In the implemented `h_m01` model, cell-level sensitivities and belief mappings vary across cells, while the utility simplex $\boldsymbol{\delta}$ is shared across the stacked data. The hierarchical recovery and SBC analyses ([Report 11](11_hierarchical_parameter_recovery.qmd), [Report 12](12_hierarchical_sbc_validation.qmd)) validate that structure at the alignment-study scale.
+
+The caveat is important: hierarchical modeling does not mechanically break the single-agent β–δ multiplicative coupling in the way risky choices do. Its gain comes from pooling information under a cross-agent or cross-cell assumption. If the shared-utility or population-utility assumption is substantively wrong, the model can import bias just as a too-concentrated prior can. For that reason, hierarchical variants require the same prior predictive, recovery, and SBC validation used elsewhere in this report series.
+
 ::: {.callout-note}
-## Two complementary routes beyond more uncertain choices
+## Three complementary routes beyond more uncertain choices
 1. **Add risky-choice data** (model m_1, [Report 5](05_adding_risky_choices.qmd)). Adds new identifying information by fixing $\boldsymbol{\psi}_r$ exogenously, breaking the β–δ multiplicative coupling for those observations.
 2. **Tighten the Dirichlet concentration on δ.** Adds prior information rather than data; cheap but assumption-laden, and only as defensible as the substantive grounds for the tighter prior.
+3. **Use hierarchical modeling across agents or cells** ([Reports 08–12](08_hierarchical_formulation.qmd)). Adds cross-agent structure and partial pooling; powerful when shared-utility or population-utility assumptions are defensible, but not a substitute for design-based identification.
 
-The two are not exclusive and can be combined.
+The three are not exclusive and can be combined.
 :::
 
 ## Conclusion
@@ -1174,22 +1186,23 @@ Parameter recovery analysis for model m_0 reveals differential recovery across p
 
 1. **Well-recovered parameter**: α (sensitivity) can be recovered with good precision across the lognormal(0,1) prior range examined here.
 2. **Slower-learning parameters**: β (feature weights) and δ (utility differences) show wider uncertainty; credible intervals do narrow relative to the prior support, but more slowly than for α.
-3. **Sample size helps, but differentially**: doubling M improves α recovery more than (β, δ) recovery, and adding *new* alternatives offers a modest additional benefit over adding more problems over the same alternatives.
+3. **Sample size helps, but differentially**: in these runs, doubling M improves α recovery more than (β, δ) recovery, and adding *new* alternatives suggests a possible modest additional benefit over adding more problems over the same alternatives.
 
-This pattern reflects the identification structure analyzed formally in [Report 5](05_adding_risky_choices.qmd): while α is globally identified, β and δ interact multiplicatively in the expected utility, causing uncertainty in one to propagate to the other.
+This pattern reflects the identification structure analyzed formally in [Report 5](05_adding_risky_choices.qmd): α is informed more directly by choice sensitivity, while β and δ interact multiplicatively in the expected utility, causing uncertainty in one to propagate to the other.
 
 **Implications for applications:**
 
 - If the primary research question concerns sensitivity (α) — how strongly choices respond to expected utility differences — model m_0 performs well even with modest sample sizes.
 - If precise decomposition of expected utility into beliefs (β) and values (δ) is needed, additional information is required.
 
-**Three routes for sharpening (β, δ):**
+**Four routes for sharpening (β, δ):**
 
 1. **More uncertain-choice data**: larger M (and perhaps R) eventually yields more precise (β, δ) estimates, though the rate of improvement is slower than for α.
 2. **Risky-choice data** (model m_1, [Report 5](05_adding_risky_choices.qmd)): adds new identifying information by fixing $\boldsymbol{\psi}_r$ exogenously, breaking the β–δ multiplicative coupling for those observations.
 3. **A more concentrated Dirichlet prior on δ**: imports prior information rather than data; cheap but assumption-laden, and only as defensible as the substantive grounds for the tighter prior. Not pursued empirically in this report series; flagged as future work.
+4. **Hierarchical modeling across agents or cells** ([Reports 08–12](08_hierarchical_formulation.qmd)): borrows strength through shared or partially pooled structure when multiple related datasets are available. This can sharpen utility recovery under defensible cross-agent assumptions, but should be validated with prior predictive checks, recovery, and SBC.
 
-The choice among these routes — or their combination — depends on practical considerations like study feasibility, the relative importance of precise utility estimation for the research question, and the strength of substantive prior information available.
+The choice among these routes — or their combination — depends on practical considerations like study feasibility, the relative importance of precise utility estimation for the research question, the availability of related agents or experimental cells, and the strength of substantive prior information available.
 
 ```{python}
 #| label: cleanup

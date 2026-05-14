@@ -33,9 +33,9 @@ np.random.seed(42)
 
 ## Introduction
 
-[Report 4](04_parameter_recovery.qmd) revealed differential parameter recovery in model m_0: while the sensitivity parameter α and feature weights β are recovered well, the utility increments δ show wider uncertainty and slower learning as sample size increases. This doesn't mean δ is uninformed by the data—the posteriors do concentrate relative to the prior—but the information accumulates more slowly than for other parameters.
+[Report 4](04_parameter_recovery.qmd) revealed differential parameter recovery in model m_0: the sensitivity parameter α is recovered well, while both the feature weights β and the utility increments δ show materially weaker precision because they enter the expected utility function jointly through the belief–utility decomposition. The CI-width diagnostics in Report 4 nonetheless provide evidence that δ is updated by the data relative to its broad prior support—but the information accumulates more slowly than for α. (For the K=3 design used throughout, the Dirichlet(1,1) prior gives each δ component a uniform marginal on [0,1], so a central 90% prior interval has width ≈ 0.90; the observed posterior CI widths in Report 4 sit modestly below this and shrink further in richer designs.)
 
-One approach to improving δ recovery is simply to collect more data. However, decision theory suggests an alternative: incorporating **risky decisions** where probabilities are known to the decision-maker. This approach, grounded in the Anscombe-Aumann framework, provides a different type of information that may help constrain utility parameters more directly.
+One approach to improving δ recovery is simply to collect more data. However, the decision-theoretic distinction between risk and uncertainty suggests another possibility: incorporating **risky decisions** where probabilities are known to the decision-maker. We focus here on δ because risky choices provide a particularly direct way to constrain utilities: their expected utilities depend on the utility vector directly, without requiring the model to infer subjective probabilities from features at the same time.
 
 ## Historical Background: Risk vs. Uncertainty
 
@@ -86,12 +86,12 @@ An **Anscombe-Aumann act** maps states of the world (the "horses") to lotteries 
 By varying the lotteries while holding the state-dependence fixed, one can identify the utility function from risky preferences. By varying the state-dependence while holding lotteries fixed, one can identify subjective probabilities.
 :::
 
-This insight is precisely what motivates model m_1. By observing choices in both:
+This framework provides useful historical context for model m_1. By observing choices in both:
 
 1. **Uncertain decisions** (like Savage's acts, mapped through features to subjective probabilities)
 2. **Risky decisions** (like vNM lotteries, with known probabilities)
 
-...we can separately identify utilities and subjective probabilities.
+...we may obtain separate sources of information about utilities and subjective probabilities.
 
 ### The Identification Logic
 
@@ -99,7 +99,9 @@ As @kreps1988notes explains in his exposition of the Anscombe-Aumann framework:
 
 > "The introduction of objective lotteries... provides a way to calibrate cardinal utility... Once cardinal utility is pinned down by choices among lotteries, subjective probability can be inferred from choices among acts."
 
-This is exactly our strategy:
+Model m_1 uses a related empirical strategy. The connection is conceptual rather than a direct application of the Anscombe-Aumann representation theorem: here we are asking whether adding known-probability choice data improves recovery of the parameters in a specific statistical model.
+
+The modeling logic is:
 
 | Choice Type | What It Reveals | Model Component |
 |-------------|-----------------|-----------------|
@@ -170,7 +172,7 @@ $$
 \eta^{(r)}_s = \sum_{k=1}^K \pi_{sk} \cdot \upsilon_k = \boldsymbol{\pi}_s^\top \boldsymbol{\upsilon}
 $$
 
-The key insight: risky expected utilities depend *only* on υ (and hence δ), not on β. This breaks the confounding that plagued m_0.
+The key insight: risky expected utilities depend *only* on υ (and hence δ), not on β. This reduces the structural coupling between utility and subjective-probability parameters that makes δ harder to learn in m_0.
 
 ### Choice Probabilities
 
@@ -260,7 +262,7 @@ print(m1_code)
 
 The critical line is `eta_risky[i] = dot_product(x_risky[i], upsilon)`. Unlike uncertain alternatives where β mediates between features and probabilities, risky alternatives have their probabilities given directly. This means risky choices provide *direct* information about the utility vector υ.
 
-## Why Risky Choices Identify δ
+## Why Risky Choices Directly Inform δ
 
 Consider a concrete example. Suppose we have K=3 consequences with utilities $\upsilon = (0, \upsilon_2, 1)$ where $\upsilon_2 = \delta_1$ (since $\delta_1 + \delta_2 = 1$ and utilities are constructed cumulatively).
 
@@ -282,11 +284,11 @@ The decision-maker prefers the alternative with higher expected utility:
 - If they choose A, then $\eta_A > \eta_B$, implying $0.5 > \upsilon_2$
 - If they choose B, then $\eta_B > \eta_A$, implying $\upsilon_2 > 0.5$
 
-This preference *directly* constrains υ₂ (and hence δ₁) without any confounding from subjective probabilities! More generally, by presenting lotteries that span the consequence space, we can triangulate the utility function with arbitrary precision (given sufficient data and lottery diversity).
+This preference *directly* constrains υ₂ (and hence δ₁) without being mediated by subjective probabilities. More generally, by presenting lotteries that span the consequence space, we can triangulate the utility function with arbitrary precision (given sufficient data and lottery diversity).
 
 ## Study Design for m_1
 
-To demonstrate that adding risky choices resolves the δ identification problem, we need a controlled comparison between m_0 and m_1. Crucially, the **uncertain decision problems must be identical** between the two models—any differences in recovery should be attributable solely to the addition of risky choices.
+To demonstrate that adding risky choices improves δ recovery, we need a controlled comparison between m_0 and m_1. Crucially, the **uncertain decision problems must be identical** between the two models—any differences in recovery should be attributable solely to the addition of risky choices.
 
 We first create a base m_0 study design (matching Report 4's configuration), then use the `from_base_study()` method to create an m_1 design that inherits the same uncertain alternatives and problems:
 
@@ -341,7 +343,7 @@ print(f"  S = {config_risky['S']} distinct lotteries")
 
 In [Report 4](04_parameter_recovery.qmd), we found that δ recovery was weaker than α and β recovery in model m_0, with credible intervals that narrowed more slowly as sample size increased. We hypothesized that adding risky choices might help constrain utility parameters more directly.
 
-Now we test this hypothesis. If the Anscombe-Aumann logic holds, risky choices should provide more direct information about the utility function, potentially improving δ recovery.
+Now we test this hypothesis. If known-probability risky choices provide a more direct utility signal, they should improve δ recovery relative to adding only more uncertain choices.
 
 ### Study Design for m_1
 
@@ -537,7 +539,7 @@ beta_df_m1 = pd.DataFrame(beta_stats_m1)
 
 ```{python}
 #| label: fig-m0-m1-delta-comparison
-#| fig-cap: "Comparison of δ recovery between m_0 and m_1. Adding risky choices dramatically improves recovery: narrower credible intervals and better coverage."
+#| fig-cap: "Comparison of δ recovery between m_0 and m_1. Adding risky choices improves δ recovery in this design by narrowing credible intervals and reducing RMSE relative to the uncertain-only comparisons."
 
 fig, axes = plt.subplots(2, 2, figsize=(14, 10))
 
@@ -901,6 +903,11 @@ The four-way comparison now isolates what drives δ recovery improvement:
 If m_1 outperforms m_0 (M=50 new), it demonstrates that the **type** of data matters—not just the amount or diversity. Risky choices provide qualitatively different information about utilities because they bypass the probability inference step entirely.
 :::
 
+::: {.callout-note}
+## What this comparison does not show
+The four-way comparison above is evidence about the present model and simulation design, not a universal claim about all risky/uncertain choice experiments. The magnitude of the benefit from risky choices will depend on the diversity of lotteries, the shared-sensitivity assumption (relaxed in [Report 7](07_generalizing_sensitivity.qmd)), the informativeness of the uncertain alternatives, and the amount of data available. The comparison should also not be read as an empirical validation of the Anscombe–Aumann framework; it is a finite-sample recovery study of a specific SEU model.
+:::
+
 ### Why This Helps
 
 The improvement from adding risky choices can be understood through the likelihood structure:
@@ -910,7 +917,7 @@ $$
 \log p(y | \theta) = \sum_{m=1}^M \log \chi_{m, y_m} \quad \text{where} \quad \chi \propto \exp(\alpha \cdot \boldsymbol{\psi}^\top \boldsymbol{\upsilon})
 $$
 
-Here, ψ (from β) and υ (from δ) appear together in expected utilities. While not completely confounded, information about δ must be extracted indirectly.
+Here, ψ (from β) and υ (from δ) appear together in expected utilities. The two parameter blocks are structurally coupled, so information about δ must be extracted indirectly and accumulates more slowly than if a separate utility-only channel were available.
 
 **In m_1** (uncertain + risky choices):
 $$
@@ -921,11 +928,11 @@ The risky choice likelihood depends on δ through υ = cumsum(δ), but **not** o
 
 ## Summary
 
-The extension from m_0 to m_1 follows a principled path grounded in decision theory:
+The extension from m_0 to m_1 follows a principled path motivated by the risk/uncertainty distinction and by the model's likelihood structure:
 
 1. **Differential recovery in m_0** ([Report 4](04_parameter_recovery.qmd)): Utility parameters show wider uncertainty than sensitivity parameters, though they do respond to data
 2. **Three extensions compared**: More problems (same alternatives), more problems (new alternatives), risky problems (new lotteries)
-3. **The historical insight**: Anscombe-Aumann recognized that combining risk and uncertainty provides complementary information about preferences
+3. **The historical context**: Decision-theoretic treatments of risk and uncertainty suggest that known-probability choices can provide complementary information about utilities
 4. **The key comparison**: m_0 with new uncertain alternatives vs. m_1 with new risky alternatives isolates whether known probabilities provide unique advantages
 
 ::: {.callout-tip}
@@ -934,7 +941,7 @@ The four-way comparison reveals whether the benefit of risky choices comes from:
 - Simply having more diverse choice problems (testable via m_0 with new alternatives), or
 - The qualitatively different information provided by known probabilities (unique to m_1)
 
-If m_1 outperforms the expanded m_0, it validates the Anscombe-Aumann insight: risky choices provide a more direct route to utility identification because they bypass the subjective probability inference step.
+If m_1 outperforms the expanded m_0, it supports the modeling strategy: risky choices provide a more direct route to utility identification because they bypass the subjective probability inference step.
 
 The choice between approaches depends on practical considerations: the feasibility of including risky choice tasks, the importance of precise utility estimation, and whether the research question requires separating utilities from beliefs.
 :::
@@ -998,24 +1005,34 @@ We first establish that m_1 achieves global identification under mild conditions
 
 ::: {.callout-important}
 ## Theorem (Global Identifiability of m_1)
-Consider model m_1 with $K \geq 2$ consequences and $D \geq 1$ feature dimensions. Let the class of decision problems include:
+Consider model m_1 with $K \geq 2$ consequences and $D \geq 1$ feature dimensions, **under the shared-sensitivity specification** (a single $\alpha > 0$ governs both risky and uncertain choices). Let the class of decision problems include:
 
 1. **Risky problems** with probability vectors from a set $\mathcal{X} \subseteq \Delta^{K-1}$ that contains $K$ affinely independent probability vectors
 2. **Uncertain problems** with feature vectors from a set $\mathcal{W} \subseteq \mathbb{R}^D$ whose linear span is all of $\mathbb{R}^D$ (i.e., $\mathcal{W}$ contains at least $D$ linearly independent vectors)
 
-Then for any $\theta = (\alpha, \beta, \delta) \neq \theta' = (\alpha', \beta', \delta')$ with $\alpha, \alpha' > 0$, there exists a **binary choice problem** (with exactly two alternatives) where the choice probabilities under $\theta$ and $\theta'$ differ.
+Then the parameters $(\alpha, \delta, [\beta])$ are globally identifiable, where $[\beta]$ denotes the equivalence class of $K \times D$ matrices modulo additive row-common shifts $\beta_k \mapsto \beta_k + c$ (under which the softmax probabilities $\boldsymbol{\psi}(\beta, \mathbf{w})$ are invariant for every $\mathbf{w}$). Specifically, for any two configurations $\theta = (\alpha, \beta, \delta)$ and $\theta' = (\alpha', \beta', \delta')$ with $\alpha, \alpha' > 0$ that are not equal in the sense of inducing the same $(\alpha, \delta, [\beta])$, there exists a **binary choice problem** (with exactly two alternatives) where the choice probabilities under $\theta$ and $\theta'$ differ.
 :::
 
-Two remarks on this theorem are in order before we proceed to its proof.
+Three remarks on this theorem are in order before we proceed to its proof.
 
 ::: {.callout-tip}
-## Remark: Binary Choice Sufficiency
-The theorem guarantees that a **binary** choice problem (exactly two alternatives) suffices to distinguish any two parameter configurations. This is a strong result: identification does not require presenting large choice sets, only carefully chosen pairwise comparisons. For experimental design, this means that even a battery of simple two-alternative forced-choice trials can achieve full identification, provided the alternatives are sufficiently diverse.
+## Remark: Why the Equivalence Class on $\beta$
+The raw matrix $\beta$ is not identifiable from choice data because adding the same vector $c \in \mathbb{R}^D$ to every row leaves $\boldsymbol{\beta}_k^\top \mathbf{w}$ shifted by the same scalar $c^\top \mathbf{w}$ for all $k$, and the softmax is invariant to a common shift of its logits. The theorem therefore identifies $\beta$ only up to this gauge. Equivalently, one could impose a gauge condition such as $\boldsymbol{\beta}_1 = \mathbf{0}$; under that constraint the remaining $(K-1) \times D$ entries of $\beta$ are globally identified.
 :::
 
 ::: {.callout-tip}
 ## Remark: Validity for All $\alpha > 0$
 The identification result holds for **any** positive sensitivity parameter $\alpha$, not merely in the limit $\alpha \to \infty$. The proof relies on the strict monotonicity of the logistic function $\sigma(t) = 1/(1 + e^{-t})$, which holds for all finite arguments. Since $\alpha > 0$ ensures the argument $\alpha(\eta_i - \eta_j) \neq 0$ whenever $\eta_i \neq \eta_j$, the softmax parameterization is globally injective on expected utility differences for any positive $\alpha$. No asymptotic arguments are invoked.
+:::
+
+::: {.callout-tip}
+## Remark: Scope of the Shared-Sensitivity Specification
+The theorem is stated for the shared-$\alpha$ version of m_1. If risky and uncertain choices have distinct sensitivity parameters, the same design logic applies but the parameter vector and proof require modification. [Report 7](07_generalizing_sensitivity.qmd) generalizes m_1 to allow distinct sensitivities (e.g., $\alpha$ for uncertain, $\omega$ for risky) and examines the consequences of relaxing this assumption.
+:::
+
+::: {.callout-tip}
+## Remark: Binary Choice Sufficiency
+The theorem guarantees that a **binary** choice problem (exactly two alternatives) suffices to distinguish any two parameter configurations. This is a strong result: identification does not require presenting large choice sets, only carefully chosen pairwise comparisons. For experimental design, this means that even a battery of simple two-alternative forced-choice trials can achieve full identification, provided the alternatives are sufficiently diverse.
 :::
 
 Before proving the theorem, we establish a key lemma.
@@ -1112,17 +1129,23 @@ $$
 \boldsymbol{\eta} = \boldsymbol{\eta}' \iff \boldsymbol{\upsilon}(\delta) = \boldsymbol{\upsilon}(\delta')
 $$
 
-Now, $\delta \neq \delta'$ implies $\boldsymbol{\upsilon}(\delta) \neq \boldsymbol{\upsilon}(\delta')$ because the map $\delta \mapsto \boldsymbol{\upsilon}(\delta) = \text{cumsum}([0, \delta])$ is injective on $\Delta^{K-2}$. Therefore, $\boldsymbol{\eta} \neq \boldsymbol{\eta}'$, meaning at least one pair of expected utilities differs: $\eta^{(r)}_s \neq (\eta')^{(r)}_s$ for some $s$.
+Now, $\delta \neq \delta'$ implies $\boldsymbol{\upsilon}(\delta) \neq \boldsymbol{\upsilon}(\delta')$ because the map $\delta \mapsto \boldsymbol{\upsilon}(\delta) = \text{cumsum}([0, \delta])$ is injective on $\Delta^{K-2}$. Therefore, $\boldsymbol{\eta} \neq \boldsymbol{\eta}'$.
 
-Construct a risky choice problem with alternatives $\boldsymbol{\pi}^{(s)}$ and $\boldsymbol{\pi}^{(t)}$ where the expected utility differences satisfy:
+*Sub-case 1a:* $\alpha = \alpha'$. At least one component $\eta^{(r)}_s \neq (\eta')^{(r)}_s$ differs. Picking any $t \neq s$ such that the differences also differ — which is generic since $\boldsymbol{\eta} \neq \boldsymbol{\eta}'$ and the differences cannot all coincide unless $\boldsymbol{\eta}$ and $\boldsymbol{\eta}'$ agree up to a common additive constant, contradicting their equality through the invertible $\Pi$ — the binary risky choice between $\boldsymbol{\pi}^{(s)}$ and $\boldsymbol{\pi}^{(t)}$ has probability $\sigma(\alpha(\eta^{(r)}_s - \eta^{(r)}_t))$, and strict monotonicity of $\sigma$ gives $\chi_1(\theta) \neq \chi_1(\theta')$.
+
+*Sub-case 1b:* $\alpha \neq \alpha'$. Here we cannot rely on a single pairwise log-odds equation, because in principle the ratio $\alpha'/\alpha$ could rescale one specific utility difference $\eta^{(r)}_s - \eta^{(r)}_t$ to match $(\eta')^{(r)}_s - (\eta')^{(r)}_t$. We rule out global compensation by exploiting the normalization $\upsilon_1(\delta) = 0$ and $\upsilon_K(\delta) = 1$, which fixes the scale of $\boldsymbol{\upsilon}(\delta)$.
+
+Consider the $K$ "corner" risky choice problems: for each $s = 2, \ldots, K$, the binary problem between $\boldsymbol{\pi}^{(s)}$ and $\boldsymbol{\pi}^{(1)}$ has log-odds $\alpha \cdot ((\boldsymbol{\pi}^{(s)} - \boldsymbol{\pi}^{(1)})^\top \boldsymbol{\upsilon}(\delta))$. Suppose, for contradiction, that $\theta$ and $\theta'$ produce identical choice probabilities in every binary risky problem drawn from the affinely independent set $\{\boldsymbol{\pi}^{(s)}\}$. Then for each $s \geq 2$:
 $$
-\eta^{(r)}_s - \eta^{(r)}_t \neq (\eta')^{(r)}_s - (\eta')^{(r)}_t
+\alpha \cdot (\boldsymbol{\pi}^{(s)} - \boldsymbol{\pi}^{(1)})^\top \boldsymbol{\upsilon}(\delta) = \alpha' \cdot (\boldsymbol{\pi}^{(s)} - \boldsymbol{\pi}^{(1)})^\top \boldsymbol{\upsilon}(\delta')
 $$
-(This is achievable since $\boldsymbol{\eta} \neq \boldsymbol{\eta}'$.) The choice probability is:
+Writing $\boldsymbol{\Delta\pi}^{(s)} = \boldsymbol{\pi}^{(s)} - \boldsymbol{\pi}^{(1)}$, these $K-1$ vectors are linearly independent (affine independence of the $K$ original vectors is equivalent to linear independence of the $K-1$ pairwise differences). The $K-1$ equations therefore force $\alpha \boldsymbol{\upsilon}(\delta)$ and $\alpha' \boldsymbol{\upsilon}(\delta')$ to agree on every direction in the hyperplane $\{\mathbf{v} : \mathbf{1}^\top \mathbf{v} = 0\}$, i.e., they agree up to an additive scalar multiple of $\mathbf{1}$:
 $$
-\chi_1 = \frac{\exp(\alpha \cdot \eta^{(r)}_s)}{\exp(\alpha \cdot \eta^{(r)}_s) + \exp(\alpha \cdot \eta^{(r)}_t)} = \sigma\bigl(\alpha(\eta^{(r)}_s - \eta^{(r)}_t)\bigr)
+\alpha \boldsymbol{\upsilon}(\delta) = \alpha' \boldsymbol{\upsilon}(\delta') + \lambda \mathbf{1}
 $$
-where $\sigma$ is the logistic function. Since $\sigma$ is strictly monotonic and the utility differences differ, we have $\chi_1(\theta) \neq \chi_1(\theta')$ (regardless of whether $\alpha = \alpha'$ or not).
+for some $\lambda \in \mathbb{R}$. Reading off the first coordinate ($\upsilon_1 = \upsilon'_1 = 0$) gives $\lambda = 0$. Reading off the last coordinate ($\upsilon_K = \upsilon'_K = 1$) then gives $\alpha = \alpha'$, contradicting $\alpha \neq \alpha'$. Therefore the supposition fails: at least one binary risky problem among $\{\boldsymbol{\pi}^{(s)}\}$ has $\chi_1(\theta) \neq \chi_1(\theta')$.
+
+In both sub-cases, a binary risky problem distinguishes $\theta$ from $\theta'$, regardless of any difference in $\alpha$ or $\beta$.
 
 *Case 2: $\delta = \delta'$ but $\alpha \neq \alpha'$.*
 
@@ -1133,9 +1156,9 @@ $$
 
 This is a strictly monotonic function of $\alpha$ when $\eta_1 \neq \eta_2$, so $\chi_1(\alpha) \neq \chi_1(\alpha')$.
 
-*Case 3: $\delta = \delta'$, $\alpha = \alpha'$, but $\beta \neq \beta'$.*
+*Case 3: $\delta = \delta'$, $\alpha = \alpha'$, but $[\beta] \neq [\beta']$ (i.e., $\beta$ and $\beta'$ differ by more than an additive row-common shift).*
 
-Since $\beta \neq \beta'$ as $K \times D$ matrices, there exist indices $(k, d)$ such that $\beta_{kd} \neq \beta'_{kd}$. Since $\mathcal{W}$ spans $\mathbb{R}^D$, we can find $\mathbf{w} \in \mathcal{W}$ such that the difference $(\beta - \beta')\mathbf{w}$ is not a constant vector (i.e., not a scalar multiple of $\mathbf{1}$).
+By assumption, $\beta - \beta'$ has at least one row whose entries are not equal to the corresponding entries of a single common vector $c$; equivalently, the rows of $\beta - \beta'$ are not all identical. Hence there exists $\mathbf{w} \in \mathcal{W}$ such that $(\beta - \beta')\mathbf{w}$ is not a constant vector (i.e., not a scalar multiple of $\mathbf{1}$); the spanning condition on $\mathcal{W}$ guarantees such a $\mathbf{w}$.
 
 Consider the subjective probability vectors $\boldsymbol{\psi}(\beta, \mathbf{w}) = \text{softmax}(\beta \mathbf{w})$ and $\boldsymbol{\psi}(\beta', \mathbf{w}) = \text{softmax}(\beta' \mathbf{w})$. The softmax function has the property that $\text{softmax}(\mathbf{v}) = \text{softmax}(\mathbf{v}')$ if and only if $\mathbf{v} - \mathbf{v}' = c \cdot \mathbf{1}$ for some scalar $c$. Since $\beta \mathbf{w} - \beta' \mathbf{w}$ is not a constant vector, we have $\boldsymbol{\psi}(\beta, \mathbf{w}) \neq \boldsymbol{\psi}(\beta', \mathbf{w})$.
 
@@ -1147,7 +1170,7 @@ $$
 
 Constructing an uncertain choice problem with this alternative yields different choice probabilities.
 
-**Combining the cases:** For any $\theta \neq \theta'$, at least one of the three cases applies, guaranteeing the existence of a distinguishing decision problem. $\square$
+**Combining the cases:** For any two configurations with distinct $(\alpha, \delta, [\beta])$, at least one of the three cases applies, guaranteeing the existence of a distinguishing decision problem. $\square$
 
 ### Non-Identifiability in Model m_0
 
@@ -1159,7 +1182,7 @@ In model m_0 (uncertain choices only):
 
 1. The sensitivity parameter $\alpha$ is globally identified.
 2. The expected utility function $\eta^{(u)}: \mathbb{R}^D \to [0,1]$ is globally identified.
-3. The individual components $\beta$ and $\delta$ are **weakly identified** through the composite mapping $(\beta, \delta) \mapsto \eta^{(u)}(\cdot)$. While generic point identification holds (distinct $(\beta, \delta)$ pairs produce distinct expected utility functions except on a set of measure zero), information about these parameters accumulates more slowly from data compared to m_1, resulting in wider posterior credible intervals.
+3. The individual components $\delta$ and the gauge-class $[\beta]$ (i.e., $\beta$ modulo additive row-common shifts) are **weakly identified** through the composite mapping $(\beta, \delta) \mapsto \eta^{(u)}(\cdot)$. While generic point identification holds (distinct $(\delta, [\beta])$ pairs produce distinct expected utility functions except on a set of measure zero), information about these parameters accumulates more slowly from data compared to m_1, resulting in wider posterior credible intervals.
 :::
 
 **Proof.** We establish each claim.
@@ -1172,7 +1195,7 @@ In model m_0 (uncertain choices only):
 $$
 \eta^{(u)}(\mathbf{w}) = \psi_2(\beta, \mathbf{w}) \cdot \delta_1 + \psi_3(\beta, \mathbf{w})
 $$
-where $\psi_2 + \psi_3 = 1 - \psi_1$. The softmax probabilities $\psi_k$ depend on $\beta$ only through the differences $\boldsymbol{\beta}_k - \boldsymbol{\beta}_1$ (the softmax is invariant to adding a constant to all logits). Thus $\beta$ has a $(K-1) \times D = 2D$ dimensional "effective" parameter space for determining $\psi$.
+where $\psi_2 + \psi_3 = 1 - \psi_1$. The softmax probabilities $\psi_k$ depend on $\beta$ only through the differences $\boldsymbol{\beta}_k - \boldsymbol{\beta}_1$ (the softmax is invariant to adding a constant to all logits), so $\beta$ enters $\eta^{(u)}$ only through its gauge-class $[\beta]$. The effective free parameter space for determining $\psi$ therefore has dimension $(K-1) \times D = 2D$ rather than $KD$.
 
 The expected utility function $\eta^{(u)}: \mathbb{R}^D \to [0,1]$ is determined by how $\psi_2$ and $\psi_3$ vary with $\mathbf{w}$, weighted by $\delta_1$ and $1$ respectively. The question is whether distinct $(\beta, \delta)$ pairs can produce identical $\eta^{(u)}(\cdot)$ functions.
 
@@ -1193,7 +1216,7 @@ The $\delta_1$-derivative is $\psi_2(\beta, \mathbf{w})$, which is strictly posi
 
 - **What is weakly identified:** The decomposition of $\eta^{(u)}$ into beliefs ($\psi$, via $\beta$) and utilities ($\upsilon$, via $\delta$) faces a more challenging inference problem. While distinct $(\beta, \delta)$ pairs generically produce distinct expected utility functions (point identification), the information geometry is unfavorable: $\beta$ and $\delta$ interact multiplicatively in the expected utility, so uncertainty in one parameter propagates to the other. In m_1, risky choices directly constrain $\delta$ through the likelihood term $\sum_n \log \chi^{(r)}_{n, z_n}$, which depends on $\delta$ but not $\beta$. This separation breaks the multiplicative coupling and allows faster learning.
 
-- **Practical consequence:** The weak identification of $\delta$ in m_0 manifests as slower posterior concentration—wider credible intervals that shrink more slowly with sample size compared to m_1. This matches our empirical parameter recovery findings. Note that this is a *rate* phenomenon, not a fundamental non-identification: with sufficient data, m_0 posteriors do concentrate on the true values.
+- **Practical consequence:** The weak identification of $\delta$ in m_0 manifests as slower posterior concentration—wider credible intervals that shrink more slowly with sample size compared to m_1. This matches our empirical parameter recovery findings. Note that this is a *rate* phenomenon, not a fundamental non-identification: under the generic identification and regularity conditions described above, m_0 posteriors would still be expected to concentrate with sufficient data.
 
 ### Implications for Experimental Design
 

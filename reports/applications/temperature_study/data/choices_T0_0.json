@@ -1,0 +1,3922 @@
+{
+  "temperature": 0.0,
+  "total_choices": 300,
+  "valid_choices": 300,
+  "na_choices": 0,
+  "na_rate": 0.0,
+  "collected_at": "2026-02-15T22:56:12.234600+00:00",
+  "choices": [
+    {
+      "problem_id": "P0001",
+      "presentation_id": 1,
+      "claim_order": [
+        "C004",
+        "C001",
+        "C024",
+        "C009"
+      ],
+      "position_chosen": 3,
+      "claim_chosen": "C024",
+      "valid": true,
+      "raw_response": "3"
+    },
+    {
+      "problem_id": "P0001",
+      "presentation_id": 2,
+      "claim_order": [
+        "C009",
+        "C024",
+        "C004",
+        "C001"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C024",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0001",
+      "presentation_id": 3,
+      "claim_order": [
+        "C001",
+        "C009",
+        "C024",
+        "C004"
+      ],
+      "position_chosen": 3,
+      "claim_chosen": "C024",
+      "valid": true,
+      "raw_response": "3"
+    },
+    {
+      "problem_id": "P0002",
+      "presentation_id": 1,
+      "claim_order": [
+        "C014",
+        "C002",
+        "C001",
+        "C003"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C002",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0002",
+      "presentation_id": 2,
+      "claim_order": [
+        "C003",
+        "C001",
+        "C014",
+        "C002"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C001",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0002",
+      "presentation_id": 3,
+      "claim_order": [
+        "C014",
+        "C003",
+        "C001",
+        "C002"
+      ],
+      "position_chosen": 4,
+      "claim_chosen": "C002",
+      "valid": true,
+      "raw_response": "4"
+    },
+    {
+      "problem_id": "P0003",
+      "presentation_id": 1,
+      "claim_order": [
+        "C015",
+        "C019"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C015",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0003",
+      "presentation_id": 2,
+      "claim_order": [
+        "C015",
+        "C019"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C015",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0003",
+      "presentation_id": 3,
+      "claim_order": [
+        "C019",
+        "C015"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C015",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0004",
+      "presentation_id": 1,
+      "claim_order": [
+        "C023",
+        "C014"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C014",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0004",
+      "presentation_id": 2,
+      "claim_order": [
+        "C023",
+        "C014"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C014",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0004",
+      "presentation_id": 3,
+      "claim_order": [
+        "C023",
+        "C014"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C014",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0005",
+      "presentation_id": 1,
+      "claim_order": [
+        "C007",
+        "C025"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C007",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0005",
+      "presentation_id": 2,
+      "claim_order": [
+        "C007",
+        "C025"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C007",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0005",
+      "presentation_id": 3,
+      "claim_order": [
+        "C025",
+        "C007"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C007",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0006",
+      "presentation_id": 1,
+      "claim_order": [
+        "C013",
+        "C004"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C013",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0006",
+      "presentation_id": 2,
+      "claim_order": [
+        "C013",
+        "C004"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C013",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0006",
+      "presentation_id": 3,
+      "claim_order": [
+        "C013",
+        "C004"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C013",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0007",
+      "presentation_id": 1,
+      "claim_order": [
+        "C009",
+        "C026",
+        "C002",
+        "C024"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C026",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0007",
+      "presentation_id": 2,
+      "claim_order": [
+        "C026",
+        "C009",
+        "C002",
+        "C024"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C026",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0007",
+      "presentation_id": 3,
+      "claim_order": [
+        "C002",
+        "C026",
+        "C009",
+        "C024"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C002",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0008",
+      "presentation_id": 1,
+      "claim_order": [
+        "C020",
+        "C029",
+        "C028",
+        "C012"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C020",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0008",
+      "presentation_id": 2,
+      "claim_order": [
+        "C012",
+        "C020",
+        "C028",
+        "C029"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C020",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0008",
+      "presentation_id": 3,
+      "claim_order": [
+        "C029",
+        "C012",
+        "C028",
+        "C020"
+      ],
+      "position_chosen": 4,
+      "claim_chosen": "C020",
+      "valid": true,
+      "raw_response": "4"
+    },
+    {
+      "problem_id": "P0009",
+      "presentation_id": 1,
+      "claim_order": [
+        "C003",
+        "C028",
+        "C008"
+      ],
+      "position_chosen": 3,
+      "claim_chosen": "C008",
+      "valid": true,
+      "raw_response": "3"
+    },
+    {
+      "problem_id": "P0009",
+      "presentation_id": 2,
+      "claim_order": [
+        "C008",
+        "C028",
+        "C003"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C008",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0009",
+      "presentation_id": 3,
+      "claim_order": [
+        "C003",
+        "C008",
+        "C028"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C008",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0010",
+      "presentation_id": 1,
+      "claim_order": [
+        "C027",
+        "C012",
+        "C006",
+        "C007"
+      ],
+      "position_chosen": 4,
+      "claim_chosen": "C007",
+      "valid": true,
+      "raw_response": "4"
+    },
+    {
+      "problem_id": "P0010",
+      "presentation_id": 2,
+      "claim_order": [
+        "C012",
+        "C027",
+        "C007",
+        "C006"
+      ],
+      "position_chosen": 3,
+      "claim_chosen": "C007",
+      "valid": true,
+      "raw_response": "3"
+    },
+    {
+      "problem_id": "P0010",
+      "presentation_id": 3,
+      "claim_order": [
+        "C007",
+        "C027",
+        "C006",
+        "C012"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C007",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0011",
+      "presentation_id": 1,
+      "claim_order": [
+        "C015",
+        "C013"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C013",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0011",
+      "presentation_id": 2,
+      "claim_order": [
+        "C015",
+        "C013"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C013",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0011",
+      "presentation_id": 3,
+      "claim_order": [
+        "C013",
+        "C015"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C013",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0012",
+      "presentation_id": 1,
+      "claim_order": [
+        "C011",
+        "C027",
+        "C025",
+        "C002"
+      ],
+      "position_chosen": 3,
+      "claim_chosen": "C025",
+      "valid": true,
+      "raw_response": "3"
+    },
+    {
+      "problem_id": "P0012",
+      "presentation_id": 2,
+      "claim_order": [
+        "C025",
+        "C002",
+        "C011",
+        "C027"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C002",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0012",
+      "presentation_id": 3,
+      "claim_order": [
+        "C025",
+        "C011",
+        "C027",
+        "C002"
+      ],
+      "position_chosen": 4,
+      "claim_chosen": "C002",
+      "valid": true,
+      "raw_response": "4"
+    },
+    {
+      "problem_id": "P0013",
+      "presentation_id": 1,
+      "claim_order": [
+        "C030",
+        "C019"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C030",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0013",
+      "presentation_id": 2,
+      "claim_order": [
+        "C030",
+        "C019"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C030",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0013",
+      "presentation_id": 3,
+      "claim_order": [
+        "C019",
+        "C030"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C030",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0014",
+      "presentation_id": 1,
+      "claim_order": [
+        "C016",
+        "C013",
+        "C029",
+        "C030"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C013",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0014",
+      "presentation_id": 2,
+      "claim_order": [
+        "C029",
+        "C013",
+        "C016",
+        "C030"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C013",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0014",
+      "presentation_id": 3,
+      "claim_order": [
+        "C029",
+        "C030",
+        "C016",
+        "C013"
+      ],
+      "position_chosen": 4,
+      "claim_chosen": "C013",
+      "valid": true,
+      "raw_response": "4"
+    },
+    {
+      "problem_id": "P0015",
+      "presentation_id": 1,
+      "claim_order": [
+        "C019",
+        "C014",
+        "C029",
+        "C013"
+      ],
+      "position_chosen": 4,
+      "claim_chosen": "C013",
+      "valid": true,
+      "raw_response": "4"
+    },
+    {
+      "problem_id": "P0015",
+      "presentation_id": 2,
+      "claim_order": [
+        "C014",
+        "C013",
+        "C019",
+        "C029"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C013",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0015",
+      "presentation_id": 3,
+      "claim_order": [
+        "C014",
+        "C029",
+        "C019",
+        "C013"
+      ],
+      "position_chosen": 4,
+      "claim_chosen": "C013",
+      "valid": true,
+      "raw_response": "4"
+    },
+    {
+      "problem_id": "P0016",
+      "presentation_id": 1,
+      "claim_order": [
+        "C005",
+        "C021"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C005",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0016",
+      "presentation_id": 2,
+      "claim_order": [
+        "C021",
+        "C005"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C005",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0016",
+      "presentation_id": 3,
+      "claim_order": [
+        "C005",
+        "C021"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C005",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0017",
+      "presentation_id": 1,
+      "claim_order": [
+        "C003",
+        "C013",
+        "C020",
+        "C015"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C013",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0017",
+      "presentation_id": 2,
+      "claim_order": [
+        "C013",
+        "C003",
+        "C015",
+        "C020"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C013",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0017",
+      "presentation_id": 3,
+      "claim_order": [
+        "C015",
+        "C013",
+        "C020",
+        "C003"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C013",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0018",
+      "presentation_id": 1,
+      "claim_order": [
+        "C011",
+        "C004",
+        "C010",
+        "C014"
+      ],
+      "position_chosen": 3,
+      "claim_chosen": "C010",
+      "valid": true,
+      "raw_response": "3"
+    },
+    {
+      "problem_id": "P0018",
+      "presentation_id": 2,
+      "claim_order": [
+        "C010",
+        "C011",
+        "C014",
+        "C004"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C010",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0018",
+      "presentation_id": 3,
+      "claim_order": [
+        "C004",
+        "C011",
+        "C014",
+        "C010"
+      ],
+      "position_chosen": 4,
+      "claim_chosen": "C010",
+      "valid": true,
+      "raw_response": "4"
+    },
+    {
+      "problem_id": "P0019",
+      "presentation_id": 1,
+      "claim_order": [
+        "C030",
+        "C004",
+        "C028",
+        "C021"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C030",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0019",
+      "presentation_id": 2,
+      "claim_order": [
+        "C004",
+        "C030",
+        "C021",
+        "C028"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C030",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0019",
+      "presentation_id": 3,
+      "claim_order": [
+        "C028",
+        "C030",
+        "C021",
+        "C004"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C030",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0020",
+      "presentation_id": 1,
+      "claim_order": [
+        "C025",
+        "C030",
+        "C017",
+        "C001"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C025",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0020",
+      "presentation_id": 2,
+      "claim_order": [
+        "C001",
+        "C025",
+        "C030",
+        "C017"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C025",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0020",
+      "presentation_id": 3,
+      "claim_order": [
+        "C001",
+        "C017",
+        "C030",
+        "C025"
+      ],
+      "position_chosen": 4,
+      "claim_chosen": "C025",
+      "valid": true,
+      "raw_response": "4"
+    },
+    {
+      "problem_id": "P0021",
+      "presentation_id": 1,
+      "claim_order": [
+        "C002",
+        "C008"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C002",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0021",
+      "presentation_id": 2,
+      "claim_order": [
+        "C008",
+        "C002"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C002",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0021",
+      "presentation_id": 3,
+      "claim_order": [
+        "C008",
+        "C002"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C002",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0022",
+      "presentation_id": 1,
+      "claim_order": [
+        "C016",
+        "C027",
+        "C003",
+        "C025"
+      ],
+      "position_chosen": 4,
+      "claim_chosen": "C025",
+      "valid": true,
+      "raw_response": "4"
+    },
+    {
+      "problem_id": "P0022",
+      "presentation_id": 2,
+      "claim_order": [
+        "C003",
+        "C025",
+        "C016",
+        "C027"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C025",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0022",
+      "presentation_id": 3,
+      "claim_order": [
+        "C016",
+        "C003",
+        "C025",
+        "C027"
+      ],
+      "position_chosen": 3,
+      "claim_chosen": "C025",
+      "valid": true,
+      "raw_response": "3"
+    },
+    {
+      "problem_id": "P0023",
+      "presentation_id": 1,
+      "claim_order": [
+        "C030",
+        "C018"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C018",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0023",
+      "presentation_id": 2,
+      "claim_order": [
+        "C018",
+        "C030"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C018",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0023",
+      "presentation_id": 3,
+      "claim_order": [
+        "C030",
+        "C018"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C018",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0024",
+      "presentation_id": 1,
+      "claim_order": [
+        "C022",
+        "C021",
+        "C012"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C021",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0024",
+      "presentation_id": 2,
+      "claim_order": [
+        "C022",
+        "C012",
+        "C021"
+      ],
+      "position_chosen": 3,
+      "claim_chosen": "C021",
+      "valid": true,
+      "raw_response": "3"
+    },
+    {
+      "problem_id": "P0024",
+      "presentation_id": 3,
+      "claim_order": [
+        "C021",
+        "C012",
+        "C022"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C021",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0025",
+      "presentation_id": 1,
+      "claim_order": [
+        "C003",
+        "C011"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C011",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0025",
+      "presentation_id": 2,
+      "claim_order": [
+        "C011",
+        "C003"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C011",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0025",
+      "presentation_id": 3,
+      "claim_order": [
+        "C011",
+        "C003"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C011",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0026",
+      "presentation_id": 1,
+      "claim_order": [
+        "C008",
+        "C001",
+        "C003",
+        "C023"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C001",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0026",
+      "presentation_id": 2,
+      "claim_order": [
+        "C001",
+        "C003",
+        "C023",
+        "C008"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C001",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0026",
+      "presentation_id": 3,
+      "claim_order": [
+        "C003",
+        "C023",
+        "C001",
+        "C008"
+      ],
+      "position_chosen": 3,
+      "claim_chosen": "C001",
+      "valid": true,
+      "raw_response": "3"
+    },
+    {
+      "problem_id": "P0027",
+      "presentation_id": 1,
+      "claim_order": [
+        "C008",
+        "C009",
+        "C022",
+        "C016"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C008",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0027",
+      "presentation_id": 2,
+      "claim_order": [
+        "C016",
+        "C008",
+        "C022",
+        "C009"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C008",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0027",
+      "presentation_id": 3,
+      "claim_order": [
+        "C022",
+        "C009",
+        "C008",
+        "C016"
+      ],
+      "position_chosen": 3,
+      "claim_chosen": "C008",
+      "valid": true,
+      "raw_response": "3"
+    },
+    {
+      "problem_id": "P0028",
+      "presentation_id": 1,
+      "claim_order": [
+        "C007",
+        "C004",
+        "C022"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C007",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0028",
+      "presentation_id": 2,
+      "claim_order": [
+        "C007",
+        "C022",
+        "C004"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C007",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0028",
+      "presentation_id": 3,
+      "claim_order": [
+        "C007",
+        "C022",
+        "C004"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C007",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0029",
+      "presentation_id": 1,
+      "claim_order": [
+        "C028",
+        "C024",
+        "C002"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C024",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0029",
+      "presentation_id": 2,
+      "claim_order": [
+        "C024",
+        "C028",
+        "C002"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C024",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0029",
+      "presentation_id": 3,
+      "claim_order": [
+        "C002",
+        "C024",
+        "C028"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C002",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0030",
+      "presentation_id": 1,
+      "claim_order": [
+        "C011",
+        "C026",
+        "C028",
+        "C004"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C026",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0030",
+      "presentation_id": 2,
+      "claim_order": [
+        "C004",
+        "C028",
+        "C011",
+        "C026"
+      ],
+      "position_chosen": 4,
+      "claim_chosen": "C026",
+      "valid": true,
+      "raw_response": "4"
+    },
+    {
+      "problem_id": "P0030",
+      "presentation_id": 3,
+      "claim_order": [
+        "C028",
+        "C026",
+        "C011",
+        "C004"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C026",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0031",
+      "presentation_id": 1,
+      "claim_order": [
+        "C009",
+        "C015"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C015",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0031",
+      "presentation_id": 2,
+      "claim_order": [
+        "C015",
+        "C009"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C015",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0031",
+      "presentation_id": 3,
+      "claim_order": [
+        "C015",
+        "C009"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C015",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0032",
+      "presentation_id": 1,
+      "claim_order": [
+        "C026",
+        "C028",
+        "C018"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C026",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0032",
+      "presentation_id": 2,
+      "claim_order": [
+        "C028",
+        "C018",
+        "C026"
+      ],
+      "position_chosen": 3,
+      "claim_chosen": "C026",
+      "valid": true,
+      "raw_response": "3"
+    },
+    {
+      "problem_id": "P0032",
+      "presentation_id": 3,
+      "claim_order": [
+        "C028",
+        "C026",
+        "C018"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C026",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0033",
+      "presentation_id": 1,
+      "claim_order": [
+        "C030",
+        "C025"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C025",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0033",
+      "presentation_id": 2,
+      "claim_order": [
+        "C025",
+        "C030"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C025",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0033",
+      "presentation_id": 3,
+      "claim_order": [
+        "C025",
+        "C030"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C025",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0034",
+      "presentation_id": 1,
+      "claim_order": [
+        "C016",
+        "C007",
+        "C028"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C007",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0034",
+      "presentation_id": 2,
+      "claim_order": [
+        "C028",
+        "C016",
+        "C007"
+      ],
+      "position_chosen": 3,
+      "claim_chosen": "C007",
+      "valid": true,
+      "raw_response": "3"
+    },
+    {
+      "problem_id": "P0034",
+      "presentation_id": 3,
+      "claim_order": [
+        "C028",
+        "C007",
+        "C016"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C007",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0035",
+      "presentation_id": 1,
+      "claim_order": [
+        "C013",
+        "C009"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C013",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0035",
+      "presentation_id": 2,
+      "claim_order": [
+        "C013",
+        "C009"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C013",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0035",
+      "presentation_id": 3,
+      "claim_order": [
+        "C013",
+        "C009"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C013",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0036",
+      "presentation_id": 1,
+      "claim_order": [
+        "C023",
+        "C024",
+        "C026"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C024",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0036",
+      "presentation_id": 2,
+      "claim_order": [
+        "C023",
+        "C024",
+        "C026"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C024",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0036",
+      "presentation_id": 3,
+      "claim_order": [
+        "C024",
+        "C026",
+        "C023"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C024",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0037",
+      "presentation_id": 1,
+      "claim_order": [
+        "C007",
+        "C002",
+        "C019"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C007",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0037",
+      "presentation_id": 2,
+      "claim_order": [
+        "C002",
+        "C007",
+        "C019"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C002",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0037",
+      "presentation_id": 3,
+      "claim_order": [
+        "C007",
+        "C002",
+        "C019"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C007",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0038",
+      "presentation_id": 1,
+      "claim_order": [
+        "C002",
+        "C019"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C002",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0038",
+      "presentation_id": 2,
+      "claim_order": [
+        "C002",
+        "C019"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C002",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0038",
+      "presentation_id": 3,
+      "claim_order": [
+        "C019",
+        "C002"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C002",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0039",
+      "presentation_id": 1,
+      "claim_order": [
+        "C017",
+        "C003"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C003",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0039",
+      "presentation_id": 2,
+      "claim_order": [
+        "C003",
+        "C017"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C003",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0039",
+      "presentation_id": 3,
+      "claim_order": [
+        "C003",
+        "C017"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C003",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0040",
+      "presentation_id": 1,
+      "claim_order": [
+        "C003",
+        "C022",
+        "C028",
+        "C008"
+      ],
+      "position_chosen": 4,
+      "claim_chosen": "C008",
+      "valid": true,
+      "raw_response": "4"
+    },
+    {
+      "problem_id": "P0040",
+      "presentation_id": 2,
+      "claim_order": [
+        "C022",
+        "C028",
+        "C003",
+        "C008"
+      ],
+      "position_chosen": 4,
+      "claim_chosen": "C008",
+      "valid": true,
+      "raw_response": "4"
+    },
+    {
+      "problem_id": "P0040",
+      "presentation_id": 3,
+      "claim_order": [
+        "C022",
+        "C008",
+        "C028",
+        "C003"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C008",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0041",
+      "presentation_id": 1,
+      "claim_order": [
+        "C022",
+        "C019",
+        "C017"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C022",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0041",
+      "presentation_id": 2,
+      "claim_order": [
+        "C022",
+        "C017",
+        "C019"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C022",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0041",
+      "presentation_id": 3,
+      "claim_order": [
+        "C017",
+        "C019",
+        "C022"
+      ],
+      "position_chosen": 3,
+      "claim_chosen": "C022",
+      "valid": true,
+      "raw_response": "3"
+    },
+    {
+      "problem_id": "P0042",
+      "presentation_id": 1,
+      "claim_order": [
+        "C009",
+        "C013"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C013",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0042",
+      "presentation_id": 2,
+      "claim_order": [
+        "C013",
+        "C009"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C013",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0042",
+      "presentation_id": 3,
+      "claim_order": [
+        "C009",
+        "C013"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C013",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0043",
+      "presentation_id": 1,
+      "claim_order": [
+        "C011",
+        "C030",
+        "C025"
+      ],
+      "position_chosen": 3,
+      "claim_chosen": "C025",
+      "valid": true,
+      "raw_response": "3"
+    },
+    {
+      "problem_id": "P0043",
+      "presentation_id": 2,
+      "claim_order": [
+        "C030",
+        "C025",
+        "C011"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C025",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0043",
+      "presentation_id": 3,
+      "claim_order": [
+        "C025",
+        "C011",
+        "C030"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C025",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0044",
+      "presentation_id": 1,
+      "claim_order": [
+        "C018",
+        "C007"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C007",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0044",
+      "presentation_id": 2,
+      "claim_order": [
+        "C018",
+        "C007"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C007",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0044",
+      "presentation_id": 3,
+      "claim_order": [
+        "C007",
+        "C018"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C007",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0045",
+      "presentation_id": 1,
+      "claim_order": [
+        "C029",
+        "C003",
+        "C008"
+      ],
+      "position_chosen": 3,
+      "claim_chosen": "C008",
+      "valid": true,
+      "raw_response": "3"
+    },
+    {
+      "problem_id": "P0045",
+      "presentation_id": 2,
+      "claim_order": [
+        "C029",
+        "C008",
+        "C003"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C008",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0045",
+      "presentation_id": 3,
+      "claim_order": [
+        "C008",
+        "C003",
+        "C029"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C008",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0046",
+      "presentation_id": 1,
+      "claim_order": [
+        "C023",
+        "C010",
+        "C020",
+        "C026"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C010",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0046",
+      "presentation_id": 2,
+      "claim_order": [
+        "C026",
+        "C010",
+        "C020",
+        "C023"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C010",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0046",
+      "presentation_id": 3,
+      "claim_order": [
+        "C020",
+        "C010",
+        "C026",
+        "C023"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C010",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0047",
+      "presentation_id": 1,
+      "claim_order": [
+        "C029",
+        "C004"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C004",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0047",
+      "presentation_id": 2,
+      "claim_order": [
+        "C004",
+        "C029"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C004",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0047",
+      "presentation_id": 3,
+      "claim_order": [
+        "C029",
+        "C004"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C004",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0048",
+      "presentation_id": 1,
+      "claim_order": [
+        "C020",
+        "C007",
+        "C023"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C007",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0048",
+      "presentation_id": 2,
+      "claim_order": [
+        "C023",
+        "C020",
+        "C007"
+      ],
+      "position_chosen": 3,
+      "claim_chosen": "C007",
+      "valid": true,
+      "raw_response": "3"
+    },
+    {
+      "problem_id": "P0048",
+      "presentation_id": 3,
+      "claim_order": [
+        "C020",
+        "C007",
+        "C023"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C007",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0049",
+      "presentation_id": 1,
+      "claim_order": [
+        "C016",
+        "C009",
+        "C029",
+        "C030"
+      ],
+      "position_chosen": 4,
+      "claim_chosen": "C030",
+      "valid": true,
+      "raw_response": "4"
+    },
+    {
+      "problem_id": "P0049",
+      "presentation_id": 2,
+      "claim_order": [
+        "C029",
+        "C009",
+        "C030",
+        "C016"
+      ],
+      "position_chosen": 3,
+      "claim_chosen": "C030",
+      "valid": true,
+      "raw_response": "3"
+    },
+    {
+      "problem_id": "P0049",
+      "presentation_id": 3,
+      "claim_order": [
+        "C009",
+        "C030",
+        "C016",
+        "C029"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C030",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0050",
+      "presentation_id": 1,
+      "claim_order": [
+        "C025",
+        "C005",
+        "C021"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C025",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0050",
+      "presentation_id": 2,
+      "claim_order": [
+        "C021",
+        "C025",
+        "C005"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C025",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0050",
+      "presentation_id": 3,
+      "claim_order": [
+        "C025",
+        "C005",
+        "C021"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C025",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0051",
+      "presentation_id": 1,
+      "claim_order": [
+        "C023",
+        "C014",
+        "C018",
+        "C001"
+      ],
+      "position_chosen": 3,
+      "claim_chosen": "C018",
+      "valid": true,
+      "raw_response": "3"
+    },
+    {
+      "problem_id": "P0051",
+      "presentation_id": 2,
+      "claim_order": [
+        "C014",
+        "C018",
+        "C001",
+        "C023"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C018",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0051",
+      "presentation_id": 3,
+      "claim_order": [
+        "C018",
+        "C001",
+        "C014",
+        "C023"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C018",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0052",
+      "presentation_id": 1,
+      "claim_order": [
+        "C005",
+        "C002",
+        "C010"
+      ],
+      "position_chosen": 3,
+      "claim_chosen": "C010",
+      "valid": true,
+      "raw_response": "Claim 3"
+    },
+    {
+      "problem_id": "P0052",
+      "presentation_id": 2,
+      "claim_order": [
+        "C010",
+        "C005",
+        "C002"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C010",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0052",
+      "presentation_id": 3,
+      "claim_order": [
+        "C010",
+        "C005",
+        "C002"
+      ],
+      "position_chosen": 3,
+      "claim_chosen": "C002",
+      "valid": true,
+      "raw_response": "3"
+    },
+    {
+      "problem_id": "P0053",
+      "presentation_id": 1,
+      "claim_order": [
+        "C008",
+        "C022",
+        "C004",
+        "C012"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C008",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0053",
+      "presentation_id": 2,
+      "claim_order": [
+        "C022",
+        "C008",
+        "C004",
+        "C012"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C008",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0053",
+      "presentation_id": 3,
+      "claim_order": [
+        "C012",
+        "C004",
+        "C008",
+        "C022"
+      ],
+      "position_chosen": 3,
+      "claim_chosen": "C008",
+      "valid": true,
+      "raw_response": "3"
+    },
+    {
+      "problem_id": "P0054",
+      "presentation_id": 1,
+      "claim_order": [
+        "C001",
+        "C006",
+        "C024"
+      ],
+      "position_chosen": 3,
+      "claim_chosen": "C024",
+      "valid": true,
+      "raw_response": "3"
+    },
+    {
+      "problem_id": "P0054",
+      "presentation_id": 2,
+      "claim_order": [
+        "C001",
+        "C024",
+        "C006"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C024",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0054",
+      "presentation_id": 3,
+      "claim_order": [
+        "C006",
+        "C001",
+        "C024"
+      ],
+      "position_chosen": 3,
+      "claim_chosen": "C024",
+      "valid": true,
+      "raw_response": "3"
+    },
+    {
+      "problem_id": "P0055",
+      "presentation_id": 1,
+      "claim_order": [
+        "C006",
+        "C026",
+        "C023"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C026",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0055",
+      "presentation_id": 2,
+      "claim_order": [
+        "C023",
+        "C026",
+        "C006"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C026",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0055",
+      "presentation_id": 3,
+      "claim_order": [
+        "C023",
+        "C026",
+        "C006"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C026",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0056",
+      "presentation_id": 1,
+      "claim_order": [
+        "C007",
+        "C027"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C007",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0056",
+      "presentation_id": 2,
+      "claim_order": [
+        "C007",
+        "C027"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C007",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0056",
+      "presentation_id": 3,
+      "claim_order": [
+        "C007",
+        "C027"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C007",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0057",
+      "presentation_id": 1,
+      "claim_order": [
+        "C027",
+        "C026",
+        "C028"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C026",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0057",
+      "presentation_id": 2,
+      "claim_order": [
+        "C026",
+        "C028",
+        "C027"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C026",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0057",
+      "presentation_id": 3,
+      "claim_order": [
+        "C026",
+        "C028",
+        "C027"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C026",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0058",
+      "presentation_id": 1,
+      "claim_order": [
+        "C011",
+        "C009",
+        "C028"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C011",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0058",
+      "presentation_id": 2,
+      "claim_order": [
+        "C028",
+        "C009",
+        "C011"
+      ],
+      "position_chosen": 3,
+      "claim_chosen": "C011",
+      "valid": true,
+      "raw_response": "3"
+    },
+    {
+      "problem_id": "P0058",
+      "presentation_id": 3,
+      "claim_order": [
+        "C011",
+        "C028",
+        "C009"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C011",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0059",
+      "presentation_id": 1,
+      "claim_order": [
+        "C027",
+        "C018",
+        "C011",
+        "C001"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C018",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0059",
+      "presentation_id": 2,
+      "claim_order": [
+        "C011",
+        "C001",
+        "C018",
+        "C027"
+      ],
+      "position_chosen": 3,
+      "claim_chosen": "C018",
+      "valid": true,
+      "raw_response": "3"
+    },
+    {
+      "problem_id": "P0059",
+      "presentation_id": 3,
+      "claim_order": [
+        "C018",
+        "C001",
+        "C027",
+        "C011"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C018",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0060",
+      "presentation_id": 1,
+      "claim_order": [
+        "C014",
+        "C012",
+        "C024",
+        "C026"
+      ],
+      "position_chosen": 3,
+      "claim_chosen": "C024",
+      "valid": true,
+      "raw_response": "3"
+    },
+    {
+      "problem_id": "P0060",
+      "presentation_id": 2,
+      "claim_order": [
+        "C026",
+        "C014",
+        "C012",
+        "C024"
+      ],
+      "position_chosen": 4,
+      "claim_chosen": "C024",
+      "valid": true,
+      "raw_response": "4"
+    },
+    {
+      "problem_id": "P0060",
+      "presentation_id": 3,
+      "claim_order": [
+        "C012",
+        "C014",
+        "C024",
+        "C026"
+      ],
+      "position_chosen": 3,
+      "claim_chosen": "C024",
+      "valid": true,
+      "raw_response": "3"
+    },
+    {
+      "problem_id": "P0061",
+      "presentation_id": 1,
+      "claim_order": [
+        "C002",
+        "C023",
+        "C014"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C002",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0061",
+      "presentation_id": 2,
+      "claim_order": [
+        "C023",
+        "C014",
+        "C002"
+      ],
+      "position_chosen": 3,
+      "claim_chosen": "C002",
+      "valid": true,
+      "raw_response": "3"
+    },
+    {
+      "problem_id": "P0061",
+      "presentation_id": 3,
+      "claim_order": [
+        "C002",
+        "C014",
+        "C023"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C002",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0062",
+      "presentation_id": 1,
+      "claim_order": [
+        "C022",
+        "C030"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C030",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0062",
+      "presentation_id": 2,
+      "claim_order": [
+        "C022",
+        "C030"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C030",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0062",
+      "presentation_id": 3,
+      "claim_order": [
+        "C022",
+        "C030"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C030",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0063",
+      "presentation_id": 1,
+      "claim_order": [
+        "C028",
+        "C004",
+        "C024",
+        "C029"
+      ],
+      "position_chosen": 3,
+      "claim_chosen": "C024",
+      "valid": true,
+      "raw_response": "3"
+    },
+    {
+      "problem_id": "P0063",
+      "presentation_id": 2,
+      "claim_order": [
+        "C028",
+        "C004",
+        "C029",
+        "C024"
+      ],
+      "position_chosen": 4,
+      "claim_chosen": "C024",
+      "valid": true,
+      "raw_response": "4"
+    },
+    {
+      "problem_id": "P0063",
+      "presentation_id": 3,
+      "claim_order": [
+        "C028",
+        "C024",
+        "C004",
+        "C029"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C024",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0064",
+      "presentation_id": 1,
+      "claim_order": [
+        "C010",
+        "C018",
+        "C005",
+        "C007"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C010",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0064",
+      "presentation_id": 2,
+      "claim_order": [
+        "C010",
+        "C018",
+        "C005",
+        "C007"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C010",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0064",
+      "presentation_id": 3,
+      "claim_order": [
+        "C010",
+        "C007",
+        "C005",
+        "C018"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C007",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0065",
+      "presentation_id": 1,
+      "claim_order": [
+        "C018",
+        "C027",
+        "C001"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C018",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0065",
+      "presentation_id": 2,
+      "claim_order": [
+        "C018",
+        "C001",
+        "C027"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C001",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0065",
+      "presentation_id": 3,
+      "claim_order": [
+        "C001",
+        "C027",
+        "C018"
+      ],
+      "position_chosen": 3,
+      "claim_chosen": "C018",
+      "valid": true,
+      "raw_response": "3"
+    },
+    {
+      "problem_id": "P0066",
+      "presentation_id": 1,
+      "claim_order": [
+        "C020",
+        "C021",
+        "C011",
+        "C015"
+      ],
+      "position_chosen": 4,
+      "claim_chosen": "C015",
+      "valid": true,
+      "raw_response": "4"
+    },
+    {
+      "problem_id": "P0066",
+      "presentation_id": 2,
+      "claim_order": [
+        "C011",
+        "C020",
+        "C021",
+        "C015"
+      ],
+      "position_chosen": 4,
+      "claim_chosen": "C015",
+      "valid": true,
+      "raw_response": "4"
+    },
+    {
+      "problem_id": "P0066",
+      "presentation_id": 3,
+      "claim_order": [
+        "C021",
+        "C020",
+        "C011",
+        "C015"
+      ],
+      "position_chosen": 4,
+      "claim_chosen": "C015",
+      "valid": true,
+      "raw_response": "4"
+    },
+    {
+      "problem_id": "P0067",
+      "presentation_id": 1,
+      "claim_order": [
+        "C003",
+        "C010",
+        "C017",
+        "C022"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C010",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0067",
+      "presentation_id": 2,
+      "claim_order": [
+        "C010",
+        "C022",
+        "C003",
+        "C017"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C010",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0067",
+      "presentation_id": 3,
+      "claim_order": [
+        "C010",
+        "C022",
+        "C003",
+        "C017"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C010",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0068",
+      "presentation_id": 1,
+      "claim_order": [
+        "C001",
+        "C002"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C002",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0068",
+      "presentation_id": 2,
+      "claim_order": [
+        "C002",
+        "C001"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C002",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0068",
+      "presentation_id": 3,
+      "claim_order": [
+        "C001",
+        "C002"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C002",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0069",
+      "presentation_id": 1,
+      "claim_order": [
+        "C028",
+        "C025",
+        "C003",
+        "C015"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C025",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0069",
+      "presentation_id": 2,
+      "claim_order": [
+        "C025",
+        "C028",
+        "C003",
+        "C015"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C025",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0069",
+      "presentation_id": 3,
+      "claim_order": [
+        "C028",
+        "C003",
+        "C025",
+        "C015"
+      ],
+      "position_chosen": 3,
+      "claim_chosen": "C025",
+      "valid": true,
+      "raw_response": "3"
+    },
+    {
+      "problem_id": "P0070",
+      "presentation_id": 1,
+      "claim_order": [
+        "C005",
+        "C021"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C005",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0070",
+      "presentation_id": 2,
+      "claim_order": [
+        "C021",
+        "C005"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C005",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0070",
+      "presentation_id": 3,
+      "claim_order": [
+        "C021",
+        "C005"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C005",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0071",
+      "presentation_id": 1,
+      "claim_order": [
+        "C008",
+        "C006",
+        "C026"
+      ],
+      "position_chosen": 3,
+      "claim_chosen": "C026",
+      "valid": true,
+      "raw_response": "3"
+    },
+    {
+      "problem_id": "P0071",
+      "presentation_id": 2,
+      "claim_order": [
+        "C008",
+        "C006",
+        "C026"
+      ],
+      "position_chosen": 3,
+      "claim_chosen": "C026",
+      "valid": true,
+      "raw_response": "3"
+    },
+    {
+      "problem_id": "P0071",
+      "presentation_id": 3,
+      "claim_order": [
+        "C006",
+        "C026",
+        "C008"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C026",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0072",
+      "presentation_id": 1,
+      "claim_order": [
+        "C015",
+        "C005"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C005",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0072",
+      "presentation_id": 2,
+      "claim_order": [
+        "C015",
+        "C005"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C005",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0072",
+      "presentation_id": 3,
+      "claim_order": [
+        "C015",
+        "C005"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C005",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0073",
+      "presentation_id": 1,
+      "claim_order": [
+        "C020",
+        "C027",
+        "C024"
+      ],
+      "position_chosen": 3,
+      "claim_chosen": "C024",
+      "valid": true,
+      "raw_response": "3"
+    },
+    {
+      "problem_id": "P0073",
+      "presentation_id": 2,
+      "claim_order": [
+        "C020",
+        "C027",
+        "C024"
+      ],
+      "position_chosen": 3,
+      "claim_chosen": "C024",
+      "valid": true,
+      "raw_response": "3"
+    },
+    {
+      "problem_id": "P0073",
+      "presentation_id": 3,
+      "claim_order": [
+        "C020",
+        "C027",
+        "C024"
+      ],
+      "position_chosen": 3,
+      "claim_chosen": "C024",
+      "valid": true,
+      "raw_response": "3"
+    },
+    {
+      "problem_id": "P0074",
+      "presentation_id": 1,
+      "claim_order": [
+        "C024",
+        "C028"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C024",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0074",
+      "presentation_id": 2,
+      "claim_order": [
+        "C024",
+        "C028"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C024",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0074",
+      "presentation_id": 3,
+      "claim_order": [
+        "C024",
+        "C028"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C024",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0075",
+      "presentation_id": 1,
+      "claim_order": [
+        "C025",
+        "C008",
+        "C027"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C025",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0075",
+      "presentation_id": 2,
+      "claim_order": [
+        "C025",
+        "C008",
+        "C027"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C025",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0075",
+      "presentation_id": 3,
+      "claim_order": [
+        "C025",
+        "C008",
+        "C027"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C025",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0076",
+      "presentation_id": 1,
+      "claim_order": [
+        "C008",
+        "C009",
+        "C015",
+        "C003"
+      ],
+      "position_chosen": 3,
+      "claim_chosen": "C015",
+      "valid": true,
+      "raw_response": "3"
+    },
+    {
+      "problem_id": "P0076",
+      "presentation_id": 2,
+      "claim_order": [
+        "C003",
+        "C009",
+        "C008",
+        "C015"
+      ],
+      "position_chosen": 4,
+      "claim_chosen": "C015",
+      "valid": true,
+      "raw_response": "4"
+    },
+    {
+      "problem_id": "P0076",
+      "presentation_id": 3,
+      "claim_order": [
+        "C003",
+        "C008",
+        "C009",
+        "C015"
+      ],
+      "position_chosen": 4,
+      "claim_chosen": "C015",
+      "valid": true,
+      "raw_response": "4"
+    },
+    {
+      "problem_id": "P0077",
+      "presentation_id": 1,
+      "claim_order": [
+        "C005",
+        "C008"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C005",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0077",
+      "presentation_id": 2,
+      "claim_order": [
+        "C005",
+        "C008"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C005",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0077",
+      "presentation_id": 3,
+      "claim_order": [
+        "C008",
+        "C005"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C005",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0078",
+      "presentation_id": 1,
+      "claim_order": [
+        "C007",
+        "C003",
+        "C014",
+        "C011"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C007",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0078",
+      "presentation_id": 2,
+      "claim_order": [
+        "C014",
+        "C007",
+        "C003",
+        "C011"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C007",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0078",
+      "presentation_id": 3,
+      "claim_order": [
+        "C007",
+        "C014",
+        "C011",
+        "C003"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C007",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0079",
+      "presentation_id": 1,
+      "claim_order": [
+        "C023",
+        "C001",
+        "C028",
+        "C029"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C001",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0079",
+      "presentation_id": 2,
+      "claim_order": [
+        "C028",
+        "C023",
+        "C001",
+        "C029"
+      ],
+      "position_chosen": 3,
+      "claim_chosen": "C001",
+      "valid": true,
+      "raw_response": "3"
+    },
+    {
+      "problem_id": "P0079",
+      "presentation_id": 3,
+      "claim_order": [
+        "C023",
+        "C029",
+        "C001",
+        "C028"
+      ],
+      "position_chosen": 3,
+      "claim_chosen": "C001",
+      "valid": true,
+      "raw_response": "3"
+    },
+    {
+      "problem_id": "P0080",
+      "presentation_id": 1,
+      "claim_order": [
+        "C018",
+        "C024",
+        "C026"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C024",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0080",
+      "presentation_id": 2,
+      "claim_order": [
+        "C024",
+        "C018",
+        "C026"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C024",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0080",
+      "presentation_id": 3,
+      "claim_order": [
+        "C026",
+        "C018",
+        "C024"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C026",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0081",
+      "presentation_id": 1,
+      "claim_order": [
+        "C014",
+        "C016",
+        "C001"
+      ],
+      "position_chosen": 3,
+      "claim_chosen": "C001",
+      "valid": true,
+      "raw_response": "3"
+    },
+    {
+      "problem_id": "P0081",
+      "presentation_id": 2,
+      "claim_order": [
+        "C014",
+        "C001",
+        "C016"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C001",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0081",
+      "presentation_id": 3,
+      "claim_order": [
+        "C014",
+        "C016",
+        "C001"
+      ],
+      "position_chosen": 3,
+      "claim_chosen": "C001",
+      "valid": true,
+      "raw_response": "3"
+    },
+    {
+      "problem_id": "P0082",
+      "presentation_id": 1,
+      "claim_order": [
+        "C006",
+        "C027",
+        "C015",
+        "C030"
+      ],
+      "position_chosen": 3,
+      "claim_chosen": "C015",
+      "valid": true,
+      "raw_response": "3"
+    },
+    {
+      "problem_id": "P0082",
+      "presentation_id": 2,
+      "claim_order": [
+        "C030",
+        "C006",
+        "C015",
+        "C027"
+      ],
+      "position_chosen": 3,
+      "claim_chosen": "C015",
+      "valid": true,
+      "raw_response": "3"
+    },
+    {
+      "problem_id": "P0082",
+      "presentation_id": 3,
+      "claim_order": [
+        "C027",
+        "C006",
+        "C015",
+        "C030"
+      ],
+      "position_chosen": 3,
+      "claim_chosen": "C015",
+      "valid": true,
+      "raw_response": "3"
+    },
+    {
+      "problem_id": "P0083",
+      "presentation_id": 1,
+      "claim_order": [
+        "C021",
+        "C014"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C021",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0083",
+      "presentation_id": 2,
+      "claim_order": [
+        "C014",
+        "C021"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C021",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0083",
+      "presentation_id": 3,
+      "claim_order": [
+        "C021",
+        "C014"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C021",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0084",
+      "presentation_id": 1,
+      "claim_order": [
+        "C002",
+        "C009"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C002",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0084",
+      "presentation_id": 2,
+      "claim_order": [
+        "C002",
+        "C009"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C002",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0084",
+      "presentation_id": 3,
+      "claim_order": [
+        "C002",
+        "C009"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C002",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0085",
+      "presentation_id": 1,
+      "claim_order": [
+        "C015",
+        "C011"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C011",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0085",
+      "presentation_id": 2,
+      "claim_order": [
+        "C015",
+        "C011"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C011",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0085",
+      "presentation_id": 3,
+      "claim_order": [
+        "C015",
+        "C011"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C011",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0086",
+      "presentation_id": 1,
+      "claim_order": [
+        "C025",
+        "C027",
+        "C014"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C025",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0086",
+      "presentation_id": 2,
+      "claim_order": [
+        "C014",
+        "C025",
+        "C027"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C025",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0086",
+      "presentation_id": 3,
+      "claim_order": [
+        "C014",
+        "C025",
+        "C027"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C025",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0087",
+      "presentation_id": 1,
+      "claim_order": [
+        "C018",
+        "C002",
+        "C012",
+        "C008"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C002",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0087",
+      "presentation_id": 2,
+      "claim_order": [
+        "C002",
+        "C008",
+        "C012",
+        "C018"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C002",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0087",
+      "presentation_id": 3,
+      "claim_order": [
+        "C002",
+        "C012",
+        "C008",
+        "C018"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C002",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0088",
+      "presentation_id": 1,
+      "claim_order": [
+        "C020",
+        "C005"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C005",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0088",
+      "presentation_id": 2,
+      "claim_order": [
+        "C005",
+        "C020"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C005",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0088",
+      "presentation_id": 3,
+      "claim_order": [
+        "C005",
+        "C020"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C005",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0089",
+      "presentation_id": 1,
+      "claim_order": [
+        "C022",
+        "C004",
+        "C019"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C022",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0089",
+      "presentation_id": 2,
+      "claim_order": [
+        "C019",
+        "C004",
+        "C022"
+      ],
+      "position_chosen": 3,
+      "claim_chosen": "C022",
+      "valid": true,
+      "raw_response": "3"
+    },
+    {
+      "problem_id": "P0089",
+      "presentation_id": 3,
+      "claim_order": [
+        "C022",
+        "C004",
+        "C019"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C022",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0090",
+      "presentation_id": 1,
+      "claim_order": [
+        "C006",
+        "C020",
+        "C024"
+      ],
+      "position_chosen": 3,
+      "claim_chosen": "C024",
+      "valid": true,
+      "raw_response": "3"
+    },
+    {
+      "problem_id": "P0090",
+      "presentation_id": 2,
+      "claim_order": [
+        "C020",
+        "C006",
+        "C024"
+      ],
+      "position_chosen": 3,
+      "claim_chosen": "C024",
+      "valid": true,
+      "raw_response": "3"
+    },
+    {
+      "problem_id": "P0090",
+      "presentation_id": 3,
+      "claim_order": [
+        "C024",
+        "C020",
+        "C006"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C024",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0091",
+      "presentation_id": 1,
+      "claim_order": [
+        "C019",
+        "C001"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C001",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0091",
+      "presentation_id": 2,
+      "claim_order": [
+        "C019",
+        "C001"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C001",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0091",
+      "presentation_id": 3,
+      "claim_order": [
+        "C019",
+        "C001"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C001",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0092",
+      "presentation_id": 1,
+      "claim_order": [
+        "C023",
+        "C007",
+        "C003"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C007",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0092",
+      "presentation_id": 2,
+      "claim_order": [
+        "C007",
+        "C023",
+        "C003"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C007",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0092",
+      "presentation_id": 3,
+      "claim_order": [
+        "C003",
+        "C007",
+        "C023"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C007",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0093",
+      "presentation_id": 1,
+      "claim_order": [
+        "C020",
+        "C026",
+        "C004",
+        "C019"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C026",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0093",
+      "presentation_id": 2,
+      "claim_order": [
+        "C019",
+        "C004",
+        "C026",
+        "C020"
+      ],
+      "position_chosen": 3,
+      "claim_chosen": "C026",
+      "valid": true,
+      "raw_response": "3"
+    },
+    {
+      "problem_id": "P0093",
+      "presentation_id": 3,
+      "claim_order": [
+        "C019",
+        "C026",
+        "C020",
+        "C004"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C026",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0094",
+      "presentation_id": 1,
+      "claim_order": [
+        "C028",
+        "C014"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C028",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0094",
+      "presentation_id": 2,
+      "claim_order": [
+        "C028",
+        "C014"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C028",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0094",
+      "presentation_id": 3,
+      "claim_order": [
+        "C014",
+        "C028"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C028",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0095",
+      "presentation_id": 1,
+      "claim_order": [
+        "C012",
+        "C021",
+        "C029"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C021",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0095",
+      "presentation_id": 2,
+      "claim_order": [
+        "C029",
+        "C012",
+        "C021"
+      ],
+      "position_chosen": 3,
+      "claim_chosen": "C021",
+      "valid": true,
+      "raw_response": "3"
+    },
+    {
+      "problem_id": "P0095",
+      "presentation_id": 3,
+      "claim_order": [
+        "C029",
+        "C012",
+        "C021"
+      ],
+      "position_chosen": 3,
+      "claim_chosen": "C021",
+      "valid": true,
+      "raw_response": "3"
+    },
+    {
+      "problem_id": "P0096",
+      "presentation_id": 1,
+      "claim_order": [
+        "C017",
+        "C021",
+        "C009",
+        "C020"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C021",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0096",
+      "presentation_id": 2,
+      "claim_order": [
+        "C017",
+        "C009",
+        "C021",
+        "C020"
+      ],
+      "position_chosen": 3,
+      "claim_chosen": "C021",
+      "valid": true,
+      "raw_response": "3"
+    },
+    {
+      "problem_id": "P0096",
+      "presentation_id": 3,
+      "claim_order": [
+        "C020",
+        "C017",
+        "C021",
+        "C009"
+      ],
+      "position_chosen": 3,
+      "claim_chosen": "C021",
+      "valid": true,
+      "raw_response": "3"
+    },
+    {
+      "problem_id": "P0097",
+      "presentation_id": 1,
+      "claim_order": [
+        "C009",
+        "C029"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C029",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0097",
+      "presentation_id": 2,
+      "claim_order": [
+        "C009",
+        "C029"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C029",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0097",
+      "presentation_id": 3,
+      "claim_order": [
+        "C029",
+        "C009"
+      ],
+      "position_chosen": 1,
+      "claim_chosen": "C029",
+      "valid": true,
+      "raw_response": "1"
+    },
+    {
+      "problem_id": "P0098",
+      "presentation_id": 1,
+      "claim_order": [
+        "C019",
+        "C020",
+        "C022"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C020",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0098",
+      "presentation_id": 2,
+      "claim_order": [
+        "C019",
+        "C022",
+        "C020"
+      ],
+      "position_chosen": 3,
+      "claim_chosen": "C020",
+      "valid": true,
+      "raw_response": "3"
+    },
+    {
+      "problem_id": "P0098",
+      "presentation_id": 3,
+      "claim_order": [
+        "C022",
+        "C020",
+        "C019"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C020",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0099",
+      "presentation_id": 1,
+      "claim_order": [
+        "C006",
+        "C016",
+        "C007"
+      ],
+      "position_chosen": 3,
+      "claim_chosen": "C007",
+      "valid": true,
+      "raw_response": "3"
+    },
+    {
+      "problem_id": "P0099",
+      "presentation_id": 2,
+      "claim_order": [
+        "C006",
+        "C007",
+        "C016"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C007",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0099",
+      "presentation_id": 3,
+      "claim_order": [
+        "C006",
+        "C007",
+        "C016"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C007",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0100",
+      "presentation_id": 1,
+      "claim_order": [
+        "C023",
+        "C029",
+        "C009",
+        "C018"
+      ],
+      "position_chosen": 4,
+      "claim_chosen": "C018",
+      "valid": true,
+      "raw_response": "4"
+    },
+    {
+      "problem_id": "P0100",
+      "presentation_id": 2,
+      "claim_order": [
+        "C029",
+        "C018",
+        "C009",
+        "C023"
+      ],
+      "position_chosen": 2,
+      "claim_chosen": "C018",
+      "valid": true,
+      "raw_response": "2"
+    },
+    {
+      "problem_id": "P0100",
+      "presentation_id": 3,
+      "claim_order": [
+        "C009",
+        "C029",
+        "C018",
+        "C023"
+      ],
+      "position_chosen": 3,
+      "claim_chosen": "C018",
+      "valid": true,
+      "raw_response": "3"
+    }
+  ]
+}

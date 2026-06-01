@@ -120,6 +120,126 @@ The sample size of $M = 300$ per condition was chosen to provide adequate poster
 The exact prompt text shown to the LLM when making choices is specified in the study configuration. The prompt presents the claim descriptions and asks the LLM to select which claim to forward for investigation. The full prompt template and related materials are available in the project codebase at `applications/temperature_study/prompts/`.
 :::
 
+### A Worked Example: Problem P0001 {#sec-worked-example}
+
+To make the experimental design concrete, this subsection traces a single decision problem from raw claims through the two-stage prompting pipeline to GPT-4o's recorded choices. We use **problem P0001** at **T = 0.0**, which presents four insurance claims (C001, C004, C009, C024) drawn from the pool of $R = 30$.
+
+```{python}
+#| label: worked-example-load
+#| echo: false
+
+import yaml as _yaml
+
+with open(data_dir / "claims.json") as f:
+    _claims_raw = json.load(f)
+_claims = {c["id"]: c["description"] for c in _claims_raw["claims"]}
+
+with open(data_dir / "problems.json") as f:
+    _problems_raw = json.load(f)
+_problem_p0001 = next(p for p in _problems_raw["problems"] if p["id"] == "P0001")
+_example_claim_ids = _problem_p0001["claim_ids"]
+
+with open(data_dir / "assessments_T0_0.json") as f:
+    _assess_raw = json.load(f)
+_assessments_t0 = {a["claim_id"]: a["response"] for a in _assess_raw["assessments"]}
+
+with open(data_dir / "choices_T0_0.json") as f:
+    _choices_raw = json.load(f)
+_p0001_choices = [c for c in _choices_raw["choices"] if c["problem_id"] == "P0001"]
+
+with open(data_dir / "prompts.yaml") as f:
+    _prompts = _yaml.safe_load(f)
+```
+
+#### (a) The Four Claims
+
+```{python}
+#| label: tbl-example-claims
+#| tbl-cap: "The four claims presented in problem P0001. Each was independently assessed by GPT-4o before the choice prompt was constructed."
+#| echo: false
+
+pd.DataFrame(
+    [{"Claim ID": cid, "Description": _claims[cid]} for cid in _example_claim_ids]
+)
+```
+
+#### (b) The Assessment Prompt (Stage 1)
+
+Each claim was first assessed individually. The assessment prompt template renders as follows for claim C024 (the same template, with `{claim_description}` substituted, was issued for every claim in the pool):
+
+```{python}
+#| label: example-assessment-prompt
+#| echo: false
+
+_assess_user = _prompts["assessment"]["user"].format(
+    claim_description=_claims["C024"]
+)
+print("SYSTEM:")
+print(_prompts["assessment"]["system"].strip())
+print()
+print("USER:")
+print(_assess_user.strip())
+```
+
+#### (c) GPT-4o's Assessments at T = 0.0
+
+The four assessments below are the actual GPT-4o responses to the prompt in (b) for each claim in P0001. These text responses are the inputs to `text-embedding-3-small`; the resulting embedding vectors (after pooled PCA to $D = 32$) become the alternative features in the choice model.
+
+```{python}
+#| label: example-assessments
+#| echo: false
+#| results: asis
+
+for cid in _example_claim_ids:
+    print(f"**Claim {cid}.** {_assessments_t0[cid]}\n")
+```
+
+#### (d) The Choice Prompt (Stage 2)
+
+For each presentation, the four assessments are inserted into the choice prompt template in the presentation-specific order. Below is the prompt as issued in **presentation 1** of P0001 (order: C004, C001, C024, C009):
+
+```{python}
+#| label: example-choice-prompt
+#| echo: false
+
+from applications.temperature_study.problem_generator import ProblemGenerator
+
+_pres1_order = _problem_p0001["presentations"][0]["order"]
+_assess_list = ProblemGenerator.format_choice_assessments_list(
+    _pres1_order, _assessments_t0
+)
+_num_range = ProblemGenerator.num_range_str(len(_pres1_order))
+_choice_user = _prompts["choice"]["user"].format(
+    assessments_list=_assess_list, num_range=_num_range
+)
+print("SYSTEM:")
+print(_prompts["choice"]["system"].strip())
+print()
+print("USER:")
+print(_choice_user.strip())
+```
+
+#### (e) GPT-4o's Choices Across the Three Presentations
+
+```{python}
+#| label: tbl-example-choices
+#| tbl-cap: "GPT-4o's choices for the three presentations of problem P0001 at T = 0.0. The chosen claim is C024 in every presentation, despite its position varying across the orderings."
+#| echo: false
+
+pd.DataFrame([
+    {
+        "Presentation": c["presentation_id"],
+        "Order": " → ".join(c["claim_order"]),
+        "Position chosen": c["position_chosen"],
+        "Claim chosen": c["claim_chosen"],
+        "Raw response": c["raw_response"],
+    }
+    for c in _p0001_choices
+])
+```
+
+C024 — a $60{,}000$ business-property theft claim with no signs of forced entry, only the claimant and one employee in possession of keys, and security cameras conveniently non-functional — was selected in all three presentations, even though the position to be typed changed from 3 to 2 to 3. This is the kind of position-invariant, EU-aligned pattern that the position-counterbalancing design is intended to detect: a model whose choices tracked position rather than content would not reproduce the same `claim_chosen` across reshuffles. The example also makes the two-stage pipeline concrete — the choice prompt does not see the raw claim text directly, but rather the LLM's own assessments of each claim, and it is the embeddings of *those* assessments that the SEU model takes as alternative features.
+
 ### Feature Construction
 
 Alternative features are constructed through a two-stage process. First, the LLM assesses each claim on its own merits at the relevant temperature, producing a natural-language evaluation. These assessments are embedded using `text-embedding-3-small`, yielding high-dimensional vectors. Second, all embeddings across temperature conditions are pooled and projected via PCA to $D = 32$ dimensions. Crucially, PCA is fit once on the pooled set and then applied to each condition separately, ensuring a shared coordinate system without privileging any single temperature.
@@ -1373,7 +1493,7 @@ explicitly scoped as a contrast study on $\log \alpha$ rather than a
 calibration of agent-level EU rationality. The operational
 consequences for the alignment-study pre-registration, hypothesis
 framing, and follow-up sequencing are spelled out in §0.5 of
-[`prompts/hierarchical_alignment_study_plan.md`](../../../prompts/hierarchical_alignment_study_plan.md).
+[`prompts/archive/hierarchical_alignment_study_plan.md`](../../../prompts/archive/hierarchical_alignment_study_plan.md).
 
 ### Relation to the Foundational Framework
 

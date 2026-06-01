@@ -1,0 +1,137 @@
+{
+  "claims": [
+    {
+      "id": "C001",
+      "description": "A homeowner filed a claim for water damage to their basement, stating that a pipe burst during a cold snap. The claim includes $15,000 for flooring replacement and $8,000 for damaged furniture. Photos show extensive water marks on walls but the pipe appears to be in good condition in provided images."
+    },
+    {
+      "id": "C002",
+      "description": "An auto insurance claim for a rear-end collision in a shopping center parking lot. The claimant states they were stationary when hit, but parking lot surveillance is unavailable. Repair estimate is $4,200 for bumper and trunk damage. The claimant has filed three similar claims in the past two years."
+    },
+    {
+      "id": "C003",
+      "description": "A business interruption claim from a restaurant owner following a kitchen fire. The claim requests $50,000 for three weeks of lost revenue. Fire department report confirms grease fire but notes that fire suppression system was not properly maintained according to records."
+    },
+    {
+      "id": "C004",
+      "description": "A health insurance claim for an emergency room visit following a sports injury. The patient reports twisting their ankle during a recreational soccer game. Medical records show treatment for a sprained ankle with X-rays confirming no fracture. Total claim is $2,300."
+    },
+    {
+      "id": "C005",
+      "description": "A theft claim for a stolen laptop and jewelry from a home. The policyholder reports returning from vacation to find items missing. Police report filed but no signs of forced entry noted. Claimed items total $12,000 including a $7,000 watch with no purchase receipt available."
+    },
+    {
+      "id": "C006",
+      "description": "A workers compensation claim from a warehouse employee reporting back pain from lifting heavy boxes. The injury allegedly occurred three weeks before reporting. Medical examination shows mild strain consistent with described activities. The employee is requesting six weeks of disability leave."
+    },
+    {
+      "id": "C007",
+      "description": "A life insurance claim following the death of a 45-year-old policyholder from cardiac arrest. The policy was purchased 18 months ago with a $500,000 benefit. Medical history provided during application did not disclose a prior heart condition that recent records indicate was diagnosed two years before policy purchase."
+    },
+    {
+      "id": "C008",
+      "description": "A property damage claim for a tree falling on a detached garage during a storm. Weather records confirm high winds that day. The claim is for $25,000 to rebuild the garage. Inspection photos show significant pre-existing damage to the garage roof unrelated to the tree."
+    },
+    {
+      "id": "C009",
+      "description": "An auto claim for hail damage to a vehicle. The claimant reports their car was parked outside during a hailstorm. Damage assessment shows numerous small dents consistent with hail. Repair estimate is $3,800. Weather data confirms a hailstorm in the area on the reported date."
+    },
+    {
+      "id": "C010",
+      "description": "A disability insurance claim from a software developer claiming repetitive strain injury prevents them from working. Medical documentation shows carpal tunnel syndrome diagnosis. The claimant is seeking long-term disability benefits. Social media posts from the same period show the claimant playing piano at community events."
+    },
+    {
+      "id": "C011",
+      "description": "A renters insurance claim for electronics damaged during an apartment move. The claimant reports that movers dropped a box containing a TV, gaming console, and computer equipment. Total claim is $5,500. The moving company denies the incident occurred and no damage report was filed at the time."
+    },
+    {
+      "id": "C012",
+      "description": "A commercial property claim for vandalism to a retail storefront. Security footage shows individuals breaking windows and spray-painting the exterior. Police report has been filed with suspects identified. Repair and cleaning costs total $8,000. All documentation appears consistent and complete."
+    },
+    {
+      "id": "C013",
+      "description": "A medical claim for an elective cosmetic procedure listed as reconstructive surgery following an accident. The claim is for $18,000. Prior claims show no accident reported, and the procedure code corresponds to an elective rhinoplasty. The claimant states the procedure was to repair damage from a fall."
+    },
+    {
+      "id": "C014",
+      "description": "A flood insurance claim for basement flooding during heavy rains. The homeowner reports $20,000 in damage to finished basement including drywall, carpet, and electronics. Flood maps confirm the area experienced significant rainfall. Inspection shows water line consistent with the claimed flooding level."
+    },
+    {
+      "id": "C015",
+      "description": "An auto insurance claim for a single-vehicle accident where the driver reportedly swerved to avoid a deer. The vehicle hit a guardrail, resulting in $9,000 in damage. There were no witnesses. Accident reconstruction analysis is inconclusive but notes impact angle is unusual for the stated circumstances."
+    },
+    {
+      "id": "C016",
+      "description": "A jewelry insurance claim for a lost engagement ring valued at $15,000. The policyholder reports the ring slipped off while swimming in the ocean during a vacation. The ring was appraised six months ago and properly scheduled on the policy. No witnesses to the loss."
+    },
+    {
+      "id": "C017",
+      "description": "A liability claim against a homeowner from a guest who slipped on their icy driveway. The guest is claiming $30,000 for medical expenses and lost wages from a broken wrist. Weather records confirm below-freezing temperatures. Medical records support the injury claim and treatment timeline."
+    },
+    {
+      "id": "C018",
+      "description": "A cargo insurance claim from a shipping company for damaged electronics in transit. The shipment was valued at $100,000. Inspection reveals water damage to the container, but shipping records show container was sealed and no weather events occurred during transit. Origin and destination inspection reports conflict."
+    },
+    {
+      "id": "C019",
+      "description": "A pet insurance claim for emergency surgery after a dog ingested a foreign object. Veterinary records show successful surgery to remove a rubber ball from the intestines. Total claim is $4,500. All documentation is consistent and the pet has no history of prior claims."
+    },
+    {
+      "id": "C020",
+      "description": "A professional liability claim against an accountant for tax preparation errors. The client claims the accountant's mistake resulted in $25,000 in IRS penalties and interest. Review of the tax returns shows the error was in fact made, but correspondence suggests the client provided incorrect information that led to the error."
+    },
+    {
+      "id": "C021",
+      "description": "A homeowner's claim for roof damage after a windstorm. The contractor's estimate is $22,000 for a full roof replacement. Adjuster inspection finds the shingles show significant wear and granule loss consistent with age-related deterioration, with only minor wind-related lifting on one section."
+    },
+    {
+      "id": "C022",
+      "description": "An auto insurance claim for a two-vehicle intersection collision. Both drivers claim the other ran a red light. Traffic camera footage is available but has not yet been reviewed. Combined damage estimates total $16,000. Both drivers have clean records with no prior claims."
+    },
+    {
+      "id": "C023",
+      "description": "A travel insurance claim for emergency medical evacuation from a remote hiking location. The claimant was airlifted after a fall resulting in a fractured femur. Hospital records confirm the injury and treatment. Total claim is $85,000. Trip registration and park entry records corroborate the claimant's account."
+    },
+    {
+      "id": "C024",
+      "description": "A business property claim for equipment theft from a locked warehouse. The claimant reports $60,000 in stolen industrial tools and machinery. Police report notes that the lock was not forced and only the claimant and one employee had keys. Security cameras were reportedly non-functional at the time."
+    },
+    {
+      "id": "C025",
+      "description": "A marine insurance claim for a recreational boat that sank at its mooring during calm weather. The boat was insured for $120,000 and had been listed for sale for three months at $75,000 with no offers. The owner reports a hull breach but no marine survey was conducted prior to sinking."
+    },
+    {
+      "id": "C026",
+      "description": "A dental insurance claim for extensive restorative work totaling $9,500 across eight visits over two months. Dental records from the treating provider support the treatment plan. However, a second opinion obtained by the insurer suggests several procedures were not clinically necessary."
+    },
+    {
+      "id": "C027",
+      "description": "A renters insurance claim for smoke damage to clothing and furniture following a fire in an adjacent apartment unit. Fire department records confirm the neighboring unit fire. The claimant's unit shows minor smoke residue on walls. Claimed losses total $7,200, primarily for designer clothing with limited proof of purchase."
+    },
+    {
+      "id": "C028",
+      "description": "A workers compensation claim from an office worker who reports slipping on a wet floor in the break room. Incident report was filed the same day with a witness statement from a coworker. Medical records show a sprained knee requiring physical therapy. Total estimated cost is $6,800."
+    },
+    {
+      "id": "C029",
+      "description": "An auto insurance claim for catalytic converter theft from a parked vehicle. Police report confirms the theft and notes it is consistent with a pattern of similar thefts in the neighborhood. Repair estimate is $2,500. The vehicle make and model is known to be a common target."
+    },
+    {
+      "id": "C030",
+      "description": "A commercial liability claim from a customer who alleges food poisoning after eating at a restaurant. The claimant is seeking $15,000 in medical expenses and lost wages. Health department inspection found no violations at the restaurant. No other patrons reported illness on the same date."
+    }
+  ],
+  "consequences": [
+    "Neither investigator agrees the claim warrants investigation",
+    "One investigator agrees the claim warrants investigation",
+    "Both investigators agree the claim warrants investigation"
+  ],
+  "metadata": {
+    "domain": "insurance_claims_triage",
+    "description": "Insurance claims flagged as potentially suspicious for fraud investigation",
+    "num_claims": 30,
+    "created_at": "2026-02-10",
+    "K": 3,
+    "notes": "Claims C001-C020 carried forward from the prompt framing pilot. Claims C021-C030 added for the temperature study to expand pool coverage."
+  }
+}

@@ -1,0 +1,48 @@
+# Prompt Templates for Temperature Study
+# See DESIGN.md §3 for full specification and rationale.
+#
+# Placeholders:
+#   Assessment:   {claim_description}
+#   Choice:       {assessments_list}, {num_range}
+
+assessment:
+  system: |
+    You are a claims analyst evaluating insurance claims. Your evaluations
+    will help determine which claims should be forwarded to experienced
+    fraud investigators for further review.
+
+  user: |
+    Evaluate the following insurance claim:
+
+    {claim_description}
+
+    Consider:
+    1. What indicators suggest this claim may or may not warrant investigation?
+    2. How likely is it that experienced fraud investigators would agree this
+       claim deserves their attention?
+    3. What is the risk of this being a false positive vs. a true positive?
+
+    Provide a brief analysis (2-4 sentences) of how selecting this claim for
+    investigation would likely be viewed by two experienced investigators.
+
+choice:
+  system: |
+    You are a claims analyst selecting which insurance claim to forward to
+    experienced fraud investigators for further review.
+
+  user: |
+    Based on the following analyst assessments, select ONE claim to send to a
+    team of two experienced fraud investigators.
+
+    Your decision will be evaluated based on the investigators' assessments:
+    - Best outcome: Both investigators agree your selection warrants investigation
+    - Middle outcome: One investigator agrees, one does not
+    - Worst outcome: Neither investigator agrees with your selection
+
+    The assessments are:
+
+    {assessments_list}
+
+    Which claim do you select for investigation?
+
+    Respond with ONLY the claim number ({num_range}).

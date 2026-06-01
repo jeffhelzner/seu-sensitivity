@@ -1,0 +1,3531 @@
+{
+  "problems": [
+    {
+      "id": "P0001",
+      "claim_ids": [
+        "C004",
+        "C001",
+        "C024",
+        "C009"
+      ],
+      "num_alternatives": 4,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C004",
+            "C001",
+            "C024",
+            "C009"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C009",
+            "C024",
+            "C004",
+            "C001"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C001",
+            "C009",
+            "C024",
+            "C004"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0002",
+      "claim_ids": [
+        "C014",
+        "C002",
+        "C001",
+        "C003"
+      ],
+      "num_alternatives": 4,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C014",
+            "C002",
+            "C001",
+            "C003"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C003",
+            "C001",
+            "C014",
+            "C002"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C014",
+            "C003",
+            "C001",
+            "C002"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0003",
+      "claim_ids": [
+        "C015",
+        "C019"
+      ],
+      "num_alternatives": 2,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C015",
+            "C019"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C015",
+            "C019"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C019",
+            "C015"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0004",
+      "claim_ids": [
+        "C023",
+        "C014"
+      ],
+      "num_alternatives": 2,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C023",
+            "C014"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C023",
+            "C014"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C023",
+            "C014"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0005",
+      "claim_ids": [
+        "C007",
+        "C025"
+      ],
+      "num_alternatives": 2,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C007",
+            "C025"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C007",
+            "C025"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C025",
+            "C007"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0006",
+      "claim_ids": [
+        "C013",
+        "C004"
+      ],
+      "num_alternatives": 2,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C013",
+            "C004"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C013",
+            "C004"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C013",
+            "C004"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0007",
+      "claim_ids": [
+        "C009",
+        "C026",
+        "C002",
+        "C024"
+      ],
+      "num_alternatives": 4,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C009",
+            "C026",
+            "C002",
+            "C024"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C026",
+            "C009",
+            "C002",
+            "C024"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C002",
+            "C026",
+            "C009",
+            "C024"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0008",
+      "claim_ids": [
+        "C020",
+        "C029",
+        "C028",
+        "C012"
+      ],
+      "num_alternatives": 4,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C020",
+            "C029",
+            "C028",
+            "C012"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C012",
+            "C020",
+            "C028",
+            "C029"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C029",
+            "C012",
+            "C028",
+            "C020"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0009",
+      "claim_ids": [
+        "C003",
+        "C028",
+        "C008"
+      ],
+      "num_alternatives": 3,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C003",
+            "C028",
+            "C008"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C008",
+            "C028",
+            "C003"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C003",
+            "C008",
+            "C028"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0010",
+      "claim_ids": [
+        "C027",
+        "C012",
+        "C006",
+        "C007"
+      ],
+      "num_alternatives": 4,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C027",
+            "C012",
+            "C006",
+            "C007"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C012",
+            "C027",
+            "C007",
+            "C006"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C007",
+            "C027",
+            "C006",
+            "C012"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0011",
+      "claim_ids": [
+        "C015",
+        "C013"
+      ],
+      "num_alternatives": 2,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C015",
+            "C013"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C015",
+            "C013"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C013",
+            "C015"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0012",
+      "claim_ids": [
+        "C011",
+        "C027",
+        "C025",
+        "C002"
+      ],
+      "num_alternatives": 4,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C011",
+            "C027",
+            "C025",
+            "C002"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C025",
+            "C002",
+            "C011",
+            "C027"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C025",
+            "C011",
+            "C027",
+            "C002"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0013",
+      "claim_ids": [
+        "C030",
+        "C019"
+      ],
+      "num_alternatives": 2,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C030",
+            "C019"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C030",
+            "C019"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C019",
+            "C030"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0014",
+      "claim_ids": [
+        "C016",
+        "C013",
+        "C029",
+        "C030"
+      ],
+      "num_alternatives": 4,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C016",
+            "C013",
+            "C029",
+            "C030"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C029",
+            "C013",
+            "C016",
+            "C030"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C029",
+            "C030",
+            "C016",
+            "C013"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0015",
+      "claim_ids": [
+        "C019",
+        "C014",
+        "C029",
+        "C013"
+      ],
+      "num_alternatives": 4,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C019",
+            "C014",
+            "C029",
+            "C013"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C014",
+            "C013",
+            "C019",
+            "C029"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C014",
+            "C029",
+            "C019",
+            "C013"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0016",
+      "claim_ids": [
+        "C005",
+        "C021"
+      ],
+      "num_alternatives": 2,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C005",
+            "C021"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C021",
+            "C005"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C005",
+            "C021"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0017",
+      "claim_ids": [
+        "C003",
+        "C013",
+        "C020",
+        "C015"
+      ],
+      "num_alternatives": 4,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C003",
+            "C013",
+            "C020",
+            "C015"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C013",
+            "C003",
+            "C015",
+            "C020"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C015",
+            "C013",
+            "C020",
+            "C003"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0018",
+      "claim_ids": [
+        "C011",
+        "C004",
+        "C010",
+        "C014"
+      ],
+      "num_alternatives": 4,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C011",
+            "C004",
+            "C010",
+            "C014"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C010",
+            "C011",
+            "C014",
+            "C004"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C004",
+            "C011",
+            "C014",
+            "C010"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0019",
+      "claim_ids": [
+        "C030",
+        "C004",
+        "C028",
+        "C021"
+      ],
+      "num_alternatives": 4,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C030",
+            "C004",
+            "C028",
+            "C021"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C004",
+            "C030",
+            "C021",
+            "C028"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C028",
+            "C030",
+            "C021",
+            "C004"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0020",
+      "claim_ids": [
+        "C025",
+        "C030",
+        "C017",
+        "C001"
+      ],
+      "num_alternatives": 4,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C025",
+            "C030",
+            "C017",
+            "C001"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C001",
+            "C025",
+            "C030",
+            "C017"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C001",
+            "C017",
+            "C030",
+            "C025"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0021",
+      "claim_ids": [
+        "C002",
+        "C008"
+      ],
+      "num_alternatives": 2,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C002",
+            "C008"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C008",
+            "C002"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C008",
+            "C002"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0022",
+      "claim_ids": [
+        "C016",
+        "C027",
+        "C003",
+        "C025"
+      ],
+      "num_alternatives": 4,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C016",
+            "C027",
+            "C003",
+            "C025"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C003",
+            "C025",
+            "C016",
+            "C027"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C016",
+            "C003",
+            "C025",
+            "C027"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0023",
+      "claim_ids": [
+        "C030",
+        "C018"
+      ],
+      "num_alternatives": 2,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C030",
+            "C018"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C018",
+            "C030"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C030",
+            "C018"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0024",
+      "claim_ids": [
+        "C022",
+        "C021",
+        "C012"
+      ],
+      "num_alternatives": 3,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C022",
+            "C021",
+            "C012"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C022",
+            "C012",
+            "C021"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C021",
+            "C012",
+            "C022"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0025",
+      "claim_ids": [
+        "C003",
+        "C011"
+      ],
+      "num_alternatives": 2,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C003",
+            "C011"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C011",
+            "C003"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C011",
+            "C003"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0026",
+      "claim_ids": [
+        "C008",
+        "C001",
+        "C003",
+        "C023"
+      ],
+      "num_alternatives": 4,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C008",
+            "C001",
+            "C003",
+            "C023"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C001",
+            "C003",
+            "C023",
+            "C008"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C003",
+            "C023",
+            "C001",
+            "C008"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0027",
+      "claim_ids": [
+        "C008",
+        "C009",
+        "C022",
+        "C016"
+      ],
+      "num_alternatives": 4,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C008",
+            "C009",
+            "C022",
+            "C016"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C016",
+            "C008",
+            "C022",
+            "C009"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C022",
+            "C009",
+            "C008",
+            "C016"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0028",
+      "claim_ids": [
+        "C007",
+        "C004",
+        "C022"
+      ],
+      "num_alternatives": 3,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C007",
+            "C004",
+            "C022"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C007",
+            "C022",
+            "C004"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C007",
+            "C022",
+            "C004"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0029",
+      "claim_ids": [
+        "C028",
+        "C024",
+        "C002"
+      ],
+      "num_alternatives": 3,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C028",
+            "C024",
+            "C002"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C024",
+            "C028",
+            "C002"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C002",
+            "C024",
+            "C028"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0030",
+      "claim_ids": [
+        "C011",
+        "C026",
+        "C028",
+        "C004"
+      ],
+      "num_alternatives": 4,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C011",
+            "C026",
+            "C028",
+            "C004"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C004",
+            "C028",
+            "C011",
+            "C026"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C028",
+            "C026",
+            "C011",
+            "C004"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0031",
+      "claim_ids": [
+        "C009",
+        "C015"
+      ],
+      "num_alternatives": 2,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C009",
+            "C015"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C015",
+            "C009"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C015",
+            "C009"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0032",
+      "claim_ids": [
+        "C026",
+        "C028",
+        "C018"
+      ],
+      "num_alternatives": 3,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C026",
+            "C028",
+            "C018"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C028",
+            "C018",
+            "C026"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C028",
+            "C026",
+            "C018"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0033",
+      "claim_ids": [
+        "C030",
+        "C025"
+      ],
+      "num_alternatives": 2,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C030",
+            "C025"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C025",
+            "C030"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C025",
+            "C030"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0034",
+      "claim_ids": [
+        "C016",
+        "C007",
+        "C028"
+      ],
+      "num_alternatives": 3,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C016",
+            "C007",
+            "C028"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C028",
+            "C016",
+            "C007"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C028",
+            "C007",
+            "C016"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0035",
+      "claim_ids": [
+        "C013",
+        "C009"
+      ],
+      "num_alternatives": 2,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C013",
+            "C009"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C013",
+            "C009"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C013",
+            "C009"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0036",
+      "claim_ids": [
+        "C023",
+        "C024",
+        "C026"
+      ],
+      "num_alternatives": 3,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C023",
+            "C024",
+            "C026"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C023",
+            "C024",
+            "C026"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C024",
+            "C026",
+            "C023"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0037",
+      "claim_ids": [
+        "C007",
+        "C002",
+        "C019"
+      ],
+      "num_alternatives": 3,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C007",
+            "C002",
+            "C019"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C002",
+            "C007",
+            "C019"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C007",
+            "C002",
+            "C019"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0038",
+      "claim_ids": [
+        "C002",
+        "C019"
+      ],
+      "num_alternatives": 2,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C002",
+            "C019"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C002",
+            "C019"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C019",
+            "C002"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0039",
+      "claim_ids": [
+        "C017",
+        "C003"
+      ],
+      "num_alternatives": 2,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C017",
+            "C003"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C003",
+            "C017"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C003",
+            "C017"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0040",
+      "claim_ids": [
+        "C003",
+        "C022",
+        "C028",
+        "C008"
+      ],
+      "num_alternatives": 4,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C003",
+            "C022",
+            "C028",
+            "C008"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C022",
+            "C028",
+            "C003",
+            "C008"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C022",
+            "C008",
+            "C028",
+            "C003"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0041",
+      "claim_ids": [
+        "C022",
+        "C019",
+        "C017"
+      ],
+      "num_alternatives": 3,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C022",
+            "C019",
+            "C017"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C022",
+            "C017",
+            "C019"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C017",
+            "C019",
+            "C022"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0042",
+      "claim_ids": [
+        "C009",
+        "C013"
+      ],
+      "num_alternatives": 2,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C009",
+            "C013"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C013",
+            "C009"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C009",
+            "C013"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0043",
+      "claim_ids": [
+        "C011",
+        "C030",
+        "C025"
+      ],
+      "num_alternatives": 3,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C011",
+            "C030",
+            "C025"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C030",
+            "C025",
+            "C011"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C025",
+            "C011",
+            "C030"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0044",
+      "claim_ids": [
+        "C018",
+        "C007"
+      ],
+      "num_alternatives": 2,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C018",
+            "C007"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C018",
+            "C007"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C007",
+            "C018"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0045",
+      "claim_ids": [
+        "C029",
+        "C003",
+        "C008"
+      ],
+      "num_alternatives": 3,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C029",
+            "C003",
+            "C008"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C029",
+            "C008",
+            "C003"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C008",
+            "C003",
+            "C029"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0046",
+      "claim_ids": [
+        "C023",
+        "C010",
+        "C020",
+        "C026"
+      ],
+      "num_alternatives": 4,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C023",
+            "C010",
+            "C020",
+            "C026"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C026",
+            "C010",
+            "C020",
+            "C023"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C020",
+            "C010",
+            "C026",
+            "C023"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0047",
+      "claim_ids": [
+        "C029",
+        "C004"
+      ],
+      "num_alternatives": 2,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C029",
+            "C004"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C004",
+            "C029"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C029",
+            "C004"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0048",
+      "claim_ids": [
+        "C020",
+        "C007",
+        "C023"
+      ],
+      "num_alternatives": 3,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C020",
+            "C007",
+            "C023"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C023",
+            "C020",
+            "C007"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C020",
+            "C007",
+            "C023"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0049",
+      "claim_ids": [
+        "C016",
+        "C009",
+        "C029",
+        "C030"
+      ],
+      "num_alternatives": 4,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C016",
+            "C009",
+            "C029",
+            "C030"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C029",
+            "C009",
+            "C030",
+            "C016"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C009",
+            "C030",
+            "C016",
+            "C029"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0050",
+      "claim_ids": [
+        "C025",
+        "C005",
+        "C021"
+      ],
+      "num_alternatives": 3,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C025",
+            "C005",
+            "C021"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C021",
+            "C025",
+            "C005"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C025",
+            "C005",
+            "C021"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0051",
+      "claim_ids": [
+        "C023",
+        "C014",
+        "C018",
+        "C001"
+      ],
+      "num_alternatives": 4,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C023",
+            "C014",
+            "C018",
+            "C001"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C014",
+            "C018",
+            "C001",
+            "C023"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C018",
+            "C001",
+            "C014",
+            "C023"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0052",
+      "claim_ids": [
+        "C005",
+        "C002",
+        "C010"
+      ],
+      "num_alternatives": 3,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C005",
+            "C002",
+            "C010"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C010",
+            "C005",
+            "C002"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C010",
+            "C005",
+            "C002"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0053",
+      "claim_ids": [
+        "C008",
+        "C022",
+        "C004",
+        "C012"
+      ],
+      "num_alternatives": 4,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C008",
+            "C022",
+            "C004",
+            "C012"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C022",
+            "C008",
+            "C004",
+            "C012"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C012",
+            "C004",
+            "C008",
+            "C022"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0054",
+      "claim_ids": [
+        "C001",
+        "C006",
+        "C024"
+      ],
+      "num_alternatives": 3,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C001",
+            "C006",
+            "C024"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C001",
+            "C024",
+            "C006"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C006",
+            "C001",
+            "C024"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0055",
+      "claim_ids": [
+        "C006",
+        "C026",
+        "C023"
+      ],
+      "num_alternatives": 3,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C006",
+            "C026",
+            "C023"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C023",
+            "C026",
+            "C006"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C023",
+            "C026",
+            "C006"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0056",
+      "claim_ids": [
+        "C007",
+        "C027"
+      ],
+      "num_alternatives": 2,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C007",
+            "C027"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C007",
+            "C027"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C007",
+            "C027"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0057",
+      "claim_ids": [
+        "C027",
+        "C026",
+        "C028"
+      ],
+      "num_alternatives": 3,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C027",
+            "C026",
+            "C028"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C026",
+            "C028",
+            "C027"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C026",
+            "C028",
+            "C027"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0058",
+      "claim_ids": [
+        "C011",
+        "C009",
+        "C028"
+      ],
+      "num_alternatives": 3,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C011",
+            "C009",
+            "C028"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C028",
+            "C009",
+            "C011"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C011",
+            "C028",
+            "C009"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0059",
+      "claim_ids": [
+        "C027",
+        "C018",
+        "C011",
+        "C001"
+      ],
+      "num_alternatives": 4,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C027",
+            "C018",
+            "C011",
+            "C001"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C011",
+            "C001",
+            "C018",
+            "C027"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C018",
+            "C001",
+            "C027",
+            "C011"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0060",
+      "claim_ids": [
+        "C014",
+        "C012",
+        "C024",
+        "C026"
+      ],
+      "num_alternatives": 4,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C014",
+            "C012",
+            "C024",
+            "C026"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C026",
+            "C014",
+            "C012",
+            "C024"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C012",
+            "C014",
+            "C024",
+            "C026"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0061",
+      "claim_ids": [
+        "C002",
+        "C023",
+        "C014"
+      ],
+      "num_alternatives": 3,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C002",
+            "C023",
+            "C014"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C023",
+            "C014",
+            "C002"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C002",
+            "C014",
+            "C023"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0062",
+      "claim_ids": [
+        "C022",
+        "C030"
+      ],
+      "num_alternatives": 2,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C022",
+            "C030"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C022",
+            "C030"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C022",
+            "C030"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0063",
+      "claim_ids": [
+        "C028",
+        "C004",
+        "C024",
+        "C029"
+      ],
+      "num_alternatives": 4,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C028",
+            "C004",
+            "C024",
+            "C029"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C028",
+            "C004",
+            "C029",
+            "C024"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C028",
+            "C024",
+            "C004",
+            "C029"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0064",
+      "claim_ids": [
+        "C010",
+        "C018",
+        "C005",
+        "C007"
+      ],
+      "num_alternatives": 4,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C010",
+            "C018",
+            "C005",
+            "C007"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C010",
+            "C018",
+            "C005",
+            "C007"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C010",
+            "C007",
+            "C005",
+            "C018"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0065",
+      "claim_ids": [
+        "C018",
+        "C027",
+        "C001"
+      ],
+      "num_alternatives": 3,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C018",
+            "C027",
+            "C001"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C018",
+            "C001",
+            "C027"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C001",
+            "C027",
+            "C018"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0066",
+      "claim_ids": [
+        "C020",
+        "C021",
+        "C011",
+        "C015"
+      ],
+      "num_alternatives": 4,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C020",
+            "C021",
+            "C011",
+            "C015"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C011",
+            "C020",
+            "C021",
+            "C015"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C021",
+            "C020",
+            "C011",
+            "C015"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0067",
+      "claim_ids": [
+        "C003",
+        "C010",
+        "C017",
+        "C022"
+      ],
+      "num_alternatives": 4,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C003",
+            "C010",
+            "C017",
+            "C022"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C010",
+            "C022",
+            "C003",
+            "C017"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C010",
+            "C022",
+            "C003",
+            "C017"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0068",
+      "claim_ids": [
+        "C001",
+        "C002"
+      ],
+      "num_alternatives": 2,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C001",
+            "C002"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C002",
+            "C001"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C001",
+            "C002"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0069",
+      "claim_ids": [
+        "C028",
+        "C025",
+        "C003",
+        "C015"
+      ],
+      "num_alternatives": 4,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C028",
+            "C025",
+            "C003",
+            "C015"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C025",
+            "C028",
+            "C003",
+            "C015"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C028",
+            "C003",
+            "C025",
+            "C015"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0070",
+      "claim_ids": [
+        "C005",
+        "C021"
+      ],
+      "num_alternatives": 2,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C005",
+            "C021"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C021",
+            "C005"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C021",
+            "C005"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0071",
+      "claim_ids": [
+        "C008",
+        "C006",
+        "C026"
+      ],
+      "num_alternatives": 3,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C008",
+            "C006",
+            "C026"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C008",
+            "C006",
+            "C026"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C006",
+            "C026",
+            "C008"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0072",
+      "claim_ids": [
+        "C015",
+        "C005"
+      ],
+      "num_alternatives": 2,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C015",
+            "C005"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C015",
+            "C005"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C015",
+            "C005"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0073",
+      "claim_ids": [
+        "C020",
+        "C027",
+        "C024"
+      ],
+      "num_alternatives": 3,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C020",
+            "C027",
+            "C024"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C020",
+            "C027",
+            "C024"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C020",
+            "C027",
+            "C024"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0074",
+      "claim_ids": [
+        "C024",
+        "C028"
+      ],
+      "num_alternatives": 2,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C024",
+            "C028"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C024",
+            "C028"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C024",
+            "C028"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0075",
+      "claim_ids": [
+        "C025",
+        "C008",
+        "C027"
+      ],
+      "num_alternatives": 3,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C025",
+            "C008",
+            "C027"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C025",
+            "C008",
+            "C027"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C025",
+            "C008",
+            "C027"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0076",
+      "claim_ids": [
+        "C008",
+        "C009",
+        "C015",
+        "C003"
+      ],
+      "num_alternatives": 4,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C008",
+            "C009",
+            "C015",
+            "C003"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C003",
+            "C009",
+            "C008",
+            "C015"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C003",
+            "C008",
+            "C009",
+            "C015"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0077",
+      "claim_ids": [
+        "C005",
+        "C008"
+      ],
+      "num_alternatives": 2,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C005",
+            "C008"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C005",
+            "C008"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C008",
+            "C005"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0078",
+      "claim_ids": [
+        "C007",
+        "C003",
+        "C014",
+        "C011"
+      ],
+      "num_alternatives": 4,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C007",
+            "C003",
+            "C014",
+            "C011"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C014",
+            "C007",
+            "C003",
+            "C011"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C007",
+            "C014",
+            "C011",
+            "C003"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0079",
+      "claim_ids": [
+        "C023",
+        "C001",
+        "C028",
+        "C029"
+      ],
+      "num_alternatives": 4,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C023",
+            "C001",
+            "C028",
+            "C029"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C028",
+            "C023",
+            "C001",
+            "C029"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C023",
+            "C029",
+            "C001",
+            "C028"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0080",
+      "claim_ids": [
+        "C018",
+        "C024",
+        "C026"
+      ],
+      "num_alternatives": 3,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C018",
+            "C024",
+            "C026"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C024",
+            "C018",
+            "C026"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C026",
+            "C018",
+            "C024"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0081",
+      "claim_ids": [
+        "C014",
+        "C016",
+        "C001"
+      ],
+      "num_alternatives": 3,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C014",
+            "C016",
+            "C001"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C014",
+            "C001",
+            "C016"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C014",
+            "C016",
+            "C001"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0082",
+      "claim_ids": [
+        "C006",
+        "C027",
+        "C015",
+        "C030"
+      ],
+      "num_alternatives": 4,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C006",
+            "C027",
+            "C015",
+            "C030"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C030",
+            "C006",
+            "C015",
+            "C027"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C027",
+            "C006",
+            "C015",
+            "C030"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0083",
+      "claim_ids": [
+        "C021",
+        "C014"
+      ],
+      "num_alternatives": 2,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C021",
+            "C014"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C014",
+            "C021"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C021",
+            "C014"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0084",
+      "claim_ids": [
+        "C002",
+        "C009"
+      ],
+      "num_alternatives": 2,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C002",
+            "C009"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C002",
+            "C009"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C002",
+            "C009"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0085",
+      "claim_ids": [
+        "C015",
+        "C011"
+      ],
+      "num_alternatives": 2,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C015",
+            "C011"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C015",
+            "C011"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C015",
+            "C011"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0086",
+      "claim_ids": [
+        "C025",
+        "C027",
+        "C014"
+      ],
+      "num_alternatives": 3,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C025",
+            "C027",
+            "C014"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C014",
+            "C025",
+            "C027"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C014",
+            "C025",
+            "C027"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0087",
+      "claim_ids": [
+        "C018",
+        "C002",
+        "C012",
+        "C008"
+      ],
+      "num_alternatives": 4,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C018",
+            "C002",
+            "C012",
+            "C008"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C002",
+            "C008",
+            "C012",
+            "C018"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C002",
+            "C012",
+            "C008",
+            "C018"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0088",
+      "claim_ids": [
+        "C020",
+        "C005"
+      ],
+      "num_alternatives": 2,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C020",
+            "C005"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C005",
+            "C020"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C005",
+            "C020"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0089",
+      "claim_ids": [
+        "C022",
+        "C004",
+        "C019"
+      ],
+      "num_alternatives": 3,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C022",
+            "C004",
+            "C019"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C019",
+            "C004",
+            "C022"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C022",
+            "C004",
+            "C019"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0090",
+      "claim_ids": [
+        "C006",
+        "C020",
+        "C024"
+      ],
+      "num_alternatives": 3,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C006",
+            "C020",
+            "C024"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C020",
+            "C006",
+            "C024"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C024",
+            "C020",
+            "C006"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0091",
+      "claim_ids": [
+        "C019",
+        "C001"
+      ],
+      "num_alternatives": 2,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C019",
+            "C001"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C019",
+            "C001"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C019",
+            "C001"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0092",
+      "claim_ids": [
+        "C023",
+        "C007",
+        "C003"
+      ],
+      "num_alternatives": 3,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C023",
+            "C007",
+            "C003"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C007",
+            "C023",
+            "C003"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C003",
+            "C007",
+            "C023"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0093",
+      "claim_ids": [
+        "C020",
+        "C026",
+        "C004",
+        "C019"
+      ],
+      "num_alternatives": 4,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C020",
+            "C026",
+            "C004",
+            "C019"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C019",
+            "C004",
+            "C026",
+            "C020"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C019",
+            "C026",
+            "C020",
+            "C004"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0094",
+      "claim_ids": [
+        "C028",
+        "C014"
+      ],
+      "num_alternatives": 2,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C028",
+            "C014"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C028",
+            "C014"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C014",
+            "C028"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0095",
+      "claim_ids": [
+        "C012",
+        "C021",
+        "C029"
+      ],
+      "num_alternatives": 3,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C012",
+            "C021",
+            "C029"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C029",
+            "C012",
+            "C021"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C029",
+            "C012",
+            "C021"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0096",
+      "claim_ids": [
+        "C017",
+        "C021",
+        "C009",
+        "C020"
+      ],
+      "num_alternatives": 4,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C017",
+            "C021",
+            "C009",
+            "C020"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C017",
+            "C009",
+            "C021",
+            "C020"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C020",
+            "C017",
+            "C021",
+            "C009"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0097",
+      "claim_ids": [
+        "C009",
+        "C029"
+      ],
+      "num_alternatives": 2,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C009",
+            "C029"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C009",
+            "C029"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C029",
+            "C009"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0098",
+      "claim_ids": [
+        "C019",
+        "C020",
+        "C022"
+      ],
+      "num_alternatives": 3,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C019",
+            "C020",
+            "C022"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C019",
+            "C022",
+            "C020"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C022",
+            "C020",
+            "C019"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0099",
+      "claim_ids": [
+        "C006",
+        "C016",
+        "C007"
+      ],
+      "num_alternatives": 3,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C006",
+            "C016",
+            "C007"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C006",
+            "C007",
+            "C016"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C006",
+            "C007",
+            "C016"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P0100",
+      "claim_ids": [
+        "C023",
+        "C029",
+        "C009",
+        "C018"
+      ],
+      "num_alternatives": 4,
+      "presentations": [
+        {
+          "presentation_id": 1,
+          "order": [
+            "C023",
+            "C029",
+            "C009",
+            "C018"
+          ]
+        },
+        {
+          "presentation_id": 2,
+          "order": [
+            "C029",
+            "C018",
+            "C009",
+            "C023"
+          ]
+        },
+        {
+          "presentation_id": 3,
+          "order": [
+            "C009",
+            "C029",
+            "C018",
+            "C023"
+          ]
+        }
+      ]
+    }
+  ],
+  "K": 3,
+  "consequences": [
+    "Neither investigator agrees the claim warrants investigation",
+    "One investigator agrees the claim warrants investigation",
+    "Both investigators agree the claim warrants investigation"
+  ],
+  "metadata": {
+    "num_problems": 100,
+    "num_claims": 30,
+    "generated_at": "2026-02-15T22:31:11.965667+00:00"
+  }
+}

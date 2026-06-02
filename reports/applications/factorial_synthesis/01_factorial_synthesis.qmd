@@ -7,6 +7,7 @@ description: |
   vs Ellsberg gambles K=4). Isolates the main effects of LLM and
   task on the temperature–α relationship.
 categories: [applications, temperature, factorial, synthesis]
+bibliography: ../../references.bib
 execute:
   cache: true
 ---
@@ -179,7 +180,7 @@ This factorial design was not pre-registered. The initial study (GPT-4o × Insur
 
 ### Analytical Approach
 
-This synthesis loads pre-computed posterior draws from four independently fitted Bayesian models — one per factorial cell. Each cell was modelled using task-appropriate Stan models: `m_01` (softmax with $K = 3$ alternatives) for insurance cells and `m_02` ($K = 4$) for Ellsberg cells. The α parameter was estimated separately at each temperature level within each cell.
+This synthesis loads pre-computed posterior draws from four independently fitted Bayesian models — one per factorial cell. Each cell was modeled using task-appropriate Stan models: `m_01` (softmax with $K = 3$ alternatives) for insurance cells and `m_02` ($K = 4$) for Ellsberg cells. The α parameter was estimated separately at each temperature level within each cell.
 
 **Slope computation.** The temperature–$\alpha$ slope for each posterior draw is computed by ordinary least-squares regression of the five α values on the temperature grid. This is a *derived summary* computed from independent per-temperature posteriors, not a parameter estimated within the Bayesian model. The slope captures the global linear trend but cannot distinguish between linear and non-linear temperature–α relationships. Its uncertainty reflects posterior uncertainty in the per-temperature α estimates but not model uncertainty about the functional form of the temperature–α relationship.
 
@@ -199,7 +200,7 @@ The insurance cells use `m_01` with prior $\alpha \sim \text{Lognormal}(3.0, 0.7
 
 ```{python}
 #| label: fig-forest-2x2
-#| fig-cap: "Forest plots of posterior α distributions for all four cells of the factorial design. Each panel shows the five temperature conditions, with point estimates (medians), 50% credible intervals (thick bars), and 90% credible intervals (thin bars). The GPT-4o row (top) shows clear leftward shifts at higher temperatures; the Claude row (bottom) does not."
+#| fig-cap: "Forest plots of posterior α distributions for all four cells of the factorial design. Each panel shows the five temperature conditions, with point estimates (medians), 50% credible intervals (thick bars), and 90% credible intervals (thin bars). The GPT-4o row (top) shifts leftward at the highest temperatures; the Claude row (bottom) does not show a comparable shift. Note that GPT-4o and Claude use different temperature grids and provider-specific scales — interpret qualitative patterns rather than slope magnitudes across rows."
 #| fig-height: 10
 #| fig-width: 14
 
@@ -247,7 +248,7 @@ plt.show()
 
 ```{python}
 #| label: fig-density-2x2
-#| fig-cap: "Kernel density estimates of posterior α for all four cells. Top row: GPT-4o — densities separate clearly, with higher temperatures (warmer colours) shifting left. Bottom row: Claude — densities overlap heavily, with no consistent ordering."
+#| fig-cap: 'Kernel density estimates of posterior α for all four cells. Top row: GPT-4o — the highest temperature ($T=1.5$, warmest color) separates clearly; adjacent low/mid-temperature densities overlap substantially. Bottom row: Claude — densities overlap heavily with no consistent adjacent ordering, although Claude × Ellsberg has a weak negative global slope ($P \approx 0.77$). GPT-4o and Claude use different temperature grids and provider-specific scales — interpret qualitative patterns rather than slope magnitudes across rows.'
 #| fig-height: 10
 #| fig-width: 14
 
@@ -293,14 +294,20 @@ for cell_id in ['(1,1)', '(1,2)', '(2,1)', '(2,2)']:
         'Slope 90% CI': f"[{q05:.1f}, {q95:.1f}]",
         'P(slope < 0)': f"{cell['p_negative']:.3f}",
         'P(strict mono ↓)': f"{cell['mono_prob']:.4f}",
-        'Pattern': 'Declining' if cell['p_negative'] > 0.9 else
-                   ('Weak decline' if cell['p_negative'] > 0.7 else 'Flat / non-monotonic'),
+        'Pattern': 'Strong neg. global slope' if cell['p_negative'] > 0.95 else
+                   ('Weak neg. global slope' if cell['p_negative'] > 0.7 else 'Little global-slope evidence'),
     })
 
 pd.DataFrame(rows)
 ```
 
-The "Pattern" labels in @tbl-monotonicity use the following descriptive scheme: "Declining" for P(slope < 0) > 0.9, "Weak decline" for P(slope < 0) > 0.7, and "Flat / non-monotonic" otherwise. These thresholds are intended as interpretive aids, not formal inferential cutoffs. Readers should attend to the continuous P(slope < 0) values rather than the categorical labels.
+The "Pattern" labels in @tbl-monotonicity use the following calibrated vocabulary (used consistently across the three cell reports and this synthesis):
+
+- **Strong neg. global slope** — $P(\text{slope} < 0) > 0.95$ and 90% CI excludes zero.
+- **Weak neg. global slope** — $P(\text{slope} < 0) \in [0.7, 0.95)$ or 90% CI spans zero.
+- **Little global-slope evidence** — $P(\text{slope} < 0) < 0.7$.
+
+These labels deliberately refer to the *global* slope (a single regression coefficient over the temperature grid). They do *not* assert strict monotonicity: even a strong negative global slope is compatible with substantial adjacent-pair reversals, as the next paragraph quantifies. Readers should attend to the continuous $P(\text{slope} < 0)$ and $P(\text{strict mono} \downarrow)$ columns rather than the categorical label alone.
 
 Note that the strict monotonicity probabilities — P(strict mono ↓) — are remarkably low even for GPT-4o (0.12 and 0.09), meaning that in roughly 90% of posterior draws, at least one adjacent temperature pair shows a local reversal. The global slope is clearly negative for GPT-4o, but the trajectory is a *noisy decline* rather than a smooth monotonic function. This is consistent with non-monotonic local variation around a global negative trend, and suggests that the temperature–α relationship, while real, is not a simple step-wise degradation. For Claude, the near-zero strict monotonicity probabilities are expected given the absence of a global trend.
 
@@ -346,7 +353,7 @@ The **LLM main effect** asks: holding task constant, does switching from GPT-4o 
 
 ```{python}
 #| label: fig-llm-effect
-#| fig-cap: "LLM main effect. Left: Insurance task — GPT-4o shows clear decline, Claude is flat. Right: Ellsberg task — GPT-4o shows clear decline, Claude shows a weak trend. The LLM effect is consistent across both tasks."
+#| fig-cap: "LLM main effect. Left: Insurance task — GPT-4o shows a strong negative global slope, Claude shows little global-slope evidence. Right: Ellsberg task — GPT-4o shows a strong negative global slope, Claude shows a weak negative global slope. The qualitative LLM contrast is consistent across both tasks. Temperature grids and provider scales differ — interpret qualitative patterns rather than slope magnitudes across LLMs."
 #| fig-height: 5
 
 fig, axes = plt.subplots(1, 2, figsize=(14, 5))
@@ -594,14 +601,14 @@ print(f"through the difference-in-differences of four independently estimated sl
 print(f"The data are uninformative about the presence or magnitude of an interaction.")
 ```
 
-The difference-in-differences analysis yields an interaction estimate centred near zero, but the 90% credible interval is extremely wide — spanning roughly 170 slope units. This width reflects a fundamental statistical limitation: each slope is derived from regression on five temperature points with substantial posterior uncertainty, and the interaction compounds two such differences. The data therefore **cannot distinguish between additive and non-additive structures**. The correct interpretation is not that the interaction is small, but that the study has limited power to detect it. A formal equivalence claim would require defining a region of practical equivalence (ROPE) and demonstrating that the posterior concentrates within it; the current data do not support such a claim.
+The difference-in-differences analysis yields an interaction estimate centered near zero, but the 90% credible interval is extremely wide — spanning roughly 170 slope units. This width reflects a fundamental statistical limitation: each slope is derived from regression on five temperature points with substantial posterior uncertainty, and the interaction compounds two such differences. The data therefore **cannot distinguish between additive and non-additive structures**. The correct interpretation is not that the interaction is small, but that the study has limited power to detect it. A formal equivalence claim would require defining a region of practical equivalence (ROPE) and demonstrating that the posterior concentrates within it; the current data do not support such a claim.
 
 
 ## Pairwise Comparison Heatmaps {#sec-pairwise}
 
 ```{python}
 #| label: fig-heatmaps-2x2
-#| fig-cap: "Pairwise posterior probability heatmaps P(α_row > α_col) for all four cells. Green cells indicate the row temperature has higher α; red cells indicate the column temperature has higher α. GPT-4o cells (top) show strong green in the upper triangle (lower-T rows beat higher-T columns), indicating consistent decline. Claude cells (bottom) show mixed colours, indicating no reliable ordering."
+#| fig-cap: "Pairwise posterior probability heatmaps P(α_row > α_col) for all four cells. Green cells indicate the row temperature has higher α; red cells indicate the column temperature has higher α. GPT-4o cells (top) show pronounced green at high-T vs. low-T contrasts (the global decline) but more modest separation at adjacent low/mid-temperature pairs. Claude cells (bottom) show mixed colors, indicating no reliable ordering. Temperature grids and provider scales differ across rows."
 #| fig-height: 10
 #| fig-width: 14
 
@@ -649,7 +656,7 @@ plt.show()
 
 ```{python}
 #| label: fig-grand-summary
-#| fig-cap: "Grand summary: α trajectory (with 90% CIs) for all four factorial cells on a single axis. GPT-4o cells (solid lines) decline clearly; Claude cells (dashed lines) remain flat. **Important**: temperature scales differ between LLMs — GPT-4o uses {0.0, 0.3, 0.7, 1.0, 1.5} while Claude uses {0.0, 0.2, 0.5, 0.8, 1.0}. The x-axis represents each LLM's own grid, so cross-LLM visual comparisons of slope magnitude are not directly valid. The qualitative contrast (declining vs. flat) is interpretable."
+#| fig-cap: "Grand summary: α trajectory (with 90% CIs) for all four factorial cells on a single axis. GPT-4o cells (solid lines) show a negative global trajectory; Claude cells (dashed lines) are approximately flat. **Important**: temperature grids and provider-specific temperature scales differ between LLMs — GPT-4o uses {0.0, 0.3, 0.7, 1.0, 1.5} on the OpenAI scale while Claude uses {0.0, 0.2, 0.5, 0.8, 1.0} on the Anthropic scale. The x-axis represents each LLM's own grid, so cross-LLM visual comparisons of slope magnitude are not directly valid. The qualitative contrast (negative global slope vs. little global-slope evidence) is interpretable."
 #| fig-height: 6
 
 fig, ax = plt.subplots(figsize=(12, 6))
@@ -723,17 +730,17 @@ The original question was: why did the Claude × Ellsberg study fail to replicat
 
 ```{python}
 #| label: tbl-final-summary
-#| tbl-cap: "Final factorial summary. The LLM factor (rows) drives the key distinction: GPT-4o consistently shows declining α with temperature, Claude does not."
+#| tbl-cap: "Final factorial summary. Cells are labeled using the calibrated vocabulary defined in @sec-monotonicity (Strong neg. = $P(\\text{slope}<0) > 0.95$; Weak neg. = $\\in [0.7, 0.95)$; Little evid. = $< 0.7$). LLM identity (rows) is the leading qualitative differentiator across these four exploratory cells: GPT-4o shows a strong negative global slope on both tasks, Claude does not."
 
 final = pd.DataFrame({
     '': ['**GPT-4o**', '**Claude**'],
     'Insurance (K=3)': [
-        f"Declining (P = {CELLS['(1,1)']['p_negative']:.2f})",
-        f"Flat (P = {CELLS['(2,1)']['p_negative']:.2f})",
+        f"Strong neg. (P = {CELLS['(1,1)']['p_negative']:.2f})",
+        f"Little evid. (P = {CELLS['(2,1)']['p_negative']:.2f})",
     ],
     'Ellsberg (K=4)': [
-        f"Declining (P = {CELLS['(1,2)']['p_negative']:.2f})",
-        f"Weak (P = {CELLS['(2,2)']['p_negative']:.2f})",
+        f"Strong neg. (P = {CELLS['(1,2)']['p_negative']:.2f})",
+        f"Weak neg. (P = {CELLS['(2,2)']['p_negative']:.2f})",
     ],
 })
 final
@@ -741,7 +748,27 @@ final
 
 ### Baseline Sensitivity Levels
 
-Beyond the slope analysis, the four cells differ substantially in their *baseline* α levels. GPT-4o at $T = 0.0$ has α ≈ 128 (Insurance) and α ≈ 110 (Ellsberg), while Claude at $T = 0.0$ has α ≈ 28 (Insurance) and α ≈ 55 (Ellsberg). These 2–5× differences in baseline sensitivity suggest that GPT-4o is generally more SEU-sensitive than Claude at low temperatures, independent of the temperature–slope question. This level effect is orthogonal to the slope effect but equally relevant for understanding how different LLMs implement decision-theoretic reasoning.
+```{python}
+#| label: tbl-baseline-alpha
+#| tbl-cap: "Posterior median α at the lowest temperature (T=0.0) for each cell, computed from the saved alpha_draws artifacts. Cross-task α magnitudes are *not* directly comparable because Insurance cells use m_01 with Lognormal(3.0, 0.75) and Ellsberg cells use m_02 with Lognormal(3.5, 0.75); K also differs (3 vs 4)."
+
+baseline_rows = []
+for cid in ['(1,1)', '(1,2)', '(2,1)', '(2,2)']:
+    c = CELLS[cid]
+    draws = c['alpha_draws'][0.0]
+    med = np.median(draws)
+    q05, q95 = np.percentile(draws, [5, 95])
+    baseline_rows.append({
+        'Cell': cid,
+        'Study': c['label'],
+        'Model': c['model'],
+        'α median (T=0)': f"{med:.1f}",
+        '90% CI': f"[{q05:.1f}, {q95:.1f}]",
+    })
+pd.DataFrame(baseline_rows)
+```
+
+Within each task — where the model and prior are held fixed and cross-cell α levels are directly comparable — GPT-4o sits at a higher baseline than Claude. On Insurance, GPT-4o's median α at $T=0.0$ is roughly comparable to Claude's, but with substantial overlap in their 90% credible intervals. On Ellsberg, GPT-4o's baseline is meaningfully higher than Claude's. Across tasks the picture is mixed: under the m_02 prior used for Ellsberg, even Claude's baseline exceeds either Insurance cell's baseline under the m_01 prior, so any cross-task α comparison is dominated by the prior/model difference rather than by LLM identity. We therefore restrict baseline-level claims to within-task contrasts, and treat α magnitudes as comparable only across cells that share both the model variant and the prior.
 
 ### The Oscillatory Claude Pattern
 
@@ -753,7 +780,7 @@ Both Claude cells exhibit a non-monotonic, oscillatory α trajectory across temp
 
 2. **Task is a secondary factor.** Changing the task from insurance to Ellsberg does not eliminate the effect for GPT-4o, nor does it create the effect for Claude. Within GPT-4o, Ellsberg may produce a slightly steeper decline, but the qualitative pattern is the same.
 
-3. **No strong evidence of interaction, though power is limited.** The difference-in-differences analysis yields an interaction estimate centred near zero, but with a 90% credible interval wide enough to accommodate substantial interactions in either direction. The data are uninformative about whether the factorial structure is additive. The absence of a detected interaction should not be confused with evidence of additivity — a formal equivalence claim would require a ROPE analysis that the current data cannot support.
+3. **No strong evidence of interaction, though power is limited.** The difference-in-differences analysis yields an interaction estimate centered near zero, but with a 90% credible interval wide enough to accommodate substantial interactions in either direction. The data are uninformative about whether the factorial structure is additive. The absence of a detected interaction should not be confused with evidence of additivity — a formal equivalence claim would require a ROPE analysis that the current data cannot support.
 
 4. **Temperature–sensitivity is LLM-specific.** The finding that higher temperature reduces estimated SEU sensitivity should be qualified as a property observed in **GPT-4o** but not in Claude. Whether this reflects differences in temperature implementation, RLHF procedures, training data, or other architectural factors cannot be determined from the current design. The attribution to "temperature implementation" specifically is one of several possible explanations.
 
@@ -802,7 +829,7 @@ for task, gpt_id, claude_id in [('Insurance', '(1,1)', '(2,1)'),
     print(f"  {task}: P(GPT matched slope < Claude slope) = {p_gpt_more_neg:.3f}")
 ```
 
-The matched-range analysis confirms that restricting GPT-4o to $T \leq 1.0$ does not eliminate the negative trend: P(slope < 0) remains high for both GPT-4o cells on the restricted grid. The between-LLM comparison is also robust — P(GPT matched slope < Claude slope) is similar to the full-range values. The qualitative conclusion (GPT-4o declining, Claude flat) is not an artefact of the wider GPT-4o temperature range. Quantitative slope magnitudes still differ across grids due to the non-identical temperature points (e.g., GPT-4o at 0.3 vs. Claude at 0.2), but the range asymmetry is no longer a plausible alternative explanation for the qualitative LLM effect.
+The matched-range analysis confirms that restricting GPT-4o to $T \leq 1.0$ does not eliminate the negative trend: P(slope < 0) remains high for both GPT-4o cells on the restricted grid. The between-LLM comparison is also robust — P(GPT matched slope < Claude slope) is similar to the full-range values. The qualitative conclusion (GPT-4o declining, Claude flat) is not an artifact of the wider GPT-4o temperature range. Quantitative slope magnitudes still differ across grids due to the non-identical temperature points (e.g., GPT-4o at 0.3 vs. Claude at 0.2), but the range asymmetry is no longer a plausible alternative explanation for the qualitative LLM effect.
 
 ### Limitations
 
@@ -813,11 +840,12 @@ The matched-range analysis confirms that restricting GPT-4o to $T \leq 1.0$ does
 - **Two tasks.** Insurance triage and Ellsberg gambles differ in multiple ways ($K$, semantic content, prior calibration). More tasks would strengthen the conclusion that the task effect is minor.
 - **Prior differences across tasks.** The `m_01` and `m_02` models use different α priors calibrated for their respective $K$ values. This is appropriate for within-task analysis but complicates cross-task comparisons of α levels (see @sec-methods).
 - **Multiple confounds between LLMs.** GPT-4o and Claude differ not only in their temperature implementations but also in training data, RLHF procedures, and potentially in task-specific fine-tuning. The observed LLM effect could reflect any combination of these factors.
-- **Fixed design parameters.** All cells use $M \approx 300$, $D = 32$, $R = 30$. The conclusions may not generalise to designs with substantially different sample sizes or feature spaces.
+- **Fixed design parameters.** All cells use $M \approx 300$, $D = 32$, $R = 30$. The conclusions may not generalize to designs with substantially different sample sizes or feature spaces.
+- **Ellsberg ambiguity tiers are pooled.** Both Ellsberg cells pool across the three ambiguity tiers of the gamble set, so this synthesis speaks to overall SEU sensitivity on Ellsberg-style stimuli, not to ambiguity aversion or tier-specific processing.
 
 ### Connections to the JDM Literature
 
-The finding that different LLMs show qualitatively different temperature–sensitivity patterns resonates with the broader JDM literature on individual differences in decision quality. Bruhin et al. (2010) documented substantial heterogeneity across human decision-makers in risk preferences and consistency, and Hey and Orme (1994) showed that error structures vary meaningfully across individuals. The present finding — that GPT-4o's estimated decision sensitivity degrades with temperature while Claude's does not — can be viewed as an analog of between-subject variability in decision noise. Whether this analogy is substantive (reflecting genuinely different "decision-making strategies") or superficial (reflecting implementation differences in how temperature modifies token sampling) is an open question that connects to ongoing debates about whether LLMs are useful models of human cognition (Binz & Schulz, 2023).
+The finding that different LLMs show qualitatively different temperature–sensitivity patterns resonates with the broader JDM literature on individual differences in decision quality. @bruhin2010 documented substantial heterogeneity across human decision-makers in risk preferences and consistency, and @hey1994 showed that error structures vary meaningfully across individuals. The present finding — that GPT-4o's estimated decision sensitivity degrades with temperature while Claude's does not — can be viewed as an analog of between-subject variability in decision noise. Whether this analogy is substantive (reflecting genuinely different "decision-making strategies") or superficial (reflecting implementation differences in how temperature modifies token sampling) is an open question that connects to ongoing debates about whether LLMs are useful models of human cognition [@binz2023].
 
 ### Future Directions
 
@@ -852,19 +880,6 @@ The report depends on the frozen data files listed above and the `report_utils` 
 
 
 ## References {#sec-references}
-
-Binz, M., & Schulz, E. (2023). Using cognitive psychology to understand GPT-3. *Proceedings of the National Academy of Sciences*, 120(6), e2218523120.
-
-Bruhin, A., Fehr-Hansen, H., & Epper, T. (2010). Risk and rationality: Uncovering heterogeneity in probability distortion. *Econometrica*, 78(4), 1375–1412.
-
-Ellsberg, D. (1961). Risk, ambiguity, and the Savage axioms. *Quarterly Journal of Economics*, 75(4), 643–669.
-
-Hey, J. D., & Orme, C. (1994). Investigating generalizations of expected utility theory using experimental data. *Econometrica*, 62(6), 1291–1326.
-
-Kruschke, J. K. (2013). Bayesian estimation supersedes the *t* test. *Journal of Experimental Psychology: General*, 142(2), 573–603.
-
-Lakens, D. (2017). Equivalence tests: A practical primer for *t* tests, correlations, and meta-analyses. *Social Psychological and Personality Science*, 8(4), 355–362.
-
-Luce, R. D. (1959). *Individual choice behavior: A theoretical analysis*. Wiley.
-
+::: {#refs}
+:::
 McFadden, D. (1974). Conditional logit analysis of qualitative choice behavior. In P. Zarembka (Ed.), *Frontiers in econometrics* (pp. 105–142). Academic Press.

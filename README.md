@@ -28,6 +28,8 @@ Current status:
 - ✅ GPT-4o Ellsberg study complete
 - ✅ 2×2 factorial synthesis complete
 - ✅ Hierarchical model (h_m01) with cell-level regression on α implemented and tested
+- ✅ Concentrated δ prior variant (m_03) implemented and evaluated
+- ✅ Matched-design recovery comparing m_0 vs m_1 on δ identification
 - ✅ Alignment study application scaffolded (6 model × 3 prompt factorial)
 - 📝 Documentation being expanded
 - 🔬 Empirical validation ongoing
@@ -68,7 +70,9 @@ seu-sensitivity/
 │   │   ├── 09_hierarchical_implementation.qmd # h_m01 Stan implementation
 │   │   ├── 10_hierarchical_prior_analysis.qmd # Hierarchical prior predictive
 │   │   ├── 11_hierarchical_parameter_recovery.qmd # Hierarchical recovery
-│   │   └── 12_hierarchical_sbc_validation.qmd # Hierarchical SBC
+│   │   ├── 12_hierarchical_sbc_validation.qmd # Hierarchical SBC
+│   │   ├── 13_concentrated_delta_prior.qmd     # Concentrated δ prior (m_03) evaluation
+│   │   └── 14_does_m1_identify_delta.qmd       # Matched-design m_0 vs m_1 on δ
 │   ├── applications/       # Applied research reports
 │   │   ├── temperature_study/
 │   │   ├── temperature_study_with_eu_prompt/
@@ -89,6 +93,9 @@ seu-sensitivity/
 │   ├── m_02.stan           # m_0 with calibrated priors for Ellsberg (K=4)
 │   ├── m_02_sbc.stan       # m_02 SBC model
 │   ├── m_02_sim.stan       # m_02 simulation model
+│   ├── m_03.stan           # m_0 with parameterized Dirichlet concentration on δ
+│   ├── m_03_sbc.stan       # m_03 SBC model
+│   ├── m_03_sim.stan       # m_03 simulation model
 │   ├── m_1.stan            # Combined model (risky + uncertain, shared α)
 │   ├── m_11.stan           # m_1 with calibrated priors
 │   ├── m_1_sim.stan        # m_1 simulation model
@@ -143,6 +150,10 @@ seu-sensitivity/
 │   ├── run_hierarchical_prior_predictive.py # Hierarchical prior predictive
 │   ├── run_hierarchical_parameter_recovery.py # Hierarchical recovery
 │   ├── run_hierarchical_sbc.py # Hierarchical SBC
+│   ├── run_m_03_concentration_sweep.py # m_03 Dirichlet-concentration sim+inference sweep
+│   ├── run_m_03_joint_posterior_diagnostic.py # m_03 joint posterior diagnostics
+│   ├── run_m1_matched_recovery.py # Matched-design m_0 vs m_1 recovery driver
+│   ├── aggregate_m1_matched.py # Aggregate matched-design recovery metrics
 │   ├── run_temperature_analysis.py # Temperature study analysis
 │   ├── run_ellsberg_study.py # Ellsberg study entry point
 │   ├── refit_with_ppc.py   # Refit models with posterior predictive checks

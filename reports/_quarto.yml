@@ -36,6 +36,10 @@ website:
             href: foundations/11_hierarchical_parameter_recovery.qmd
           - text: "12. Hierarchical SBC Validation"
             href: foundations/12_hierarchical_sbc_validation.qmd
+          - text: "13. Concentrated δ Prior"
+            href: foundations/13_concentrated_delta_prior.qmd
+          - text: "14. Does m_1 Identify δ?"
+            href: foundations/14_does_m1_identify_delta.qmd
       - text: "Applications"
         menu:
           - text: "---"

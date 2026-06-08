@@ -1149,7 +1149,7 @@ Beyond simply collecting more uncertain-choice observations, three further route
 
 The history of decision theory suggests the use of alternatives with known probabilities — *risky alternatives* — as a direct probe of the utility function. The mechanical reason is transparent in our notation: for a risky alternative the probability vector $\boldsymbol{\psi}_r$ is fixed exogenously by the experimenter rather than being a function of $\boldsymbol{\beta}$ and the feature vector. Conditional on those observations, the expected utility $\eta_r = \boldsymbol{\psi}_r^\top \boldsymbol{\upsilon}$ is *linear* in $\boldsymbol{\upsilon}$ (and hence in $\boldsymbol{\delta}$), so the multiplicative β–δ coupling that hampers recovery in m_0 is broken for the risky portion of the data.
 
-The use of objectively risky prospects to identify utilities has a long lineage — running through Ramsey, von Neumann–Morgenstern, and the Anscombe–Aumann construction that combines risky and uncertain prospects in a single domain. We do not need the formal Anscombe–Aumann representation theorem to motivate the design choice here; the identification gain is mechanical, as just described. The formal relationship between our parameter-recovery argument and the classical representation result is examined in [Report 5](05_adding_risky_choices.qmd).
+The use of objectively risky prospects to identify utilities has a long lineage — running through Ramsey, von Neumann–Morgenstern, and the Anscombe–Aumann construction that combines risky and uncertain prospects in a single domain. We do not need the formal Anscombe–Aumann representation theorem to motivate the design choice here; the identification gain is mechanical, as just described. The formal relationship between our parameter-recovery argument and the classical representation result is examined in [Report 5](05_adding_risky_choices.qmd), and the empirical magnitude of the gain — under a matched-design recovery study at the sample sizes contemplated for the alignment study — is quantified in [Report 14](14_does_m1_identify_delta.qmd). The headline finding there: the mechanical decoupling is real, but at this sample size and lottery design it shows up primarily as ~15% tighter recovery of α, with only ~2% tighter recovery of δ relative to uncertain-only m_0.
 
 #### Route 2: A more concentrated Dirichlet prior on δ
 
@@ -1161,7 +1161,7 @@ The trade-offs deserve emphasis:
 - A misspecified concentrated prior biases $\boldsymbol{\delta}$ (and, via coupling, $\boldsymbol{\beta}$) toward the prior mean and shrinks credible intervals below their nominal calibration. Calibration under the concentrated prior should be re-checked via SBC.
 - Unlike adding risky choices, this route does not improve identification *of the data-generating process*; it improves *posterior precision* by importing assumptions.
 
-We do not pursue this route empirically in this report series; we flag it as a methodologically natural option whose evaluation is left to future work.
+We do not pursue this route empirically in the body of this report; [Report 13](13_concentrated_delta_prior.qmd) evaluates it directly, using a parameterized model `m_03` that exposes the Dirichlet concentration as a data input and runs a matched sim+inference sweep across $\alpha_0 \in \{1, 2, 5, 10\}$.
 
 #### Route 3: Hierarchical modeling across agents or cells
 
@@ -1199,7 +1199,7 @@ This pattern reflects the identification structure analyzed formally in [Report 
 
 1. **More uncertain-choice data**: larger M (and perhaps R) eventually yields more precise (β, δ) estimates, though the rate of improvement is slower than for α.
 2. **Risky-choice data** (model m_1, [Report 5](05_adding_risky_choices.qmd)): adds new identifying information by fixing $\boldsymbol{\psi}_r$ exogenously, breaking the β–δ multiplicative coupling for those observations.
-3. **A more concentrated Dirichlet prior on δ**: imports prior information rather than data; cheap but assumption-laden, and only as defensible as the substantive grounds for the tighter prior. Not pursued empirically in this report series; flagged as future work.
+3. **A more concentrated Dirichlet prior on δ**: imports prior information rather than data; cheap but assumption-laden, and only as defensible as the substantive grounds for the tighter prior. Evaluated empirically in [Report 13](13_concentrated_delta_prior.qmd).
 4. **Hierarchical modeling across agents or cells** ([Reports 08–12](08_hierarchical_formulation.qmd)): borrows strength through shared or partially pooled structure when multiple related datasets are available. This can sharpen utility recovery under defensible cross-agent assumptions, but should be validated with prior predictive checks, recovery, and SBC.
 
 The choice among these routes — or their combination — depends on practical considerations like study feasibility, the relative importance of precise utility estimation for the research question, the availability of related agents or experimental cells, and the strength of substantive prior information available.

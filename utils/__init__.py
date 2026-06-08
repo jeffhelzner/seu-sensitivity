@@ -17,6 +17,7 @@ DEFAULT_PARAM_GENERATION = {
     'omega_sd': 1.0,
     'kappa_mean': 0.0,
     'kappa_sd': 0.5,
+    'delta_concentration': 1.0,
 }
 
 # Registry of estimated (free) parameters for each model
@@ -25,6 +26,7 @@ MODEL_PARAMETERS = {
     'm_0': ['alpha', 'beta', 'delta'],
     'm_01': ['alpha', 'beta', 'delta'],
     'm_02': ['alpha', 'beta', 'delta'],
+    'm_03': ['alpha', 'beta', 'delta'],
     'm_1': ['alpha', 'beta', 'delta'],
     'm_2': ['alpha', 'omega', 'beta', 'delta'],
     'm_3': ['alpha', 'kappa', 'beta', 'delta'],
@@ -36,6 +38,7 @@ MODEL_SCALAR_PARAMETERS = {
     'm_0': ['alpha'],
     'm_01': ['alpha'],
     'm_02': ['alpha'],
+    'm_03': ['alpha'],
     'm_1': ['alpha'],
     'm_2': ['alpha', 'omega'],
     'm_3': ['alpha', 'kappa'],
@@ -47,10 +50,18 @@ MODEL_SIM_HYPERPARAMS = {
     'm_0': ['alpha_mean', 'alpha_sd', 'beta_sd'],
     'm_01': ['alpha_mean', 'alpha_sd', 'beta_sd'],
     'm_02': ['alpha_mean', 'alpha_sd', 'beta_sd'],
+    'm_03': ['alpha_mean', 'alpha_sd', 'beta_sd', 'delta_concentration'],
     'm_1': ['alpha_mean', 'alpha_sd', 'beta_sd'],
     'm_2': ['alpha_mean', 'alpha_sd', 'omega_mean', 'omega_sd', 'beta_sd'],
     'm_3': ['alpha_mean', 'alpha_sd', 'kappa_mean', 'kappa_sd', 'beta_sd'],
     'h_m01': ['gamma0_mean', 'gamma0_sd', 'gamma_sd', 'sigma_cell_sd', 'beta_sd'],
+}
+
+# Hyperparameters required in the inference model's data block (not just sim).
+# Most models embed all priors as Stan constants; m_03 exposes the Dirichlet
+# concentration on delta as data so it can be swept in analyses.
+MODEL_INFERENCE_HYPERPARAMS = {
+    'm_03': ['delta_concentration'],
 }
 
 # Transformed parameters to monitor (not free, but useful for diagnostics)
@@ -58,6 +69,7 @@ MODEL_TRANSFORMED_MONITORS = {
     'm_0': ['upsilon'],
     'm_01': ['upsilon'],
     'm_02': ['upsilon'],
+    'm_03': ['upsilon'],
     'm_1': ['upsilon'],
     'm_2': ['upsilon'],
     'm_3': ['omega', 'upsilon'],
@@ -123,6 +135,25 @@ def get_model_sim_hyperparams(model_name):
         list: Hyperparameter names needed for the sim model's data block
     """
     return MODEL_SIM_HYPERPARAMS.get(model_name, MODEL_SIM_HYPERPARAMS['m_0'])
+
+
+def get_model_inference_hyperparams(model_name):
+    """
+    Get the list of hyperparameter names required by a model's inference (and
+    SBC) Stan file as data inputs.
+
+    Most models embed all prior hyperparameters as Stan constants and return
+    an empty list.  Models that expose hyperparameters as data (e.g. m_03's
+    ``delta_concentration``) return them here so analysis pipelines can pass
+    matching values to both the simulation and inference stages.
+
+    Parameters:
+        model_name (str): Model identifier
+
+    Returns:
+        list: Hyperparameter names needed in the inference model's data block
+    """
+    return MODEL_INFERENCE_HYPERPARAMS.get(model_name, [])
 
 
 def get_model_transformed_monitors(model_name):

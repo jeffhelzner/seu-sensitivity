@@ -87,7 +87,8 @@ class SimulationBasedCalibration:
         n_sbc_sims=100,
         n_mcmc_samples=1000,
         n_mcmc_chains=4,
-        thin=1
+        thin=1,
+        extra_data=None
     ):
         """
         Initialize the simulation-based calibration analysis.
@@ -104,6 +105,10 @@ class SimulationBasedCalibration:
             n_mcmc_chains (int): Number of MCMC chains to run.
             thin (int): Thinning factor to reduce autocorrelation in posterior samples.
                 A value of 1 means no thinning.
+            extra_data (dict, optional): Additional key/value pairs merged into the
+                data dict passed to the SBC Stan model.  Used to supply
+                model-specific hyperparameters that are not part of the study
+                design (e.g. ``delta_concentration`` for m_03_sbc).
         """
         # Set default model path if not provided
         if sbc_model_path is None:
@@ -119,6 +124,7 @@ class SimulationBasedCalibration:
         self.n_mcmc_samples = n_mcmc_samples
         self.n_mcmc_chains = n_mcmc_chains
         self.thin = thin
+        self.extra_data = extra_data or {}
         
         # Set default output directory if not provided
         if output_dir is None:
@@ -166,6 +172,9 @@ class SimulationBasedCalibration:
         
         # Get data dictionary for Stan
         data = self.study_design.get_data_dict()
+        # Merge any model-specific extra data (e.g. delta_concentration for m_03_sbc)
+        for k, v in self.extra_data.items():
+            data[k] = v
         
         # Detect model name from the SBC model path
         model_name = detect_model_name(self.sbc_model_path)

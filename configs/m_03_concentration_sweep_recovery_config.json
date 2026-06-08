@@ -1,0 +1,23 @@
+{
+  "_comment": "Concentration sweep for Route 2 evaluation in Report 13. The driver script (scripts/run_m_03_concentration_sweep.py) iterates over concentration_grid, running ParameterRecovery once per value with matched sim+inference Dirichlet(alpha0 * 1) on delta.",
+  "inference_model_path": "models/m_03.stan",
+  "sim_model_path": "models/m_03_sim.stan",
+  "output_dir": "results/parameter_recovery/m_03_concentration_sweep",
+  "n_mcmc_samples": 2000,
+  "n_mcmc_chains": 4,
+  "n_iterations": 50,
+  "concentration_grid": [1.0, 2.0, 5.0, 10.0],
+  "study_design_config": {
+    "M": 25,
+    "K": 3,
+    "D": 5,
+    "R": 15,
+    "min_alts_per_problem": 2,
+    "max_alts_per_problem": 5,
+    "feature_dist": "normal",
+    "feature_params": {
+      "loc": 0,
+      "scale": 1
+    }
+  }
+}

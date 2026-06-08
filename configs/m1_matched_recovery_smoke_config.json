@@ -1,0 +1,22 @@
+{
+  "output_dir": "results/parameter_recovery/m1_matched_comparison_smoke",
+  "n_iterations": 2,
+  "n_mcmc_samples": 500,
+  "n_mcmc_chains": 2,
+  "study_design_config": {
+    "M": 50,
+    "N": 50,
+    "K": 3,
+    "D": 5,
+    "R": 15,
+    "S": 15,
+    "min_alts_per_problem": 2,
+    "max_alts_per_problem": 5,
+    "risky_probs": "fixed",
+    "feature_dist": "normal",
+    "feature_params": {
+      "loc": 0,
+      "scale": 1
+    }
+  }
+}

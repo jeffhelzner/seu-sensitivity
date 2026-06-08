@@ -935,6 +935,11 @@ The extension from m_0 to m_1 follows a principled path motivated by the risk/un
 3. **The historical context**: Decision-theoretic treatments of risk and uncertainty suggest that known-probability choices can provide complementary information about utilities
 4. **The key comparison**: m_0 with new uncertain alternatives vs. m_1 with new risky alternatives isolates whether known probabilities provide unique advantages
 
+::: {.callout-warning}
+## Empirical update — see [Report 14](14_does_m1_identify_delta.qmd)
+The four-way comparison sketched here was completed in [Report 14](14_does_m1_identify_delta.qmd) using a strictly matched-design recovery study (same true parameters, same study design across conditions, only the model + data slice varying). The finding is that **m_1's identification-theoretic advantage over m_0 on δ is small in practice** at this sample size and lottery design — roughly a 2% reduction in δ CI width at matched total choice count. The bulk of the m_1 advantage is on α recovery, not on δ. The structural identification argument below is correct, but decoupling β from δ in the likelihood does not, by itself, translate into a large δ-precision gain unless the lottery design and sample size are well chosen. Read Report 14 alongside this one for the empirical bottom line.
+:::
+
 ::: {.callout-tip}
 ## Key Insight
 The four-way comparison reveals whether the benefit of risky choices comes from:

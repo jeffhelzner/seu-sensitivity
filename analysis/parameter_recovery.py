@@ -53,7 +53,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.study_design import StudyDesign
 from utils import (
     detect_model_name, get_model_sim_hyperparams, get_model_scalar_parameters,
-    has_risky_data, DEFAULT_PARAM_GENERATION
+    get_model_inference_hyperparams, has_risky_data, DEFAULT_PARAM_GENERATION
 )
 
 class ParameterRecovery:
@@ -87,7 +87,8 @@ class ParameterRecovery:
         n_mcmc_samples=2000,
         n_mcmc_chains=4,
         n_iterations=20,  # Number of simulation-recovery iterations
-        sim_hyperparams=None  # Override default sim hyperparameters
+        sim_hyperparams=None,  # Override default sim hyperparameters
+        inference_hyperparams=None  # Hyperparameters required by the inference model's data block
     ):
         """
         Initialize the parameter recovery analysis.
@@ -107,6 +108,10 @@ class ParameterRecovery:
             sim_hyperparams (dict, optional): Override default simulation hyperparameters
                 (e.g. {'alpha_mean': 3.0, 'alpha_sd': 0.75} for m_01).
                 Only keys present in the model's required hyperparameters are applied.
+            inference_hyperparams (dict, optional): Hyperparameters required by the
+                inference model's data block (e.g. {'delta_concentration': 5.0} for
+                m_03).  Values fall back to ``sim_hyperparams`` and then to
+                ``DEFAULT_PARAM_GENERATION`` when not supplied.
         """
         # Set default model paths if not provided
         if inference_model_path is None:
@@ -130,6 +135,7 @@ class ParameterRecovery:
         self.n_mcmc_chains = n_mcmc_chains
         self.n_iterations = n_iterations
         self.sim_hyperparams = sim_hyperparams or {}
+        self.inference_hyperparams = inference_hyperparams or {}
         
         # Set default output directory if not provided
         if output_dir is None:
@@ -180,6 +186,10 @@ class ParameterRecovery:
         
         # Detect model name from sim model path
         model_name = detect_model_name(self.sim_model_path)
+        # Detect inference-model name separately (normally identical, but kept
+        # explicit so a sweep can pair m_03_sim with a tweaked inference variant).
+        inference_model_name = detect_model_name(self.inference_model_path)
+        required_inference_hp = get_model_inference_hyperparams(inference_model_name)
         
         # Check if this is a model with risky problems (m_1, m_2, m_3)
         is_m1_model = 'N' in sim_data
@@ -226,6 +236,17 @@ class ParameterRecovery:
             # Remove parameter generation controls (not needed for inference)
             for hp in required_hyperparams:
                 inference_data.pop(hp, None)
+            # Inject hyperparameters required by the inference model's data block.
+            # Resolution order: explicit inference_hyperparams -> sim_hyperparams ->
+            # DEFAULT_PARAM_GENERATION.  Ensures sim and inference see matching
+            # values when the user supplied only one of the two.
+            for hp in required_inference_hp:
+                if hp in self.inference_hyperparams:
+                    inference_data[hp] = self.inference_hyperparams[hp]
+                elif hp in self.sim_hyperparams:
+                    inference_data[hp] = self.sim_hyperparams[hp]
+                else:
+                    inference_data[hp] = DEFAULT_PARAM_GENERATION.get(hp, 1.0)
             inference_data["y"] = y.tolist()
             
             # For m_1 models, also extract risky choices

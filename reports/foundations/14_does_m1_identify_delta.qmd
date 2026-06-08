@@ -1,0 +1,344 @@
+---
+title: "Does m_1 Actually Identify δ?"
+subtitle: "Foundational Report 14"
+description: |
+  Matched-design parameter recovery testing whether adding risky choices
+  (model m_1) delivers the δ identification gain over uncertain-only choices
+  (model m_0) that the theoretical argument in Report 5 predicts.
+categories: [foundations, validation, identification, m_0, m_1]
+execute:
+  cache: true
+---
+
+```{python}
+#| label: setup
+#| include: false
+
+import sys, os, json, glob, warnings
+warnings.filterwarnings('ignore')
+
+sys.path.insert(0, os.path.join(os.getcwd(), '..'))
+project_root = os.path.dirname(os.path.dirname(os.getcwd()))
+sys.path.insert(0, project_root)
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from scipy import stats
+
+np.random.seed(2026)
+
+ROOT = os.path.join(project_root, "results", "parameter_recovery", "m1_matched_comparison")
+CONDITIONS = ["A_m0_M25", "B_m0_M50", "C_m1_M25N25", "D_m1_M50N50"]
+COND_LABELS = {
+    "A_m0_M25":   "A: m_0, M=25",
+    "B_m0_M50":   "B: m_0, M=50",
+    "C_m1_M25N25":"C: m_1, M=25+N=25",
+    "D_m1_M50N50":"D: m_1, M=50+N=50",
+}
+COND_COLORS = {
+    "A_m0_M25":    "#cccccc",
+    "B_m0_M50":    "#7f7f7f",
+    "C_m1_M25N25": "#1f77b4",
+    "D_m1_M50N50": "#08306b",
+}
+K, D_dim = 3, 5
+```
+
+## Introduction
+
+[Report 5](05_adding_risky_choices.qmd) argues, on identification-theoretic grounds, that adding risky choices to an uncertain-choice study should sharpen the recovery of the utility increments $\boldsymbol{\delta}$ in model `m_1` relative to model `m_0`. The argument rests on the structural observation that risky-choice expected utilities depend only on $\boldsymbol{\upsilon}$ (and hence $\boldsymbol{\delta}$), not on $\boldsymbol{\beta}$, so risky choices break the multiplicative $(\boldsymbol{\beta}, \boldsymbol{\delta})$ coupling that limits learning about $\boldsymbol{\delta}$ from uncertain choices alone.
+
+This is a claim about likelihood structure. Its empirical force depends on whether the additional information that risky choices provide is substantial *at the sample sizes and lottery designs actually used in practice*. The recovery study reported in Report 5 was incomplete — the four-way comparison it scoped (m_0 at M=25; m_0 at M=50 with same alternatives; m_0 at M=50 with new alternatives; m_1 at M=25+N=25) was never fully executed. The headline m_1 number in [results/parameter_recovery/m1_recovery/](../../results/parameter_recovery/m1_recovery/) was computed against m_0 fits using different study designs and different true-parameter draws, so the comparison was not strictly matched.
+
+::: {.callout-important}
+## Why this matters now
+[Report 13](13_concentrated_delta_prior.qmd) ruled out Route 2 (concentrated δ prior) as an identification improvement: it is prior regularization, not identification. Route 3 (hierarchical pooling, implemented in `h_m01`) does not break the single-cell likelihood coupling. That leaves **Route 1 (adding risky choices) as the only proposed remedy that could improve identification in the likelihood-based sense.** Before committing to a hierarchical Route 1 model (`h_m11`) for the alignment study, we need empirical confirmation that the single-level Route 1 model actually delivers the predicted δ-identification gain.
+:::
+
+### What this report does
+
+This report runs a strictly matched-design parameter recovery study. For each of 30 iterations:
+
+1. A single true parameter vector $(\alpha, \boldsymbol{\beta}, \boldsymbol{\delta})$ is drawn from the `m_1` simulation priors.
+2. A shared study design — $M = 50$ uncertain problems built on $R = 15$ alternatives, $N = 50$ risky problems built on $S = 15$ lotteries — is held fixed across all iterations and conditions.
+3. The same simulated choice vectors $\mathbf{y}$ (uncertain) and $\mathbf{z}$ (risky) are sliced four ways:
+
+| Condition | Model | Uncertain problems | Risky problems | Total choices |
+|---|---|---|---|---|
+| **A** | `m_0` | 25 | — | 25 |
+| **B** | `m_0` | 50 | — | 50 |
+| **C** | `m_1` | 25 | 25 | 50 |
+| **D** | `m_1` | 50 | 50 | 100 |
+
+The central comparison is **B vs C**: same true parameters, same total choice count, only the model and the *type* of choices differ. If the Route 1 identification argument has empirical force at this sample size, C should sharpen $\boldsymbol{\delta}$ recovery materially relative to B. The A vs B comparison serves as a data-quantity control inside the `m_0` family; the C vs D comparison is the same control inside `m_1`.
+
+The driver script is `scripts/run_m1_matched_recovery.py`; results live under `results/parameter_recovery/m1_matched_comparison/`.
+
+```{python}
+#| label: load-results
+#| include: false
+
+def load_all():
+    it_dirs = sorted(glob.glob(os.path.join(ROOT, "iteration_*")),
+                     key=lambda p: int(p.rsplit('_', 1)[-1]))
+    tp_list, sm_lists = [], {c: [] for c in CONDITIONS}
+    for d in it_dirs:
+        with open(os.path.join(d, "true_parameters.json")) as f:
+            tp = json.load(f)
+        summaries = {}
+        ok = True
+        for c in CONDITIONS:
+            p = os.path.join(d, f"summary_{c}.csv")
+            if not os.path.exists(p):
+                ok = False; break
+            summaries[c] = pd.read_csv(p, index_col=0)
+        if not ok: continue
+        tp_list.append(tp)
+        for c in CONDITIONS:
+            sm_lists[c].append(summaries[c])
+    return tp_list, sm_lists
+
+true_params, summaries_by_cond = load_all()
+n_iter = len(true_params)
+print(f"Iterations completing all 4 conditions: {n_iter}")
+```
+
+## Aggregate Recovery Metrics
+
+```{python}
+#| label: build-metrics
+#| include: false
+
+def per_cond_metrics():
+    rows = []
+    for c in CONDITIONS:
+        sm = summaries_by_cond[c]
+        a_true = np.array([p["alpha"] for p in true_params])
+        a_mean = np.array([s.loc["alpha", "Mean"] for s in sm])
+        a_low  = np.array([s.loc["alpha", "5%"] for s in sm])
+        a_up   = np.array([s.loc["alpha", "95%"] for s in sm])
+        rmses, ciws, covs = [], [], []
+        for k in range(K):
+            for d_ix in range(D_dim):
+                bt = np.array([p["beta"][k][d_ix] for p in true_params])
+                bm = np.array([s.loc[f"beta[{k+1},{d_ix+1}]", "Mean"] for s in sm])
+                bl = np.array([s.loc[f"beta[{k+1},{d_ix+1}]", "5%"] for s in sm])
+                bu = np.array([s.loc[f"beta[{k+1},{d_ix+1}]", "95%"] for s in sm])
+                rmses.append(np.sqrt(np.mean((bm-bt)**2)))
+                ciws.append(np.mean(bu-bl))
+                covs.append(np.mean((bt>=bl)&(bt<=bu)))
+        b_rmse, b_ci, b_cov = float(np.mean(rmses)), float(np.mean(ciws)), float(np.mean(covs))
+        d_rmse_list, d_ci_list, d_cov_list = [], [], []
+        for k in range(K-1):
+            dt = np.array([p["delta"][k] for p in true_params])
+            dm = np.array([s.loc[f"delta[{k+1}]", "Mean"] for s in sm])
+            dl = np.array([s.loc[f"delta[{k+1}]", "5%"] for s in sm])
+            du = np.array([s.loc[f"delta[{k+1}]", "95%"] for s in sm])
+            d_rmse_list.append(np.sqrt(np.mean((dm-dt)**2)))
+            d_ci_list.append(np.mean(du-dl))
+            d_cov_list.append(np.mean((dt>=dl)&(dt<=du)))
+        rows.append({
+            "Condition": COND_LABELS[c],
+            "n_iter": len(sm),
+            "α RMSE":  float(np.sqrt(np.mean((a_mean-a_true)**2))),
+            "α CI":    float(np.mean(a_up-a_low)),
+            "α cov":   float(np.mean((a_true>=a_low)&(a_true<=a_up))),
+            "β RMSE":  b_rmse, "β CI": b_ci, "β cov": b_cov,
+            "δ RMSE":  float(np.mean(d_rmse_list)),
+            "δ CI":    float(np.mean(d_ci_list)),
+            "δ cov":   float(np.mean(d_cov_list)),
+        })
+    return pd.DataFrame(rows)
+
+metrics_df = per_cond_metrics()
+```
+
+```{python}
+#| label: tbl-aggregate
+#| tbl-cap: "Aggregate parameter-recovery metrics across the four matched-design conditions. CI columns report mean 90% credible-interval width; cov columns report fraction of iterations whose 90% interval covers the true value (nominal = 0.90, MC SE for n=30 ≈ 5 points)."
+
+fmt = {col: (lambda x: f"{x:.3f}") for col in metrics_df.columns
+       if col not in ("Condition", "n_iter")}
+display_df = metrics_df.copy()
+for col, f in fmt.items():
+    display_df[col] = display_df[col].apply(f)
+print(display_df.to_string(index=False))
+```
+
+```{python}
+#| label: fig-aggregate-metrics
+#| fig-cap: "Aggregate δ and β recovery across the four matched-design conditions. Bars show RMSE (top) and mean 90% CI width (bottom). The central test is B vs C — same total choice count, same true δ per iteration, only the model and the type of choices differ. If Route 1's likelihood structure delivers an identification gain, C should be visibly below B."
+
+fig, axes = plt.subplots(2, 3, figsize=(14, 7), sharex=True)
+metrics_for_param = {
+    'α': ('α RMSE', 'α CI'),
+    'β (avg K×D)': ('β RMSE', 'β CI'),
+    'δ (avg K-1)': ('δ RMSE', 'δ CI'),
+}
+xs = np.arange(len(CONDITIONS))
+labels = [COND_LABELS[c] for c in CONDITIONS]
+colors = [COND_COLORS[c] for c in CONDITIONS]
+
+for col_ix, (pname, (rmse_col, ci_col)) in enumerate(metrics_for_param.items()):
+    ax_top = axes[0, col_ix]
+    ax_bot = axes[1, col_ix]
+    rmses = metrics_df[rmse_col].to_numpy()
+    cis = metrics_df[ci_col].to_numpy()
+    ax_top.bar(xs, rmses, color=colors, edgecolor='black', linewidth=0.5)
+    ax_bot.bar(xs, cis, color=colors, edgecolor='black', linewidth=0.5)
+    ax_top.set_title(pname, fontsize=12)
+    if col_ix == 0:
+        ax_top.set_ylabel('RMSE', fontsize=11)
+        ax_bot.set_ylabel('mean 90% CI width', fontsize=11)
+    ax_bot.set_xticks(xs)
+    ax_bot.set_xticklabels(labels, rotation=25, ha='right', fontsize=9)
+    for ax in (ax_top, ax_bot):
+        ax.grid(True, axis='y', alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+```
+
+::: {.callout-important}
+## Headline finding
+
+At equal total choice count (B vs C, 50 choices each), m_1's risky-choice information delivers a δ-RMSE reduction of roughly 2% and a δ-CI-width reduction of roughly 2%. Doubling the number of risky choices (C to D) yields a further 1% / 6% improvement. The predicted "qualitative identification advantage" of risky choices over uncertain choices is, at this sample size and lottery design, **a small quantitative improvement, not a qualitative one.**
+:::
+
+## Within-Iteration B vs C Comparison
+
+The aggregate numbers above could in principle hide a real B vs C effect if the variance across iterations is large relative to the mean difference. To rule that out, we compare B and C *within each iteration* — the matched design lets us hold true parameters fixed and just vary the model + data slice.
+
+```{python}
+#| label: fig-bc-within-iter
+#| fig-cap: "Within-iteration comparison of B (m_0, M=50) vs C (m_1, M=25+N=25). Each point is one (iteration, δ component) pair (n = 30 iterations × 2 components = 60 points). Top: 90% CI widths under B vs C; points below the diagonal favor C. Bottom: squared posterior-mean errors under B vs C; points below the diagonal favor C. With matched true parameters and matched total choice count, a sustained C-advantage would show as systematic displacement below the diagonal."
+
+fig, axes = plt.subplots(1, 2, figsize=(11, 5))
+
+ci_B, ci_C, err2_B, err2_C = [], [], [], []
+for tp, smB, smC in zip(true_params, summaries_by_cond["B_m0_M50"], summaries_by_cond["C_m1_M25N25"]):
+    for k in range(K-1):
+        dt = tp["delta"][k]
+        ci_B.append(smB.loc[f"delta[{k+1}]", "95%"] - smB.loc[f"delta[{k+1}]", "5%"])
+        ci_C.append(smC.loc[f"delta[{k+1}]", "95%"] - smC.loc[f"delta[{k+1}]", "5%"])
+        err2_B.append((smB.loc[f"delta[{k+1}]", "Mean"] - dt)**2)
+        err2_C.append((smC.loc[f"delta[{k+1}]", "Mean"] - dt)**2)
+ci_B, ci_C, err2_B, err2_C = map(np.array, (ci_B, ci_C, err2_B, err2_C))
+
+ax = axes[0]
+lim = max(ci_B.max(), ci_C.max()) * 1.05
+ax.scatter(ci_B, ci_C, s=45, alpha=0.75, c='#1f77b4', edgecolor='white')
+ax.plot([0, lim], [0, lim], 'r--', linewidth=1.5)
+ax.set_xlim(0, lim); ax.set_ylim(0, lim); ax.set_aspect('equal')
+ax.set_xlabel('B (m_0, M=50) δ CI width', fontsize=11)
+ax.set_ylabel('C (m_1, M=25+N=25) δ CI width', fontsize=11)
+ax.set_title(f'90% CI widths: C narrower than B in {(ci_C < ci_B).mean():.0%} of points', fontsize=11)
+ax.grid(True, alpha=0.3)
+
+ax = axes[1]
+lim = max(err2_B.max(), err2_C.max()) * 1.05
+ax.scatter(err2_B, err2_C, s=45, alpha=0.75, c='#1f77b4', edgecolor='white')
+ax.plot([0, lim], [0, lim], 'r--', linewidth=1.5)
+ax.set_xlim(0, lim); ax.set_ylim(0, lim); ax.set_aspect('equal')
+ax.set_xlabel('B (m_0, M=50) δ squared error', fontsize=11)
+ax.set_ylabel('C (m_1, M=25+N=25) δ squared error', fontsize=11)
+ax.set_title(f'Squared error: C smaller than B in {(err2_C < err2_B).mean():.0%} of points', fontsize=11)
+ax.grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+```
+
+```{python}
+#| label: bc-summary
+#| echo: false
+
+med_diff_ci = np.median(ci_C - ci_B)
+med_pct = med_diff_ci / np.median(ci_B) * 100
+print(f"Within-iteration B vs C (matched true parameters, matched total choice count):")
+print(f"  median δ CI width:   B = {np.median(ci_B):.3f},  C = {np.median(ci_C):.3f}")
+print(f"  median (C - B):       {med_diff_ci:+.4f}  ({med_pct:+.1f}% of B)")
+print(f"  C narrower than B:    {(ci_C < ci_B).mean():.1%} of points")
+print(f"  δ RMSE:               B = {np.sqrt(np.mean(err2_B)):.3f},  C = {np.sqrt(np.mean(err2_C)):.3f}")
+print(f"  C lower squared err:  {(err2_C < err2_B).mean():.1%} of points")
+print(f"\nWilcoxon signed-rank test on CI width (B - C, paired):")
+w_stat, p_val = stats.wilcoxon(ci_B - ci_C)
+print(f"  W = {w_stat:.1f},  p = {p_val:.4f}")
+```
+
+The within-iteration analysis confirms the aggregate picture. C produces narrower δ credible intervals than B in a large majority of cases — the Wilcoxon test is significant — but the *size* of the C-advantage is small: a median improvement of roughly 1–2% of CI width. The squared-error advantage is even more marginal. Risky choices, in this design, displace uncertain choices on δ recovery by a margin that is statistically real but practically negligible.
+
+## Where Does the m_1 Advantage Actually Live?
+
+If m_1 is not buying us δ identification, what is it buying? @fig-aggregate-metrics already hints at the answer: the largest single improvement across the four conditions is in $\alpha$ recovery. The 25 → 50 doubling within `m_0` (A → B) actually slightly *worsens* α RMSE; switching from B to C cuts α RMSE noticeably; doubling within `m_1` (C → D) cuts it further. This is consistent with risky choices providing a clean signal about the choice-sensitivity parameter — they remove the $\boldsymbol{\beta}$-induced uncertainty in expected utilities, leaving a cleaner softmax — but contributing relatively little new information about the utility scale itself.
+
+```{python}
+#| label: fig-where-the-gain-lives
+#| fig-cap: "Within-iteration A→B (m_0 data quantity) and B→C (model + data type, matched count) effects on α and δ posterior CI widths. Each point is one iteration. The B→C panels are the central test: same total choice count, the only change is what kind of choices and which model. The α panel shows a noticeable downward shift; the δ panel does not."
+
+fig, axes = plt.subplots(2, 2, figsize=(11, 9))
+def ci_for(cond, name):
+    sm = summaries_by_cond[cond]
+    return np.array([s.loc[name, "95%"] - s.loc[name, "5%"] for s in sm])
+
+pairs = [
+    ("A_m0_M25", "B_m0_M50", "A → B: same model, +25 uncertain"),
+    ("B_m0_M50", "C_m1_M25N25", "B → C: matched count, m_0 → m_1"),
+]
+for row_ix, (left, right, title) in enumerate(pairs):
+    for col_ix, (param_name, ax_title) in enumerate([("alpha", "α"), ("delta[1]", "δ₁")]):
+        ax = axes[row_ix, col_ix]
+        L = ci_for(left, param_name)
+        R = ci_for(right, param_name)
+        lim = max(L.max(), R.max()) * 1.05
+        ax.scatter(L, R, s=50, alpha=0.75,
+                   c='#1f77b4' if col_ix == 0 else '#2ca02c', edgecolor='white')
+        ax.plot([0, lim], [0, lim], 'r--', linewidth=1.5)
+        ax.set_xlim(0, lim); ax.set_ylim(0, lim); ax.set_aspect('equal')
+        ax.set_xlabel(f'{COND_LABELS[left]} CI width', fontsize=10)
+        ax.set_ylabel(f'{COND_LABELS[right]} CI width', fontsize=10)
+        ax.set_title(f'{ax_title}  ({title})', fontsize=10)
+        # median reduction
+        med_pct = (R.mean() - L.mean()) / L.mean() * 100
+        ax.text(0.05, 0.95, f'mean Δ = {med_pct:+.1f}%',
+                transform=ax.transAxes, fontsize=9, verticalalignment='top',
+                bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
+        ax.grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+```
+
+## Why the Gain on δ Is So Small
+
+The theoretical argument in Report 5 is correct as far as it goes: a risky-choice expected utility $\eta^{(r)} = \boldsymbol{\pi}^\top \boldsymbol{\upsilon}(\boldsymbol{\delta})$ depends on $\boldsymbol{\delta}$ but not on $\boldsymbol{\beta}$. What the empirical result reveals is that **decoupling alone is not the same thing as informativeness.** A choice between two risky lotteries with probability simplexes $\boldsymbol{\pi}^{(1)}, \boldsymbol{\pi}^{(2)}$ provides one noisy bit of information about the sign of
+$$
+\boldsymbol{\pi}^{(1)} \cdot \boldsymbol{\upsilon}(\boldsymbol{\delta}) - \boldsymbol{\pi}^{(2)} \cdot \boldsymbol{\upsilon}(\boldsymbol{\delta}) = (\boldsymbol{\pi}^{(1)} - \boldsymbol{\pi}^{(2)})^\top \boldsymbol{\upsilon}(\boldsymbol{\delta}),
+$$
+weighted by the sensitivity $\alpha$. Two factors damp the resulting δ-precision:
+
+1. **The choice signal is small for moderate α.** The `m_1` simulation prior puts $\alpha \sim \text{lognormal}(0, 1)$, so a large fraction of iterations have $\alpha < 1$ — the softmax is shallow and each choice is close to a coin flip. With $N = 25$ near-coin-flips, the Fisher information about a 2-dimensional $\boldsymbol{\delta}$ is just not large.
+
+2. **The lottery design is moderately, not optimally, informative.** The `risky_probs="fixed"` setting uses 8 simplexes spanning a reasonable range, but it is not a δ-information-optimized design. An optimal risky-choice design for K=3 would systematically present pairs that maximally vary $\boldsymbol{\pi}^{(1)} - \boldsymbol{\pi}^{(2)}$ along the directions that distinguish candidate δ values; the current design samples lotteries roughly uniformly across the "common probability" set.
+
+::: {.callout-note}
+## Decoupling vs. informativeness
+[Report 13](13_concentrated_delta_prior.qmd) showed that prior regularization on δ (Route 2) achieves a δ RMSE of about 0.10 at α₀=10, well under the ~0.29 floor that data-only Routes 1 and 0 hit at this sample size in this design. That is *not* an apples-to-apples comparison — the Route 2 study uses a concentrated prior that also concentrates the true δ values near the centroid, so RMSE shrinks for both reasons — but it underlines that the data, at this sample size and lottery design, is not the dominant signal about δ; the prior is.
+:::
+
+## Implications for the Alignment Study
+
+The alignment study currently uses `h_m01` (hierarchical extension of uncertain-only `m_0`). Three observations bear on next steps:
+
+1. **A hierarchical extension of m_1 (`h_m11`) is unlikely to deliver substantial δ identification in the cell-level design contemplated for the alignment study.** The single-level m_1 advantage on δ is too small to reasonably expect hierarchical pooling to magnify it into something practically meaningful — and hierarchical pooling does not change the within-cell likelihood structure that this report has just shown to be only marginally improved by risky choices.
+
+2. **The α-recovery improvement of m_1 over m_0 is real and non-trivial** (~15% RMSE reduction at matched choice count). If the alignment study's primary inferential target is *log-α contrasts across cells* — and the current scoping document frames it that way — adding risky-choice elicitation to the alignment-study protocol would tighten the contrast estimates, even though it would not solve the δ identification problem.
+
+3. **The δ identification problem will not be solved by adding more data of either type in the regimes contemplated for the alignment study.** If accurate δ recovery is genuinely needed, the operative levers are (a) much larger samples; (b) a δ-information-optimal lottery design (which requires substantive work beyond the current `risky_probs` options); or (c) accepting Route 2 (prior regularization) on substantive grounds for the alignment-study consequences. In the contrast-study framing of the alignment study, accurate δ recovery is not actually needed — what matters is that log-α is identified, which both m_0 and m_1 deliver.
+
+## Conclusion
+
+The Route 1 identification argument from [Report 5](05_adding_risky_choices.qmd) is structurally correct but, in the design and sample sizes investigated here, only marginally relevant in practice. At equal total choice count and matched true parameters, switching from uncertain-only `m_0` to mixed-data `m_1` reduces the δ posterior CI width by roughly 2% and δ RMSE by roughly 2%. The Wilcoxon test confirms this advantage is statistically real, but it is small enough that no realistic alignment-study design could rely on it to achieve identification of utility increments. The real benefit of `m_1` over `m_0` in this study is on α recovery (~15% improvement at matched count), not on δ.
+
+The practical implication for the alignment study is straightforward: **do not build `h_m11` on the premise that risky choices will identify δ.** Either (a) ship the alignment study with the current `h_m01` and the contrast-study framing already documented; (b) add risky-choice elicitation to the alignment-study protocol if the marginal α-precision gain is judged worth the data-collection cost, but expect no δ-identification benefit; or (c) revisit Route 2 (concentrated δ prior) as a substantive modeling choice if and only if equal-spacing of consequences is defensible for the alignment-study domain. The "build h_m11 to fix identification" path that the routes inventory in Report 4 suggested is not, on the present evidence, available.

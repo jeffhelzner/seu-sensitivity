@@ -1,0 +1,81 @@
+# Appendix E. Reproducibility {#sec-appendix-e .unnumbered}
+
+> *Provenance, compute budget, and a per-figure manifest. The goal is that every
+> load-bearing empirical claim in the paper can be regenerated from a pinned
+> state of the supporting repository, with no number depending on an artifact
+> that is not itself version-controlled.*
+
+## E.0 Citation and provenance policy {#sec-e-provenance .unnumbered}
+
+Every load-bearing empirical claim cites the supporting repository at a **pinned
+commit or tag** --- and, for the archival deposit, a DOI minted from that tagged
+commit (a Zenodo release) --- never a homepage or blog URL. Supporting materials
+(data, analysis scripts, configs, figures) are **referenced at that pin, not
+copied** into the paper folder, so there is a single source of truth and no
+drift: the Stan listings of Appendix C, the design constants of Appendix D, and
+the figure manifest of E.2 all describe the repository *at the pin*. The
+dissemination pipeline (internal reports $\to$ homepage posts $\to$ this working
+paper) exists for reach; it is not a citation surface. The mapping from claim to
+artifact is maintained in the repository's `claims_ledger.md`, in which every row
+cited in the paper carries status `computed` (finalized from a completed run)
+before it appears in body text.
+
+The analysis is driven by a small set of generic scripts parameterized by JSON
+configs:
+
+| Script | Role |
+| --- | --- |
+| `analysis/prior_predictive.py` | prior-predictive SEU-max-rate checks (§4.2, §6.3, §7.3) |
+| `analysis/parameter_recovery.py` | true-vs-estimated recovery (§4.3, §6.4, §7.4) |
+| `analysis/sbc.py` | simulation-based calibration (§4.4, §6.5) |
+| `analysis/posterior_predictive_checks.py` | PPC test statistics (§7.4) |
+| `analysis/model_estimation.py` | posterior fits on observed LLM choices (§7.5) |
+
+driven by `configs/*.json` (methodological studies) and
+`applications/*/configs/` (the four LLM $\times$ task cells). The Stan programs
+are those of Appendix C under `models/`.
+
+## E.1 Compute budget {#sec-e-compute .unnumbered}
+
+All models are small --- a few hundred categorical choices, three structural
+parameters plus per-trial deterministic transforms --- so a single posterior fit
+(4 chains $\times$ 2000 draws) completes in seconds to a low number of minutes on
+one core of a contemporary 8-core workstation. The end-to-end cost is dominated
+not by any single fit but by the **simulation-based-calibration** runs, which
+refit the model once per SBC draw: at $N_{\mathrm{sbc}} = 999$ draws per model
+(D.3) these are the longest-running configs and account for the bulk of the
+wall-clock budget; the **matched-design recovery study** ($n = 100$ iterations
+$\times$ 4 conditions $=$ 400 fits, D.4) and the **application fits** (20
+posterior fits plus $20 \times 4 = 80$ recovery iterations, D.5) are each
+substantially cheaper. With the SBC runs parallelized across the 8 cores, a full
+end-to-end reproduction of every figure and table is an overnight-scale job
+rather than a multi-day one; the SBC configs are the ones to launch first and the
+only ones for which a single-core reproduction is uncomfortable. (These are
+order-of-magnitude figures from the development runs; a timed clean-room
+reproduction at the pinned commit is the authoritative source and is recorded
+alongside the archival deposit.)
+
+## E.2 Per-figure manifest {#sec-e-manifest .unnumbered}
+
+Each headline figure and table maps to a script, a config, and a seed, so it is
+reproducible in isolation. Entries marked *computed* drive numbers already in the
+paper; entries marked *pending* are foundational-report figures whose exact
+config/seed are finalized as the corresponding figure is regenerated for the
+camera-ready draft (the manifest is maintained as the figures are produced, not
+as a post-draft cleanup).
+
+| Fig/Tab | § | Description | Script | Config | Seed | Status |
+| --- | --- | --- | --- | --- | --- | --- |
+| Fig B.2 | 3.4 / B.2 | $(\beta,\delta)$ Fisher spectrum tail; $\delta$ info lost to $\beta$-coupling | `spikes/b2_fisher_block_spike.py` | inline ($K3$, $D5$, $M50$) | design 20260617 / draws 2026 | computed |
+| Fig 6.4 | 6.4.1 | $\alpha$/$\delta$ RMSE + CI-width, matched A/B/C/D ($n=100$) | `spikes/report14_rerun_analysis.py` | `configs/m1_matched_recovery_n100_config.json` | design 20260617 / boot 20260617 | computed |
+| Tab (§7.5.5) | 7.5 | $2\times2$ per-cell global-slope posteriors (C9–C13) | `analysis/model_estimation.py` | `applications/*/configs/` | per-cell (see cell data) | computed |
+| Fig 7.5.2 | 7.5.2 / 7.6.1 | Claude-null MDE power curve; MDE $\approx 36$ marker (C16) | `spikes/report16_mde_spike.py` | inline (data `…/claude_insurance_study/data/alpha_draws_T*.npz`) | 20260618 | computed |
+| Fig (§4.3) | 4.3.2 | $\alpha$ true-vs-estimated recovery scatter (`m_0`) | `analysis/parameter_recovery.py` | `configs/m1_parameter_recovery_config.json` | per D.2 convention | pending |
+| Fig (§4.4) | 4.4 | `m_0` SBC rank histograms + ECDF/KS | `analysis/sbc.py` | `configs/m1_sbc_config.json` | per D.3 convention | pending |
+| Fig (§6.5) | 6.5 | `m_1` SBC rank histograms + ECDF/KS | `analysis/sbc.py` | `configs/m2_sbc_config.json` | per D.3 convention | pending |
+
+The cross-LLM robustness number (C11) and the per-cell diagnostics/PPC summaries
+(C14, C15) are reproduced by `spikes/report11_cross_llm_spike.py` and
+`spikes/report1415_diagnostics_ppc_spike.py` respectively (both seed 20260618),
+reading the committed per-condition posterior draws under
+`reports/applications/*/data/`.

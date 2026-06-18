@@ -1,0 +1,9 @@
+project:
+  type: default
+  output-dir: _output
+
+# Single-source-of-truth bibliography: the foundational reports' .bib plus a
+# small paper-local supplement for entries the reports do not carry.
+bibliography:
+  - ../../../reports/references.bib
+  - references_extra.bib

@@ -1,0 +1,145 @@
+# Appendix D. Computational Details and Design Constants {#sec-appendix-d .unnumbered}
+
+> *This appendix is the **canonical** location for the study-design constants and
+> sampler settings used throughout the paper; the body (§§[4](#sec-m0-implementation),
+> [6](#sec-m1-implementation), [7](#sec-application)) references D.0 and D.5 rather
+> than re-listing. D.0 fixes the foundational (methodological) design; D.5 the
+> application scale. D.1–D.4 give software versions, sampler configuration, the SBC
+> protocol, and the matched-design comparison. Exact, machine-readable values live
+> in `configs/*.json` and `applications/*/configs/` at the pinned commit
+> (Appendix E.0); the constants below are the human-readable transcription.*
+
+## D.0 Foundational study-design constants {#sec-d0 .unnumbered}
+
+The methodological models `m_0` and `m_1` (§§[4](#sec-m0-implementation),
+[6](#sec-m1-implementation)) and the B.2 Fisher analysis use a single small
+design, chosen to be representative rather than power-optimized:
+
+| Constant | Symbol | Value |
+| --- | --- | --- |
+| Consequences per problem | $K$ | 3 |
+| Belief-feature dimension | $D$ | 5 |
+| Distinct uncertain alternatives | $R$ | 15 |
+| Distinct risky lotteries (`m_1`) | $S$ | 15 |
+| Uncertain problems | $M$ | $\in \{25, 50\}$ |
+| Risky problems (`m_1`) | $N$ | $\in \{25, 50\}$ |
+| Alternatives per problem | --- | 2–5 (uniform) |
+| Feature distribution | --- | $\mathcal{N}(0, 1)$, i.i.d. |
+| Risky lottery simplices | $\pi_s$ | fixed across iterations |
+
+The matched-design recovery study (D.4) instantiates these at the four
+$(M, N)$ slices of the §[6.2](#sec-m1-matched) table; the B.2 Fisher block
+(Appendix B.2) is evaluated at $K = 3$, $D = 5$, $R = 15$, $M = 50$. The
+simulation-based-calibration protocol (D.3) uses $N_{\mathrm{sbc}} = 999$ draws,
+thinning $4$, a single chain, $20$ rank-histogram bins, and the $L =
+N_{\mathrm{sbc}}$ rank convention.
+
+## D.1 Software versions {#sec-d1 .unnumbered}
+
+All fits use **CmdStan v2.37.0** driven by **CmdStanPy** ($\geq 1.2$) under
+**Python 3.10** (conda environment `seu-sensitivity`). Numerical and
+post-processing support: NumPy ($\geq 1.20$), SciPy ($\geq 1.7$), pandas
+($\geq 1.3$), scikit-learn ($\geq 1.0$, used for the $D = 32$ PCA feature
+reduction of the insurance application, D.5), and Matplotlib ($\geq 3.4$). LLM
+choice data were collected via the OpenAI ($\geq 1.0$) and Anthropic
+($\geq 0.18$) Python clients. The exact, pinned versions are recorded in
+`requirements.txt` and `environment.yml` at the commit of Appendix E.0; the
+versions above are the load-bearing ones for reproducing the inference.
+
+## D.2 Sampler configuration and diagnostics policy {#sec-d2 .unnumbered}
+
+**Sampler.** Posterior fits (parameter recovery and the application) use
+**4 chains**, **1000 warmup** and **2000 sampling** iterations per chain
+(8000 retained draws), at CmdStan's NUTS defaults --- target acceptance
+$\mathrm{adapt\_delta} = 0.8$ and maximum tree depth $10$, not overridden.
+Random seeds are deterministic per iteration: the simulation draw uses seed
+$12345 + i$ and the inference fit uses $54321 + i$ for iteration $i$, so every
+recovery iteration is independently reproducible.
+
+**Diagnostics policy.** A fit is considered well-behaved when, for the
+load-bearing parameters, the potential-scale-reduction factor satisfies
+$\hat{R} \le 1.01$ and both bulk- and tail-effective sample size are adequate
+for the reported quantiles; divergent transitions are tracked per fit and
+reported as a fraction. In the application (§[7.4](#sec-app-validation),
+claim C14) $\alpha$ --- the only load-bearing parameter for the
+temperature analysis --- is never $\hat{R}$-flagged and has satisfactory ESS in
+all 20 fits; divergences are $\le 0.15\%$ per fit; the only $\hat{R} > 1.01$
+exceedances fall on the weakly-identified $\beta, \delta$ and the per-trial
+nuisance latents ($\eta, \psi, \upsilon$) in the hardest $K = 4$ fits ---
+consistent with the §[3.4](#sec-bd-weak) ill-conditioning thesis rather than a
+defect in the $\alpha$ inference.
+
+## D.3 SBC configuration and seed convention {#sec-d3 .unnumbered}
+
+Simulation-based calibration (§[4.4](#sec-m0-sbc), §[6.5](#sec-m1-sbc), claim C5)
+draws $N_{\mathrm{sbc}} = 999$ prior samples from the matched `_sim` program
+(Appendix C.2, C.4), fits the inference model to each synthetic dataset, and
+ranks each true parameter within its thinned posterior draws. Thinning is $4$,
+posteriors are run as a single chain, and the rank histograms use $20$ bins under
+the $L = N_{\mathrm{sbc}}$ convention so that uniform ranks span $\{0, \dots,
+N_{\mathrm{sbc}}\}$. Calibration is read off both the rank histograms and the
+ECDF-difference plot with simultaneous KS bands (Modřák et al. 2023), which is
+more sensitive than the rank histogram alone. Per-draw seeds follow the same
+deterministic $12345 + i$ / $54321 + i$ simulate/fit convention as D.2, making
+each of the 999 SBC replicates reproducible in isolation.
+
+## D.4 The matched-design comparison (conditions A/B/C/D) {#sec-d4 .unnumbered}
+
+The matched study underlying §[6.4](#sec-m1-recovery) (claims C1–C3) is **not** a
+$\delta$-optimal design study; it is a controlled slicing of one fixed design.
+Each of $n = 100$ iterations (the pre-registered re-run; the 30-iteration pilot
+is superseded) proceeds as:
+
+1. draw a fresh study design (feature draws, lottery menus) and a fresh true
+   $(\alpha, \beta, \delta)$ from the prior via `m_1_sim` (Appendix C.4);
+2. simulate uncertain choices `y` ($M = 50$) and risky choices `z` ($N = 50$)
+   from those same parameters;
+3. fit four conditions to **slices of the same simulated choices**, so the true
+   parameters are matched across conditions within the iteration:
+
+| Condition | Model | Uncertain $M$ | Risky $N$ | Total |
+| --- | --- | --- | --- | --- |
+| A | `m_0` | 25 | --- | 25 |
+| B | `m_0` | 50 | --- | 50 |
+| C | `m_1` | 25 | 25 | 50 |
+| D | `m_1` | 50 | 50 | 100 |
+
+The central comparison is **B vs C** (same total choice count; only the model and
+the *type* of choice differ) and the control is **A vs B** (more uncertain data
+alone). All reported effects are paired-iteration medians or
+bootstrap-over-iteration ratios with 90% CIs (10\,000 resamples, design seed
+20260617); see `spikes/report14_rerun_analysis.py`. The headline finding ---
+that the $\beta$-free risky block yields no matched-count $\alpha$-precision gain
+(C1) while improving-$\alpha$ comes from data *quantity* (A$\to$B, C2), and the
+$\delta$ CI-width gain is $\approx 0.8\%$ (C3) --- is a property of *this* matched
+slicing, not of a $\delta$-optimized design.
+
+## D.5 Application-scale design constants {#sec-d5 .unnumbered}
+
+The $2\times2$ application (§[7](#sec-application)) uses the calibrated-prior
+model `m_01` (Appendix C.5) at a larger scale. Per LLM $\times$ task cell:
+
+| Constant | Insurance triage | Ellsberg urns |
+| --- | --- | --- |
+| Consequences $K$ | 3 | 4 |
+| Base problems $M$ | 100 | 100 |
+| Position-counterbalanced presentations | $\times 3$ | $\times 3$ |
+| Choices per temperature condition | 300 | 300 |
+| Temperature conditions per cell | 5 | 5 |
+| Alternatives per pool $R$ | 30 | 30 |
+| Belief-feature dimension $D$ | 32 (PCA) | --- (objective urns) |
+| Parameter-recovery iterations | 20 | 20 |
+
+**Temperature grids** differ by provider: GPT-4o uses $T \in \{0.0, 0.3, 0.7,
+1.0, 1.5\}$; Claude 3.5 Sonnet uses $T \in \{0.0, 0.2, 0.5, 0.8, 1.0\}$ (the
+provider-specific upper bounds drive the unequal-grid caveat of
+§[7.5.2a](#sec-app-cross-llm) and the cross-LLM robustness check, claim C11).
+
+**Calibrated $\alpha$ priors.** Insurance uses $\alpha \sim
+\mathrm{Lognormal}(3.0, 0.75)$ (median $\approx 20$, 90% CI $\approx [5.5, 67]$,
+prior-implied SEU-max rate $\approx 0.78$; claim C8). For the $K = 4$ Ellsberg
+cells the prior is re-calibrated by the same SEU-maximizer-rate prior-predictive
+procedure at that menu size, since the SEU-max rate at fixed $\alpha$ depends on
+$K$ and the number of alternatives. Across all four cells the fit count is
+$5 \text{ temperatures} \times 4 \text{ cells} = 20$ posterior fits, plus
+$20 \times 4 = 80$ recovery iterations.

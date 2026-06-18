@@ -1,0 +1,363 @@
+# Appendix C. Stan Model Listings {#sec-appendix-c .unnumbered}
+
+> *Full listings of the Stan programs referenced by the brief code excerpts in
+> §[4](#sec-m0-implementation) and §[6](#sec-m1-implementation). Two model pairs
+> are used throughout. For each model there is an **inference** program (`.stan`)
+> that takes observed choices as data and samples the posterior, and a matched
+> **simulation** program (`_sim.stan`) that draws parameters from the prior and
+> generates synthetic choices in `generated quantities` --- the data-generating
+> half of every prior-predictive, parameter-recovery, and SBC run. The
+> calibrated-prior variant `m_01` used in the application (§[7](#sec-application))
+> is structurally identical to `m_0` and is given as a one-line prior diff.
+> Listings reflect the pinned commit of Appendix E.0; the canonical files live at
+> `models/` in the repository.*
+
+The notation matches §[2.6](#sec-notation): `alpha` is the sensitivity $\alpha$,
+`beta` the belief-feature matrix $\beta$, `delta` the utility increments $\delta$
+(a `simplex`, so `upsilon` $= \bm{\upsilon}$ is ordered with the endpoint
+convention $\upsilon_1 = 0$ built in via `cumulative_sum(append_row(0, delta))`),
+`psi` the per-alternative belief simplices $\bm{\psi}_r$, `eta` the expected
+utilities $\eta_r$, and `chi` the per-problem choice probabilities. The `I`
+(uncertain) and `J` (risky) indicator arrays encode which alternatives appear in
+each problem; choices are `y` (uncertain) and `z` (risky).
+
+## C.1 `m_0.stan` --- uncertain-choice-only inference model {#sec-c-m0 .unnumbered}
+
+```stan
+data{
+  int<lower=1> M; // the number of decision problems
+  int<lower=2> K; // the number of possible consequences
+  int<lower=1> D; // the number of dimensions to describe an alternative
+  int<lower=2> R; // the number of distinct alternatives
+  array[R] vector[D] w; // the descriptions of each distinct alternative
+  array[M,R] int<lower=0,upper=1> I; // I[m,r] = 1 if alternative r is in problem m
+  array[M] int<lower=1> y; // selected alternative (bounds checked in transformed data)
+}
+transformed data {
+  array[M] int<lower=2> N; // the number of alternatives in each decision problem
+  int total_alternatives = 0;
+  for (m in 1:M) {
+    N[m] = sum(I[m]);
+    total_alternatives += N[m];
+    if (y[m] > N[m]) reject("y[", m, "] = ", y[m], " must be <= N[", m, "] = ", N[m]);
+  }
+  // Construct x from w and I
+  array[total_alternatives] vector[D] x;
+  {
+    int pos = 1;
+    for (m in 1:M) {
+      for (r in 1:R) {
+        if (I[m, r] == 1) { x[pos] = w[r]; pos += 1; }
+      }
+    }
+  }
+}
+parameters{
+  real<lower=0> alpha; // sensitivity parameter (decision noise); strictly positive
+  matrix[K,D] beta;    // coefficients mapping descriptions to subjective probabilities
+  simplex[K - 1] delta;// utility differences on unit scale (ensures ordered utilities)
+}
+transformed parameters{
+  array[sum(N)] simplex[K] psi; // subjective probability over outcomes per alternative
+  ordered[K] upsilon;           // the subjective utility of each consequence
+  vector[sum(N)] eta;           // expected utility of each alternative on unit scale
+  array[M] simplex[max(N)] chi; // choice probs with padding
+  for(i in 1:sum(N)){ psi[i] = softmax(beta*x[i]); }
+  upsilon = cumulative_sum(append_row(0, delta));
+  for(i in 1:sum(N)){ eta[i] = dot_product(psi[i],upsilon); }
+  {
+    int pos = 1;
+    for(i in 1:M){
+      vector[N[i]] problem_eta = segment(eta, pos, N[i]);
+      chi[i] = append_row(softmax(alpha * problem_eta), rep_vector(0, max(N) - N[i]));
+      pos += N[i];
+    }
+  }
+}
+model{
+  alpha ~ lognormal(0, 1);              // prior on choice sensitivity
+  to_vector(beta) ~ std_normal();        // prior on belief-feature coefficients
+  delta ~ dirichlet(rep_vector(1,K-1));  // prior on ordered unit-scale utility increments
+  for(i in 1:M){ y[i] ~ categorical(chi[i]); }
+}
+generated quantities {
+  vector[M] log_lik;
+  for (i in 1:M) { log_lik[i] = categorical_lpmf(y[i] | chi[i]); }
+  array[M] int y_pred;
+  for (i in 1:M) { y_pred[i] = categorical_rng(chi[i]); }
+
+  // Posterior-predictive check statistics (one-sided Bayesian p-values):
+  // log-likelihood discrepancy, modal-choice accuracy, and sum of chosen
+  // probabilities, each comparing T(y_pred) to T(y_obs).
+  real T_obs_ll = sum(log_lik);
+  real T_rep_ll = 0;
+  for (m in 1:M) { T_rep_ll += categorical_lpmf(y_pred[m] | chi[m]); }
+  int<lower=0,upper=1> ppc_ll = (T_rep_ll >= T_obs_ll) ? 1 : 0;
+
+  int T_obs_modal = 0; int T_rep_modal = 0;
+  for (m in 1:M) {
+    real max_prob = chi[m][1];
+    for (j in 2:N[m]) { if (chi[m][j] > max_prob) max_prob = chi[m][j]; }
+    T_obs_modal += (chi[m][y[m]]      >= max_prob - 1e-9) ? 1 : 0;
+    T_rep_modal += (chi[m][y_pred[m]] >= max_prob - 1e-9) ? 1 : 0;
+  }
+  int<lower=0,upper=1> ppc_modal = (T_rep_modal >= T_obs_modal) ? 1 : 0;
+
+  real T_obs_prob = 0; real T_rep_prob = 0;
+  for (m in 1:M) { T_obs_prob += chi[m][y[m]]; T_rep_prob += chi[m][y_pred[m]]; }
+  int<lower=0,upper=1> ppc_prob = (T_rep_prob >= T_obs_prob) ? 1 : 0;
+}
+```
+
+## C.2 `m_0_sim.stan` --- uncertain-choice data generator {#sec-c-m0-sim .unnumbered}
+
+The simulation program shares `m_0`'s `data`/`transformed data` shape but draws
+$(\alpha, \beta, \delta)$ from the prior inside `generated quantities` (with the
+$\alpha$-prior hyperparameters passed as data, so a single program serves both
+the `Lognormal(0,1)` default and any calibrated prior), simulates choices `y`,
+and reports `total_seu_max_selected` --- the count of problems in which the
+sampled choice coincided with the SEU-maximizing alternative, the prior-predictive
+diagnostic of §[4.2](#sec-m0-prior).
+
+```stan
+data {
+  int<lower=1> M; int<lower=2> K; int<lower=1> D; int<lower=2> R;
+  array[R] vector[D] w;
+  array[M,R] int<lower=0,upper=1> I;
+  real<lower=0> alpha_mean; // mean for log(alpha) (default 0)
+  real<lower=0> alpha_sd;   // sd for log(alpha)   (default 1)
+  real<lower=0> beta_sd;    // sd for beta coefficients (default 1)
+}
+transformed data {
+  array[M] int<lower=2> N; int total_alts = 0;
+  for (m in 1:M) { N[m] = sum(I[m]); total_alts += N[m]; }
+  array[total_alts] vector[D] x;
+  {
+    int pos = 1;
+    for (m in 1:M) for (r in 1:R) if (I[m, r] == 1) { x[pos] = w[r]; pos += 1; }
+  }
+}
+generated quantities {
+  real alpha = lognormal_rng(alpha_mean, alpha_sd);
+  matrix[K,D] beta;
+  for (k in 1:K) for (d in 1:D) beta[k,d] = normal_rng(0, beta_sd);
+  simplex[K-1] delta = dirichlet_rng(rep_vector(1.0, K-1));
+
+  array[total_alts] vector[K] psi;
+  for (i in 1:total_alts) psi[i] = softmax(beta * x[i]);
+  vector[K] upsilon = cumulative_sum(append_row(0, delta));
+  vector[total_alts] eta;
+  for (i in 1:total_alts) eta[i] = dot_product(to_vector(psi[i]), upsilon);
+
+  array[M] int y;
+  array[M] int<lower=0,upper=1> selected_seu_max;
+  {
+    int pos = 1;
+    for (i in 1:M) {
+      vector[N[i]] problem_eta = segment(eta, pos, N[i]);
+      vector[N[i]] choice_probs = softmax(alpha * problem_eta);
+      y[i] = categorical_rng(choice_probs);
+      real max_eta = max(problem_eta);
+      selected_seu_max[i] = (abs(problem_eta[y[i]] - max_eta) < 1e-10) ? 1 : 0;
+      pos += N[i];
+    }
+  }
+  int<lower=0,upper=M> total_seu_max_selected = sum(selected_seu_max);
+}
+```
+
+*(The full file additionally stores the per-problem `problem_etas` and
+`choice_probabilities` for inspection; those bookkeeping arrays are elided here.)*
+
+## C.3 `m_1.stan` --- combined uncertain + risky inference model {#sec-c-m1 .unnumbered}
+
+`m_1` adds a risky block: a second set of `N` problems over `S` lotteries with
+*objective* probability simplices `x` supplied as data. The lotteries enter
+expected utility directly (`eta_risky = dot_product(x_risky, upsilon)`), with no
+$\beta$ --- this $\beta$-free channel is what identifies $\delta$ in principle
+(§[5](#sec-m1-identifiability), Proposition B.3). Crucially, `alpha` and the
+utility vector `upsilon` are **shared** across the two blocks.
+
+```stan
+data {
+  // Uncertain problems
+  int<lower=1> M; int<lower=2> K; int<lower=1> D; int<lower=2> R;
+  array[R] vector[D] w;
+  array[M,R] int<lower=0,upper=1> I;
+  array[M] int<lower=1> y;
+  // Risky problems
+  int<lower=1> N; int<lower=2> S;
+  array[S] simplex[K] x;               // objective lottery simplices
+  array[N,S] int<lower=0,upper=1> J;
+  array[N] int<lower=1> z;
+}
+transformed data {
+  array[M] int<lower=2> N_uncertain; int total_uncertain_alts = 0;
+  for (m in 1:M) {
+    N_uncertain[m] = sum(I[m]); total_uncertain_alts += N_uncertain[m];
+    if (y[m] > N_uncertain[m]) reject("y[", m, "] out of range");
+  }
+  array[N] int<lower=2> N_risky; int total_risky_alts = 0;
+  for (n in 1:N) {
+    N_risky[n] = sum(J[n]); total_risky_alts += N_risky[n];
+    if (z[n] > N_risky[n]) reject("z[", n, "] out of range");
+  }
+  array[total_uncertain_alts] vector[D] x_uncertain;
+  {
+    int pos = 1;
+    for (m in 1:M) for (r in 1:R) if (I[m,r]==1) { x_uncertain[pos]=w[r]; pos+=1; }
+  }
+  array[total_risky_alts] simplex[K] x_risky;
+  {
+    int pos = 1;
+    for (n in 1:N) for (s in 1:S) if (J[n,s]==1) { x_risky[pos]=x[s]; pos+=1; }
+  }
+}
+parameters {
+  real<lower=0> alpha;   // shared sensitivity
+  matrix[K,D] beta;      // belief features (uncertain block only)
+  simplex[K-1] delta;    // shared utility increments
+}
+transformed parameters {
+  ordered[K] upsilon = cumulative_sum(append_row(0, delta)); // shared utilities
+
+  // Uncertain block
+  array[total_uncertain_alts] simplex[K] psi;
+  vector[total_uncertain_alts] eta_uncertain;
+  array[M] simplex[max(N_uncertain)] chi_uncertain;
+  for (i in 1:total_uncertain_alts) psi[i] = softmax(beta * x_uncertain[i]);
+  for (i in 1:total_uncertain_alts) eta_uncertain[i] = dot_product(psi[i], upsilon);
+  {
+    int pos = 1;
+    for (m in 1:M) {
+      vector[N_uncertain[m]] pe = segment(eta_uncertain, pos, N_uncertain[m]);
+      chi_uncertain[m] = append_row(softmax(alpha*pe),
+                                    rep_vector(0, max(N_uncertain)-N_uncertain[m]));
+      pos += N_uncertain[m];
+    }
+  }
+
+  // Risky block (beta-free: lotteries enter EU directly)
+  vector[total_risky_alts] eta_risky;
+  array[N] simplex[max(N_risky)] chi_risky;
+  for (i in 1:total_risky_alts) eta_risky[i] = dot_product(x_risky[i], upsilon);
+  {
+    int pos = 1;
+    for (n in 1:N) {
+      vector[N_risky[n]] pe = segment(eta_risky, pos, N_risky[n]);
+      chi_risky[n] = append_row(softmax(alpha*pe),
+                                rep_vector(0, max(N_risky)-N_risky[n]));
+      pos += N_risky[n];
+    }
+  }
+}
+model {
+  alpha ~ lognormal(0, 1);
+  to_vector(beta) ~ std_normal();
+  delta ~ dirichlet(rep_vector(1, K-1));
+  for (m in 1:M) y[m] ~ categorical(chi_uncertain[m]);
+  for (n in 1:N) z[n] ~ categorical(chi_risky[n]);
+}
+generated quantities {
+  vector[M] log_lik_uncertain;
+  vector[N] log_lik_risky;
+  for (m in 1:M) log_lik_uncertain[m] = categorical_lpmf(y[m] | chi_uncertain[m]);
+  for (n in 1:N) log_lik_risky[n]     = categorical_lpmf(z[n] | chi_risky[n]);
+  real log_lik_total = sum(log_lik_uncertain) + sum(log_lik_risky);
+  array[M] int y_pred; array[N] int z_pred;
+  for (m in 1:M) y_pred[m] = categorical_rng(chi_uncertain[m]);
+  for (n in 1:N) z_pred[n] = categorical_rng(chi_risky[n]);
+  // Block-wise and combined PPC statistics (ppc_ll / ppc_modal / ppc_prob,
+  // built exactly as in m_0.stan for each block) are computed here.
+}
+```
+
+## C.4 `m_1_sim.stan` --- combined data generator {#sec-c-m1-sim .unnumbered}
+
+The matched simulator draws shared $(\alpha, \delta)$ and uncertain-only $\beta$
+from the prior, then generates both `y` and `z`. The four matched-design
+conditions of §[6.2](#sec-m1-matched) (Appendix D.4) are produced by slicing the
+choices this program generates --- the same simulated parameters feed every
+condition, which is what makes the A/B/C/D comparison a *matched* one.
+
+```stan
+data {
+  int<lower=1> M; int<lower=2> K; int<lower=1> D; int<lower=2> R;
+  array[R] vector[D] w; array[M,R] int<lower=0,upper=1> I;
+  int<lower=1> N; int<lower=2> S;
+  array[S] simplex[K] x; array[N,S] int<lower=0,upper=1> J;
+  real<lower=0> alpha_mean; real<lower=0> alpha_sd; real<lower=0> beta_sd;
+}
+transformed data {
+  array[M] int<lower=2> N_uncertain; int total_uncertain_alts = 0;
+  for (m in 1:M) { N_uncertain[m] = sum(I[m]); total_uncertain_alts += N_uncertain[m]; }
+  array[total_uncertain_alts] vector[D] x_uncertain;
+  { int pos=1; for (m in 1:M) for (r in 1:R) if (I[m,r]==1){x_uncertain[pos]=w[r];pos+=1;} }
+  array[N] int<lower=2> N_risky; int total_risky_alts = 0;
+  for (n in 1:N) { N_risky[n] = sum(J[n]); total_risky_alts += N_risky[n]; }
+  array[total_risky_alts] simplex[K] x_risky;
+  { int pos=1; for (n in 1:N) for (s in 1:S) if (J[n,s]==1){x_risky[pos]=x[s];pos+=1;} }
+}
+generated quantities {
+  real alpha = lognormal_rng(alpha_mean, alpha_sd);
+  matrix[K,D] beta;
+  for (k in 1:K) for (d in 1:D) beta[k,d] = normal_rng(0, beta_sd);
+  simplex[K-1] delta = dirichlet_rng(rep_vector(1.0, K-1));
+  vector[K] upsilon = cumulative_sum(append_row(0, delta));
+
+  // Uncertain choices
+  array[total_uncertain_alts] vector[K] psi;
+  for (i in 1:total_uncertain_alts) psi[i] = softmax(beta * x_uncertain[i]);
+  vector[total_uncertain_alts] eta_uncertain;
+  for (i in 1:total_uncertain_alts) eta_uncertain[i] = dot_product(to_vector(psi[i]), upsilon);
+  array[M] int y; array[M] int<lower=0,upper=1> selected_seu_max_uncertain;
+  {
+    int pos = 1;
+    for (m in 1:M) {
+      vector[N_uncertain[m]] pe = segment(eta_uncertain, pos, N_uncertain[m]);
+      vector[N_uncertain[m]] cp = softmax(alpha * pe);
+      y[m] = categorical_rng(cp);
+      selected_seu_max_uncertain[m] = (abs(pe[y[m]] - max(pe)) < 1e-10) ? 1 : 0;
+      pos += N_uncertain[m];
+    }
+  }
+
+  // Risky choices (beta-free)
+  vector[total_risky_alts] eta_risky;
+  for (i in 1:total_risky_alts) eta_risky[i] = dot_product(to_vector(x_risky[i]), upsilon);
+  array[N] int z; array[N] int<lower=0,upper=1> selected_seu_max_risky;
+  {
+    int pos = 1;
+    for (n in 1:N) {
+      vector[N_risky[n]] pe = segment(eta_risky, pos, N_risky[n]);
+      vector[N_risky[n]] cp = softmax(alpha * pe);
+      z[n] = categorical_rng(cp);
+      selected_seu_max_risky[n] = (abs(pe[z[n]] - max(pe)) < 1e-10) ? 1 : 0;
+      pos += N_risky[n];
+    }
+  }
+  int total_seu_max_selected =
+      sum(selected_seu_max_uncertain) + sum(selected_seu_max_risky);
+}
+```
+
+## C.5 `m_01.stan` --- calibrated-prior variant (application) {#sec-c-m01 .unnumbered}
+
+The application model `m_01` is **structurally identical** to `m_0` (§[C.1](#sec-c-m0))
+--- same `data`, `parameters`, `transformed parameters`, and `generated
+quantities`. It differs only in the $\alpha$ prior, which is calibrated by the
+prior-predictive SEU-max-rate procedure of §[7.3](#sec-app-model) (claim C8)
+rather than left at the convenience default. The single changed line in the
+`model` block is:
+
+```stan
+// m_0.stan:
+alpha ~ lognormal(0, 1);     // convenience default
+// m_01.stan:
+alpha ~ lognormal(3.0, 0.75); // calibrated: median ~ 20, 90% CI ~ [5.5, 67],
+                              // prior-implied SEU-max rate ~ 0.78 (insurance, K=3)
+```
+
+For the $K = 4$ Ellsberg cells the same SEU-max-rate calibration is re-run to set
+the $\alpha$-prior hyperparameters at that menu size (Appendix D.5); the model
+code is otherwise unchanged.

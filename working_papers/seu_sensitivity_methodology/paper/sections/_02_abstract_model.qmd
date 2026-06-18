@@ -1,0 +1,184 @@
+# The Abstract Model: Softmax Choice and Sensitivity {#sec-abstract-model .unnumbered}
+
+> **§2.** *Conceptual and mathematical. No software. Proofs of the three softmax
+> properties are relegated to Appendix A.*
+
+This section specifies the choice model abstractly, before any commitment to
+where values come from. The payoff of the abstraction is that the three
+properties that license reading $\alpha$ as a *sensitivity* parameter
+(§[2.3](#sec-three-properties)) hold for *any* value function; the subjective
+expected utility (SEU) specialization of §[2.4](#sec-seu-specialization) then
+inherits them as corollaries.
+
+## 2.1 Alternatives, values, and the sensitivity parameter {#sec-alternatives .unnumbered}
+
+Let $\mathcal{R} = \{1, \dots, R\}$ be a finite set of distinct *alternatives*.
+A *value function* $V : \mathcal{R} \to \mathbb{R}$ assigns a real number $V(r)$
+to each alternative. A decision problem $m$ presents a subset of alternatives,
+encoded by availability indicators $I_{m,r} \in \{0,1\}$. A *sensitivity
+parameter* $\alpha \geq 0$ governs how sharply choices track value differences.
+
+## 2.2 The softmax choice rule {#sec-softmax-rule .unnumbered}
+
+The probability of selecting alternative $r$ from the available set in problem
+$m$ is the **softmax** (Luce–McFadden–Boltzmann) rule
+$$
+P(\text{choose } r \mid \alpha, V)
+  = \frac{\exp\!\big(\alpha\, V(r)\big)}{\sum_{j : I_{m,j}=1} \exp\!\big(\alpha\, V(j)\big)}.
+$$ {#eq-softmax}
+The functional form has independent precedents: Luce's [-@luce1959]
+ratio-scale choice axiom, McFadden's [-@mcfadden1974] random-utility derivation
+of multinomial logit, and the Boltzmann distribution of statistical mechanics
+(where $\alpha$ is inverse temperature). We use $\alpha$ rather than a
+temperature $T = 1/\alpha$ because *higher* $\alpha$ corresponds to *higher*
+sensitivity, the more intuitive direction for our purposes.
+
+*Why softmax rather than probit or another stochastic-choice wrapping?* Three
+properties recommend it. It is the unique rule satisfying Luce's
+independence-of-irrelevant-alternatives axiom; it embeds the
+optimization and uniform-choice limits as the two endpoints of a single scalar
+$\alpha$ (§[2.3](#sec-three-properties)); and its log-likelihood is concave in
+$\alpha V$, which makes the sensitivity parameter both interpretable and
+well-behaved for estimation. Probit lacks the closed-form IIA structure and a
+single sensitivity scalar with these limit properties.
+
+## 2.3 Three characterizing properties of softmax {#sec-three-properties .unnumbered}
+
+The following hold for *any* value function $V$. Write
+$V^\ast = \max_r V(r)$ for the maximal value, $\mathcal{R}^\ast = \{r : V(r) =
+V^\ast\}$ for the value-maximizing set, and $\mathcal{R}^- = \mathcal{R}
+\setminus \mathcal{R}^\ast$. Proofs are in Appendix A.
+
+::: {.callout-note appearance="simple"}
+**Property 1 (Monotonicity in sensitivity).** Holding $V$ fixed, for
+$r \in \mathcal{R}^\ast$ the probability $P(\text{choose } r \mid \alpha, V)$ is
+strictly increasing in $\alpha$; for $r \in \mathcal{R}^-$ it is strictly
+decreasing in $\alpha$.
+:::
+
+::: {.callout-note appearance="simple"}
+**Property 2 (Optimization limit).** As $\alpha \to \infty$, choice concentrates
+on the value-maximizing set: $P(\text{choose } r \mid \alpha, V) \to
+1/|\mathcal{R}^\ast|$ for $r \in \mathcal{R}^\ast$ and $\to 0$ otherwise. With a
+unique maximizer (the generic case under continuous priors) choice becomes
+deterministic.
+:::
+
+::: {.callout-note appearance="simple"}
+**Property 3 (Uniform-choice limit).** As $\alpha \to 0$, choice approaches the
+uniform distribution over available alternatives, independent of $V$.
+:::
+
+Together the three properties give exactly the conceptual content needed to read
+$\alpha$ as "sensitivity to value maximization," with no reference yet to where
+values come from: $\alpha$ interpolates monotonically (Property 1) between
+indifference to value (Property 3) and exclusive pursuit of the maximum
+(Property 2).
+
+## 2.4 SEU specialization {#sec-seu-specialization .unnumbered}
+
+Specialize the value function to a *subjective expected utility*. Fix $K$
+consequences with an (ordered) utility vector $\bm{\upsilon} \in \mathbb{R}^K$.
+Each alternative $r$ carries a subjective probability distribution
+$\bm{\psi}_r \in \Delta^{K-1}$ over consequences, and its value is its expected
+utility
+$$
+V(r) = \eta_r = \bm{\psi}_r^\top \bm{\upsilon} = \sum_{k=1}^{K} \psi_{r,k}\,\upsilon_k .
+$$ {#eq-eu}
+Because $\eta_r$ is just a particular value function, Properties 1–3 apply
+verbatim, and $\alpha$ now measures sensitivity to *SEU maximization*
+specifically: the disposition to choose the expected-utility-maximizing
+alternative.
+
+## 2.5 The conceptual payoff {#sec-conceptual-payoff .unnumbered}
+
+Sensitivity to SEU maximization is the disposition of an SEU-committed agent to
+*act in accordance with its commitments*. It is distinct from (a) the *content*
+of those commitments --- the agent's beliefs $\bm{\psi}$ and utilities
+$\bm{\upsilon}$ --- and (b) the *outcomes* the agent happens to realize. The
+SEU construction thus decomposes choice behavior into beliefs, utilities, and
+sensitivity, allowing each to be analyzed separately.
+
+::: {.callout-warning appearance="simple"}
+**Caveat on uniqueness of the decomposition.** The $(\alpha, \bm{\psi},
+\bm{\upsilon})$ decomposition is not the only one: rank-dependent utility,
+cumulative prospect theory [@tversky1992], and maxmin expected utility
+[@gilboa1989] carve the same observable choice data along different axes. Our
+claim is that *under* an SEU reference standard the (sensitivity, beliefs,
+utilities) decomposition is well-defined and --- with the identifiability
+caveats of §[3](#sec-m0-identifiability) and §[5](#sec-m1-identifiability) ---
+measurable. It is not a claim that this decomposition is uniquely correct for
+all theoretical purposes.
+:::
+
+## 2.6 Notation, the utility-scale convention, and the $\beta$ gauge {#sec-notation .unnumbered}
+
+For the parameterized models of §[3](#sec-m0-identifiability) and
+§[5](#sec-m1-identifiability) we generate subjective probabilities from $D$-dimensional
+feature vectors $w_r$ via a linear-softmax belief map
+$\bm{\psi}_r = \mathrm{softmax}(\beta\, w_r)$ with $\beta \in \mathbb{R}^{K
+\times D}$, in the multinomial-logit tradition [@mcfadden1974; @train2009]. The
+utility vector is built from increments $\delta \in \Delta^{K-1}$ via cumulative
+sums, with endpoints fixed by convention.
+
+Two gauge facts are load-bearing and are named once here, then *referenced* (not
+redefined) throughout.
+
+::: {.callout-important appearance="simple"}
+**The $\bm{\upsilon}$-endpoint convention.** vNM utilities are unique only up to
+a positive affine transformation $\tilde{\upsilon}_k = a\,\upsilon_k + b$ with
+$a > 0$, and rescaling by $a$ is observationally equivalent to rescaling
+$\alpha$ by $1/a$ (Theorem A.4). Fixing the endpoints
+$$
+0 = \upsilon_1 \leq \upsilon_2 \leq \cdots \leq \upsilon_K = 1
+$$
+removes this affine gauge and makes $\alpha$ identifiable as sensitivity on a
+standardized one-unit utility scale.
+:::
+
+::: {.callout-important appearance="simple"}
+**The $\bm{\beta}$ gauge (additive row-shift gauge).** Softmax is invariant to
+adding a common scalar to all entries of a row of $\beta$: for any
+$\gamma \in \mathbb{R}^D$, replacing the rows $\beta_{k\cdot} \mapsto
+\beta_{k\cdot}$ by $\beta_{k\cdot} + c\,\mathbf{1}$ for a common per-column shift
+leaves $\mathrm{softmax}(\beta\,w_r)$ unchanged. This is the only $\beta$
+indeterminacy used in the paper; we call it the **$\beta$ gauge** and reference
+it in §[3.3](#sec-alpha-from-eta), §[4](#sec-m0-implementation) (drafted later),
+§[6](#sec-m1-implementation) (drafted later), and Appendix B.4.
+:::
+
+The consolidated glossary is collected once here (Table @tbl-notation) and
+referenced, not redefined, elsewhere.
+
+| Symbol | Meaning | First used |
+| --- | --- | --- |
+| $\alpha \geq 0$ | sensitivity to value maximization (primary quantity of interest) | §2.1 |
+| $V(r),\ \eta_r$ | value / expected utility of $r$, $\eta_r = \bm{\psi}_r^\top \bm{\upsilon}$ | §2.1, §2.4 |
+| $\bm{\psi}_r$ | subjective probabilities for uncertain alternative $r$ (from $\beta$) | §2.4 |
+| $\beta \in \mathbb{R}^{K\times D}$ | belief-formation weights; $\bm{\psi}_r = \mathrm{softmax}(\beta w_r)$ | §2.6 |
+| $w_r$ | $D$-dimensional feature vector of alternative $r$ | §2.6 |
+| $\delta \in \Delta^{K-1}$ | utility increments | §2.6 |
+| $\bm{\upsilon}$ | ordered utilities, $\upsilon_1 = 0 \le \cdots \le \upsilon_K = 1$ | §2.6 |
+| $\pi_s$ | objective lottery simplex for risky alternative $s$ (Stan: `x_risky`) | §5.2 |
+| $\beta$ gauge | additive row-shift gauge of the belief softmax | §2.6 |
+| $\bm{\upsilon}$-endpoint convention | removes the affine vNM scale-and-shift gauge | §2.6 |
+
+: Consolidated notation. {#tbl-notation}
+
+## 2.7 The identifiability question --- preview {#sec-identifiability-preview .unnumbered}
+
+The choice-probability function is determined by $(\alpha, \bm{\psi},
+\bm{\upsilon})$. Whether the *parameterizations* of $\bm{\psi}$ and
+$\bm{\upsilon}$ --- namely $(\beta, \delta)$ --- are recoverable from observed
+choices is the question §[3](#sec-m0-identifiability) and
+§[5](#sec-m1-identifiability) take up.
+
+::: {.callout-note appearance="simple"}
+**Terminological demarcation.** Where we later call $(\beta, \delta)$ *weakly
+(practically) identifiable*, we mean a low-curvature **ridge** in the likelihood
+at this design's sample sizes --- not the instrumental-variables / GMM "weak
+identification" of @staiger1997, @stock2002, and @andrews2012, where weak
+instruments correlate weakly with endogenous regressors and induce nonstandard
+asymptotics. Both reflect low information curvature, but the constructions
+differ. We use "ridge identifiability" wherever ambiguity could otherwise arise.
+:::

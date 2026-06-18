@@ -9,7 +9,10 @@ materials. The paper is authored in Quarto (`.qmd`) and compiled to PDF.
 
 ## Status
 
-- **Stage:** planning → drafting (not yet drafted).
+- **Stage:** drafting (formal core drafted). §§2, 3, 5 and Appendices A–B are
+  drafted in `paper/` and compile to `paper/_output/paper.pdf`. §§1, 4, 6, 7, 8
+  and the remaining appendices are pending (see [CHANGELOG.md](CHANGELOG.md) for
+  the execution-order checklist).
 - **Version policy:** a **frozen v1** is deposited for a citable identifier; a
   later **v2** follows once the alignment-study companion paper lands and the
   forward references can be tightened. See [CHANGELOG.md](CHANGELOG.md).
@@ -18,7 +21,7 @@ materials. The paper is authored in Quarto (`.qmd`) and compiled to PDF.
 
 | Path | Purpose |
 | --- | --- |
-| `paper/` | Quarto source for the paper (`.qmd`), once drafting begins. |
+| `paper/` | Quarto source for the paper (`paper.qmd` + `sections/*.qmd`), compiled to PDF in `paper/_output/`. |
 | `figures/` | Generated figures for the paper. |
 | `plan_for_methodological_paper.md` | The canonical writing plan (Part I strategy + Part II outline). |
 | `REVIEW.md` | Review of the plan: risks, improvements, venue/structure/sequencing advice. |

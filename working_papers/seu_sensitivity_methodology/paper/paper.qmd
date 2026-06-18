@@ -1,0 +1,94 @@
+---
+title: "Sensitivity to Subjective Expected Utility Maximization: A Methodological Study, with an Illustrative Application to LLM Decision-Making"
+author:
+  - name: Jeff Helzner
+abstract: |
+  Evaluating the quality of decisions made under uncertainty is hard when
+  labeled outcomes are scarce, costly, or confounded with luck. We treat
+  subjective expected utility (SEU) maximization as a *stated standard* and
+  define a graded measure --- *SEU sensitivity* --- of an agent's conformity to
+  it. The formal vehicle is a softmax choice model with a sensitivity parameter
+  $\alpha$ applied to SEU-valued alternatives; the methodological contribution
+  is a sequence of identifiability results for $\alpha$ and for the belief and
+  utility parameters $(\beta, \delta)$, validated in Stan via prior predictive
+  checks, parameter recovery, and simulation-based calibration (SBC). The
+  findings are reported with their finite-sample caveats intact. In the
+  uncertain-choice-only model
+  `m_0`, $\alpha$ is identifiable but $(\beta, \delta)$ are only weakly
+  identifiable: the joint posterior is essentially flat along a ridge at
+  realistic sample sizes. In the extended model `m_1`, $\delta$ becomes
+  identifiable in principle (hence estimable in the limit) via a $\beta$-free
+  risky block, but its practical recovery gain at realistic sample sizes is
+  negligible (a matched-count CI-width reduction under 1%); and the block's
+  apparent benefit for $\alpha$ did *not* survive a pre-registered re-run at
+  $n = 100$ --- at matched choice count the $\beta$-free risky block yields no
+  $\alpha$-precision gain, so finite-sample $\alpha$ precision is driven by data
+  *quantity*, not the *type* of choice. These are two distinct phenomena: for
+  $\delta$, identifiability does not imply precise estimability at realistic
+  $n$; for $\alpha$, in-principle identifiability does not tell you where
+  finite-$n$ precision comes from. Marginal SBC passes for both models even
+  where the joint (belief, utility) posterior is only weakly identified --- a
+  *marginal-SBC demarcation* we make precise. A two-by-two illustrative
+  application (GPT-4o and Claude 3.5 Sonnet, each on insurance-claims triage and
+  Ellsberg-style urns, with sampling temperature as the lever) shows the
+  workflow runs end-to-end on real LLM choice data, detecting a structured
+  comparative $\alpha$ effect in two of four cells and declining to support one
+  in the other two.
+keywords: [subjective expected utility, identifiability, simulation-based calibration, Bayesian workflow, softmax choice, LLM decision-making]
+format:
+  pdf:
+    documentclass: article
+    papersize: letter
+    pdf-engine: pdflatex
+    geometry:
+      - margin=1in
+    fontsize: 11pt
+    number-sections: false
+    colorlinks: true
+    toc: true
+    keep-tex: true
+    include-in-header:
+      text: |
+        \usepackage{amsmath,amssymb,amsthm}
+        \usepackage{bm}
+        \newtheorem{proposition}{Proposition}
+        \newtheorem{theorem}{Theorem}
+        \newtheorem{lemma}{Lemma}
+        \newtheorem{corollary}{Corollary}
+        \theoremstyle{definition}
+        \newtheorem{definition}{Definition}
+        \theoremstyle{remark}
+        \newtheorem{remark}{Remark}
+---
+
+<!--
+Drafting status: formal core + implementation half + application + discussion +
+appendices (A–E). All sections §§1–8 and Appendices A–E drafted. Sections are
+numbered manually to match the plan outline; auto-numbering is off.
+-->
+
+{{< include sections/_01_motivation.qmd >}}
+
+{{< include sections/_02_abstract_model.qmd >}}
+
+{{< include sections/_03_m0_identifiability.qmd >}}
+
+{{< include sections/_04_m0_implementation.qmd >}}
+
+{{< include sections/_05_m1_identifiability.qmd >}}
+
+{{< include sections/_06_m1_implementation.qmd >}}
+
+{{< include sections/_07_application.qmd >}}
+
+{{< include sections/_08_discussion.qmd >}}
+
+{{< include sections/_appendix_a.qmd >}}
+
+{{< include sections/_appendix_b.qmd >}}
+
+{{< include sections/_appendix_c.qmd >}}
+
+{{< include sections/_appendix_d.qmd >}}
+
+{{< include sections/_appendix_e.qmd >}}

@@ -1,0 +1,173 @@
+# A Basic Computational Implementation of the Extended Model: `m_1` in Stan {#sec-m1-implementation .unnumbered}
+
+> **§6.** *Concrete realization of §[5](#sec-m1-identifiability). Sources:
+> foundational Reports 5 and 6, plus the corrective findings of Report 14 as
+> re-estimated at $n = 100$ (`spikes/report14_rerun_results.json`). The paper
+> uses the existing risky-choice design and reports the matched-design
+> comparison honestly; it does not undertake $\delta$-optimal lottery design
+> (named as future work, §8.5.1). All §6.4 percentages are paired-iteration
+> medians or bootstrap-over-iteration ratios with 90% CIs from the $n = 100$
+> re-run; the 30-iteration pilot's $\approx 15\%$ / $\approx 2\%$ figures are
+> superseded and are not cited.*
+
+## 6.1 Model specification {#sec-m1-spec .unnumbered}
+
+`m_1` keeps the `m_0` parameters and priors --- $\alpha \sim
+\mathrm{Lognormal}(0,1)$, $\beta_{k,d} \sim \mathcal{N}(0,1)$, $\delta \sim
+\mathrm{Dirichlet}(1,\dots,1)$ --- and adds $N$ risky problems built from $S$
+distinct objective lotteries $\pi_s \in \Delta^{K-1}$ (Stan: `x_risky`). The
+log-likelihood is the sum of the `m_0` uncertain-choice term and a risky-choice
+term that uses $\eta^{(r)}_s = \pi_s^\top \bm{\upsilon}$ directly --- in Stan,
+`eta_risky[i] = dot_product(x_risky[i], upsilon)`. The key structural contrast is
+that risky expected utilities depend only on $\bm{\upsilon}$ (hence $\delta$),
+not on $\beta$ (§[5.1](#sec-m1-twostep), Step 1).
+
+## 6.2 Study design and the matched comparison {#sec-m1-matched .unnumbered}
+
+**Design.** We use the existing risky-choice configuration ($K = 3$, $S = 15$
+lotteries; full constants in Appendix D.0, drafted later), *not* a
+$\delta$-optimal design. Report 14's matched design fixes one study design across
+conditions and slices the same simulated choices four ways:
+
+| Condition | Model | Uncertain $M$ | Risky $N$ | Total choices |
+| --- | --- | --- | --- | --- |
+| A | `m_0` | 25 | --- | 25 |
+| B | `m_0` | 50 | --- | 50 |
+| C | `m_1` | 25 | 25 | 50 |
+| D | `m_1` | 50 | 50 | 100 |
+
+The central test is **B vs C**: same total choice count, same true parameters
+per iteration, with only the model and the *type* of choice differing. The
+informative control is **A vs B**: doubling the *uncertain* block alone, holding
+the model fixed.
+
+::: {.callout-warning appearance="simple"}
+**Statistical-power note (resolved).** The original matched study used 30
+iterations, which proved well-sized to detect a *direction* of effect but not to
+pin effect *magnitudes*: the pilot's $\approx 15\%$ $\alpha$ and $\approx 2\%$
+$\delta$ figures did not survive a pre-registered re-run. The re-run at
+**$n = 100$ with bootstrap 90% CIs** (`spikes/report14_rerun_results.json`,
+design seed 20260617, 10\,000 resamples) is the citable source for every §6.4
+magnitude, and it overturned the $\alpha$ claim (sign and significance) while
+shrinking the $\delta$ magnitude. Every §6.4 percentage is a paired-iteration
+median or bootstrap-over-iteration ratio with a 90% CI, never a bare point
+estimate.
+:::
+
+**What we do not claim.** We do not engineer a design that makes the $\delta$ CI
+"materially" smaller than `m_0`'s; at $n = 100$ the matched-count $\delta$
+CI-width gain is $\approx 0.8\%$ and $\delta$ RMSE is statistically unchanged. A
+$\delta$-information-optimal lottery design --- pitting, e.g., the certain
+intermediate consequence against a 50/50 mix of the extremes to triangulate each
+$\delta_k$ --- is named as future work (§8.5.1, drafted later), not a deliverable
+here.
+
+## 6.3 Prior predictive analysis {#sec-m1-prior .unnumbered}
+
+On the combined (uncertain + risky) prior predictive, the SEU-maximizer rate
+again covers the full sensitivity range. Because `m_1` assumes a *shared*
+$\alpha$ across blocks (§[5.3](#sec-m1-properties)), we also report the SEU-max
+rate **per block** (uncertain vs risky) as a visual sanity check that a common
+$\alpha$ is not grossly violated --- the light posterior-predictive check the
+single-$\alpha$ caveat calls for.
+
+## 6.4 Parameter recovery --- what the matched comparison actually shows {#sec-m1-recovery .unnumbered}
+
+### 6.4.1 $\alpha$: no per-choice advantage from the risky block {#sec-m1-alpha-recovery .unnumbered}
+
+The 30-iteration pilot led with $\alpha$ as the headline `m_1` win; the
+$n = 100$ re-run does not support it. At matched total choice count (B vs C),
+swapping in the $\beta$-free risky block yields **no** $\alpha$-RMSE improvement:
+$-8.1\%$, bootstrap 90% CI $[-22.0, +6.8]$ --- the point estimate is slightly
+*adverse* and the interval straddles zero. The CI-width measure agrees (paired
+median $-1.4\%$, Wilcoxon $p \approx 0.39$, improved in only 44% of iterations).
+
+The informative control is A$\to$B: doubling the *uncertain* block alone cuts
+$\alpha$ RMSE by **27.1%** (90% CI $[+15.0, +38.5]$; CI-width paired median
+$+14.0\%$, improved in 78% of iterations). Read together, the two contrasts show
+that $\alpha$ precision at realistic $n$ is driven by data *quantity*, not by the
+*type* of choice: per choice, uncertain choices are at least as informative for
+$\alpha$ as risky ones, so the $\beta$-free risky block confers no special
+per-choice advantage. This *reverses* the pilot's attribution (§[6.4.4](#sec-m1-lesson)).
+
+::: {.callout-note appearance="simple"}
+**Conditional on the single-$\alpha$ assumption.** Comparing $\alpha$ precision
+across the uncertain and risky blocks presupposes a common $\alpha$ scale across
+blocks (§[5.3](#sec-m1-properties)). The per-block SEU-maximizer-rate check of
+§[6.3](#sec-m1-prior) is the available sanity check; the quantity-versus-type
+reading is reported as explicitly conditional on this assumption, not asserted
+outright. The block-specific generalization (`m_2`) is out of scope.
+:::
+
+### 6.4.2 $\delta$: the payoff is essentially nil {#sec-m1-delta-recovery .unnumbered}
+
+At matched choice count (B vs C), `m_1` narrows the $\delta$ CI width by only
+$\approx 0.8\%$ (paired-iteration median; bootstrap 90% CI $[0.6, 1.2]$; narrower
+in 72% of iterations; Wilcoxon signed-rank $p \approx 1.2\times10^{-6}$) and
+leaves $\delta$ RMSE statistically unchanged ($0.3\%$, 90% CI $[-4.0, +4.5]$).
+The CI-width effect is *real but practically negligible* --- even smaller than
+the pilot's $\approx 2\%$. The reading: $\delta$ is identifiable in `m_1`
+(§[5.5](#sec-delta-id), hence estimable *in the limit*) but **not precisely
+estimable at realistic sample sizes** in this design.
+
+### 6.4.3 $\beta$ {#sec-m1-beta-recovery .unnumbered}
+
+$\beta$ recovery in `m_1` is improved relative to `m_0` but remains subject to
+the additive row-shift gauge (§[2.6](#sec-notation); Appendix B.4); summaries
+target contrasts and induced $\bm{\psi}$, not absolute row levels.
+
+### 6.4.4 The methodological lesson --- two phenomena and a cautionary tale {#sec-m1-lesson .unnumbered}
+
+The matched comparison yields two separable substantive lessons plus a
+meta-lesson about the subsection itself; we keep all three apart.
+
+**(i) For $\delta$ --- the canonical lesson, sharpened.** State the mantra
+verbatim: *identifiable (hence estimable in the limit) $\neq$ precisely estimable
+at realistic sample sizes.* $\delta$ is identifiable in `m_1`
+(§[5.5](#sec-delta-id)), but the Fisher information for $\delta$ contributed by
+25 risky choices at moderate $\alpha$ is small: the matched B$\to$C comparison
+shrinks the $\delta$ CI width by $\approx 0.8\%$ and moves $\delta$ RMSE not at
+all. In-principle identification buys *essentially nothing* at the design sample
+size --- the identifiability-versus-estimability gap in its starkest form.
+
+**(ii) For $\alpha$ --- finite-$n$ precision tracks quantity, not type.** The
+pilot read the `m_1` $\alpha$ gain as a per-choice advantage of the $\beta$-free
+risky block; at $n = 100$ there is no such advantage (B$\to$C null). What
+sharpens $\alpha$ is simply *more data of the same kind* (A$\to$B: $-27.1\%$
+RMSE). The correct lesson is *not* "a special structure sharpens an
+already-identified parameter"; it is that **in-principle identifiability tells
+you nothing about where finite-$n$ precision comes from** --- here it comes from
+quantity, not type. Phenomena (i) and (ii) are distinct.
+
+**(iii) Meta-lesson.** This subsection is itself an instance of the paper's
+central caution. A first-pass recovery study at $n = 30$ reported a clean
+$\approx 15\%$ $\alpha$ gain and a $\approx 2\%$ $\delta$ gain attributable to
+choice *type*; the pre-registered re-run at $n = 100$ with bootstrap CIs reversed
+the $\alpha$ claim (sign and significance) and roughly quartered the $\delta$
+magnitude. Under-powered recovery studies can manufacture tidy effects that do
+not replicate, and in-principle identifiability arguments do not predict
+finite-$n$ estimability. The discipline the paper preaches --- run the recovery
+study, report CIs, *re-run at adequate $n$ before drawing the lesson* --- is
+exactly what caught the error.
+
+| | $\delta$ in `m_1` | $\alpha$ in `m_1` |
+| --- | --- | --- |
+| Identifiable in `m_0`? | yes (jointly weak) | yes |
+| What §5 promises | becomes identifiable via the $\beta$-free risky block | already identified |
+| Matched-count payoff (B$\to$C) | CI-width $-0.8\%$ $[0.6, 1.2]$; RMSE null | none: $-8.1\%$ $[-22.0, +6.8]$ |
+| Where finite-$n$ precision comes from | not realized at design $n$ | data *quantity* (A$\to$B: $-27.1\%$ RMSE $[+15.0, +38.5]$), not choice *type* |
+| Phenomenon | identifiability $\neq$ precise estimability at realistic $n$ | in-principle identification $\neq$ finite-$n$ gain; precision tracks quantity, not type |
+
+: The corrected matched-design contrast. All percentages are paired-iteration medians / bootstrap-over-iteration 90% CIs from the $n = 100$ re-run (`spikes/report14_rerun_results.json`, design seed 20260617, 10\,000 resamples). The 30-iteration pilot's $\approx 15\%$ / $\approx 2\%$ figures are superseded and must not be cited. {#tbl-matched}
+
+## 6.5 SBC for `m_1` {#sec-m1-sbc .unnumbered}
+
+Rank histograms and ECDF-difference plots for $\alpha$, $\beta$, $\delta$ are
+consistent with uniformity (Report 6). We do **not** claim an `m_0`$\to$`m_1`
+$\delta$-calibration improvement (e.g., a flatter histogram): marginal SBC is
+uniform for $\delta$ in *both* models, because the relevant $(\beta,\delta)$
+weakness lives in the *joint* posterior (the **marginal-SBC demarcation** again,
+§[4.4](#sec-m0-sbc)). The appropriate diagnostic is a joint or projection-based
+rank statistic (§[8.3](#sec-discussion), drafted later). The usual single-chain
+SBC caveats apply: thinning, single-chain Monte-Carlo error, and sample-size
+driven rank-resolution all bound what the histograms can detect.

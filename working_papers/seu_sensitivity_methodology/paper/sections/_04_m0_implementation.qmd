@@ -1,0 +1,136 @@
+# A Basic Computational Implementation: Model `m_0` in Stan {#sec-m0-implementation .unnumbered}
+
+> **§4.** *Concrete realization of §§[2](#sec-abstract-model)–[3](#sec-m0-identifiability).
+> Code excerpts are minimal; full Stan listings are in Appendix C (drafted
+> later), and the design constants are in Appendix D.0 (drafted later). Sources:
+> foundational Reports 2–4 and 6.*
+
+This section turns the abstract `m_0` model into an estimable Bayesian model and
+shows that the identifiability picture of §[3](#sec-m0-identifiability) is
+directly visible in a Stan implementation: $\alpha$ recovers well, $(\beta,
+\delta)$ recover poorly, and marginal simulation-based calibration (SBC)
+nonetheless passes for all three --- the *marginal-SBC demarcation*.
+
+## 4.1 Model specification {#sec-m0-spec .unnumbered}
+
+**Data.** $M$ decision problems; $R$ distinct alternatives with $D$-dimensional
+feature vectors $w_r$; availability indicators $I_{m,r} \in \{0,1\}$; observed
+choices $y_m$. A problem $m$ presents $N_m = \sum_r I_{m,r}$ alternatives.
+
+**Parameters and priors.**
+$$
+\alpha \sim \mathrm{Lognormal}(0, 1), \qquad
+\beta_{k,d} \sim \mathcal{N}(0,1), \qquad
+\delta \sim \mathrm{Dirichlet}(1, \dots, 1).
+$$
+The $\mathrm{Lognormal}(0,1)$ prior on $\alpha$ (median $1$, roughly 90% of mass
+in $(0.19, 5.18)$) is a *substantive* choice: it spans the full
+near-uniform-to-near-deterministic sensitivity range while concentrating mass
+near $\alpha = 1$. The prior shape co-determines which $\alpha$ values are
+well-measured in finite samples; we defend it via prior-predictive coverage in
+§[4.2](#sec-m0-prior).
+
+::: {.callout-note appearance="simple"}
+**Note for the reader (carried to §7).** This foundational $\mathrm{Lognormal}(0,1)$
+prior on $\alpha$ is *not* the application prior of §[7](#sec-application)
+(drafted later), which recalibrates to $\mathrm{Lognormal}(3.0, 0.75)$ for
+insurance and re-recalibrates for Ellsberg. The *likelihood* is unchanged across
+§4 and §7; only the $\alpha$ *prior* is recalibrated.
+:::
+
+**Transformed parameters.** $\bm{\psi}_r = \mathrm{softmax}(\beta\, w_r)$; the
+ordered utilities $\upsilon_k = \sum_{j<k}\delta_j$ via a cumulative sum
+(equivalently `upsilon = cumulative_sum(append_row(0, delta))`), so $\upsilon_1 =
+0$ and $\upsilon_K = 1$; and $\eta_r = \bm{\psi}_r^\top \bm{\upsilon}$.
+
+**Likelihood.** $y_m \sim \mathrm{Categorical}\big(\mathrm{softmax}(\alpha\,
+\eta_{[m]})\big)$, where $\eta_{[m]}$ collects the expected utilities of the
+alternatives available in problem $m$.
+
+::: {.callout-note appearance="simple"}
+**The $\beta$ gauge in the implementation.** Softmax invariance to a common
+per-column row shift (§[2.6](#sec-notation)) means $\beta$ has only $(K-1)\times
+D$ effective degrees of freedom. Rather than fix a reference row, `m_0` places an
+independent $\mathcal{N}(0,1)$ prior on all $K\times D$ entries and accepts the
+resulting ridge of constant prior density along the gauge; this weakly pins the
+gauge without biasing the recovered $\bm{\psi}$. Posterior summaries of $\beta$
+should therefore target row *contrasts* or the induced $\bm{\psi}$, never
+absolute row levels.
+:::
+
+## 4.2 Prior predictive analysis {#sec-m0-prior .unnumbered}
+
+The goal is to confirm that the priors permit a sensible *range* of choice
+behaviors before any data are seen. The summary statistic we monitor is the
+per-dataset **SEU-maximizer rate**: the fraction of choices that select the
+expected-utility-maximal available alternative under the simulated parameters.
+Drawing $(\alpha, \beta, \delta)$ from the prior, simulating data via
+`m_0_sim.stan`, and tabulating this rate shows its prior-predictive distribution
+covering the full range from near-uniform choice (rate $\approx 1/\bar N$, the
+chance baseline) to near-deterministic SEU maximization (rate $\approx 1$). The
+$\mathrm{Lognormal}(0,1)$ prior on $\alpha$ places substantial mass at both low
+(near-random) and high (near-deterministic) sensitivities, so neither regime is
+ruled out a priori.
+
+## 4.3 Parameter recovery {#sec-m0-recovery .unnumbered}
+
+**Paradigm.** Draw parameters from the prior via `m_0_sim.stan`, simulate data,
+fit `m_0.stan`, and compare posterior summaries to the known true values. We
+evaluate bias ($\approx 0$ ideal), credible-interval coverage ($\approx$ nominal
+90%), and interval width / RMSE as precision measures.
+
+**$\alpha$ recovery.** $\alpha$ recovers with low bias, well-calibrated 90%
+intervals, and useful precision; the headline display is a true-versus-estimated
+scatter with 90% credible intervals. This is the computational counterpart of
+Proposition 3.1: $\alpha$ is identified from $\eta$, and the data supply ample
+curvature to pin it.
+
+**$\beta$ and $\delta$ recovery.** By contrast $(\beta, \delta)$ show detectably
+wider intervals, intervals that narrow more slowly with sample size, and a
+visible negative correlation between $\beta$ and $\delta$ estimation errors
+across iterations. This is the *computational manifestation* of the weak
+$(\beta,\delta)$ identifiability of §[3.4](#sec-bd-weak): the Fisher ridge made
+visible as a tilted posterior and wide marginal intervals. Crucially, the poor
+$(\beta, \delta)$ recovery does *not* contaminate $\alpha$ --- exactly as the
+choice-probability-preserving separation argument of §[3.5](#sec-m0-link)
+predicts.
+
+## 4.4 Simulation-based calibration {#sec-m0-sbc .unnumbered}
+
+**Method.** SBC draws a parameter from the prior, simulates data, fits the
+model, and computes the rank of the true value within the posterior draws; under
+correct calibration these ranks are uniform [@talts2018]. We diagnose
+uniformity with rank histograms and the ECDF-difference plot with a simultaneous
+confidence band [@modrak2023], at $N_{\mathrm{sbc}} = 999$, thinning $4$, single
+chain, with the $L = N_{\mathrm{sbc}}$ convention (Appendix D.3, drafted later).
+
+**Result.** At $N_{\mathrm{sbc}} = 999$ the marginal rank distributions are
+consistent with uniformity for $\alpha$, $\beta$, *and* $\delta$. This run does
+**not** independently reproduce the weak $(\beta,\delta)$ identifiability of
+§§[3](#sec-m0-identifiability)–[4.3](#sec-m0-recovery), because that weakness is
+a *joint* phenomenon --- a tilted $(\beta,\delta)$ posterior ridge --- to which
+marginal SBC is blind.
+
+::: {.callout-important appearance="simple"}
+**The marginal-SBC demarcation.** *Marginal rank uniformity is necessary but not
+sufficient for joint posterior calibration; a ridge in the joint
+$(\beta,\delta)$ posterior is invisible to per-parameter SBC.* The positive
+contribution of SBC here is therefore threefold: (i) **sampler/implementation
+validation** --- uniform marginal ranks at $N_{\mathrm{sbc}} = 999$ are direct
+evidence that the Stan implementation (priors, simplex and ordered transforms,
+softmax curvature, HMC geometry) samples correctly from the joint posterior it
+encodes; (ii) **marginal calibration** --- per-parameter credible intervals are
+usable as marginal uncertainty summaries; and (iii) the **demarcation** itself
+--- a precise statement of what marginal calibration can and cannot diagnose,
+which motivates a joint or projection-based rank statistic as future work
+(§[8.3](#sec-discussion), drafted later). We do *not* claim per-parameter
+calibration "fingerprints" or an `m_0`$\to$`m_1` histogram improvement.
+:::
+
+## 4.5 Section summary {#sec-m0-impl-summary .unnumbered}
+
+`m_0` succeeds at recovering $\alpha$ --- the parameter of primary interest ---
+but the weak identifiability of $(\beta,\delta)$ leaves the expected-utility
+*content* underdetermined at realistic $n$. This motivates the extended model of
+§[5](#sec-m1-identifiability), whose implementation we take up in
+§[6](#sec-m1-implementation).

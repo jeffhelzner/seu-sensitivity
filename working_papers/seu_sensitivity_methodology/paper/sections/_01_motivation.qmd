@@ -1,0 +1,207 @@
+# Motivation {#sec-motivation .unnumbered}
+
+> **§1.** *Conceptual; no software. Motivates the measurement problem, fixes
+> subjective expected utility (SEU) maximization as the stated standard, and
+> states the contribution and roadmap. The formal development begins in
+> §[2](#sec-abstract-model).*
+
+## 1.1 Two questions about a decision {#sec-two-questions .unnumbered}
+
+There are two distinct questions one can ask about a decision. The first is
+*external*: did the choice match the outcome we cared about --- did the claim
+that was forwarded turn out to be fraudulent, did the gamble that was taken pay
+off? The second is *procedural*: did the choice have the right *internal
+structure* relative to a stated standard --- was it responsive to the
+probabilities, the stakes, and the tradeoffs in the way the standard
+prescribes? The two questions can come apart. A decision can be procedurally
+impeccable and still turn out badly, because the world is uncertain; and a
+decision can be procedurally incoherent and still turn out well, because luck
+is not selective. When we evaluate a decision maker --- a human analyst, an
+institution, or, increasingly, a large language model deployed to make or
+recommend choices --- we usually care about the second question, even when only
+the first is easy to score.
+
+## 1.2 Why labeled accuracy under-determines decision quality {#sec-why-labels-fail .unnumbered}
+
+The natural way to evaluate choices is to score them against labels: known
+correct answers, realized outcomes, or expert adjudications. For procedural
+evaluation this is often unavailable or misleading. Labels may be simply
+*absent* --- many consequential choices are made in domains where no
+ground-truth key exists. They may be *costly* --- obtaining an outcome can
+require running an expensive experiment or waiting out a long horizon. They may
+be *judgment-dependent* --- the "correct" label is itself a contested expert
+opinion rather than a fact. And, most fundamentally, they may be *confounded
+with luck*: a decision under uncertainty is made *before* the uncertainty
+resolves, while the outcome is observed *after*, so any outcome-based score
+conflates the quality of the decision with the realization of chance. An agent
+that reliably makes well-structured choices will still accumulate bad outcomes
+at a rate set by the irreducible noise of its environment. Scoring against
+realized outcomes therefore measures a mixture of competence and fortune, and
+the mixing weights are exactly the thing we cannot observe.
+
+## 1.3 The need for procedural evaluation {#sec-procedural .unnumbered}
+
+What survives the absence of clean labels is the *structure* of the choices
+themselves. If we are willing to state a standard of good decision making
+explicitly, we can ask whether an agent's choices are responsive to
+probabilities, utilities, and tradeoffs in the way that standard prescribes ---
+without ever needing to know which choice was, in hindsight, correct.
+Procedural evaluation trades a claim about outcomes for a claim about
+conformity to a stated norm. The price of admission is that one must name the
+norm; the payoff is an evaluation that is well defined even where no outcome key
+exists, and that is not contaminated by the luck of the draw.
+
+## 1.4 SEU as the stated standard {#sec-seu-standard .unnumbered}
+
+We take *subjective expected utility (SEU) maximization* as the reference
+standard. An SEU-committed agent holds a subjective probability over the states
+of the world and a utility over consequences, and prefers the alternative whose
+expected utility is greatest [@savage1954; @anscombe1963definition;
+@vonneumann1947]. We do *not* argue that SEU is the uniquely correct theory of
+rational choice, and nothing below depends on that stronger claim. The argument
+is conditional: *if* SEU is the reference standard, then a graded, statistically
+rigorous measure of conformity to it is methodologically useful. SEU is the
+natural first case for such an instrument for two reasons. It is the most widely
+shared normative benchmark in decision theory, so a conformity measure built on
+it speaks to the largest audience; and its likelihood structure is the
+best understood, which makes it the cleanest setting in which to ask the
+identifiability questions that occupy §§[3](#sec-m0-identifiability) and
+[5](#sec-m1-identifiability). Parallel instruments for non-SEU standards ---
+rank-dependent utility [@tversky1992], cumulative prospect theory
+[@kahneman1979], or maxmin expected utility [@gilboa1989] --- are possible by
+the same template and are out of scope here.
+
+## 1.5 Why a graded measure rather than a binary verdict {#sec-graded .unnumbered}
+
+Real decision makers, human or machine, only ever *approximately* satisfy any
+rationality axiom [@simon1955; @lieder2020]. A binary verdict --- "rational" or
+"not" --- discards exactly the information that an evaluation should preserve,
+namely *how closely* and *how reliably* an agent's choices track the standard. We
+therefore measure conformity on a continuum. The formal vehicle, developed in
+§[2](#sec-abstract-model), is a softmax (Luce--McFadden) choice model
+[@luce1959; @mcfadden1974; @train2009] carrying a single scalar *sensitivity*
+parameter $\alpha \geq 0$ applied to SEU-valued alternatives. As $\alpha$ ranges
+from $0$ to $\infty$, the implied behavior runs from uniform-random choice
+(insensitive to expected utility) to deterministic SEU maximization (perfectly
+sensitive to it). The empirically interesting agents live strictly between these
+poles, and $\alpha$ is the coordinate that locates them there. We call $\alpha$
+the agent's **SEU sensitivity**: the disposition of an agent committed to SEU
+maximization to act in accordance with that commitment, held separate from both
+the *content* of the commitment (the agent's beliefs and utilities) and the
+*outcomes* it happens to realize.
+
+## 1.6 Scope {#sec-scope .unnumbered}
+
+This paper is methodological. Its center of gravity is a calibrated measurement
+instrument and the identifiability analysis that licenses it; the
+decision-theoretic and philosophical framing is a register, not the disciplinary
+home. §§[2](#sec-abstract-model)--[6](#sec-m1-implementation) specify, motivate,
+and validate the instrument: the abstract choice model and its three
+characterizing properties (§[2](#sec-abstract-model)), the identifiability of
+$\alpha$ together with the *weak* identifiability of the belief and utility
+parameters $(\beta, \delta)$ in an uncertain-choice-only model
+(§[3](#sec-m0-identifiability)), a Stan implementation validated by prior
+predictive checks, parameter recovery, and simulation-based calibration (SBC)
+(§[4](#sec-m0-implementation)), and the same arc for an extended model that adds
+risky choices (§§[5](#sec-m1-identifiability)--[6](#sec-m1-implementation)).
+§[7](#sec-application) then runs the full workflow end-to-end on real LLM choice
+data: a $2\times2$ illustrative application crossing GPT-4o and Claude 3.5 Sonnet
+with insurance-claims triage and Ellsberg-style urn gambles
+[@ellsberg1961], using sampling temperature as the experimental lever. The
+application is included to show that the methodology does real evaluative work on
+real choice data [@binz2023; @hagendorff2023]; it is *not* a substantive
+contribution to LLM behavioral science, and §[7.6](#sec-app-limits) draws that
+line explicitly.
+
+Several things are deliberately out of scope, and are flagged once at their
+natural locations rather than revisited: an information-optimal lottery design
+for sharpening the utility parameter (future work, §[8.5](#sec-disc-limitations)); the
+hierarchical extension `h_m01` and the multi-LLM alignment study it was built for
+(a planned companion paper, §[7.7](#sec-app-followup)); generalized-sensitivity
+models with block-specific or context-specific $\alpha$; a test for ambiguity
+aversion in the Ellsberg setting (the SEU-plus-softmax model is, by assumption,
+of the wrong form for that, §[7.6](#sec-app-limits)); and any absolute-rationality
+ranking *between* LLMs (only within-design comparative claims about $\alpha$ are
+licensed). The target length is roughly 35--45 pages (about 25 of body plus
+appendices), a budget that disciplines the application's expansiveness in
+particular.
+
+## 1.7 What is new {#sec-contribution .unnumbered}
+
+Multinomial logit is McFadden's [@mcfadden1974]; Stan, SBC, and the
+prior-predictive/recovery/SBC workflow have been standard practice for a decade
+[@carpenter2017; @talts2018; @gelman2020]. The contribution here is not any one
+of these tools but the following four-part package.
+
+::: {.callout-note appearance="simple"}
+**(a) A clean identifiability decomposition.** We separate the identifiability
+of $\alpha$ *from the expected-utility vector* $\eta$ --- stated as a proposition
+under an explicit genericity condition (§[3.3](#sec-alpha-from-eta), Appendix
+B.1) --- from the *ridge* identifiability of $(\beta, \delta)$, stated as a
+**numerically-supported proposition**: a Fisher-information / near-kernel claim
+verified by direct computation (§[3.4](#sec-bd-weak), Appendix B.2), *not* a
+strict invariance theorem. The two facets are one structural picture
+(§[3.5](#sec-m0-link)): $\alpha$ is read off the curvature of choice
+probabilities in $\eta$, while beliefs and utilities enter only *through* $\eta$
+and trade off along a low-curvature ridge that uncertain-choice data barely
+resolves.
+
+**(b) A worked demonstration that in-principle identifiability does not predict
+finite-sample estimability.** The `m_0`/`m_1` contrast makes the gap concrete in
+two distinct ways. For the utility parameter $\delta$, adding the risky block
+makes it identifiable in principle (§[5.5](#sec-delta-id)) yet buys almost no
+precision at the design sample size --- a matched-count credible-interval-width
+reduction under 1% (§[6.4](#sec-m1-recovery)). For the sensitivity parameter
+$\alpha$, a matched recovery study shows that finite-sample precision is governed
+by data *quantity*, not by the *type* of choice that an in-principle argument
+might privilege. A first-pass recovery study at $n = 30$ reported a tidy
+$\approx 15\%$ $\alpha$ gain attributable to choice type; a pre-registered re-run
+at $n = 100$ reversed it. We report that reversal as a cautionary instance of the
+very discipline the paper advocates.
+
+**(c) The marginal-SBC demarcation.** Marginal rank uniformity is *necessary but
+not sufficient* for joint posterior calibration: a ridge in the joint
+$(\beta, \delta)$ posterior is invisible to per-parameter SBC, which passes for
+both models even where the joint belief--utility posterior is only weakly
+identified (§§[4.4](#sec-m0-sbc), [6.5](#sec-m1-sbc), [8.3](#sec-discussion)).
+
+**(d) An honestly reported full-pipeline application** of the instrument to LLM
+choice data, in which every validation diagnostic comes in clean and the
+framework detects a structured comparative effect in two of four LLM$\times$task
+cells while declining to support one in the other two
+(§[7](#sec-application)).
+:::
+
+## 1.8 Roadmap {#sec-roadmap .unnumbered}
+
+The paper alternates between *abstract/identifiability* sections and their
+*computational* realizations, then applies the result. §[2](#sec-abstract-model)
+fixes the abstract model. §[3](#sec-m0-identifiability) establishes the
+identifiability picture for the uncertain-choice-only model `m_0`, and
+§[4](#sec-m0-implementation) realizes and validates it in Stan.
+§[5](#sec-m1-identifiability) extends the model with risky choices and revisits
+identifiability, and §[6](#sec-m1-implementation) realizes and validates the
+extension --- inheriting both the design and the identifiability questions from
+the earlier pair. §[7](#sec-application) runs the validated workflow on real LLM
+data, and §[8](#sec-discussion-top) draws the methodological lessons together.
+The formal backbone --- the proofs that close §§[3](#sec-m0-identifiability) and
+[5](#sec-m1-identifiability) --- lives in Appendix B; the body states results and
+points to it. Concretely, the dependency structure is
+
+$$
+\underbrace{\S2}_{\text{model}}
+\;\longrightarrow\;
+\underbrace{\S3 \to \S4}_{\texttt{m\_0}}
+\;\longrightarrow\;
+\underbrace{\S5 \to \S6}_{\texttt{m\_1}}
+\;\longrightarrow\;
+\underbrace{\S7}_{\text{application}}
+\;\longrightarrow\;
+\underbrace{\S8}_{\text{discussion}},
+$$
+
+with §[3](#sec-m0-identifiability) feeding *both* §[4](#sec-m0-implementation) and
+§[5](#sec-m1-identifiability), the two implementation sections
+(§§[4](#sec-m0-implementation), [6](#sec-m1-implementation)) converging on the
+application, and Appendix B supplying the proofs that close the two
+identifiability sections.

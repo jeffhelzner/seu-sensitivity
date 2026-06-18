@@ -1,0 +1,125 @@
+# The Extended Abstract Model with Risky Choices {#sec-m1-identifiability .unnumbered}
+
+> **§5.** *Conceptual and mathematical. The load-bearing justification for adding
+> risky alternatives is a two-step structural argument; Anscombe–Aumann is
+> mentioned once, as conceptual lineage, not as the engine.*
+
+## 5.1 Enriching the choice domain --- a two-step structural argument {#sec-m1-twostep .unnumbered}
+
+The extended model ("`m_1`") augments the uncertain-choice setup with risky
+alternatives whose probabilities are objectively given. The justification has two
+steps; Step 1 alone does *not* identify $\delta$ --- Step 2 closes the argument.
+
+::: {.callout-note appearance="simple"}
+**Step 1 ($\beta$-free risky expected utility).** A risky alternative $s$ carries
+an objective lottery $\pi_s \in \Delta^{K-1}$ over the $K$ consequences, and its
+expected utility is $\eta^{(r)}_s = \pi_s^\top \bm{\upsilon}$, which does *not*
+pass through the belief-formation map. The risky block therefore supplies
+information about $\bm{\upsilon}$ (hence $\delta$) that is *free of* $\beta$: the
+gradient of the risky log-likelihood with respect to $\delta$ does not also
+depend on $\beta$. By itself this supplies unconfounded gradients but not
+invertibility.
+:::
+
+::: {.callout-note appearance="simple"}
+**Step 2 (lottery diversity $\Rightarrow$ identification).** *Given sufficient
+lottery diversity* --- affine independence of the lottery simplex vectors
+$\{\pi_s\}$ (§[5.5](#sec-delta-id)), which requires $S \geq K$ --- the $\beta$-free
+risky information *identifies* $\delta$.
+:::
+
+*History (brief).* Knight [-@knight1921risk] distinguished risk from uncertainty;
+von Neumann and Morgenstern [-@vonneumann1944theory] axiomatized expected utility
+under risk; Savage [-@savage1954foundations] gave SEU under uncertainty.
+Anscombe and Aumann [-@anscombe1963definition] combined the two by considering
+acts mapping states to lotteries, which lets one identify utilities from the
+risky margin and beliefs from the state margin. Our `m_1` uses a *related
+empirical strategy*: the connection is conceptual, not a direct application of
+the Anscombe–Aumann representation theorem. The load-bearing fact is Steps 1+2,
+not the representation theorem.
+
+## 5.2 The extended model {#sec-m1-model .unnumbered}
+
+Augment the $M$ uncertain problems with $N$ risky problems built from $S$
+distinct lotteries $\pi_s$ (objective simplexes over the $K$ consequences). The
+model shares the same $\alpha$ and the same $\delta \to \bm{\upsilon}$ map across
+both blocks; risky expected utilities $\eta^{(r)}_s = \pi_s^\top \bm{\upsilon}$
+depend only on $\delta$, not on $\beta$. (The Stan code names $\pi_s$ as
+`x_risky`; we gloss this inline in code excerpts and use $\pi$ in the body.)
+
+## 5.3 Preservation of the three sensitivity properties {#sec-m1-properties .unnumbered}
+
+The softmax properties of §[2.3](#sec-three-properties) are properties of the
+choice rule given *any* value function, so they apply unchanged to both uncertain
+and risky sub-problems. Therefore the interpretation of $\alpha$ as
+sensitivity-to-SEU-maximization is preserved in the extended model.
+
+::: {.callout-warning appearance="simple"}
+**Single-$\alpha$ assumption (load-bearing; stated as a conditional).** `m_1`
+asserts a *single* $\alpha$ governing both sub-problems --- i.e., the agent's
+responsiveness to expected-utility differences does not depend on whether
+probabilities are objective or subjective. This is a substantive, testable
+assumption, and it is load-bearing for the §[6.4](#sec-m1-implementation)
+(drafted later) interpretation of the matched recovery contrasts: the
+quantity-versus-type reading of those contrasts requires a *common* $\alpha$
+scale across blocks. If $\alpha$ differed across blocks, the matched comparison
+would conflate a choice-*type* effect with a *block-mix* effect on the effective
+$\alpha$-precision. The generalization with separate
+$\alpha_{\text{unc}}, \alpha_{\text{risky}}$ (the companion model `m_2`) is named
+but not pursued here. **Consequently, every conclusion that compares $\alpha$
+across the uncertain and risky blocks is reported as explicitly conditional on
+this single-$\alpha$ assumption**, supported where the data permit by a per-block
+SEU-maximizer-rate sanity check (§[6.3](#sec-m1-implementation), drafted later);
+absent that check, the conditional phrasing is mandatory, not optional.
+:::
+
+## 5.4 Identifiability of $\alpha$ in the extended model {#sec-m1-alpha .unnumbered}
+
+::: {.callout-note appearance="simple"}
+**Proposition 5.1 (Identifiability of $\alpha$).** Proposition 3.1 holds
+unchanged when $\eta$ is composed of both uncertain and risky alternatives: if
+some menu of positive design probability has non-constant $\eta$, then
+$\alpha > 0$ is identifiable from the choice-probability function.
+:::
+
+## 5.5 Identifiability of $\delta$ in the extended model {#sec-delta-id .unnumbered}
+
+::: {.callout-note appearance="simple"}
+**Proposition 5.2 (Identifiability of $\delta$).** Under affine independence of
+the lottery simplex vectors $\{\pi_s\}$ --- which requires $S \geq K$ and a
+generic configuration --- $\delta$ is globally identifiable from risky-choice
+probabilities alone with $\alpha > 0$.
+:::
+
+*Intuition (full proof in Appendix B.3).* A risky menu's softmax depends on the
+linear functional $\pi_s^\top \bm{\upsilon}$. Affine independence of the $\{\pi_s\}$
+makes the linear map $\bm{\upsilon} \mapsto (\pi_s^\top \bm{\upsilon})_s$
+injective on the endpoint-constrained utility space, so the risky
+choice-probabilities recover $\bm{\upsilon}$ and hence $\delta$. With $K = 3$ and
+$S = 15$ (Appendix D.0) the dimension condition is amply satisfied. The proof is
+a linear-algebra inversion.
+
+## 5.6 Identifiability of $\beta$ modulo the row-shift gauge {#sec-m1-beta .unnumbered}
+
+::: {.callout-note appearance="simple"}
+**Proposition 5.3 (Identifiability of $\beta$).** With $\delta$ pinned by risky
+choices and $\alpha$ pinned by either block, $\beta$ is identified from uncertain
+choices modulo the additive row-shift gauge of §[2.6](#sec-notation).
+:::
+
+Once $\delta$ (hence $\bm{\upsilon}$) is fixed, the uncertain-choice likelihood
+constrains $\bm{\psi}_r = \mathrm{softmax}(\beta w_r)$, which pins $\beta$ up to
+the row-shift gauge; the argument is bookkeeping once Proposition 5.2 is in place
+(Appendix B.4).
+
+## 5.7 The conceptual upshot --- and its finite-sample caveat {#sec-m1-upshot .unnumbered}
+
+Enriching the choice domain with risky alternatives yields, *in principle*,
+simultaneous identification of beliefs and utilities: $\delta$ from the
+$\beta$-free risky block (Step 1) plus lottery diversity (Step 2), $\alpha$ from
+either block, and $\beta$ from the uncertain block modulo the row-shift gauge.
+But in-principle identification implies only estimability *in the limit*.
+§[6](#sec-m1-implementation) (drafted later) asks whether the gain is realized at
+realistic finite sample sizes, and finds that for $\delta$ it largely is not ---
+the cleanest illustration in the paper of the gap between identifiability and
+precise estimability.

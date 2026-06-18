@@ -1,0 +1,105 @@
+# Appendix A. Proofs of the Softmax-Choice Properties {#sec-appendix-a .unnumbered}
+
+> *Proofs of the three properties stated in §[2.3](#sec-three-properties), plus
+> the scale-invariance result underlying the $\bm{\upsilon}$-endpoint convention
+> of §[2.6](#sec-notation). These are the only results in the paper that hold as
+> closed-form proofs without a genericity or curvature caveat.*
+
+Throughout, fix a value function $V : \mathcal{R} \to \mathbb{R}$ on the
+available set, write $P(r) = \exp(\alpha V(r)) / Z(\alpha)$ with partition
+function $Z(\alpha) = \sum_{j} \exp(\alpha V(j))$, $V^\ast = \max_r V(r)$,
+$\mathcal{R}^\ast = \{r : V(r) = V^\ast\}$, and $\mathcal{R}^- = \mathcal{R}
+\setminus \mathcal{R}^\ast$.
+
+## A.1 Monotonicity in sensitivity (Property 1) {#sec-a-monotonicity .unnumbered}
+
+::: {.callout-note appearance="simple"}
+**Theorem A.1.** Holding $V$ fixed, $P(r)$ is strictly increasing in $\alpha$
+for $r \in \mathcal{R}^\ast$ and strictly decreasing in $\alpha$ for
+$r \in \mathcal{R}^-$.
+:::
+
+*Proof.* Differentiating $P(r) = \exp(\alpha V(r))/Z(\alpha)$ by the quotient
+rule and using $Z'(\alpha) = \sum_j V(j)\exp(\alpha V(j))$,
+$$
+\frac{\partial P(r)}{\partial \alpha}
+  = P(r)\Big[V(r) - \frac{Z'(\alpha)}{Z(\alpha)}\Big]
+  = P(r)\big[V(r) - \mathbb{E}_\alpha[V]\big],
+$$
+where $\mathbb{E}_\alpha[V] = \sum_j P(j) V(j)$ is the expected value under the
+current choice distribution. For any finite $\alpha$ every alternative receives
+positive probability, so $\mathbb{E}_\alpha[V] < V^\ast$ strictly. Hence for
+$r \in \mathcal{R}^\ast$, $V(r) = V^\ast > \mathbb{E}_\alpha[V]$ gives
+$\partial P(r)/\partial\alpha > 0$; and for $r \in \mathcal{R}^-$, $V(r) < V^\ast$
+while $\mathbb{E}_\alpha[V] \ge P(\mathcal{R}^\ast)V^\ast + (1-P(\mathcal{R}^\ast))V(r)
+> V(r)$, giving $\partial P(r)/\partial\alpha < 0$. $\qquad\blacksquare$
+
+## A.2 Optimization limit (Property 2) {#sec-a-optimization .unnumbered}
+
+::: {.callout-note appearance="simple"}
+**Theorem A.2.** As $\alpha \to \infty$, $P(r) \to 1/|\mathcal{R}^\ast|$ for
+$r \in \mathcal{R}^\ast$ and $P(r) \to 0$ for $r \in \mathcal{R}^-$.
+:::
+
+*Proof.* Divide numerator and denominator of $P(r)$ by $\exp(\alpha V^\ast)$.
+For $r \in \mathcal{R}^\ast$,
+$$
+P(r) = \frac{1}{|\mathcal{R}^\ast| + \sum_{j \in \mathcal{R}^-}\exp(\alpha[V(j)-V^\ast])}
+  \;\longrightarrow\; \frac{1}{|\mathcal{R}^\ast|},
+$$
+since $V(j) - V^\ast < 0$ for $j \in \mathcal{R}^-$. For $r \in \mathcal{R}^-$
+the numerator is $\exp(\alpha[V(r)-V^\ast]) \to 0$ while the denominator is
+bounded below by $|\mathcal{R}^\ast| > 0$, so $P(r) \to 0$. $\qquad\blacksquare$
+
+*Remark.* Ties ($|\mathcal{R}^\ast| > 1$) have measure zero under the continuous
+priors of §[4](#sec-m0-implementation); the unique-maximizer case is generic and
+gives deterministic optimal choice in the limit.
+
+## A.3 Uniform-choice limit (Property 3) {#sec-a-uniform .unnumbered}
+
+::: {.callout-note appearance="simple"}
+**Theorem A.3.** As $\alpha \to 0$, $P(r) \to 1/|\mathcal{R}|$ for all
+$r \in \mathcal{R}$, independent of $V$.
+:::
+
+*Proof.* By the expansion $\exp(x) = 1 + x + O(x^2)$,
+$$
+P(r) = \frac{1 + \alpha V(r) + O(\alpha^2)}{|\mathcal{R}| + \alpha\sum_j V(j) + O(\alpha^2)}
+  \;\longrightarrow\; \frac{1}{|\mathcal{R}|}
+$$
+as $\alpha \to 0$. Equivalently, $\log P(r) = -\log|\mathcal{R}| + \alpha[V(r) -
+\bar V] + O(\alpha^2)$ with $\bar V = |\mathcal{R}|^{-1}\sum_j V(j)$, so
+$P(r) \to 1/|\mathcal{R}|$. $\qquad\blacksquare$
+
+## A.4 Scale invariance and the utility-endpoint convention {#sec-a-scale .unnumbered}
+
+::: {.callout-note appearance="simple"}
+**Theorem A.4 (Scale invariance).** Let $\tilde{\upsilon}_k = a\,\upsilon_k + b$
+with $a > 0$. Then $\tilde{\eta}_r = a\,\eta_r + b$ for all $r$, and
+$$
+P(\text{choose } r \mid \alpha, \tilde{\bm{\upsilon}})
+  = P(\text{choose } r \mid \alpha a,\, \bm{\upsilon}).
+$$
+The pairs $(\alpha, \bm{\upsilon})$ and $(\alpha a, \tilde{\bm{\upsilon}})$
+generate identical choice probabilities.
+:::
+
+*Proof.* Since $\sum_k \psi_{r,k} = 1$, $\tilde\eta_r = \sum_k \psi_{r,k}(a\upsilon_k
++ b) = a\eta_r + b$. Substituting into softmax, the additive constant $\alpha b$
+cancels between numerator and denominator and the multiplicative factor combines
+with $\alpha$:
+$$
+P(r \mid \alpha, \tilde{\bm{\upsilon}})
+  = \frac{\exp(\alpha[a\eta_r + b])}{\sum_j \exp(\alpha[a\eta_j + b])}
+  = \frac{\exp(\alpha a\,\eta_r)}{\sum_j \exp(\alpha a\,\eta_j)}
+  = P(r \mid \alpha a, \bm{\upsilon}). \qquad\blacksquare
+$$
+
+*Consequence.* Without fixing the utility scale, $\alpha$ and the scale of
+utility are confounded: scaling utilities by $a$ is equivalent to scaling
+sensitivity by $1/a$. Fixing the endpoints $\upsilon_1 = 0$, $\upsilon_K = 1$
+(the $\bm{\upsilon}$-endpoint convention of §[2.6](#sec-notation)) selects a
+representative from the affine equivalence class and renders $\alpha$
+identifiable, with the precise interpretation that $\log[P(r)/P(s)] = \alpha
+(\eta_r - \eta_s)$ on a standardized scale where the full utility range spans one
+unit.

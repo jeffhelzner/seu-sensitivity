@@ -1,0 +1,187 @@
+# Discussion {#sec-discussion-top .unnumbered}
+
+> **§8.** *Restates what the instrument measures, the methodological roles of
+> identifiability analysis and computational validation, why $\alpha$ is the
+> primary quantity of interest, and the limitations and extensions. No new
+> results; the substantive findings are in §§[3](#sec-m0-identifiability)--[7](#sec-application).*
+
+## 8.1 What "sensitivity to SEU maximization" means, restated {#sec-disc-meaning .unnumbered}
+
+Sensitivity to SEU maximization is the *disposition* of an agent committed to
+SEU maximization to act in accordance with that commitment. The model
+decomposes choice behavior into three conceptually distinct objects: (i) the
+agent's beliefs ($\beta$, hence the subjective probabilities $\psi$); (ii) the
+agent's utilities ($\delta$, hence the ordered utilities $\bm{\upsilon}$); and
+(iii) the agent's sensitivity $\alpha$ to the expected-utility ranking those
+beliefs and utilities induce. Beliefs and utilities are *what* the agent is
+committed to; $\alpha$ is *how reliably* the agent acts on those commitments.
+The three softmax-choice properties of §[2.3](#sec-three-properties) ---
+monotonicity in $\alpha$, the optimization limit, and the uniform-choice limit
+--- are exactly what license reading $\alpha$ as a graded measure that runs from
+near-uniform choice ($\alpha \to 0$) to deterministic SEU maximization
+($\alpha \to \infty$).
+
+## 8.2 The methodological role of identifiability analysis {#sec-disc-identifiability .unnumbered}
+
+Identifiability is a property of the *likelihood*: it tells us which parameters
+could in principle be recovered from choice data. It does *not* tell us how much
+data, or how good a design, is needed to recover them precisely. The mantra,
+stated verbatim:
+
+::: {.callout-important appearance="simple"}
+*Identifiable (hence estimable in the limit) $\neq$ precisely estimable at
+realistic sample sizes.*
+:::
+
+The `m_0` / `m_1` contrast illustrates *both* sides of this distinction, and the
+paper is careful to keep the two sides apart (§[6.4.4](#sec-m1-lesson)):
+
+- **For $\delta$ --- identifiability without precise estimability.** In `m_1`,
+  $\delta$ is globally identifiable from the $\beta$-free risky block under
+  lottery diversity (§[5.5](#sec-delta-id)). Yet at the design's sample sizes
+  the matched-count payoff is essentially nil: a $\delta$ CI-width reduction of
+  $\approx 0.8\%$ (paired-iteration median; bootstrap 90% CI $[0.6, 1.2]$;
+  Wilcoxon $p \approx 1.2\times10^{-6}$) and no change in $\delta$ RMSE. The
+  effect is statistically real but practically negligible --- the
+  identifiability-versus-estimability gap in its starkest form.
+- **For $\alpha$ --- in-principle identifiability is silent about where finite-$n$
+  precision comes from.** $\alpha$ is identifiable from $\eta$ in both models
+  (§[3.3](#sec-alpha-from-eta), §[5.4](#sec-m1-alpha)). The matched recovery
+  study shows that at realistic $n$ its precision is governed by data
+  *quantity*, not by the *type* of choice: doubling the uncertain block alone
+  sharpens $\alpha$ ($A \to B$: RMSE $-27.1\%$, 90% CI $[+15.0, +38.5]$),
+  whereas swapping in an equal count of $\beta$-free risky choices does not
+  ($B \to C$: $-8.1\%$, 90% CI $[-22.0, +6.8]$, straddling zero). An in-principle
+  identification argument predicts neither of these finite-$n$ facts.
+
+A worked instance of the discipline sits inside the paper itself: a first-pass
+recovery study at $n = 30$ reported a tidy $\approx 15\%$ $\alpha$ gain
+attributable to choice type, and a pre-registered re-run at $n = 100$ with
+bootstrap CIs reversed it (sign and significance) while roughly quartering the
+$\delta$ magnitude (§[6.4.4](#sec-m1-lesson)). Under-powered recovery studies can
+manufacture clean effects that do not replicate; the remedy --- run the recovery
+study, report CIs, and re-run at adequate $n$ before drawing the lesson --- is
+exactly what caught the error.
+
+## 8.3 The methodological role of computational validation {#sec-discussion .unnumbered}
+
+Three checks should be standard practice for any choice-theoretic measurement
+instrument, and the paper treats them as such. *Prior predictive checks*
+(§[4.2](#sec-m0-prior), §[6.3](#sec-m1-prior)) expose what a prior implies before
+any data are seen; in this setting the SEU-maximizer-rate statistic makes the
+$\alpha$ prior's behavioral content legible and turns per-study prior
+recalibration into a principled, repeatable step (§[7.3](#sec-app-model)).
+*Parameter recovery* and *simulation-based calibration* (SBC) together test
+whether the posterior recovers known truths --- recovery for bias, precision,
+and interval coverage; SBC for calibration of the whole *(prior, likelihood,
+sampler)* triple.
+
+A specific caution emerges from our results, which we name so it is citable
+rather than discursive:
+
+::: {.callout-warning appearance="simple"}
+**The marginal-SBC demarcation.** Marginal rank uniformity is *necessary but not
+sufficient* for joint posterior calibration. A ridge in the joint
+$(\beta, \delta)$ posterior is invisible to per-parameter SBC: marginal SBC
+passes for $\alpha$, $\beta$, *and* $\delta$ in both `m_0` and `m_1`
+(§[4.4](#sec-m0-sbc), §[6.5](#sec-m1-sbc)) even though the $(\beta, \delta)$
+content is only weakly (ridge-)identified at realistic $n$
+(§[3.4](#sec-bd-weak)).
+:::
+
+The positive contribution of SBC here is therefore threefold: (i)
+sampler/implementation validation --- uniform marginal ranks at
+$N_{\mathrm{sbc}} = 999$ are direct evidence that the Stan implementations
+(simplex parameters, ordered-utility transform, softmax curvature) sample
+correctly from the joint posterior they encode; (ii) per-parameter marginal
+calibration, so the credible intervals are usable as marginal uncertainty
+summaries; and (iii) the demarcation itself, which clarifies *which*
+identifiability properties marginal SBC can and cannot diagnose. When parameters
+trade off along a ridge, a *joint* or *projection-based* rank statistic is the
+appropriate diagnostic --- a concrete next step for the SBC literature that this
+paper's null between `m_0` and `m_1` motivates.
+
+## 8.4 Why $\alpha$ is the primary quantity of interest {#sec-disc-alpha .unnumbered}
+
+A central methodological claim of the paper is that $\alpha$ can be measured
+precisely *even when* $(\beta, \delta)$ cannot be --- and that this partial
+identifiability is exactly what one should expect from uncertain-choice data
+alone, because beliefs and utilities enter the choice probabilities only through
+the expected-utility vector $\eta$, while $\alpha$ is identified from the softmax
+*curvature* in $\eta$ (§[3.5](#sec-m0-link)). The §[7](#sec-application)
+application instantiates the claim: the cross-condition comparison is a claim
+about $\alpha$, $\alpha$ is identifiable in `m_0` / `m_01`, and the weak
+identifiability of $(\beta, \delta)$ does not undermine that comparison.
+
+::: {.callout-note appearance="simple"}
+**Interpretive caveat (model-conditional reading of $\alpha$).** A low recovered
+$\alpha$ is *not*, in a model-free sense, "low SEU sensitivity." The measured
+$\alpha$ is a parameter of a specific likelihood --- a softmax over SEU values
+under the parameterization of §[3](#sec-m0-identifiability). A low $\alpha$ is
+observationally equivalent to several non-SEU alternatives (the agent maximizes a
+different value functional, uses a non-softmax stochastic rule, has heterogeneous
+within-session preferences, and so on). The paper's claim is therefore
+conditional: *under* the SEU + softmax model, $\alpha$ measures sensitivity to
+the EU ranking the model attributes to the agent. The §[7](#sec-application)
+application makes this concrete --- the licensed reading is the within-design
+*comparative* one (§[7.6.3](#sec-app-limits)), not an absolute-rationality
+ranking. Model misspecification is a substantive interpretive risk for any
+procedural-evaluation instrument and is acknowledged here rather than buried.
+:::
+
+## 8.5 Limitations and extensions {#sec-disc-limitations .unnumbered}
+
+**Precise $\delta$ estimation.** The modest finite-sample $\delta$ gain
+(§[6.4.2](#sec-m1-delta-recovery)) is a limitation, not a barrier in principle.
+The available levers --- a $\delta$-information-optimal lottery design (e.g.,
+triangulating contrasts that pit the certain intermediate consequence against a
+$50/50$ mix of the extremes), substantially larger samples, and prior
+regularization on $\delta$ --- are *not independent*: a $\delta$-optimal design
+helps less when $\alpha$ is small (shallow softmax at moderate $\alpha$ is a
+co-dampener), so precise $\delta$ recovery likely requires improvements on
+*multiple* axes at once. Naming the levers separately is a useful taxonomy, not a
+single-lever roadmap. A $\delta$-optimal lottery-design study is named here as
+future work, not promised as a deliverable of this paper.
+
+**The single-$\alpha$ assumption.** A single $\alpha$ governing both the
+uncertain and risky blocks (§[5.3.3](#sec-m1-properties)) is substantive and
+testable. It is load-bearing for the §[6.4](#sec-m1-recovery) quantity-versus-type
+reading, which is why that reading is stated as explicitly conditional on it. The
+natural relaxation is a block-specific model fitting separate
+$\alpha_{\mathrm{unc}}, \alpha_{\mathrm{risky}}$ (our internal `m_2`); it is named
+here, not pursued.
+
+**Functional form.** Linear-softmax belief formation
+($\psi_r = \mathrm{softmax}(\beta w_r)$) is a strong functional form; extensions
+to nonlinear belief formation and richer feature maps are possible.
+
+**Hierarchical extensions.** The §[7](#sec-application) application motivates the
+hierarchical extension `h_m01` to address design-induced cross-condition
+correlation (§[7.7](#sec-app-followup)): fitting `m_01` independently per
+condition treats five posteriors drawn from a single fixed alternative pool as
+statistically unrelated, slightly overstating between-condition resolution.
+Modelling $\log \alpha_c = \gamma_0 + \gamma_1 T_c + \eta_c$ turns
+between-condition contrasts into estimated regression effects on $\log \alpha$
+and folds the shared-pool nuisance into a single estimated quantity that cancels
+out of contrasts. `h_m01` will be the analysis vehicle of a planned
+alignment-study companion paper and is out of scope here.
+
+**Further application studies.** A tier-stratified Ellsberg analysis, a non-SEU
+comparator instrument (e.g., a small $\alpha$-MEU model paired with the SEU
+instrument to triangulate ambiguity-driven versus EU-driven choice), and the
+alignment study itself are pursued in companion work and are out of scope here.
+
+## 8.6 Closing {#sec-disc-closing .unnumbered}
+
+A precise definition of sensitivity, a formal identifiability analysis, a
+computational validation pipeline, and an end-to-end illustrative application
+together provide a transparent, reusable framework for *procedurally* evaluating
+decision makers --- human or machine --- against a stated rationality standard
+expressible as expected-value maximization, with SEU as the canonical case. The
+framework's honesty is part of its contribution: it reports where a parameter is
+identifiable but not precisely estimable, where in-principle arguments fail to
+predict finite-sample behavior, where marginal calibration is blind to joint
+weak identification, and where an instrument declines to support an effect its own
+diagnostics cannot resolve. An evaluation framework that always reported an
+effect would be a scoreboard; one that knows the limits of what it can measure is
+an instrument.

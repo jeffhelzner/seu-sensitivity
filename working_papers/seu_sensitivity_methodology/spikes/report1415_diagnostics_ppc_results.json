@@ -1,0 +1,631 @@
+{
+  "spec": {
+    "rows": [
+      "C14",
+      "C15"
+    ],
+    "sections": [
+      "7.4.3",
+      "7.4.4"
+    ],
+    "studies": {
+      "temperature_study": "GPT-4o x Insurance",
+      "claude_insurance_study": "Claude x Insurance",
+      "gpt4o_ellsberg_study": "GPT-4o x Ellsberg",
+      "ellsberg_study": "Claude x Ellsberg"
+    },
+    "app_dir": "/Users/jeffhelzner/seu-sensitivity/reports/applications"
+  },
+  "C14_diagnostics": {
+    "n_total_fits": 20,
+    "n_fully_clean": 6,
+    "all_rhat_ess_ok": false,
+    "alpha_ever_rhat_flagged": false,
+    "any_structural_param_flagged": true,
+    "all_flagged_param_families": [
+      "beta",
+      "delta",
+      "eta",
+      "psi",
+      "upsilon"
+    ],
+    "ess_ok_all_fits": true,
+    "max_divergence_pct": 0.15,
+    "n_fits_with_divergences": 12,
+    "n_fits_rhat_flagged": 4,
+    "total_divergences": 34,
+    "fits_with_divergences": [
+      {
+        "study": "GPT-4o x Insurance",
+        "temperature": "1.0",
+        "n_divergences": 1,
+        "divergence_pct": 0.03
+      },
+      {
+        "study": "GPT-4o x Insurance",
+        "temperature": "1.5",
+        "n_divergences": 2,
+        "divergence_pct": 0.05
+      },
+      {
+        "study": "Claude x Insurance",
+        "temperature": "0.0",
+        "n_divergences": 1,
+        "divergence_pct": 0.03
+      },
+      {
+        "study": "Claude x Insurance",
+        "temperature": "0.2",
+        "n_divergences": 4,
+        "divergence_pct": 0.1
+      },
+      {
+        "study": "Claude x Insurance",
+        "temperature": "0.5",
+        "n_divergences": 1,
+        "divergence_pct": 0.03
+      },
+      {
+        "study": "Claude x Insurance",
+        "temperature": "0.8",
+        "n_divergences": 2,
+        "divergence_pct": 0.05
+      },
+      {
+        "study": "Claude x Insurance",
+        "temperature": "1.0",
+        "n_divergences": 2,
+        "divergence_pct": 0.05
+      },
+      {
+        "study": "GPT-4o x Ellsberg",
+        "temperature": "0.0",
+        "n_divergences": 4,
+        "divergence_pct": 0.1
+      },
+      {
+        "study": "GPT-4o x Ellsberg",
+        "temperature": "1.5",
+        "n_divergences": 6,
+        "divergence_pct": 0.15
+      },
+      {
+        "study": "Claude x Ellsberg",
+        "temperature": "0.0",
+        "n_divergences": 4,
+        "divergence_pct": 0.1
+      },
+      {
+        "study": "Claude x Ellsberg",
+        "temperature": "0.2",
+        "n_divergences": 5,
+        "divergence_pct": 0.12
+      },
+      {
+        "study": "Claude x Ellsberg",
+        "temperature": "0.5",
+        "n_divergences": 2,
+        "divergence_pct": 0.05
+      }
+    ],
+    "nonclean_fits": [
+      {
+        "study": "GPT-4o x Insurance",
+        "temperature": "1.0",
+        "n_divergences": 1,
+        "divergence_pct": 0.03,
+        "rhat_flagged_families": [],
+        "structural_param_flagged": false,
+        "fully_clean": false,
+        "treedepth_ok": true,
+        "ebfmi_ok": true,
+        "ess_ok": true,
+        "rhat_ok": true,
+        "no_problems": false
+      },
+      {
+        "study": "GPT-4o x Insurance",
+        "temperature": "1.5",
+        "n_divergences": 2,
+        "divergence_pct": 0.05,
+        "rhat_flagged_families": [],
+        "structural_param_flagged": false,
+        "fully_clean": false,
+        "treedepth_ok": true,
+        "ebfmi_ok": true,
+        "ess_ok": true,
+        "rhat_ok": true,
+        "no_problems": false
+      },
+      {
+        "study": "Claude x Insurance",
+        "temperature": "0.0",
+        "n_divergences": 1,
+        "divergence_pct": 0.03,
+        "rhat_flagged_families": [],
+        "structural_param_flagged": false,
+        "fully_clean": false,
+        "treedepth_ok": true,
+        "ebfmi_ok": true,
+        "ess_ok": true,
+        "rhat_ok": true,
+        "no_problems": false
+      },
+      {
+        "study": "Claude x Insurance",
+        "temperature": "0.2",
+        "n_divergences": 4,
+        "divergence_pct": 0.1,
+        "rhat_flagged_families": [
+          "eta"
+        ],
+        "structural_param_flagged": false,
+        "fully_clean": false,
+        "treedepth_ok": true,
+        "ebfmi_ok": true,
+        "ess_ok": true,
+        "rhat_ok": false,
+        "no_problems": false
+      },
+      {
+        "study": "Claude x Insurance",
+        "temperature": "0.5",
+        "n_divergences": 1,
+        "divergence_pct": 0.03,
+        "rhat_flagged_families": [],
+        "structural_param_flagged": false,
+        "fully_clean": false,
+        "treedepth_ok": true,
+        "ebfmi_ok": true,
+        "ess_ok": true,
+        "rhat_ok": true,
+        "no_problems": false
+      },
+      {
+        "study": "Claude x Insurance",
+        "temperature": "0.8",
+        "n_divergences": 2,
+        "divergence_pct": 0.05,
+        "rhat_flagged_families": [],
+        "structural_param_flagged": false,
+        "fully_clean": false,
+        "treedepth_ok": true,
+        "ebfmi_ok": true,
+        "ess_ok": true,
+        "rhat_ok": true,
+        "no_problems": false
+      },
+      {
+        "study": "Claude x Insurance",
+        "temperature": "1.0",
+        "n_divergences": 2,
+        "divergence_pct": 0.05,
+        "rhat_flagged_families": [],
+        "structural_param_flagged": false,
+        "fully_clean": false,
+        "treedepth_ok": true,
+        "ebfmi_ok": true,
+        "ess_ok": true,
+        "rhat_ok": true,
+        "no_problems": false
+      },
+      {
+        "study": "GPT-4o x Ellsberg",
+        "temperature": "0.0",
+        "n_divergences": 4,
+        "divergence_pct": 0.1,
+        "rhat_flagged_families": [
+          "beta",
+          "psi"
+        ],
+        "structural_param_flagged": true,
+        "fully_clean": false,
+        "treedepth_ok": true,
+        "ebfmi_ok": true,
+        "ess_ok": true,
+        "rhat_ok": false,
+        "no_problems": false
+      },
+      {
+        "study": "GPT-4o x Ellsberg",
+        "temperature": "0.7",
+        "n_divergences": 0,
+        "divergence_pct": 0.0,
+        "rhat_flagged_families": [
+          "beta",
+          "delta",
+          "psi",
+          "upsilon"
+        ],
+        "structural_param_flagged": true,
+        "fully_clean": false,
+        "treedepth_ok": true,
+        "ebfmi_ok": true,
+        "ess_ok": true,
+        "rhat_ok": false,
+        "no_problems": false
+      },
+      {
+        "study": "GPT-4o x Ellsberg",
+        "temperature": "1.0",
+        "n_divergences": 0,
+        "divergence_pct": 0.0,
+        "rhat_flagged_families": [
+          "beta",
+          "psi"
+        ],
+        "structural_param_flagged": true,
+        "fully_clean": false,
+        "treedepth_ok": true,
+        "ebfmi_ok": true,
+        "ess_ok": true,
+        "rhat_ok": false,
+        "no_problems": false
+      },
+      {
+        "study": "GPT-4o x Ellsberg",
+        "temperature": "1.5",
+        "n_divergences": 6,
+        "divergence_pct": 0.15,
+        "rhat_flagged_families": [],
+        "structural_param_flagged": false,
+        "fully_clean": false,
+        "treedepth_ok": true,
+        "ebfmi_ok": true,
+        "ess_ok": true,
+        "rhat_ok": true,
+        "no_problems": false
+      },
+      {
+        "study": "Claude x Ellsberg",
+        "temperature": "0.0",
+        "n_divergences": 4,
+        "divergence_pct": 0.1,
+        "rhat_flagged_families": [],
+        "structural_param_flagged": false,
+        "fully_clean": false,
+        "treedepth_ok": true,
+        "ebfmi_ok": true,
+        "ess_ok": true,
+        "rhat_ok": true,
+        "no_problems": false
+      },
+      {
+        "study": "Claude x Ellsberg",
+        "temperature": "0.2",
+        "n_divergences": 5,
+        "divergence_pct": 0.12,
+        "rhat_flagged_families": [],
+        "structural_param_flagged": false,
+        "fully_clean": false,
+        "treedepth_ok": true,
+        "ebfmi_ok": true,
+        "ess_ok": true,
+        "rhat_ok": true,
+        "no_problems": false
+      },
+      {
+        "study": "Claude x Ellsberg",
+        "temperature": "0.5",
+        "n_divergences": 2,
+        "divergence_pct": 0.05,
+        "rhat_flagged_families": [],
+        "structural_param_flagged": false,
+        "fully_clean": false,
+        "treedepth_ok": true,
+        "ebfmi_ok": true,
+        "ess_ok": true,
+        "rhat_ok": true,
+        "no_problems": false
+      }
+    ],
+    "per_fit": [
+      {
+        "study": "GPT-4o x Insurance",
+        "temperature": "0.0",
+        "n_divergences": 0,
+        "divergence_pct": 0.0,
+        "rhat_flagged_families": [],
+        "structural_param_flagged": false,
+        "fully_clean": true,
+        "treedepth_ok": true,
+        "ebfmi_ok": true,
+        "ess_ok": true,
+        "rhat_ok": true,
+        "no_problems": true
+      },
+      {
+        "study": "GPT-4o x Insurance",
+        "temperature": "0.3",
+        "n_divergences": 0,
+        "divergence_pct": 0.0,
+        "rhat_flagged_families": [],
+        "structural_param_flagged": false,
+        "fully_clean": true,
+        "treedepth_ok": true,
+        "ebfmi_ok": true,
+        "ess_ok": true,
+        "rhat_ok": true,
+        "no_problems": true
+      },
+      {
+        "study": "GPT-4o x Insurance",
+        "temperature": "0.7",
+        "n_divergences": 0,
+        "divergence_pct": 0.0,
+        "rhat_flagged_families": [],
+        "structural_param_flagged": false,
+        "fully_clean": true,
+        "treedepth_ok": true,
+        "ebfmi_ok": true,
+        "ess_ok": true,
+        "rhat_ok": true,
+        "no_problems": true
+      },
+      {
+        "study": "GPT-4o x Insurance",
+        "temperature": "1.0",
+        "n_divergences": 1,
+        "divergence_pct": 0.03,
+        "rhat_flagged_families": [],
+        "structural_param_flagged": false,
+        "fully_clean": false,
+        "treedepth_ok": true,
+        "ebfmi_ok": true,
+        "ess_ok": true,
+        "rhat_ok": true,
+        "no_problems": false
+      },
+      {
+        "study": "GPT-4o x Insurance",
+        "temperature": "1.5",
+        "n_divergences": 2,
+        "divergence_pct": 0.05,
+        "rhat_flagged_families": [],
+        "structural_param_flagged": false,
+        "fully_clean": false,
+        "treedepth_ok": true,
+        "ebfmi_ok": true,
+        "ess_ok": true,
+        "rhat_ok": true,
+        "no_problems": false
+      },
+      {
+        "study": "Claude x Insurance",
+        "temperature": "0.0",
+        "n_divergences": 1,
+        "divergence_pct": 0.03,
+        "rhat_flagged_families": [],
+        "structural_param_flagged": false,
+        "fully_clean": false,
+        "treedepth_ok": true,
+        "ebfmi_ok": true,
+        "ess_ok": true,
+        "rhat_ok": true,
+        "no_problems": false
+      },
+      {
+        "study": "Claude x Insurance",
+        "temperature": "0.2",
+        "n_divergences": 4,
+        "divergence_pct": 0.1,
+        "rhat_flagged_families": [
+          "eta"
+        ],
+        "structural_param_flagged": false,
+        "fully_clean": false,
+        "treedepth_ok": true,
+        "ebfmi_ok": true,
+        "ess_ok": true,
+        "rhat_ok": false,
+        "no_problems": false
+      },
+      {
+        "study": "Claude x Insurance",
+        "temperature": "0.5",
+        "n_divergences": 1,
+        "divergence_pct": 0.03,
+        "rhat_flagged_families": [],
+        "structural_param_flagged": false,
+        "fully_clean": false,
+        "treedepth_ok": true,
+        "ebfmi_ok": true,
+        "ess_ok": true,
+        "rhat_ok": true,
+        "no_problems": false
+      },
+      {
+        "study": "Claude x Insurance",
+        "temperature": "0.8",
+        "n_divergences": 2,
+        "divergence_pct": 0.05,
+        "rhat_flagged_families": [],
+        "structural_param_flagged": false,
+        "fully_clean": false,
+        "treedepth_ok": true,
+        "ebfmi_ok": true,
+        "ess_ok": true,
+        "rhat_ok": true,
+        "no_problems": false
+      },
+      {
+        "study": "Claude x Insurance",
+        "temperature": "1.0",
+        "n_divergences": 2,
+        "divergence_pct": 0.05,
+        "rhat_flagged_families": [],
+        "structural_param_flagged": false,
+        "fully_clean": false,
+        "treedepth_ok": true,
+        "ebfmi_ok": true,
+        "ess_ok": true,
+        "rhat_ok": true,
+        "no_problems": false
+      },
+      {
+        "study": "GPT-4o x Ellsberg",
+        "temperature": "0.0",
+        "n_divergences": 4,
+        "divergence_pct": 0.1,
+        "rhat_flagged_families": [
+          "beta",
+          "psi"
+        ],
+        "structural_param_flagged": true,
+        "fully_clean": false,
+        "treedepth_ok": true,
+        "ebfmi_ok": true,
+        "ess_ok": true,
+        "rhat_ok": false,
+        "no_problems": false
+      },
+      {
+        "study": "GPT-4o x Ellsberg",
+        "temperature": "0.3",
+        "n_divergences": 0,
+        "divergence_pct": 0.0,
+        "rhat_flagged_families": [],
+        "structural_param_flagged": false,
+        "fully_clean": true,
+        "treedepth_ok": true,
+        "ebfmi_ok": true,
+        "ess_ok": true,
+        "rhat_ok": true,
+        "no_problems": true
+      },
+      {
+        "study": "GPT-4o x Ellsberg",
+        "temperature": "0.7",
+        "n_divergences": 0,
+        "divergence_pct": 0.0,
+        "rhat_flagged_families": [
+          "beta",
+          "delta",
+          "psi",
+          "upsilon"
+        ],
+        "structural_param_flagged": true,
+        "fully_clean": false,
+        "treedepth_ok": true,
+        "ebfmi_ok": true,
+        "ess_ok": true,
+        "rhat_ok": false,
+        "no_problems": false
+      },
+      {
+        "study": "GPT-4o x Ellsberg",
+        "temperature": "1.0",
+        "n_divergences": 0,
+        "divergence_pct": 0.0,
+        "rhat_flagged_families": [
+          "beta",
+          "psi"
+        ],
+        "structural_param_flagged": true,
+        "fully_clean": false,
+        "treedepth_ok": true,
+        "ebfmi_ok": true,
+        "ess_ok": true,
+        "rhat_ok": false,
+        "no_problems": false
+      },
+      {
+        "study": "GPT-4o x Ellsberg",
+        "temperature": "1.5",
+        "n_divergences": 6,
+        "divergence_pct": 0.15,
+        "rhat_flagged_families": [],
+        "structural_param_flagged": false,
+        "fully_clean": false,
+        "treedepth_ok": true,
+        "ebfmi_ok": true,
+        "ess_ok": true,
+        "rhat_ok": true,
+        "no_problems": false
+      },
+      {
+        "study": "Claude x Ellsberg",
+        "temperature": "0.0",
+        "n_divergences": 4,
+        "divergence_pct": 0.1,
+        "rhat_flagged_families": [],
+        "structural_param_flagged": false,
+        "fully_clean": false,
+        "treedepth_ok": true,
+        "ebfmi_ok": true,
+        "ess_ok": true,
+        "rhat_ok": true,
+        "no_problems": false
+      },
+      {
+        "study": "Claude x Ellsberg",
+        "temperature": "0.2",
+        "n_divergences": 5,
+        "divergence_pct": 0.12,
+        "rhat_flagged_families": [],
+        "structural_param_flagged": false,
+        "fully_clean": false,
+        "treedepth_ok": true,
+        "ebfmi_ok": true,
+        "ess_ok": true,
+        "rhat_ok": true,
+        "no_problems": false
+      },
+      {
+        "study": "Claude x Ellsberg",
+        "temperature": "0.5",
+        "n_divergences": 2,
+        "divergence_pct": 0.05,
+        "rhat_flagged_families": [],
+        "structural_param_flagged": false,
+        "fully_clean": false,
+        "treedepth_ok": true,
+        "ebfmi_ok": true,
+        "ess_ok": true,
+        "rhat_ok": true,
+        "no_problems": false
+      },
+      {
+        "study": "Claude x Ellsberg",
+        "temperature": "0.8",
+        "n_divergences": 0,
+        "divergence_pct": 0.0,
+        "rhat_flagged_families": [],
+        "structural_param_flagged": false,
+        "fully_clean": true,
+        "treedepth_ok": true,
+        "ebfmi_ok": true,
+        "ess_ok": true,
+        "rhat_ok": true,
+        "no_problems": true
+      },
+      {
+        "study": "Claude x Ellsberg",
+        "temperature": "1.0",
+        "n_divergences": 0,
+        "divergence_pct": 0.0,
+        "rhat_flagged_families": [],
+        "structural_param_flagged": false,
+        "fully_clean": true,
+        "treedepth_ok": true,
+        "ebfmi_ok": true,
+        "ess_ok": true,
+        "rhat_ok": true,
+        "no_problems": true
+      }
+    ]
+  },
+  "C15_ppc": {
+    "n_pvalues": 60,
+    "n_fits": 20,
+    "min": 0.3165,
+    "max": 0.6565,
+    "mean": 0.4623958333333334,
+    "n_in_band": 60,
+    "band": [
+      0.3,
+      0.7
+    ],
+    "outside_band": []
+  }
+}

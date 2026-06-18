@@ -1,0 +1,137 @@
+# Choice Under Uncertainty Alone: Identifiability of $\alpha$, Weak Identifiability of $(\beta,\delta)$ {#sec-m0-identifiability .unnumbered}
+
+> **§3.** *Conceptual and mathematical; sets up the motivation for
+> §[5](#sec-m1-identifiability). The $(\beta,\delta)$ result is framed throughout
+> as* weak *(practical / ridge) identifiability --- a low-curvature direction in
+> the likelihood --- not strict non-identifiability. Proofs and the supporting
+> numerical spike are in Appendix B.*
+
+## 3.1 The parameterization {#sec-m0-param .unnumbered}
+
+Recall from §[2.6](#sec-notation) the uncertain-choice ("`m_0`") model.
+Subjective probabilities are generated from $D$-dimensional features $w_r$ via
+$\bm{\psi}_r = \mathrm{softmax}(\beta\, w_r)$ with $\beta \in \mathbb{R}^{K\times
+D}$. Utilities are constructed from increments $\delta \in \Delta^{K-1}$ by
+cumulative summation, yielding $0 = \upsilon_1 \le \upsilon_2 \le \cdots \le
+\upsilon_K = 1$. Expected utilities are $\eta_r = \bm{\psi}_r^\top \bm{\upsilon}$,
+and choices follow @eq-softmax with $V(r) = \eta_r$. The $\beta$ gauge
+(§[2.6](#sec-notation)) is the only $\beta$ indeterminacy we use.
+
+## 3.2 Why this parameterization {#sec-m0-why .unnumbered}
+
+Linear-softmax for $\bm{\psi}$ aligns with the multinomial-logit / discrete-choice
+tradition [@mcfadden1974; @train2009]; ordered utilities with endpoints fixed by
+convention remove the affine scale-and-shift gauge of vNM utility (Theorem A.4).
+The two conventions together leave $\alpha$ as a scalar with the limit
+interpretation of §[2.3](#sec-three-properties).
+
+## 3.3 Identifiability of $\alpha$ from $\eta$ {#sec-alpha-from-eta .unnumbered}
+
+::: {.callout-note appearance="simple"}
+**Proposition 3.1 (Identifiability of $\alpha$ from $\eta$).** Fix the
+expected-utility vector $\eta = (\eta_r)_{r \in \mathcal{R}}$. If there is a menu
+$\mathcal{M} \subseteq \mathcal{R}$ of positive design probability on which the
+values $\{\eta_r : r \in \mathcal{M}\}$ are not all equal, then $\alpha > 0$ is
+globally identifiable from the choice-probability function on $\mathcal{M}$.
+:::
+
+*Sketch (full proof in Appendix B.1).* On any menu with non-constant $\eta$ the
+log-odds between two alternatives with $\eta_r \neq \eta_s$ is $\log[P(r)/P(s)] =
+\alpha(\eta_r - \eta_s)$, strictly monotone in $\alpha$; the softmax
+choice-probability map is therefore injective in $\alpha$ on such a menu.
+
+::: {.callout-note appearance="simple"}
+**Boundary remark ($\alpha = 0$).** Proposition 3.1 guarantees identifiability
+throughout the open cone $\alpha > 0$ and approachability of $\alpha = 0$ from
+above. At $\alpha = 0$ the choice rule is uniform (Theorem A.3), the likelihood
+is not differentiable in the usual sense, and the genericity condition on
+$\{\eta_r\}$ becomes vacuous; the proposition does not silently exclude the
+near-random null, it simply does not assert differentiable identification *at*
+the boundary.
+:::
+
+The structure of the claim matters: $\alpha$ is identified *from* $\eta$, not
+from $(\beta, \delta)$ directly. Whether $(\beta, \delta)$ themselves are
+recoverable is a separate question --- the subject of §[3.4](#sec-bd-weak).
+
+## 3.4 Weak identifiability of $(\beta,\delta)$ {#sec-bd-weak .unnumbered}
+
+::: {.callout-note appearance="simple"}
+**Proposition 3.2 (Weak identifiability of $(\beta,\delta)$ in `m_0`).** At
+representative parameter values and at this paper's study design (Appendix D.0,
+drafted later), the Fisher-information block of the map $(\beta,\delta) \mapsto
+\{\eta_r\}$, after removing the exact $\beta$ gauge, is strongly ill-conditioned:
+its condition number satisfies $\kappa \gtrsim 10^3$, so there is a direction in
+$(\beta,\delta)$-space along which the expected log-likelihood is near-flat at
+the design's sample sizes. Consequently the joint $(\beta,\delta)$ posterior is
+tilted along a ridge and individual components are recovered only imprecisely
+from uncertain choices alone --- even though no strict gauge group on
+$(\beta,\delta)$ is asserted.
+:::
+
+This is a **numerically-supported proposition**, not a theorem, and not a claim
+of strict non-identifiability. A spike computation (Appendix B.2;
+`spikes/b2_fisher_block_spike.py`) evaluates the gauge-fixed $(\beta,\delta)$
+Fisher block at four representative prior draws and across an $\alpha$ sweep, and
+finds three robust facts:
+
+1. *The ridge exists.* After removing the exact $\beta$ gauge, the block is
+   ill-conditioned ($\kappa \gtrsim 10^3$, up to $\sim 4\times10^4$), with a
+   low-curvature tail spanning three to four orders of magnitude.
+2. *$\delta$ is weakly identified through the $\beta$-coupling.* Profiling out
+   $\beta$ destroys 63–99% of $\delta$'s Fisher information (a Schur-complement
+   ratio of $0.01$–$0.37$). This is the precise computational form of the
+   multiplicative $(\beta,\delta)$ coupling.
+3. *The flat directions preserve choice probabilities.* The flattest gauge-fixed
+   direction changes within-menu $\eta$-contrasts --- hence choice probabilities
+   --- only 2–8% as much as a typical direction.
+
+All three are robust across the $\alpha$ sweep. We deliberately report the
+ill-conditioning via the condition number and the $\delta$ Schur ratio rather
+than via a single isolated near-zero eigenvalue: the spectrum has a tail, not one
+null direction.
+
+## 3.5 The two propositions are facets of one structural picture {#sec-m0-link .unnumbered}
+
+$\alpha$ is identified *from* $\eta$ (Proposition 3.1). The map $(\beta,\delta)
+\to \eta$ collapses information multiplicatively: $\eta_r =
+\mathrm{softmax}(\beta w_r)^\top \bm{\upsilon}(\delta)$ is the product of a
+$\beta$-driven simplex and a $\delta$-driven vector, and the Fisher information
+of this map has a near-flat direction at realistic $n$ (Proposition 3.2). The
+endpoint convention on $\bm{\upsilon}$ removes the affine utility gauge, but the
+*remaining* multiplicative coupling between $\beta$ and $\delta$ leaves a
+low-curvature ridge in the joint likelihood.
+
+**Why $\alpha$ survives the ridge.** The $(\beta,\delta)$ near-flat direction is
+approximately *choice-probability-preserving*: moving along it perturbs the
+within-menu $\eta$-contrasts that softmax can see by only 2–8% of a typical
+perturbation (Appendix B.2, fact 3). Because $\alpha$ is identified from those
+within-menu contrasts (Proposition 3.1) and not from $\eta$'s internal
+$(\beta,\delta)$ decomposition, a choice-probability-preserving indeterminacy in
+$(\beta,\delta)$ leaves $\alpha$ untouched. We state this explicitly rather than
+assume it: *if* the ridge changed choice probabilities appreciably, $\alpha$
+would absorb part of the indeterminacy and the separation would fail. It does
+not, and so $\alpha$ separates cleanly from the weakly-identified
+$(\beta,\delta)$.
+
+::: {.callout-note appearance="simple"}
+**Why the framing is choice-probability-preserving, not raw-$\eta$-preserving.**
+A raw-$\eta$ near-kernel claim is $\alpha$-dependent and fails at low $\alpha$
+(where the flattest eigenvector can be a within-menu common-mode $\eta$-shift
+that softmax cannot see). The choice-probability-preserving statement is robust
+across all draws and all $\alpha$ and is exactly what licenses the
+$\alpha$-separation; it is the primary framing throughout.
+:::
+
+This is a *structural* feature of decisions under uncertainty: beliefs and
+utilities enter only through expected utility, and uncertain-choice data alone
+supplies essentially no curvature for separating them.
+
+## 3.6 From weak identifiability to the extended model {#sec-m0-to-m1 .unnumbered}
+
+The weak identifiability of $(\beta,\delta)$ motivates the extended model of
+§[5](#sec-m1-identifiability). Before getting there, §[4](#sec-m0-implementation)
+(drafted later) shows that the practical consequences --- wide credible intervals
+on $(\beta,\delta)$, tight intervals on $\alpha$ --- are directly visible in a
+Stan implementation, and that marginal simulation-based calibration nonetheless
+passes for all three parameters (the *marginal-SBC demarcation*).

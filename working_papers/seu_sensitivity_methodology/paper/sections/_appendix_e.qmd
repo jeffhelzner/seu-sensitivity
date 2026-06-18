@@ -58,11 +58,16 @@ alongside the archival deposit.)
 ## E.2 Per-figure manifest {#sec-e-manifest .unnumbered}
 
 Each headline figure and table maps to a script, a config, and a seed, so it is
-reproducible in isolation. Entries marked *computed* drive numbers already in the
-paper; entries marked *pending* are foundational-report figures whose exact
-config/seed are finalized as the corresponding figure is regenerated for the
-camera-ready draft (the manifest is maintained as the figures are produced, not
-as a post-draft cleanup).
+reproducible in isolation. Every entry is *computed* --- its numbers are
+finalized from a completed run. The foundational-report figures (§4.3, §4.4,
+§6.5) carry their canonical design inline rather than through a committed JSON
+config: the methodological reports
+([`04_parameter_recovery.qmd`](reports/foundations/04_parameter_recovery.qmd),
+[`06_sbc_validation.qmd`](reports/foundations/06_sbc_validation.qmd)) fix the
+canonical design constants of D.0 in-script and reuse the generic
+`parameter_recovery.py` / `sbc.py` drivers, so the committed `configs/*sbc*.json`
+and `configs/*recovery*.json` files (smaller smoke-scale designs) are not the
+pinned source for these three plots.
 
 | Fig/Tab | § | Description | Script | Config | Seed | Status |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -70,9 +75,9 @@ as a post-draft cleanup).
 | Fig 6.4 | 6.4.1 | $\alpha$/$\delta$ RMSE + CI-width, matched A/B/C/D ($n=100$) | `spikes/report14_rerun_analysis.py` | `configs/m1_matched_recovery_n100_config.json` | design 20260617 / boot 20260617 | computed |
 | Tab (§7.5.5) | 7.5 | $2\times2$ per-cell global-slope posteriors (C9–C13) | `analysis/model_estimation.py` | `applications/*/configs/` | per-cell (see cell data) | computed |
 | Fig 7.5.2 | 7.5.2 / 7.6.1 | Claude-null MDE power curve; MDE $\approx 36$ marker (C16) | `spikes/report16_mde_spike.py` | inline (data `…/claude_insurance_study/data/alpha_draws_T*.npz`) | 20260618 | computed |
-| Fig (§4.3) | 4.3.2 | $\alpha$ true-vs-estimated recovery scatter (`m_0`) | `analysis/parameter_recovery.py` | `configs/m1_parameter_recovery_config.json` | per D.2 convention | pending |
-| Fig (§4.4) | 4.4 | `m_0` SBC rank histograms + ECDF/KS | `analysis/sbc.py` | `configs/m1_sbc_config.json` | per D.3 convention | pending |
-| Fig (§6.5) | 6.5 | `m_1` SBC rank histograms + ECDF/KS | `analysis/sbc.py` | `configs/m2_sbc_config.json` | per D.3 convention | pending |
+| Fig (§4.3) | 4.3.2 | $\alpha$ true-vs-estimated recovery scatter (`m_0`) | `analysis/parameter_recovery.py` (`reports/foundations/04_parameter_recovery.qmd`) | inline (`m_0`: $M25$ $K3$ $D5$ $R15$; 50 iters, 4 chains $\times$ 1000) | design np $42$; $12345+i$ sim / $54321+i$ fit (D.2) | computed |
+| Fig (§4.4) | 4.4 | `m_0` SBC rank histograms + ECDF/KS | `analysis/sbc.py` (`reports/foundations/06_sbc_validation.qmd`) | inline (`m_0`: $M25$ $K3$ $D5$ $R15$; $N_{\mathrm{sbc}}999$ thin4 1 chain) | design np $42$; $123+i$ per draw (D.3) | computed |
+| Fig (§6.5) | 6.5 | `m_1` SBC rank histograms + ECDF/KS | `analysis/sbc.py` (`reports/foundations/06_sbc_validation.qmd`) | inline (`m_1`: $M25$ $N25$ $K3$ $D5$ $R15$ $S15$; $N_{\mathrm{sbc}}999$ thin4 1 chain) | design np $42$; $123+i$ per draw (D.3) | computed |
 
 The cross-LLM robustness number (C11) and the per-cell diagnostics/PPC summaries
 (C14, C15) are reproduced by `spikes/report11_cross_llm_spike.py` and

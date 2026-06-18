@@ -14,6 +14,26 @@ Each archive deposit pins the supporting repository to a specific commit/tag.
 
 ## [Unreleased]
 
+### Changed
+- **Figure manifest: pending foundational rows filled (E.2 + `figure_manifest.md`).**
+  The three `pending`/`not-started` foundational-report figures --- §4.3 (`m_0`
+  α true-vs-estimated recovery scatter), §4.4 (`m_0` SBC), §6.5 (`m_1` SBC) ---
+  are now `computed`. Their provenance is the in-script canonical design of
+  `reports/foundations/04_parameter_recovery.qmd` and `06_sbc_validation.qmd`
+  (generic `parameter_recovery.py` / `sbc.py` drivers), **not** the smoke-scale
+  `configs/*recovery*.json` / `configs/*sbc*.json` files the placeholders
+  referenced; the Config column now records the inline canonical design
+  (recovery `m_0`: M25 K3 D5 R15, 50 iters; SBC `m_0`/`m_1`: N_sbc=999 thin4 1
+  chain). Seeds: design np 42; recovery 12345+i sim / 54321+i fit (D.2); SBC
+  123+i per draw. E.2 intro prose updated (no rows remain pending).
+- **Appendix D.3 SBC seed convention corrected.** D.3 previously claimed SBC
+  per-draw seeds follow the D.2 "12345+i / 54321+i simulate/fit" pair; the actual
+  `analysis/sbc.py` implementation uses a **single** seed `123 + i` per replicate
+  (the `_sbc` program draws the true parameters and simulates its dataset in the
+  same pass it fits), with the study design fixed once under NumPy seed 42.
+  Corrected to match the code so the manifest's D.3 reference is accurate.
+
+
 ### Added
 - **Appendices C/D/E (plan execution-order step 9).** Drafted:
   - **Appendix C** (`sections/_appendix_c.qmd`): full Stan listings for the five

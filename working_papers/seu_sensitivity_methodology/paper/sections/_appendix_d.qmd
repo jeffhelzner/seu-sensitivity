@@ -79,9 +79,12 @@ posteriors are run as a single chain, and the rank histograms use $20$ bins unde
 the $L = N_{\mathrm{sbc}}$ convention so that uniform ranks span $\{0, \dots,
 N_{\mathrm{sbc}}\}$. Calibration is read off both the rank histograms and the
 ECDF-difference plot with simultaneous KS bands (Modřák et al. 2023), which is
-more sensitive than the rank histogram alone. Per-draw seeds follow the same
-deterministic $12345 + i$ / $54321 + i$ simulate/fit convention as D.2, making
-each of the 999 SBC replicates reproducible in isolation.
+more sensitive than the rank histogram alone. Each replicate $i$ uses a single
+deterministic seed $123 + i$: the `_sbc` program draws the true parameters and
+simulates its synthetic dataset in the same pass it fits, so one seed governs
+both steps and each of the 999 replicates is reproducible in isolation. (The
+study design itself is generated once under NumPy seed $42$ and held fixed across
+all replicates.)
 
 ## D.4 The matched-design comparison (conditions A/B/C/D) {#sec-d4 .unnumbered}
 

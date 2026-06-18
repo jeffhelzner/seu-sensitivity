@@ -143,8 +143,8 @@ $\gamma \in \mathbb{R}^D$, replacing the rows $\beta_{k\cdot} \mapsto
 \beta_{k\cdot}$ by $\beta_{k\cdot} + c\,\mathbf{1}$ for a common per-column shift
 leaves $\mathrm{softmax}(\beta\,w_r)$ unchanged. This is the only $\beta$
 indeterminacy used in the paper; we call it the **$\beta$ gauge** and reference
-it in §[3.3](#sec-alpha-from-eta), §[4](#sec-m0-implementation) (drafted later),
-§[6](#sec-m1-implementation) (drafted later), and Appendix B.4.
+it in §[3.3](#sec-alpha-from-eta), §[4](#sec-m0-implementation),
+§[6](#sec-m1-implementation), and Appendix B.4.
 :::
 
 The consolidated glossary is collected once here (Table @tbl-notation) and

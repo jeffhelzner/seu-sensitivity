@@ -59,8 +59,8 @@ sensitivity-to-SEU-maximization is preserved in the extended model.
 asserts a *single* $\alpha$ governing both sub-problems --- i.e., the agent's
 responsiveness to expected-utility differences does not depend on whether
 probabilities are objective or subjective. This is a substantive, testable
-assumption, and it is load-bearing for the §[6.4](#sec-m1-implementation)
-(drafted later) interpretation of the matched recovery contrasts: the
+assumption, and it is load-bearing for the §[6.4](#sec-m1-recovery)
+interpretation of the matched recovery contrasts: the
 quantity-versus-type reading of those contrasts requires a *common* $\alpha$
 scale across blocks. If $\alpha$ differed across blocks, the matched comparison
 would conflate a choice-*type* effect with a *block-mix* effect on the effective
@@ -69,7 +69,7 @@ $\alpha_{\text{unc}}, \alpha_{\text{risky}}$ (the companion model `m_2`) is name
 but not pursued here. **Consequently, every conclusion that compares $\alpha$
 across the uncertain and risky blocks is reported as explicitly conditional on
 this single-$\alpha$ assumption**, supported where the data permit by a per-block
-SEU-maximizer-rate sanity check (§[6.3](#sec-m1-implementation), drafted later);
+SEU-maximizer-rate sanity check (§[6.3](#sec-m1-prior));
 absent that check, the conditional phrasing is mandatory, not optional.
 :::
 
@@ -119,7 +119,7 @@ simultaneous identification of beliefs and utilities: $\delta$ from the
 $\beta$-free risky block (Step 1) plus lottery diversity (Step 2), $\alpha$ from
 either block, and $\beta$ from the uncertain block modulo the row-shift gauge.
 But in-principle identification implies only estimability *in the limit*.
-§[6](#sec-m1-implementation) (drafted later) asks whether the gain is realized at
+§[6](#sec-m1-implementation) asks whether the gain is realized at
 realistic finite sample sizes, and finds that for $\delta$ it largely is not ---
 the cleanest illustration in the paper of the gap between identifiability and
 precise estimability.

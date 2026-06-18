@@ -1,8 +1,8 @@
 # A Basic Computational Implementation: Model `m_0` in Stan {#sec-m0-implementation .unnumbered}
 
 > **§4.** *Concrete realization of §§[2](#sec-abstract-model)–[3](#sec-m0-identifiability).
-> Code excerpts are minimal; full Stan listings are in Appendix C (drafted
-> later), and the design constants are in Appendix D.0 (drafted later). Sources:
+> Code excerpts are minimal; full Stan listings are in Appendix C, and the
+> design constants are in Appendix D.0. Sources:
 > foundational Reports 2–4 and 6.*
 
 This section turns the abstract `m_0` model into an estimable Bayesian model and
@@ -32,8 +32,8 @@ well-measured in finite samples; we defend it via prior-predictive coverage in
 
 ::: {.callout-note appearance="simple"}
 **Note for the reader (carried to §7).** This foundational $\mathrm{Lognormal}(0,1)$
-prior on $\alpha$ is *not* the application prior of §[7](#sec-application)
-(drafted later), which recalibrates to $\mathrm{Lognormal}(3.0, 0.75)$ for
+prior on $\alpha$ is *not* the application prior of §[7](#sec-application),
+which recalibrates to $\mathrm{Lognormal}(3.0, 0.75)$ for
 insurance and re-recalibrates for Ellsberg. The *likelihood* is unchanged across
 §4 and §7; only the $\alpha$ *prior* is recalibrated.
 :::
@@ -102,7 +102,7 @@ model, and computes the rank of the true value within the posterior draws; under
 correct calibration these ranks are uniform [@talts2018]. We diagnose
 uniformity with rank histograms and the ECDF-difference plot with a simultaneous
 confidence band [@modrak2023], at $N_{\mathrm{sbc}} = 999$, thinning $4$, single
-chain, with the $L = N_{\mathrm{sbc}}$ convention (Appendix D.3, drafted later).
+chain, with the $L = N_{\mathrm{sbc}}$ convention (Appendix D.3).
 
 **Result.** At $N_{\mathrm{sbc}} = 999$ the marginal rank distributions are
 consistent with uniformity for $\alpha$, $\beta$, *and* $\delta$. This run does
@@ -123,7 +123,7 @@ encodes; (ii) **marginal calibration** --- per-parameter credible intervals are
 usable as marginal uncertainty summaries; and (iii) the **demarcation** itself
 --- a precise statement of what marginal calibration can and cannot diagnose,
 which motivates a joint or projection-based rank statistic as future work
-(§[8.3](#sec-discussion), drafted later). We do *not* claim per-parameter
+(§[8.3](#sec-discussion)). We do *not* claim per-parameter
 calibration "fingerprints" or an `m_0`$\to$`m_1` histogram improvement.
 :::
 

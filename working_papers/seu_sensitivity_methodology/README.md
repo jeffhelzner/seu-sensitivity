@@ -9,10 +9,13 @@ materials. The paper is authored in Quarto (`.qmd`) and compiled to PDF.
 
 ## Status
 
-- **Stage:** drafting (formal core drafted). §§2, 3, 5 and Appendices A–B are
-  drafted in `paper/` and compile to `paper/_output/paper.pdf`. §§1, 4, 6, 7, 8
-  and the remaining appendices are pending (see [CHANGELOG.md](CHANGELOG.md) for
-  the execution-order checklist).
+- **Stage:** complete draft. All sections (§§1–8) and Appendices A–E are drafted
+  in `paper/` and compile end-to-end to `paper/_output/paper.pdf` (~46 pp.) with
+  no undefined references or citations. Every empirical claim (C1–C16) is
+  `computed` in [claims_ledger.md](claims_ledger.md) and every figure-manifest
+  row is resolved. Remaining items before deposit are reproducibility-only:
+  pinning the v1 commit/DOI (E.0) and a timed clean-room compute-budget run
+  (E.1). See [CHANGELOG.md](CHANGELOG.md).
 - **Version policy:** a **frozen v1** is deposited for a citable identifier; a
   later **v2** follows once the alignment-study companion paper lands and the
   forward references can be tightened. See [CHANGELOG.md](CHANGELOG.md).

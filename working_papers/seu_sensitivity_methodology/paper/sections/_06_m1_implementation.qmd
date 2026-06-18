@@ -5,7 +5,7 @@
 > re-estimated at $n = 100$ (`spikes/report14_rerun_results.json`). The paper
 > uses the existing risky-choice design and reports the matched-design
 > comparison honestly; it does not undertake $\delta$-optimal lottery design
-> (named as future work, §8.5.1). All §6.4 percentages are paired-iteration
+> (named as future work, §[8.5](#sec-disc-limitations)). All §6.4 percentages are paired-iteration
 > medians or bootstrap-over-iteration ratios with 90% CIs from the $n = 100$
 > re-run; the 30-iteration pilot's $\approx 15\%$ / $\approx 2\%$ figures are
 > superseded and are not cited.*
@@ -25,7 +25,7 @@ not on $\beta$ (§[5.1](#sec-m1-twostep), Step 1).
 ## 6.2 Study design and the matched comparison {#sec-m1-matched .unnumbered}
 
 **Design.** We use the existing risky-choice configuration ($K = 3$, $S = 15$
-lotteries; full constants in Appendix D.0, drafted later), *not* a
+lotteries; full constants in Appendix D.0), *not* a
 $\delta$-optimal design. Report 14's matched design fixes one study design across
 conditions and slices the same simulated choices four ways:
 
@@ -59,7 +59,7 @@ estimate.
 CI-width gain is $\approx 0.8\%$ and $\delta$ RMSE is statistically unchanged. A
 $\delta$-information-optimal lottery design --- pitting, e.g., the certain
 intermediate consequence against a 50/50 mix of the extremes to triangulate each
-$\delta_k$ --- is named as future work (§8.5.1, drafted later), not a deliverable
+$\delta_k$ --- is named as future work (§[8.5](#sec-disc-limitations)), not a deliverable
 here.
 
 ## 6.3 Prior predictive analysis {#sec-m1-prior .unnumbered}
@@ -168,6 +168,6 @@ $\delta$-calibration improvement (e.g., a flatter histogram): marginal SBC is
 uniform for $\delta$ in *both* models, because the relevant $(\beta,\delta)$
 weakness lives in the *joint* posterior (the **marginal-SBC demarcation** again,
 §[4.4](#sec-m0-sbc)). The appropriate diagnostic is a joint or projection-based
-rank statistic (§[8.3](#sec-discussion), drafted later). The usual single-chain
+rank statistic (§[8.3](#sec-discussion)). The usual single-chain
 SBC caveats apply: thinning, single-chain Monte-Carlo error, and sample-size
 driven rank-resolution all bound what the histograms can detect.

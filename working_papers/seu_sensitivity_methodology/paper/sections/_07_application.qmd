@@ -64,7 +64,7 @@ high-ambiguity in the spirit of @ellsberg1961).
 
 **Per cell.** Five sampling-temperature conditions; $M \approx 100$ base problems
 $\times$ 3 position-counterbalanced presentations $= 300$ choices per condition
-(constants in Appendix D.5, drafted later). Temperature grids differ by provider:
+(constants in Appendix D.5). Temperature grids differ by provider:
 GPT-4o $\{0.0, 0.3, 0.7, 1.0, 1.5\}$; Claude $\{0.0, 0.2, 0.5, 0.8, 1.0\}$
 (Anthropic-API range constraint). The unequal grids complicate direct
 slope-*magnitude* comparison across LLMs, though not the qualitative reading; we
@@ -91,7 +91,7 @@ $\alpha$ calibrated to the application's design and consequence space.
 **Prior calibration anchor.** The calibration target is the prior predictive
 SEU-maximizer selection rate (fraction of simulated problems on which the
 simulated agent picks the EU-maximal available alternative). The foundational
-$\mathrm{Lognormal}(0,1)$ prior of §4.1.2 places excessive mass on near-random
+$\mathrm{Lognormal}(0,1)$ prior of §[4.1](#sec-m0-spec) places excessive mass on near-random
 regimes and, at the application's $R$ and $K$, on tails that cause softmax
 overflow under the study design. A grid search over twelve Lognormal
 hyperparameter pairs selects $\mathrm{Lognormal}(3.0, 0.75)$ for the insurance
@@ -108,7 +108,7 @@ $(\beta,\delta)$ weak-identifiability result of §[3.4](#sec-bd-weak) carry over
 unchanged from `m_0` to `m_01`. The application inherits the identifiability story
 of §§[3](#sec-m0-identifiability) and [5](#sec-m1-identifiability) without
 re-derivation. This foundational-vs-application prior distinction is the one
-flagged in §4.1.2: same likelihood, different $\alpha$ prior.
+flagged in §[4.1](#sec-m0-spec): same likelihood, different $\alpha$ prior.
 :::
 
 ## 7.4 Validation at the application's scale {#sec-app-validation .unnumbered}

@@ -58,8 +58,8 @@ recoverable is a separate question --- the subject of §[3.4](#sec-bd-weak).
 
 ::: {.callout-note appearance="simple"}
 **Proposition 3.2 (Weak identifiability of $(\beta,\delta)$ in `m_0`).** At
-representative parameter values and at this paper's study design (Appendix D.0,
-drafted later), the Fisher-information block of the map $(\beta,\delta) \mapsto
+representative parameter values and at this paper's study design (Appendix D.0),
+the Fisher-information block of the map $(\beta,\delta) \mapsto
 \{\eta_r\}$, after removing the exact $\beta$ gauge, is strongly ill-conditioned:
 its condition number satisfies $\kappa \gtrsim 10^3$, so there is a direction in
 $(\beta,\delta)$-space along which the expected log-likelihood is near-flat at
@@ -131,7 +131,7 @@ supplies essentially no curvature for separating them.
 
 The weak identifiability of $(\beta,\delta)$ motivates the extended model of
 §[5](#sec-m1-identifiability). Before getting there, §[4](#sec-m0-implementation)
-(drafted later) shows that the practical consequences --- wide credible intervals
+shows that the practical consequences --- wide credible intervals
 on $(\beta,\delta)$, tight intervals on $\alpha$ --- are directly visible in a
 Stan implementation, and that marginal simulation-based calibration nonetheless
 passes for all three parameters (the *marginal-SBC demarcation*).

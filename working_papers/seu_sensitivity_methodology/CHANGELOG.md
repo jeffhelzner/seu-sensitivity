@@ -15,6 +15,23 @@ Each archive deposit pins the supporting repository to a specific commit/tag.
 ## [Unreleased]
 
 ### Changed
+- **Figure manifest: remaining `_tbd_` rows resolved (E.2 + `figure_manifest.md`).**
+  The two standalone-manifest rows that were still `not-started` are now closed:
+  - **§7.5.5 2×2 forest plot** of the per-cell global-slope posteriors is
+    `computed`. New artifact `spikes/report_2x2_forest_spike.py` →
+    `figures/report_2x2_forest.png`, rendering the canonical *report-level* cell
+    summaries (claims_ledger C9/C10/C12/C13), so the figure matches @tbl-2x2 by
+    construction. The spike also records a population-OLS cross-check
+    (`b_i = Cov(T,α_i)/Var(T)` over the committed per-condition draws) in its
+    results JSON --- diagnostic only, not plotted: it agrees on P(slope<0) and on
+    the two Ellsberg cells, and reflects the insurance-cell slope-convention
+    difference already documented in C16. The body retains @tbl-2x2 (the paper's
+    no-embedded-figures convention); the forest plot is a tracked reproducible
+    artifact. Appendix E.2 gains a matching `Fig (§7.5.5)` row.
+  - **§1.8 dependency display** is reclassified from a `not-started` mermaid
+    "diagram" to an **authored** LaTeX `\underbrace` dependency chain in the §1.8
+    body (no mermaid, no generated figure) --- matching what the section actually
+    contains.
 - **Figure manifest: pending foundational rows filled (E.2 + `figure_manifest.md`).**
   The three `pending`/`not-started` foundational-report figures --- §4.3 (`m_0`
   α true-vs-estimated recovery scatter), §4.4 (`m_0` SBC), §6.5 (`m_1` SBC) ---

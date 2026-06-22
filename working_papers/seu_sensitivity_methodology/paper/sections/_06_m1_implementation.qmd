@@ -1,15 +1,5 @@
 # A Basic Computational Implementation of the Extended Model: `m_1` in Stan {#sec-m1-implementation .unnumbered}
 
-> **§6.** *Concrete realization of §[5](#sec-m1-identifiability). Sources:
-> foundational Reports 5 and 6, plus the corrective findings of Report 14 as
-> re-estimated at $n = 100$ (`spikes/report14_rerun_results.json`). The paper
-> uses the existing risky-choice design and reports the matched-design
-> comparison honestly; it does not undertake $\delta$-optimal lottery design
-> (named as future work, §[8.5](#sec-disc-limitations)). All §6.4 percentages are paired-iteration
-> medians or bootstrap-over-iteration ratios with 90% CIs from the $n = 100$
-> re-run; the 30-iteration pilot's $\approx 15\%$ / $\approx 2\%$ figures are
-> superseded and are not cited.*
-
 ## 6.1 Model specification {#sec-m1-spec .unnumbered}
 
 `m_1` keeps the `m_0` parameters and priors --- $\alpha \sim

@@ -1,16 +1,5 @@
 # Illustrative Application: SEU Sensitivity in LLM Decisions {#sec-application .unnumbered}
 
-> **§7.** *Concrete realization of the workflow of §[4](#sec-m0-implementation)
-> and §[6](#sec-m1-implementation) on real LLM choice data. Sources: the
-> application reports for GPT-4o $\times$ insurance, Claude $\times$ insurance,
-> GPT-4o $\times$ Ellsberg, and Claude $\times$ Ellsberg, plus the $2\times2$
-> synthesis. This section is **illustrative**, not a contribution to LLM
-> behavioral science; the construct-validity layering of §[7.6](#sec-app-limits)
-> sets the limits. Scope budget: $\approx$ 6--8 pages --- headline result,
-> reading guide, condensed validation, and limitations live here; per-condition
-> tables and calibration-grid detail live in the application reports and are
-> cited, not reproduced.*
-
 ## 7.1 Why include an application here {#sec-app-why .unnumbered}
 
 The methodology of §§[2](#sec-abstract-model)--[6](#sec-m1-implementation) is

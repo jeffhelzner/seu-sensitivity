@@ -1,10 +1,5 @@
 # A Basic Computational Implementation: Model `m_0` in Stan {#sec-m0-implementation .unnumbered}
 
-> **§4.** *Concrete realization of §§[2](#sec-abstract-model)–[3](#sec-m0-identifiability).
-> Code excerpts are minimal; full Stan listings are in Appendix C, and the
-> design constants are in Appendix D.0. Sources:
-> foundational Reports 2–4 and 6.*
-
 This section turns the abstract `m_0` model into an estimable Bayesian model and
 shows that the identifiability picture of §[3](#sec-m0-identifiability) is
 directly visible in a Stan implementation: $\alpha$ recovers well, $(\beta,

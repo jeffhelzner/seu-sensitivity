@@ -1,8 +1,5 @@
 # The Abstract Model: Softmax Choice and Sensitivity {#sec-abstract-model .unnumbered}
 
-> **§2.** *Conceptual and mathematical. No software. Proofs of the three softmax
-> properties are relegated to Appendix A.*
-
 This section specifies the choice model abstractly, before any commitment to
 where values come from. The payoff of the abstraction is that the three
 properties that license reading $\alpha$ as a *sensitivity* parameter

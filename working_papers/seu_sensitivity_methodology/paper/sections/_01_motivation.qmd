@@ -1,55 +1,64 @@
 # Motivation {#sec-motivation .unnumbered}
 
-> **§1.** *Conceptual; no software. Motivates the measurement problem, fixes
-> subjective expected utility (SEU) maximization as the stated standard, and
-> states the contribution and roadmap. The formal development begins in
-> §[2](#sec-abstract-model).*
-
 ## 1.1 Two questions about a decision {#sec-two-questions .unnumbered}
 
 There are two distinct questions one can ask about a decision. The first is
-*external*: did the choice match the outcome we cared about --- did the claim
-that was forwarded turn out to be fraudulent, did the gamble that was taken pay
-off? The second is *procedural*: did the choice have the right *internal
-structure* relative to a stated standard --- was it responsive to the
-probabilities, the stakes, and the tradeoffs in the way the standard
-prescribes? The two questions can come apart. A decision can be procedurally
-impeccable and still turn out badly, because the world is uncertain; and a
-decision can be procedurally incoherent and still turn out well, because luck
-is not selective. When we evaluate a decision maker --- a human analyst, an
-institution, or, increasingly, a large language model deployed to make or
-recommend choices --- we usually care about the second question, even when only
-the first is easy to score.
+*label-based*: do the agent's choices agree with a labeled test set --- did the
+claim that was forwarded turn out to be fraudulent, did the gamble that was
+taken pay off, did an expert sign off on the call? The second is *normative*: are
+the choices consistent with a stated normative theory of decision making --- are
+they responsive to the probabilities, the stakes, and the tradeoffs in the way
+the theory prescribes? We ask the second question of an agent's choices as
+observed, without attributing to the agent any particular internal computation
+or deliberative procedure: the standard constrains behavior, and the question is
+whether the behavior conforms to it. The two questions can come apart. A choice
+can be consistent with the normative standard and still disagree with the labels,
+because the decision is made before the relevant uncertainty resolves; and a
+choice can be inconsistent with the standard and still agree with the labels.
+There are important situations --- evaluating a human analyst, an institution,
+or, increasingly, a large language model deployed to make or recommend choices
+--- in which the normative question is the one we care about, and in which it is
+the harder of the two to score. The paragraphs that follow describe them.
 
 ## 1.2 Why labeled accuracy under-determines decision quality {#sec-why-labels-fail .unnumbered}
 
 The natural way to evaluate choices is to score them against labels: known
-correct answers, realized outcomes, or expert adjudications. For procedural
-evaluation this is often unavailable or misleading. Labels may be simply
-*absent* --- many consequential choices are made in domains where no
-ground-truth key exists. They may be *costly* --- obtaining an outcome can
-require running an expensive experiment or waiting out a long horizon. They may
-be *judgment-dependent* --- the "correct" label is itself a contested expert
-opinion rather than a fact. And, most fundamentally, they may be *confounded
-with luck*: a decision under uncertainty is made *before* the uncertainty
-resolves, while the outcome is observed *after*, so any outcome-based score
-conflates the quality of the decision with the realization of chance. An agent
-that reliably makes well-structured choices will still accumulate bad outcomes
-at a rate set by the irreducible noise of its environment. Scoring against
-realized outcomes therefore measures a mixture of competence and fortune, and
-the mixing weights are exactly the thing we cannot observe.
+correct answers, realized outcomes, or expert adjudications. For the normative
+question, scoring against labels faces two difficulties.
 
-## 1.3 The need for procedural evaluation {#sec-procedural .unnumbered}
+The first concerns the labels themselves. Normative evaluation by this route
+requires a labeled set of decisions, and obtaining one can be difficult. In some
+settings it is straightforward; in others it is not. The insurance-claims study
+we report in §[7](#sec-application) is a case of the second kind: there is no
+readily available key that records, decision by decision, which choice was the
+correct one, and constructing such a key under realistic experimental conditions
+is not something we could do credibly.
 
-What survives the absence of clean labels is the *structure* of the choices
-themselves. If we are willing to state a standard of good decision making
+The second difficulty is more basic, and remains even when labels *are*
+available. A score computed purely from outcomes ignores the way the context in
+which a decision is made informs the beliefs and desires of the decision maker.
+Treating outcomes as a direct measure of decision quality is defensible only
+under strong assumptions --- for instance, that the decision maker is properly
+incentivized and has enough information to learn the "objective" probabilities of
+the relevant states. Those assumptions are reasonable in some controlled
+settings, but we would not want to impose them in a study like the insurance
+experiment of §[7](#sec-application), where neither condition can be taken for
+granted. A decision that is well structured given the agent's information may
+still be scored poorly by an outcome key that was generated under different
+information, and vice versa.
+
+## 1.3 The need for normative evaluation {#sec-normative .unnumbered}
+
+What remains available when clean labels are absent is the *structure* of the
+choices themselves. If we are willing to state a standard of good decision making
 explicitly, we can ask whether an agent's choices are responsive to
 probabilities, utilities, and tradeoffs in the way that standard prescribes ---
-without ever needing to know which choice was, in hindsight, correct.
-Procedural evaluation trades a claim about outcomes for a claim about
-conformity to a stated norm. The price of admission is that one must name the
-norm; the payoff is an evaluation that is well defined even where no outcome key
-exists, and that is not contaminated by the luck of the draw.
+without ever needing to know which choice was, in hindsight, correct. Normative
+evaluation in this sense replaces a claim about outcomes with a claim about
+conformity to a stated standard. It requires that the standard be named
+explicitly; in return it yields an evaluation that is well defined even where no
+outcome key exists, and that does not depend on which outcome happened to be
+realized.
 
 ## 1.4 SEU as the stated standard {#sec-seu-standard .unnumbered}
 
@@ -66,10 +75,33 @@ shared normative benchmark in decision theory, so a conformity measure built on
 it speaks to the largest audience; and its likelihood structure is the
 best understood, which makes it the cleanest setting in which to ask the
 identifiability questions that occupy §§[3](#sec-m0-identifiability) and
-[5](#sec-m1-identifiability). Parallel instruments for non-SEU standards ---
-rank-dependent utility [@tversky1992], cumulative prospect theory
-[@kahneman1979], or maxmin expected utility [@gilboa1989] --- are possible by
-the same template and are out of scope here.
+[5](#sec-m1-identifiability).
+
+Two qualifications bound the sense in which other standards could be substituted
+for SEU. First, several theories often mentioned alongside SEU are not normative
+standards of decision quality at all but descriptive accounts of how people
+actually choose; cumulative prospect theory [@kahneman1979; @tversky1992] is the
+clearest example. Substituting such a theory is therefore more than a change of
+functional form: the quantity being measured changes from conformity to a norm
+to fit to a behavioral model, and the interpretation of the instrument changes
+with it. Maxmin expected utility [@gilboa1989] is more plausibly read as a
+normative alternative, and it supplies an admissible value function for the
+softmax construction; but because that value function is a *minimum* over a set
+of priors, it is not smooth, and substituting it into the gradient-based
+(Hamiltonian Monte Carlo) implementation of §§[4](#sec-m0-implementation) and
+[6](#sec-m1-implementation) is not a drop-in replacement --- the kinks of the
+min would require either a smoothing that reintroduces a precision parameter
+confoundable with $\alpha$, or a non-gradient sampler. Smooth ambiguity models
+[@klibanoff2005] avoid the non-smoothness by construction and would substitute
+more readily. Cumulative prospect theory, by contrast, could not be substituted
+at all without abandoning the normative reading. Second, the template applies
+only to standards that rank alternatives by
+a single real-valued evaluation. Standards that decline to reduce choice to such
+an evaluation --- for instance the decision theory of @levi1980 [@levi1986], in
+which admissible options need not be totally ordered --- fall outside the
+framework entirely, not merely outside its current scope. Parallel instruments
+for the real-valued non-SEU standards are possible by the same template and are
+out of scope here.
 
 ## 1.5 Why a graded measure rather than a binary verdict {#sec-graded .unnumbered}
 
@@ -92,10 +124,11 @@ the *content* of the commitment (the agent's beliefs and utilities) and the
 
 ## 1.6 Scope {#sec-scope .unnumbered}
 
-This paper is methodological. Its center of gravity is a calibrated measurement
+This paper is methodological. Its primary object is a calibrated measurement
 instrument and the identifiability analysis that licenses it; the
-decision-theoretic and philosophical framing is a register, not the disciplinary
-home. §§[2](#sec-abstract-model)--[6](#sec-m1-implementation) specify, motivate,
+decision-theoretic and philosophical material sets the terms of that analysis
+rather than constituting an independent contribution.
+§§[2](#sec-abstract-model)--[6](#sec-m1-implementation) specify, motivate,
 and validate the instrument: the abstract choice model and its three
 characterizing properties (§[2](#sec-abstract-model)), the identifiability of
 $\alpha$ together with the *weak* identifiability of the belief and utility
@@ -122,19 +155,39 @@ models with block-specific or context-specific $\alpha$; a test for ambiguity
 aversion in the Ellsberg setting (the SEU-plus-softmax model is, by assumption,
 of the wrong form for that, §[7.6](#sec-app-limits)); and any absolute-rationality
 ranking *between* LLMs (only within-design comparative claims about $\alpha$ are
-licensed). The target length is roughly 35--45 pages (about 25 of body plus
-appendices), a budget that disciplines the application's expansiveness in
-particular.
+licensed).
 
 ## 1.7 What is new {#sec-contribution .unnumbered}
 
 Multinomial logit is McFadden's [@mcfadden1974]; Stan, SBC, and the
 prior-predictive/recovery/SBC workflow have been standard practice for a decade
 [@carpenter2017; @talts2018; @gelman2020]. The contribution here is not any one
-of these tools but the following four-part package.
+of these tools. It is, first, a *conceptual* one --- a principled explication of
+what it means for a decision maker to be *sensitive to*, or *aligned with*, the
+requirements of SEU maximization across a range of decision contexts --- and,
+resting on that explication, a four-part *methodological* package that makes the
+explication measurable and validates the measurement. Each item is followed by a
+one-line gloss in non-technical terms.
 
 ::: {.callout-note appearance="simple"}
-**(a) A clean identifiability decomposition.** We separate the identifiability
+**(a) A principled explication of SEU sensitivity.** The three characterizing
+properties of the softmax choice rule (§[2.3](#sec-three-properties), proved in
+Appendix A) pin down a single scalar parameter $\alpha$ as the degree to which an
+agent's choices track SEU maximization, with $\alpha = 0$ at indifference to
+expected utility and $\alpha \to \infty$ at deterministic maximization. This
+gives a graded, well-defined meaning to "alignment with expected-utility
+reasoning" across the family of decision problems the estimable model
+accommodates (the experiments expressible in the data block of the Stan models,
+e.g., `m_01`), and separates that disposition from the *content* of the agent's
+commitments (its beliefs and utilities) and from the *outcomes* it realizes
+(§[2.5](#sec-conceptual-payoff)). The generalization across many agents and
+contexts via a hierarchical model is left to a companion paper
+(§[7.7](#sec-app-followup)).
+*In plain terms:* $\alpha$ assigns a precise number to how closely an agent's
+choices follow expected-utility reasoning, holding apart what the agent believes,
+what it wants, and how things happen to turn out.
+
+**(b) A clean identifiability decomposition.** We separate the identifiability
 of $\alpha$ *from the expected-utility vector* $\eta$ --- stated as a proposition
 under an explicit genericity condition (§[3.3](#sec-alpha-from-eta), Appendix
 B.1) --- from the *ridge* identifiability of $(\beta, \delta)$, stated as a
@@ -145,8 +198,11 @@ strict invariance theorem. The two facets are one structural picture
 probabilities in $\eta$, while beliefs and utilities enter only *through* $\eta$
 and trade off along a low-curvature ridge that uncertain-choice data barely
 resolves.
+*In plain terms:* the alignment number $\alpha$ can be recovered from choice
+data, but the agent's underlying beliefs and utilities often cannot be told apart
+from one another by that same data.
 
-**(b) A worked demonstration that in-principle identifiability does not predict
+**(c) A worked demonstration that in-principle identifiability does not predict
 finite-sample estimability.** The `m_0`/`m_1` contrast makes the gap concrete in
 two distinct ways. For the utility parameter $\delta$, adding the risky block
 makes it identifiable in principle (§[5.5](#sec-delta-id)) yet buys almost no
@@ -158,18 +214,26 @@ might privilege. A first-pass recovery study at $n = 30$ reported a tidy
 $\approx 15\%$ $\alpha$ gain attributable to choice type; a pre-registered re-run
 at $n = 100$ reversed it. We report that reversal as a cautionary instance of the
 very discipline the paper advocates.
+*In plain terms:* a quantity that is recoverable in theory may still not be
+recoverable from a realistic amount of data --- and we show a case where an early
+finding looked clean, then reversed on a larger re-run.
 
-**(c) The marginal-SBC demarcation.** Marginal rank uniformity is *necessary but
+**(d) The marginal-SBC demarcation.** Marginal rank uniformity is *necessary but
 not sufficient* for joint posterior calibration: a ridge in the joint
 $(\beta, \delta)$ posterior is invisible to per-parameter SBC, which passes for
 both models even where the joint belief--utility posterior is only weakly
 identified (§§[4.4](#sec-m0-sbc), [6.5](#sec-m1-sbc), [8.3](#sec-discussion)).
+*In plain terms:* a standard calibration check can look healthy one parameter at
+a time while still concealing that two parameters are jointly unresolved.
 
-**(d) An honestly reported full-pipeline application** of the instrument to LLM
+**(e) An honestly reported full-pipeline application** of the instrument to LLM
 choice data, in which every validation diagnostic comes in clean and the
 framework detects a structured comparative effect in two of four LLM$\times$task
 cells while declining to support one in the other two
 (§[7](#sec-application)).
+*In plain terms:* run end-to-end on real language-model choices, the instrument
+behaves as designed and reports an effect in two of four settings while honestly
+declining to claim one in the other two.
 :::
 
 ## 1.8 Roadmap {#sec-roadmap .unnumbered}

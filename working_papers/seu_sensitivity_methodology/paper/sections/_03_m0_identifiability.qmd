@@ -1,11 +1,5 @@
 # Choice Under Uncertainty Alone: Identifiability of $\alpha$, Weak Identifiability of $(\beta,\delta)$ {#sec-m0-identifiability .unnumbered}
 
-> **§3.** *Conceptual and mathematical; sets up the motivation for
-> §[5](#sec-m1-identifiability). The $(\beta,\delta)$ result is framed throughout
-> as* weak *(practical / ridge) identifiability --- a low-curvature direction in
-> the likelihood --- not strict non-identifiability. Proofs and the supporting
-> numerical spike are in Appendix B.*
-
 ## 3.1 The parameterization {#sec-m0-param .unnumbered}
 
 Recall from §[2.6](#sec-notation) the uncertain-choice ("`m_0`") model.

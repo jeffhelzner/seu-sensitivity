@@ -17,7 +17,7 @@ Status values:
 | C1 | 6.4.1 | m_1 does **not** materially reduce α RMSE at matched choice count (B→C): −8.1%, 90% CI [−22.0, +6.8] (null/slightly worse) — **the pilot's ≈15% gain did not replicate** | `report14_rerun_results.json` (n=100) | bootstrap-over-iterations 90% CI | computed |
 | C2 | 6.4.1 | Adding more *uncertain* data alone (A→B) **improves** α RMSE 27.1%, 90% CI [+15.0, +38.5] — **opposite sign to the pilot's claimed slight worsening** | `report14_rerun_results.json` (n=100) | bootstrap-over-iterations 90% CI | computed |
 | C3 | 6.4.2 | δ RMSE B→C ≈ 0%, 90% CI [−4.0, +4.5] (null); δ CI-width paired-median reduction only ≈0.8%, 90% CI [0.6, 1.2], narrower in 72% of iters, Wilcoxon p≈1.2e-6 (significant but ≈¼ the pilot's ≈2%) | `report14_rerun_results.json` (n=100) | paired-iteration median + bootstrap 90% CI + Wilcoxon | computed |
-| C4 | 3.4 / B.2 | (β, δ) block ill-conditioned at design n (κ ≳ 10³); δ profiled/marginal Fisher ratio 0.01–0.37 (β-coupling weakens δ); flat directions preserve choice probabilities (within-menu η-contrasts) to 2–8% of a typical direction ⇒ α separates | B.2 spike (`spikes/b2_fisher_block_spike.py`, `spikes/B2_RESULTS.md`) | condition number + δ Schur ratio + choice-prob sensitivity at 4 draws + α sweep | computed |
+| C4 | 3.4 / B.2 | Uncertain choices weakly inform (β, δ) in m_0: recovery returns wide marginal CIs for β and δ (vs tight α CIs) and a pronounced negative β–δ error correlation — the posterior concentrates on a β–δ trade-off, not on either separately ⇒ α separates empirically | `04_parameter_recovery.qmd` (Report 4) | recovery CI-widths + β–δ error correlation | computed |
 | C5 | 4.4.3 / 6.5.1 | Marginal SBC ranks uniform for α, β, δ in both models at N_sbc = 999 | `06_sbc_validation.qmd` | rank histograms + ECDF/KS band | computed |
 | C6 | 4.3.2 | α recovery: low bias, calibrated 90% intervals | `04_parameter_recovery.qmd` | true-vs-estimated scatter + CIs | computed |
 | C7 | 4.3.3 | β/δ recovery: wider CIs, negative β–δ error correlation | `04_parameter_recovery.qmd` | recovery summaries | computed |
@@ -34,24 +34,10 @@ Status values:
 ## Gating rule
 
 The first full-paper draft is blocked until: every `re-run-pending` row is
-resolved (B.2 spike + Report-14 re-run at n ≥ 100), and every `placeholder` row
+resolved (Report-14 re-run at n ≥ 100), and every `placeholder` row
 is transcribed to `computed` from its source report.
 
-## B.2 spike outcome (gate 1 — resolved)
-
-The spike (row C4) refines two pieces of the plan's wording; see
-[`spikes/B2_RESULTS.md`](spikes/B2_RESULTS.md):
-
-- The Definition-of-done literal phrasing "smallest eigenvalue ≥ 1 order of
-  magnitude below the *others*" is **superseded** by **condition number κ ≳ 10³**
-  and **δ Schur ratio ≪ 1** — the spectrum has a low-curvature *tail*, not a
-  single isolated null.
-- §3.5's α-separation argument is phrased as **choice-probability-preserving**
-  (within-menu η-contrast-preserving), not raw-η-preserving (the latter is
-  α-dependent). B.2 is a **numerically-supported proposition**, not a theorem;
-  **no strict (β, δ) invariance group is claimed.**
-
-## Report-14 re-run outcome (gate 2 — resolved, ⚠ pilot did not replicate)
+## Report-14 re-run outcome (gate 1 — resolved, ⚠ pilot did not replicate)
 
 The n = 100 re-run (rows C1–C3; `spikes/report14_rerun_analysis.py` →
 `spikes/report14_rerun_results.json`, design seed 20260617, 10 000 bootstrap
@@ -129,9 +115,9 @@ conditions." The actual picture:
   β/δ** and **high-dimensional per-trial nuisance latents** (`eta`, `psi`,
   `upsilon`) in the harder K = 4 GPT-4o × Ellsberg fits (T = 0.0, 0.7, 1.0) plus
   one Claude × Insurance fit (`eta` only). This is **consistent with — and mild
-  corroboration of — the §3.4 / §6.4 β,δ ill-conditioning thesis**: the
-  poorly-mixing parameters are exactly the ones the Fisher analysis flags as
-  near-unidentified. It is not a defect in the α inference.
+  corroboration of — the §3.4 / §6.4 weakly-informed β,δ thesis**: the
+  poorly-mixing parameters are exactly the ones recovery flags as
+  weakly informed. It is not a defect in the α inference.
 
 **Consequence for the draft.** Rewrite §7.4.3 to claim what is true and
 load-bearing: *α R-hat ≤ 1.01 and ESS satisfactory in all 20 fits; divergences

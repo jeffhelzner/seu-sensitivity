@@ -1,10 +1,9 @@
 # Appendix B. Identifiability Results {#sec-appendix-b .unnumbered}
 
-> *The four results below are stated at the level of rigor the foundations
-> currently support: B.1 and B.3 are proofs under explicit genericity
-> conditions; B.2 is a numerically-supported proposition (a Fisher-information /
-> near-kernel claim, not a strict invariance theorem); B.4 is bookkeeping once
-> B.3 is in place.*
+> *Three of the results below (B.1, B.3, B.4) are proofs under explicit
+> genericity conditions; B.2 is not a proposition but a brief empirical note on
+> the Bayesian workflow, recording that uncertain-choice data weakly inform
+> $(\beta,\delta)$ as seen directly in parameter recovery.*
 
 ## B.1 Identifiability of $\alpha$ from $\eta$ {#sec-b1 .unnumbered}
 
@@ -34,71 +33,34 @@ is exactly the condition under which softmax curvature in $\alpha$ is non-trivia
 It fails only in the measure-zero event that every presented menu has perfectly
 tied expected utilities.
 
-## B.2 Weak (practical) identifiability of $(\beta,\delta)$ in `m_0` {#sec-b2 .unnumbered}
+## B.2 Weakly-informed $(\beta,\delta)$ in `m_0`: a workflow note {#sec-b2 .unnumbered}
 
-This result is a **Fisher-information / curvature** claim, established
-numerically by the spike `spikes/b2_fisher_block_spike.py`
-(see `spikes/B2_RESULTS.md`), not a strict $\eta$-preserving group.
-
-**Setup.** At a parameter value $(\alpha, \beta, \delta)$ and the study design of
-Appendix D.0 (here $K = 3$, $D = 5$, $R = 15$, $M = 50$, normal features), the
-expected per-design $(\beta,\delta)$ Fisher block is
+This is not a proposition but a record of what the Bayesian workflow shows about
+$(\beta,\delta)$ in `m_0`. The structural reason they are hard to separate is
+that expected utility composes beliefs and utilities multiplicatively,
 $$
-I \;=\; \sum_{m} G_m^\top \big(\mathrm{diag}(p_m) - p_m p_m^\top\big) G_m,
-\qquad G_m = \alpha\,\frac{\partial \eta_m}{\partial(\beta,\delta)},
-\qquad p_m = \mathrm{softmax}(\alpha\,\eta_m).
+\eta_r \;=\; \mathrm{softmax}(\beta\, w_r)^\top \bm{\upsilon}(\delta),
 $$
-The analytic $\eta$-Jacobian was verified against central finite differences (max
-absolute error $1.0\times10^{-10}$). The exact $\beta$ row-shift gauge (adding a
-common $\gamma \in \mathbb{R}^D$ to every row of $\beta$; $D$ directions) was
-confirmed to be exactly $\eta$-preserving and Fisher-null ($\leq 1.6\times10^{-16}$)
-and projected out before measuring the ridge.
+so uncertain choices see $(\beta,\delta)$ only through the scalar $\eta_r$. A
+change in beliefs offset by a compensating change in utilities leaves the implied
+expected utilities --- and hence the choice probabilities --- almost unchanged.
+The endpoint convention on $\bm{\upsilon}$ (§[2.6](#sec-notation)) removes the
+affine utility gauge, but the multiplicative $(\beta,\delta)$ coupling is not a
+gauge and is not removed.
 
-::: {.callout-note appearance="simple"}
-**Proposition B.2.** After removing the exact $\beta$ gauge, the
-$(\beta,\delta)$ Fisher block $I$ is strongly ill-conditioned at representative
-parameter values and the design's sample sizes: its condition number satisfies
-$\kappa = \lambda_{\max}/\lambda_{\min} \gtrsim 10^3$. The Schur complement
-isolating $\delta$,
-$$
-I_{\delta\delta}^{\text{prof}} = I_{\delta\delta} - I_{\delta\beta}
-  I_{\beta\beta}^{+} I_{\beta\delta},
-$$
-retains only a fraction $0.01$–$0.37$ of the marginal $\delta$ information
-$I_{\delta\delta}$. The flattest gauge-fixed direction changes within-menu
-$\eta$-contrasts --- hence choice probabilities --- by only 2–8% of a typical
-direction. There is therefore a near-flat, approximately
-choice-probability-preserving direction in $(\beta,\delta)$-space at realistic
-$n$, and no strict $\eta$-preserving group beyond the separately-handled $\beta$
-gauge.
-:::
-
-**Numerical evidence.** At four representative prior draws ($\alpha \in
-\{0.45, 0.88, 0.60, 0.64\}$):
-
-| draw | $\alpha$ | $\kappa$ | $\delta$ Schur ratio | flat-dir choice-prob sensitivity / median |
-| --- | --- | --- | --- | --- |
-| 1 | 0.45 | $1.4\times10^{3}$ | 0.014 | 0.083 |
-| 2 | 0.88 | $2.8\times10^{4}$ | 0.367 | 0.023 |
-| 3 | 0.60 | $4.2\times10^{3}$ | 0.280 | 0.059 |
-| 4 | 0.64 | $3.9\times10^{4}$ | 0.034 | 0.032 |
-
-An $\alpha$ sweep $\in \{0.5, 1, 2, 5, 10\}$ at fixed $(\beta,\delta)$ gives
-$\kappa \approx 1.4$–$2.1\times10^{3}$, Schur ratio $\approx 0.009$–$0.014$, and
-choice-probability ratio $\approx 0.08$–$0.15$ --- all three conclusions robust
-to $\alpha$.
-
-**Reading.** (i) The ridge exists ($\kappa \gtrsim 10^3$, with a low-curvature
-tail spanning three to four orders of magnitude, not a single isolated null).
-(ii) Profiling out $\beta$ destroys 63–99% of $\delta$'s information --- the
-precise computational form of the multiplicative $(\beta,\delta)$ coupling
-documented by parameter recovery (Report 4) and the matched-design study
-(Report 14). (iii) Because the flat direction preserves choice probabilities and
-$\alpha$ is identified from those (B.1), the ridge leaves $\alpha$ untouched
-(§[3.5](#sec-m0-link)). Note that the flattest single direction is predominantly
-$\beta$ (a near-extension of the gauge), with $\delta$-weight $\approx 0$;
-$\delta$'s weak identification is therefore reported via the Schur ratio, not by
-reading it off the smallest eigenvector.
+**What recovery shows.** Parameter recovery in `m_0`
+(§[4.3](#sec-m0-recovery), Report 4) returns wide marginal credible intervals for
+both $\beta$ and $\delta$ --- in sharp contrast to the tight, well-calibrated
+$\alpha$ intervals --- together with a pronounced *negative $\beta$–$\delta$ error
+correlation*: the posterior concentrates on a trade-off between beliefs and
+utilities rather than on either separately. That correlated, barely-contracted
+joint posterior is the practical signature of the multiplicative coupling and is
+what we mean by calling $(\beta,\delta)$ *weakly informed* by uncertain choices.
+No strict non-identifiability is claimed, and no gauge group on $(\beta,\delta)$
+beyond the $\beta$ row-shift of §[2.6](#sec-notation) is asserted; the point is
+that uncertain-choice data alone supply little information for separating beliefs
+from utilities. The matched-design study of §[6.4](#sec-m1-recovery) (Report 14)
+quantifies how little the risky block adds to this separation at realistic $n$.
 
 ## B.3 Global identifiability of $\delta$ in `m_1` {#sec-b3 .unnumbered}
 

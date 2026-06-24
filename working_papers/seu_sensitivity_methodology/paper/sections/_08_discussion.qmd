@@ -76,11 +76,11 @@ rather than discursive:
 
 ::: {.callout-warning appearance="simple"}
 **The marginal-SBC demarcation.** Marginal rank uniformity is *necessary but not
-sufficient* for joint posterior calibration. A ridge in the joint
-$(\beta, \delta)$ posterior is invisible to per-parameter SBC: marginal SBC
-passes for $\alpha$, $\beta$, *and* $\delta$ in both `m_0` and `m_1`
-(§[4.4](#sec-m0-sbc), §[6.5](#sec-m1-sbc)) even though the $(\beta, \delta)$
-content is only weakly (ridge-)identified at realistic $n$
+sufficient* for joint posterior calibration. The negatively correlated,
+barely-contracted joint $(\beta, \delta)$ posterior is invisible to per-parameter
+SBC: marginal SBC passes for $\alpha$, $\beta$, *and* $\delta$ in both `m_0` and
+`m_1` (§[4.4](#sec-m0-sbc), §[6.5](#sec-m1-sbc)) even though the $(\beta, \delta)$
+content is only weakly informed by uncertain choices at realistic $n$
 (§[3.4](#sec-bd-weak)).
 :::
 
@@ -92,9 +92,9 @@ correctly from the joint posterior they encode; (ii) per-parameter marginal
 calibration, so the credible intervals are usable as marginal uncertainty
 summaries; and (iii) the demarcation itself, which clarifies *which*
 identifiability properties marginal SBC can and cannot diagnose. When parameters
-trade off along a ridge, a *joint* or *projection-based* rank statistic is the
-appropriate diagnostic --- a concrete next step for the SBC literature that this
-paper's null between `m_0` and `m_1` motivates.
+trade off in a correlated joint posterior, a *joint* or *projection-based* rank
+statistic is the appropriate diagnostic --- a concrete next step for the SBC
+literature that this paper's null between `m_0` and `m_1` motivates.
 
 ## 8.4 Why $\alpha$ is the primary quantity of interest {#sec-disc-alpha .unnumbered}
 
@@ -175,8 +175,8 @@ decision makers --- human or machine --- against a stated rationality standard
 expressible as expected-value maximization, with SEU as the canonical case. The
 framework's honesty is part of its contribution: it reports where a parameter is
 identifiable but not precisely estimable, where in-principle arguments fail to
-predict finite-sample behavior, where marginal calibration is blind to joint
-weak identification, and where an instrument declines to support an effect its own
+predict finite-sample behavior, where marginal calibration is blind to a jointly
+weakly-informed posterior, and where an instrument declines to support an effect its own
 diagnostics cannot resolve. An evaluation framework that always reported an
 effect would be a scoreboard; one that knows the limits of what it can measure is
 an instrument.

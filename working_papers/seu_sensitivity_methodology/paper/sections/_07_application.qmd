@@ -93,7 +93,7 @@ rate shifts with it.
 ::: {.callout-note appearance="simple"}
 **Only the prior is recalibrated, not the likelihood.** The $\alpha$-identifiability
 proposition of §[3.3](#sec-alpha-from-eta)/§[5.4](#sec-m1-alpha) and the
-$(\beta,\delta)$ weak-identifiability result of §[3.4](#sec-bd-weak) carry over
+weakly-informed $(\beta,\delta)$ finding of §[3.4](#sec-bd-weak) carry over
 unchanged from `m_0` to `m_01`. The application inherits the identifiability story
 of §§[3](#sec-m0-identifiability) and [5](#sec-m1-identifiability) without
 re-derivation. This foundational-vs-application prior distinction is the one
@@ -134,12 +134,13 @@ $\alpha$ posteriors are a sound basis for the cross-condition comparison.
 Divergent transitions are negligible ($\leq 0.15\%$ per fit, $\leq 6/4000$; 34
 total), though spread across 12/20 fits in both tasks and both providers rather
 than confined to the highest GPT-4o temperatures. $\hat{R} > 1.01$ appears in
-4/20 fits, **confined to the weakly-identified $\beta/\delta$ and the
+4/20 fits, **confined to the weakly-informed $\beta/\delta$ and the
 high-dimensional per-trial nuisance latents** ($\eta$, $\psi$, $\upsilon$) in the
 harder $K = 4$ GPT-4o $\times$ Ellsberg fits (plus one Claude $\times$ insurance
 fit, $\eta$ only). This *corroborates* the §[3.4](#sec-bd-weak)/§[6.4](#sec-m1-recovery)
-ill-conditioning thesis --- the poorly-mixing parameters are exactly the
-near-unidentified ones --- and is not a defect in $\alpha$ inference.
+weakly-informed $(\beta,\delta)$ finding --- the poorly-mixing parameters are
+exactly the ones recovery flags as weakly informed --- and is not a defect in
+$\alpha$ inference.
 
 **Posterior predictive checks.** Three complementary summaries (log-likelihood,
 modal-choice frequency, mean predicted probability of the chosen alternative)

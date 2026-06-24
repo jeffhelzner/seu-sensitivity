@@ -46,8 +46,8 @@ alternatives available in problem $m$.
 **The $\beta$ gauge in the implementation.** Softmax invariance to a common
 per-column row shift (§[2.6](#sec-notation)) means $\beta$ has only $(K-1)\times
 D$ effective degrees of freedom. Rather than fix a reference row, `m_0` places an
-independent $\mathcal{N}(0,1)$ prior on all $K\times D$ entries and accepts the
-resulting ridge of constant prior density along the gauge; this weakly pins the
+independent $\mathcal{N}(0,1)$ prior on all $K\times D$ entries and accepts that
+the prior density is constant along the gauge direction; this weakly pins the
 gauge without biasing the recovered $\bm{\psi}$. Posterior summaries of $\beta$
 should therefore target row *contrasts* or the induced $\bm{\psi}$, never
 absolute row levels.
@@ -83,12 +83,12 @@ curvature to pin it.
 **$\beta$ and $\delta$ recovery.** By contrast $(\beta, \delta)$ show detectably
 wider intervals, intervals that narrow more slowly with sample size, and a
 visible negative correlation between $\beta$ and $\delta$ estimation errors
-across iterations. This is the *computational manifestation* of the weak
-$(\beta,\delta)$ identifiability of §[3.4](#sec-bd-weak): the Fisher ridge made
-visible as a tilted posterior and wide marginal intervals. Crucially, the poor
-$(\beta, \delta)$ recovery does *not* contaminate $\alpha$ --- exactly as the
-choice-probability-preserving separation argument of §[3.5](#sec-m0-link)
-predicts.
+across iterations. This is the *computational manifestation* of the
+weakly-informed $(\beta,\delta)$ of §[3.4](#sec-bd-weak): the multiplicative
+$(\beta,\delta)$ coupling made visible as a correlated joint posterior and wide
+marginal intervals. Crucially, the poor $(\beta, \delta)$ recovery does *not*
+contaminate $\alpha$ --- exactly as the empirical separation noted in
+§[3.5](#sec-m0-link).
 
 ## 4.4 Simulation-based calibration {#sec-m0-sbc .unnumbered}
 
@@ -101,15 +101,15 @@ chain, with the $L = N_{\mathrm{sbc}}$ convention (Appendix D.3).
 
 **Result.** At $N_{\mathrm{sbc}} = 999$ the marginal rank distributions are
 consistent with uniformity for $\alpha$, $\beta$, *and* $\delta$. This run does
-**not** independently reproduce the weak $(\beta,\delta)$ identifiability of
+**not** independently reproduce the weakly-informed $(\beta,\delta)$ finding of
 §§[3](#sec-m0-identifiability)–[4.3](#sec-m0-recovery), because that weakness is
-a *joint* phenomenon --- a tilted $(\beta,\delta)$ posterior ridge --- to which
-marginal SBC is blind.
+a *joint* phenomenon --- a correlated, barely-contracted $(\beta,\delta)$
+posterior --- to which marginal SBC is blind.
 
 ::: {.callout-important appearance="simple"}
 **The marginal-SBC demarcation.** *Marginal rank uniformity is necessary but not
-sufficient for joint posterior calibration; a ridge in the joint
-$(\beta,\delta)$ posterior is invisible to per-parameter SBC.* The positive
+sufficient for joint posterior calibration; a correlated, barely-contracted
+joint $(\beta,\delta)$ posterior is invisible to per-parameter SBC.* The positive
 contribution of SBC here is therefore threefold: (i) **sampler/implementation
 validation** --- uniform marginal ranks at $N_{\mathrm{sbc}} = 999$ are direct
 evidence that the Stan implementation (priors, simplex and ordered transforms,
@@ -125,7 +125,7 @@ calibration "fingerprints" or an `m_0`$\to$`m_1` histogram improvement.
 ## 4.5 Section summary {#sec-m0-impl-summary .unnumbered}
 
 `m_0` succeeds at recovering $\alpha$ --- the parameter of primary interest ---
-but the weak identifiability of $(\beta,\delta)$ leaves the expected-utility
-*content* underdetermined at realistic $n$. This motivates the extended model of
-§[5](#sec-m1-identifiability), whose implementation we take up in
-§[6](#sec-m1-implementation).
+but the data leave $(\beta,\delta)$ only weakly informed, leaving the
+expected-utility *content* underdetermined at realistic $n$. This motivates the
+extended model of §[5](#sec-m1-identifiability), whose implementation we take up
+in §[6](#sec-m1-implementation).

@@ -12,7 +12,7 @@
 ## D.0 Foundational study-design constants {#sec-d0 .unnumbered}
 
 The methodological models `m_0` and `m_1` (§§[4](#sec-m0-implementation),
-[6](#sec-m1-implementation)) and the B.2 Fisher analysis use a single small
+[6](#sec-m1-implementation)) use a single small
 design, chosen to be representative rather than power-optimized:
 
 | Constant | Symbol | Value |
@@ -28,8 +28,7 @@ design, chosen to be representative rather than power-optimized:
 | Risky lottery simplices | $\pi_s$ | fixed across iterations |
 
 The matched-design recovery study (D.4) instantiates these at the four
-$(M, N)$ slices of the §[6.2](#sec-m1-matched) table; the B.2 Fisher block
-(Appendix B.2) is evaluated at $K = 3$, $D = 5$, $R = 15$, $M = 50$. The
+$(M, N)$ slices of the §[6.2](#sec-m1-matched) table. The
 simulation-based-calibration protocol (D.3) uses $N_{\mathrm{sbc}} = 999$ draws,
 thinning $4$, a single chain, $20$ rank-histogram bins, and the $L =
 N_{\mathrm{sbc}}$ rank convention.
@@ -64,10 +63,10 @@ reported as a fraction. In the application (§[7.4](#sec-app-validation),
 claim C14) $\alpha$ --- the only load-bearing parameter for the
 temperature analysis --- is never $\hat{R}$-flagged and has satisfactory ESS in
 all 20 fits; divergences are $\le 0.15\%$ per fit; the only $\hat{R} > 1.01$
-exceedances fall on the weakly-identified $\beta, \delta$ and the per-trial
+exceedances fall on the weakly-informed $\beta, \delta$ and the per-trial
 nuisance latents ($\eta, \psi, \upsilon$) in the hardest $K = 4$ fits ---
-consistent with the §[3.4](#sec-bd-weak) ill-conditioning thesis rather than a
-defect in the $\alpha$ inference.
+consistent with the §[3.4](#sec-bd-weak) weakly-informed $(\beta,\delta)$ finding
+rather than a defect in the $\alpha$ inference.
 
 ## D.3 SBC configuration and seed convention {#sec-d3 .unnumbered}
 

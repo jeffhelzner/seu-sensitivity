@@ -15,6 +15,25 @@ Each archive deposit pins the supporting repository to a specific commit/tag.
 ## [Unreleased]
 
 ### Changed
+- **Removed the weak-identifiability (Fisher/ridge) apparatus; re-grounded the
+  (β, δ) claim on the Bayesian workflow.** The only numerically-supported
+  "proposition" (Prop 3.2 / Appendix B.2 — the η-Jacobian Fisher block, condition
+  number κ, δ Schur-complement ratio, near-flat-direction analysis) and its
+  IV/GMM "weak identification" terminological demarcation are gone. The
+  substantive story is unchanged but now rests on existing recovery artifacts:
+  uncertain choices leave (β, δ) *weakly informed* — wide marginal CIs and a
+  negative β–δ error correlation (Report 4; claims-ledger C4) — while α recovers
+  cleanly. Edits: §3 (title, §3.4 rewrite, §3.5 softened to an empirical
+  observation, §3.6), Appendix B.2 (now a brief workflow note, slot kept so
+  B.3/B.4 do not renumber), §1.7 contributions (b)/(d), §6.4.4(i), §8.3 + §8.6,
+  §2.5, and the abstract. "Weak identifiability" / "ridge" wording replaced by
+  Bayesian-native phrasing paper-wide. Appendix D.0 and E.2 + `figure_manifest.md`
+  drop the Fig B.2 / B.2-Fisher rows; `claims_ledger.md` C4 replaced, C14 reworded,
+  the "B.2 spike outcome" gate section removed (gating rule + Report-14 gate
+  renumbered). Bootstrap CIs and the §6 matched-recovery story (C1–C3, Report 14)
+  are untouched — they belong to the "m_1 adds little" result, which stays. The
+  b2 spike + results JSON + `B2_RESULTS.md` + `b2_fisher_spike.png` are archived
+  under `local/archive/b2_fisher_weak_id_removed_20260623/`.
 - **Figure manifest: remaining `_tbd_` rows resolved (E.2 + `figure_manifest.md`).**
   The two standalone-manifest rows that were still `not-started` are now closed:
   - **§7.5.5 2×2 forest plot** of the per-cell global-slope posteriors is

@@ -32,12 +32,13 @@ sensitivity, the more intuitive direction for our purposes.
 
 *Why softmax rather than probit or another stochastic-choice wrapping?* Three
 properties recommend it. It is the unique rule satisfying Luce's
-independence-of-irrelevant-alternatives axiom; it embeds the
+independence-of-irrelevant-alternatives axiom [@luce1959]; it embeds the
 optimization and uniform-choice limits as the two endpoints of a single scalar
-$\alpha$ (§[2.3](#sec-three-properties)); and its log-likelihood is concave in
-$\alpha V$, which makes the sensitivity parameter both interpretable and
-well-behaved for estimation. Probit lacks the closed-form IIA structure and a
-single sensitivity scalar with these limit properties.
+$\alpha$ (Properties 2 and 3 of §[2.3](#sec-three-properties), proved as Theorems
+A.2 and A.3 in Appendix A); and its log-likelihood is concave in $\alpha V$
+[@mcfadden1974; @train2009], which makes the sensitivity parameter both
+interpretable and well-behaved for estimation. Probit lacks the closed-form IIA
+structure and a single sensitivity scalar with these limit properties.
 
 ## 2.3 Three characterizing properties of softmax {#sec-three-properties .unnumbered}
 
@@ -93,19 +94,26 @@ Sensitivity to SEU maximization is the disposition of an SEU-committed agent to
 *act in accordance with its commitments*. It is distinct from (a) the *content*
 of those commitments --- the agent's beliefs $\bm{\psi}$ and utilities
 $\bm{\upsilon}$ --- and (b) the *outcomes* the agent happens to realize. The
-SEU construction thus decomposes choice behavior into beliefs, utilities, and
-sensitivity, allowing each to be analyzed separately.
+SEU construction thus decomposes choice behavior conceptually into beliefs,
+utilities, and sensitivity. The three pieces are *conceptually* separable in this
+way, but they are not equally separable *empirically*: as
+§[3.4](#sec-bd-weak) and §[5.5](#sec-delta-id) show, $\alpha$ separates cleanly
+from the rest, whereas $\beta$ and $\delta$ are only weakly informed by uncertain
+choices and are recovered jointly rather than each in isolation.
 
 ::: {.callout-warning appearance="simple"}
 **Caveat on uniqueness of the decomposition.** The $(\alpha, \bm{\psi},
-\bm{\upsilon})$ decomposition is not the only one: rank-dependent utility,
-cumulative prospect theory [@tversky1992], and maxmin expected utility
-[@gilboa1989] carve the same observable choice data along different axes. Our
-claim is that *under* an SEU reference standard the (sensitivity, beliefs,
-utilities) decomposition is well-defined and --- with the identifiability
-caveats of §[3](#sec-m0-identifiability) and §[5](#sec-m1-identifiability) ---
-measurable. It is not a claim that this decomposition is uniquely correct for
-all theoretical purposes.
+\bm{\upsilon})$ decomposition is not the only way to organize the same observable
+choice data: rank-dependent utility, cumulative prospect theory [@tversky1992],
+and maxmin expected utility [@gilboa1989] organize it differently. These
+alternatives are not interchangeable substitutes for SEU, and they differ among
+themselves in kind --- some are descriptive accounts rather than normative
+standards, as §[1.4](#sec-seu-standard) discusses. Our claim is only that *under*
+an SEU reference standard the (sensitivity, beliefs, utilities) decomposition is
+well-defined and --- with the identifiability caveats of
+§[3](#sec-m0-identifiability) and §[5](#sec-m1-identifiability) --- measurable. It
+is not a claim that this decomposition is uniquely correct for all theoretical
+purposes.
 :::
 
 ## 2.6 Notation, the utility-scale convention, and the $\beta$ gauge {#sec-notation .unnumbered}
@@ -118,8 +126,10 @@ $\bm{\psi}_r = \mathrm{softmax}(\beta\, w_r)$ with $\beta \in \mathbb{R}^{K
 utility vector is built from increments $\delta \in \Delta^{K-1}$ via cumulative
 sums, with endpoints fixed by convention.
 
-Two gauge facts are load-bearing and are named once here, then *referenced* (not
-redefined) throughout.
+Two facts about this parameterization recur throughout and are stated once here,
+then referenced rather than redefined. The first fixes the zero and unit of the
+utility scale, which is what makes $\alpha$ a well-posed target; the second
+records an indeterminacy of the belief map.
 
 ::: {.callout-important appearance="simple"}
 **The $\bm{\upsilon}$-endpoint convention.** vNM utilities are unique only up to
@@ -129,22 +139,23 @@ $\alpha$ by $1/a$ (Theorem A.4). Fixing the endpoints
 $$
 0 = \upsilon_1 \leq \upsilon_2 \leq \cdots \leq \upsilon_K = 1
 $$
-removes this affine gauge and makes $\alpha$ identifiable as sensitivity on a
-standardized one-unit utility scale.
+fixes the zero and unit of the utility scale, removing this affine
+indeterminacy and making $\alpha$ identifiable as sensitivity on a standardized
+one-unit utility scale.
 :::
 
 ::: {.callout-important appearance="simple"}
-**The $\bm{\beta}$ gauge (additive row-shift gauge).** Softmax is invariant to
-adding a common scalar to all entries of a row of $\beta$: for any
-$\gamma \in \mathbb{R}^D$, replacing the rows $\beta_{k\cdot} \mapsto
-\beta_{k\cdot}$ by $\beta_{k\cdot} + c\,\mathbf{1}$ for a common per-column shift
-leaves $\mathrm{softmax}(\beta\,w_r)$ unchanged. This is the only $\beta$
-indeterminacy used in the paper; we call it the **$\beta$ gauge** and reference
-it in §[3.3](#sec-alpha-from-eta), §[4](#sec-m0-implementation),
+**The $\bm{\beta}$ gauge (additive row-shift).** Adding the same vector
+$\gamma \in \mathbb{R}^D$ to every row of $\beta$ --- that is,
+$\beta_{k\cdot} \mapsto \beta_{k\cdot} + \gamma^\top$ for all $k$ --- shifts every
+entry $(\beta\,w_r)_k$ by the common amount $\gamma^\top w_r$ and so leaves
+$\mathrm{softmax}(\beta\,w_r)$ unchanged. This is the only $\beta$ indeterminacy
+used in the paper; we refer to it as the **$\beta$ gauge** and reference it in
+§[3.3](#sec-alpha-from-eta), §[4](#sec-m0-implementation),
 §[6](#sec-m1-implementation), and Appendix B.4.
 :::
 
-The consolidated glossary is collected once here (Table @tbl-notation) and
+The consolidated glossary is collected once here (@tbl-notation) and
 referenced, not redefined, elsewhere.
 
 | Symbol | Meaning | First used |
@@ -157,25 +168,15 @@ referenced, not redefined, elsewhere.
 | $\delta \in \Delta^{K-1}$ | utility increments | §2.6 |
 | $\bm{\upsilon}$ | ordered utilities, $\upsilon_1 = 0 \le \cdots \le \upsilon_K = 1$ | §2.6 |
 | $\pi_s$ | objective lottery simplex for risky alternative $s$ (Stan: `x_risky`) | §5.2 |
-| $\beta$ gauge | additive row-shift gauge of the belief softmax | §2.6 |
-| $\bm{\upsilon}$-endpoint convention | removes the affine vNM scale-and-shift gauge | §2.6 |
+| $\beta$ gauge | additive row-shift indeterminacy of the belief softmax | §2.6 |
+| $\bm{\upsilon}$-endpoint convention | fixes the zero and unit of the vNM utility scale | §2.6 |
 
 : Consolidated notation. {#tbl-notation}
 
-## 2.7 The identifiability question --- preview {#sec-identifiability-preview .unnumbered}
+## 2.7 The identifiability question {#sec-identifiability-preview .unnumbered}
 
 The choice-probability function is determined by $(\alpha, \bm{\psi},
 \bm{\upsilon})$. Whether the *parameterizations* of $\bm{\psi}$ and
 $\bm{\upsilon}$ --- namely $(\beta, \delta)$ --- are recoverable from observed
 choices is the question §[3](#sec-m0-identifiability) and
 §[5](#sec-m1-identifiability) take up.
-
-::: {.callout-note appearance="simple"}
-**Terminological demarcation.** Where we later call $(\beta, \delta)$ *weakly
-(practically) identifiable*, we mean a low-curvature **ridge** in the likelihood
-at this design's sample sizes --- not the instrumental-variables / GMM "weak
-identification" of @staiger1997, @stock2002, and @andrews2012, where weak
-instruments correlate weakly with endogenous regressors and induce nonstandard
-asymptotics. Both reflect low information curvature, but the constructions
-differ. We use "ridge identifiability" wherever ambiguity could otherwise arise.
-:::

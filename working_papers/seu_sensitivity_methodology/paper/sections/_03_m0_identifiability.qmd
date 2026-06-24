@@ -1,4 +1,4 @@
-# Choice Under Uncertainty Alone: Identifiability of $\alpha$, Weak Identifiability of $(\beta,\delta)$ {#sec-m0-identifiability .unnumbered}
+# Choice Under Uncertainty Alone: Identifiability of $\alpha$, and the Weakly-Informed $(\beta,\delta)$ {#sec-m0-identifiability .unnumbered}
 
 ## 3.1 The parameterization {#sec-m0-param .unnumbered}
 
@@ -46,86 +46,76 @@ the boundary.
 
 The structure of the claim matters: $\alpha$ is identified *from* $\eta$, not
 from $(\beta, \delta)$ directly. Whether $(\beta, \delta)$ themselves are
-recoverable is a separate question --- the subject of §[3.4](#sec-bd-weak).
+recoverable from uncertain choices is a separate question --- the subject of
+§[3.4](#sec-bd-weak).
 
-## 3.4 Weak identifiability of $(\beta,\delta)$ {#sec-bd-weak .unnumbered}
+## 3.4 Why $(\beta,\delta)$ are weakly informed by uncertain choices {#sec-bd-weak .unnumbered}
 
-::: {.callout-note appearance="simple"}
-**Proposition 3.2 (Weak identifiability of $(\beta,\delta)$ in `m_0`).** At
-representative parameter values and at this paper's study design (Appendix D.0),
-the Fisher-information block of the map $(\beta,\delta) \mapsto
-\{\eta_r\}$, after removing the exact $\beta$ gauge, is strongly ill-conditioned:
-its condition number satisfies $\kappa \gtrsim 10^3$, so there is a direction in
-$(\beta,\delta)$-space along which the expected log-likelihood is near-flat at
-the design's sample sizes. Consequently the joint $(\beta,\delta)$ posterior is
-tilted along a ridge and individual components are recovered only imprecisely
-from uncertain choices alone --- even though no strict gauge group on
-$(\beta,\delta)$ is asserted.
-:::
+Proposition 3.1 identifies $\alpha$ *from* $\eta$. The remaining question is
+whether the data also pin down the two ingredients that *make up* $\eta$ ---
+beliefs ($\beta$) and utilities ($\delta$). They do not, at realistic sample
+sizes, and the reason is structural. Expected utility composes the two
+multiplicatively,
+$$
+\eta_r \;=\; \mathrm{softmax}(\beta\, w_r)^\top \bm{\upsilon}(\delta),
+$$
+the product of a $\beta$-driven simplex and a $\delta$-driven utility vector.
+Uncertain choices see $(\beta, \delta)$ only through this scalar $\eta_r$, so a
+family of $(\beta, \delta)$ pairs that trades a change in beliefs against a
+compensating change in utilities leaves the implied expected utilities --- and
+hence the choice probabilities --- almost unchanged. The endpoint convention on
+$\bm{\upsilon}$ (§[2.6](#sec-notation)) removes the affine utility gauge, but the
+*multiplicative* $(\beta,\delta)$ coupling is not a gauge and is not removed: it
+leaves the two only weakly informed by uncertain-choice data.
 
-This is a **numerically-supported proposition**, not a theorem, and not a claim
-of strict non-identifiability. A spike computation (Appendix B.2;
-`spikes/b2_fisher_block_spike.py`) evaluates the gauge-fixed $(\beta,\delta)$
-Fisher block at four representative prior draws and across an $\alpha$ sweep, and
-finds three robust facts:
+This shows up directly in the Bayesian workflow rather than as a separate
+formal claim. Parameter recovery in `m_0` (§[4.3](#sec-m0-recovery)) returns
+wide marginal credible intervals for both $\beta$ and $\delta$ --- in contrast to
+the tight, well-calibrated $\alpha$ intervals --- together with a pronounced
+*negative $\beta$–$\delta$ error correlation*: the posterior concentrates not on
+$(\beta,\delta)$ individually but on a trade-off between them. That correlated,
+barely-contracted joint posterior is the practical signature of the
+multiplicative coupling, and it is what we mean throughout by calling
+$(\beta,\delta)$ *weakly informed* by uncertain choices.
 
-1. *The ridge exists.* After removing the exact $\beta$ gauge, the block is
-   ill-conditioned ($\kappa \gtrsim 10^3$, up to $\sim 4\times10^4$), with a
-   low-curvature tail spanning three to four orders of magnitude.
-2. *$\delta$ is weakly identified through the $\beta$-coupling.* Profiling out
-   $\beta$ destroys 63–99% of $\delta$'s Fisher information (a Schur-complement
-   ratio of $0.01$–$0.37$). This is the precise computational form of the
-   multiplicative $(\beta,\delta)$ coupling.
-3. *The flat directions preserve choice probabilities.* The flattest gauge-fixed
-   direction changes within-menu $\eta$-contrasts --- hence choice probabilities
-   --- only 2–8% as much as a typical direction.
+We state this as an empirical feature of the posterior, not as a theorem: no
+strict non-identifiability is claimed, and no gauge group on $(\beta,\delta)$
+beyond the $\beta$ row-shift of §[2.6](#sec-notation) is asserted. The point is
+that uncertain-choice data alone supply little information for separating beliefs
+from utilities --- which is exactly what motivates the extended model of
+§[5](#sec-m1-identifiability).
 
-All three are robust across the $\alpha$ sweep. We deliberately report the
-ill-conditioning via the condition number and the $\delta$ Schur ratio rather
-than via a single isolated near-zero eigenvalue: the spectrum has a tail, not one
-null direction.
+## 3.5 The two facts are one structural picture {#sec-m0-link .unnumbered}
 
-## 3.5 The two propositions are facets of one structural picture {#sec-m0-link .unnumbered}
+$\alpha$ is identified *from* $\eta$ (Proposition 3.1), whereas the two
+ingredients of $\eta$ --- beliefs and utilities --- are only weakly informed by
+uncertain choices (§[3.4](#sec-bd-weak)). These are two sides of one fact: the
+map $(\beta,\delta) \to \eta$ collapses beliefs and utilities multiplicatively
+into a single scalar per alternative, and choices act on those scalars through
+$\alpha$. The data therefore speak clearly about $\alpha$ --- read off the
+within-menu $\eta$-contrasts --- while saying little about how a given $\eta$
+splits into its $(\beta,\delta)$ parts.
 
-$\alpha$ is identified *from* $\eta$ (Proposition 3.1). The map $(\beta,\delta)
-\to \eta$ collapses information multiplicatively: $\eta_r =
-\mathrm{softmax}(\beta w_r)^\top \bm{\upsilon}(\delta)$ is the product of a
-$\beta$-driven simplex and a $\delta$-driven vector, and the Fisher information
-of this map has a near-flat direction at realistic $n$ (Proposition 3.2). The
-endpoint convention on $\bm{\upsilon}$ removes the affine utility gauge, but the
-*remaining* multiplicative coupling between $\beta$ and $\delta$ leaves a
-low-curvature ridge in the joint likelihood.
-
-**Why $\alpha$ survives the ridge.** The $(\beta,\delta)$ near-flat direction is
-approximately *choice-probability-preserving*: moving along it perturbs the
-within-menu $\eta$-contrasts that softmax can see by only 2–8% of a typical
-perturbation (Appendix B.2, fact 3). Because $\alpha$ is identified from those
-within-menu contrasts (Proposition 3.1) and not from $\eta$'s internal
-$(\beta,\delta)$ decomposition, a choice-probability-preserving indeterminacy in
-$(\beta,\delta)$ leaves $\alpha$ untouched. We state this explicitly rather than
-assume it: *if* the ridge changed choice probabilities appreciably, $\alpha$
-would absorb part of the indeterminacy and the separation would fail. It does
-not, and so $\alpha$ separates cleanly from the weakly-identified
-$(\beta,\delta)$.
-
-::: {.callout-note appearance="simple"}
-**Why the framing is choice-probability-preserving, not raw-$\eta$-preserving.**
-A raw-$\eta$ near-kernel claim is $\alpha$-dependent and fails at low $\alpha$
-(where the flattest eigenvector can be a within-menu common-mode $\eta$-shift
-that softmax cannot see). The choice-probability-preserving statement is robust
-across all draws and all $\alpha$ and is exactly what licenses the
-$\alpha$-separation; it is the primary framing throughout.
-:::
+**Why $\alpha$ recovers cleanly anyway.** Empirically, the two effects do not
+interfere: in parameter recovery (§[4.3](#sec-m0-recovery)) $\alpha$ is recovered
+with low bias and well-calibrated intervals *regardless* of the wide, correlated
+spread in the $(\beta,\delta)$ posterior. Because $\alpha$ is identified from the
+within-menu choice-probability contrasts (Proposition 3.1) and not from $\eta$'s
+internal $(\beta,\delta)$ decomposition, the indeterminacy in how $\eta$ splits
+into beliefs and utilities leaves the $\alpha$ estimate essentially untouched. We
+report this as an observed feature of the recovered posterior rather than derive
+it from a separability argument.
 
 This is a *structural* feature of decisions under uncertainty: beliefs and
 utilities enter only through expected utility, and uncertain-choice data alone
-supplies essentially no curvature for separating them.
+supply little information for separating them.
 
-## 3.6 From weak identifiability to the extended model {#sec-m0-to-m1 .unnumbered}
+## 3.6 From the weakly-informed $(\beta,\delta)$ to the extended model {#sec-m0-to-m1 .unnumbered}
 
-The weak identifiability of $(\beta,\delta)$ motivates the extended model of
-§[5](#sec-m1-identifiability). Before getting there, §[4](#sec-m0-implementation)
-shows that the practical consequences --- wide credible intervals
-on $(\beta,\delta)$, tight intervals on $\alpha$ --- are directly visible in a
-Stan implementation, and that marginal simulation-based calibration nonetheless
-passes for all three parameters (the *marginal-SBC demarcation*).
+That uncertain choices barely inform $(\beta,\delta)$ motivates the extended
+model of §[5](#sec-m1-identifiability). Before getting there,
+§[4](#sec-m0-implementation) shows that the practical consequences --- wide
+credible intervals on $(\beta,\delta)$, tight intervals on $\alpha$ --- are
+directly visible in a Stan implementation, and that marginal simulation-based
+calibration nonetheless passes for all three parameters (the *marginal-SBC
+demarcation*).

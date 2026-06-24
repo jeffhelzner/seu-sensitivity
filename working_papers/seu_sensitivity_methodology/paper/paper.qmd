@@ -15,8 +15,9 @@ abstract: |
   findings are reported with their finite-sample caveats intact. In the
   uncertain-choice-only model
   `m_0`, $\alpha$ is identifiable but $(\beta, \delta)$ are only weakly
-  identifiable: the joint posterior is essentially flat along a ridge at
-  realistic sample sizes. In the extended model `m_1`, $\delta$ becomes
+  informed by uncertain choices: the joint posterior barely contracts and
+  concentrates on a $\beta$--$\delta$ trade-off at realistic sample sizes. In
+  the extended model `m_1`, $\delta$ becomes
   identifiable in principle (hence estimable in the limit) via a $\beta$-free
   risky block, but its practical recovery gain at realistic sample sizes is
   negligible (a matched-count CI-width reduction under 1%); and the block's
@@ -27,7 +28,7 @@ abstract: |
   $\delta$, identifiability does not imply precise estimability at realistic
   $n$; for $\alpha$, in-principle identifiability does not tell you where
   finite-$n$ precision comes from. Marginal SBC passes for both models even
-  where the joint (belief, utility) posterior is only weakly identified --- a
+  where the joint (belief, utility) posterior is only weakly informed --- a
   *marginal-SBC demarcation* we make precise. A two-by-two illustrative
   application (GPT-4o and Claude 3.5 Sonnet, each on insurance-claims triage and
   Ellsberg-style urns, with sampling temperature as the lever) shows the

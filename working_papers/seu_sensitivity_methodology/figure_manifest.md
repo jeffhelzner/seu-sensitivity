@@ -11,7 +11,6 @@ Appendix E.2).
 | Fig/Tab | § | Description | Script | Config | Seed | Status |
 | ------- | - | ----------- | ------ | ------ | ---- | ------ |
 | Disp 1.8 | 1.8 | Section dependency chain (LaTeX `\underbrace` display, authored in §1.8 body — no mermaid) | — (authored in-body, not generated) | — | — | authored |
-| Fig B.2 | 3.4 / B.2 | (β,δ) Fisher spectrum tail + δ info lost to β-coupling | `spikes/b2_fisher_block_spike.py` | (inline constants: K3 D5 M50) | design 20260617 / draws 2026 | computed |
 | Fig (§4.3) | 4.3.2 | α true-vs-estimated recovery scatter (m_0) | `analysis/parameter_recovery.py` (`reports/foundations/04_parameter_recovery.qmd`) | inline (m_0: M25 K3 D5 R15; 50 iters, 4 chains × 1000) | design np 42; 12345+i sim / 54321+i fit (D.2) | computed |
 | Fig (§4.4) | 4.4 | m_0 SBC rank histograms + ECDF/KS | `analysis/sbc.py` (`reports/foundations/06_sbc_validation.qmd`) | inline (m_0: M25 K3 D5 R15; N_sbc=999 thin4 1 chain) | design np 42; 123+i per draw (D.3) | computed |
 | Fig 6.4 | 6.4.1 | α/δ RMSE + CI-width: matched-design A/B/C/D (n=100) | `spikes/report14_rerun_analysis.py` | `configs/m1_matched_recovery_n100_config.json` | design 20260617 / boot 20260617 | computed |

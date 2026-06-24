@@ -2,6 +2,20 @@
 
 *This document is a **plan** for writing the paper. It has two parts: **Part I** records the writing strategy and the decisions that govern how claims are framed; **Part II** is the section-by-section outline. The outline is one part of the plan, not the whole of it.*
 
+> **SUPERSEDED (2026-06-23) — weak-identifiability / Fisher apparatus removed.**
+> The Fisher-information "weak (practical) identifiability" machinery described
+> below (Proposition 3.2 / Appendix B.2, the η-Jacobian Fisher block, condition
+> number / Schur-complement / near-flat-direction analysis, the `b2_fisher_block`
+> spike + Fig B.2, and the IV/GMM "weak identification" demarcation) has been
+> **removed from the paper**. The substantive claim is retained but re-grounded
+> on the Bayesian workflow: uncertain choices leave (β, δ) *weakly informed*, as
+> shown directly by parameter recovery (wide marginal CIs + a negative β–δ error
+> correlation; Report 4 / claims-ledger C4). "Weak identifiability" / "ridge"
+> wording is replaced by Bayesian-native phrasing throughout, and the §3.5
+> α-separation is now stated as an empirical observation, not a mechanism. The
+> b2 artifacts are archived under `local/archive/b2_fisher_weak_id_removed_20260623/`.
+> Read the passages below as historical record; they no longer describe the paper.
+
 ---
 
 # Part I — Writing strategy and key decisions

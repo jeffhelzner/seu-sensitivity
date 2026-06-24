@@ -114,7 +114,7 @@ meta-lesson about the subsection itself; we keep all three apart.
 **(i) For $\delta$ --- the canonical lesson, sharpened.** State the mantra
 verbatim: *identifiable (hence estimable in the limit) $\neq$ precisely estimable
 at realistic sample sizes.* $\delta$ is identifiable in `m_1`
-(§[5.5](#sec-delta-id)), but the Fisher information for $\delta$ contributed by
+(§[5.5](#sec-delta-id)), but the information about $\delta$ contributed by
 25 risky choices at moderate $\alpha$ is small: the matched B$\to$C comparison
 shrinks the $\delta$ CI width by $\approx 0.8\%$ and moves $\delta$ RMSE not at
 all. In-principle identification buys *essentially nothing* at the design sample

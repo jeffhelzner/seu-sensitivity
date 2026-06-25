@@ -5,34 +5,56 @@
 > of §[2.6](#sec-notation). These are the only results in the paper that hold as
 > closed-form proofs without a genericity or curvature caveat.*
 
-Throughout, fix a value function $V : \mathcal{R} \to \mathbb{R}$ on the
-available set, write $P(r) = \exp(\alpha V(r)) / Z(\alpha)$ with partition
-function $Z(\alpha) = \sum_{j} \exp(\alpha V(j))$, $V^\ast = \max_r V(r)$,
-$\mathcal{R}^\ast = \{r : V(r) = V^\ast\}$, and $\mathcal{R}^- = \mathcal{R}
-\setminus \mathcal{R}^\ast$.
+Throughout, fix a decision problem $m$ with available set $\mathcal{A} = \{r :
+I_{m,r} = 1\}$ and a value function $V$ on it, write $P(r) = \exp(\alpha V(r)) /
+Z(\alpha)$ with partition function $Z(\alpha) = \sum_{j \in \mathcal{A}}
+\exp(\alpha V(j))$, $V^\ast = \max_{r \in \mathcal{A}} V(r)$,
+$\mathcal{R}^\ast = \{r \in \mathcal{A} : V(r) = V^\ast\}$, and $\mathcal{R}^- =
+\mathcal{A} \setminus \mathcal{R}^\ast$. All maxima, minima, and sums are taken
+over the available set $\mathcal{A}$.
 
 ## A.1 Monotonicity in sensitivity (Property 1) {#sec-a-monotonicity .unnumbered}
 
 ::: {.callout-note appearance="simple"}
-**Theorem A.1.** Holding $V$ fixed, $P(r)$ is strictly increasing in $\alpha$
-for $r \in \mathcal{R}^\ast$ and strictly decreasing in $\alpha$ for
-$r \in \mathcal{R}^-$.
+**Theorem A.1 (Monotonicity).** Holding $V$ fixed:
+*(i)* for any two alternatives $r, s \in \mathcal{A}$ the pairwise log-odds are
+linear in $\alpha$, $\partial_\alpha \log[P(r)/P(s)] = V(r) - V(s)$, so the odds
+move monotonically toward the higher-valued alternative;
+*(ii)* the total probability $P(\mathcal{R}^\ast) = \sum_{r \in \mathcal{R}^\ast}
+P(r)$ on the value-maximizing set is strictly increasing in $\alpha$;
+*(iii)* each $r \in \mathcal{R}^\ast$ has $P(r)$ strictly increasing in $\alpha$
+and each value-*minimizing* $r$ (with $V(r) = \min_{j} V(j)$) has $P(r)$ strictly
+decreasing. A non-maximal alternative with $V(r) > \mathbb{E}_\alpha[V]$ has
+$\partial_\alpha P(r) > 0$, so individual non-maximal probabilities need not be
+monotone in $\alpha$.
 :::
 
-*Proof.* Differentiating $P(r) = \exp(\alpha V(r))/Z(\alpha)$ by the quotient
-rule and using $Z'(\alpha) = \sum_j V(j)\exp(\alpha V(j))$,
+*Proof.* *(i)* From $P(r) = \exp(\alpha V(r))/Z(\alpha)$,
+$\log[P(r)/P(s)] = \alpha\,(V(r) - V(s))$, whose $\alpha$-derivative is
+$V(r) - V(s)$.
+
+*(iii)* Differentiating $P(r)$ by the quotient rule with $Z'(\alpha) = \sum_j
+V(j)\exp(\alpha V(j))$,
 $$
 \frac{\partial P(r)}{\partial \alpha}
   = P(r)\Big[V(r) - \frac{Z'(\alpha)}{Z(\alpha)}\Big]
   = P(r)\big[V(r) - \mathbb{E}_\alpha[V]\big],
 $$
-where $\mathbb{E}_\alpha[V] = \sum_j P(j) V(j)$ is the expected value under the
-current choice distribution. For any finite $\alpha$ every alternative receives
-positive probability, so $\mathbb{E}_\alpha[V] < V^\ast$ strictly. Hence for
-$r \in \mathcal{R}^\ast$, $V(r) = V^\ast > \mathbb{E}_\alpha[V]$ gives
-$\partial P(r)/\partial\alpha > 0$; and for $r \in \mathcal{R}^-$, $V(r) < V^\ast$
-while $\mathbb{E}_\alpha[V] \ge P(\mathcal{R}^\ast)V^\ast + (1-P(\mathcal{R}^\ast))V(r)
-> V(r)$, giving $\partial P(r)/\partial\alpha < 0$. $\qquad\blacksquare$
+where $\mathbb{E}_\alpha[V] = \sum_j P(j) V(j)$. For any finite $\alpha$ every
+alternative receives positive probability, so $\min_j V(j) < \mathbb{E}_\alpha[V]
+< V^\ast$ strictly. Hence $\partial P(r)/\partial\alpha > 0$ for
+$r \in \mathcal{R}^\ast$ and $\partial P(r)/\partial\alpha < 0$ for any $r$
+attaining $\min_j V(j)$; for an intermediate $r$ the sign equals that of
+$V(r) - \mathbb{E}_\alpha[V]$, which can be positive.
+
+*(ii)* Writing $P^\ast(\alpha) = P(\mathcal{R}^\ast)$ and summing the derivative
+identity over $r \in \mathcal{R}^\ast$ (where $V(r) = V^\ast$),
+$$
+\frac{\partial P^\ast}{\partial \alpha}
+  = \sum_{r \in \mathcal{R}^\ast} P(r)\big[V^\ast - \mathbb{E}_\alpha[V]\big]
+  = P^\ast\big(V^\ast - \mathbb{E}_\alpha[V]\big) > 0,
+$$
+since $\mathbb{E}_\alpha[V] < V^\ast$ strictly. $\qquad\blacksquare$
 
 ## A.2 Optimization limit (Property 2) {#sec-a-optimization .unnumbered}
 
@@ -80,7 +102,7 @@ $$
 P(\text{choose } r \mid \alpha, \tilde{\bm{\upsilon}})
   = P(\text{choose } r \mid \alpha a,\, \bm{\upsilon}).
 $$
-The pairs $(\alpha, \bm{\upsilon})$ and $(\alpha a, \tilde{\bm{\upsilon}})$
+The pairs $(\alpha, \tilde{\bm{\upsilon}})$ and $(\alpha a, \bm{\upsilon})$
 generate identical choice probabilities.
 :::
 

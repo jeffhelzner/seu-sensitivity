@@ -19,9 +19,11 @@ invertibility.
 
 ::: {.callout-note appearance="simple"}
 **Step 2 (lottery diversity $\Rightarrow$ identification).** *Given sufficient
-lottery diversity* --- affine independence of the lottery simplex vectors
-$\{\pi_s\}$ (§[5.5](#sec-delta-id)), which requires $S \geq K$ --- the $\beta$-free
-risky information *identifies* $\delta$.
+lottery diversity* --- the presented lotteries' differences span the simplex
+tangent space, equivalently a spanning affinely independent subset of $K$
+lotteries with the menus linked into a connected contrast graph
+(§[5.5](#sec-delta-id)), which requires $S \geq K$ --- the $\beta$-free risky
+information *identifies* $\delta$.
 :::
 
 *History (brief).* Knight [-@knight1921risk] distinguished risk from uncertainty;
@@ -81,40 +83,51 @@ $\alpha > 0$ is identifiable from the choice-probability function.
 ## 5.5 Identifiability of $\delta$ in the extended model {#sec-delta-id .unnumbered}
 
 ::: {.callout-note appearance="simple"}
-**Proposition 5.2 (Identifiability of $\delta$).** Under affine independence of
-the lottery simplex vectors $\{\pi_s\}$ --- which requires $S \geq K$ and a
-generic configuration --- $\delta$ is globally identifiable from risky-choice
-probabilities alone with $\alpha > 0$.
+**Proposition 5.2 (Identifiability of $\delta$).** If the presented lotteries'
+differences $\{\pi_s - \pi_1\}$ span the $(K-1)$-dimensional simplex tangent
+space --- equivalently, the design contains an affinely independent subset of
+$K$ lotteries (requiring $S \geq K$ and a generic configuration) linked by a
+connected menu-contrast graph --- then $\alpha > 0$ and $\delta$ are jointly and
+globally identifiable from risky-choice probabilities alone.
 :::
 
 *Intuition (full proof in Appendix B.3).* A risky menu's softmax depends on the
-linear functional $\pi_s^\top \bm{\upsilon}$. Affine independence of the $\{\pi_s\}$
-makes the linear map $\bm{\upsilon} \mapsto (\pi_s^\top \bm{\upsilon})_s$
-injective on the endpoint-constrained utility space, so the risky
-choice-probabilities recover $\bm{\upsilon}$ and hence $\delta$. With $K = 3$ and
-$S = 15$ (Appendix D.0) the dimension condition is amply satisfied. The proof is
-a linear-algebra inversion.
+linear functional $\pi_s^\top \bm{\upsilon}$. When the lottery differences span
+the simplex tangent space, the map $\bm{\upsilon} \mapsto ((\pi_s - \pi_1)^\top
+\bm{\upsilon})_s$ has rank $K-1$, so the risky log-odds recover $\bm{\upsilon}$
+--- and jointly $\alpha$ --- once the endpoint convention fixes the scale, hence
+$\delta$. With $K = 3$ and $S = 15$ (Appendix D.0) the spanning condition is
+amply satisfied: 15 lotteries far exceed the $K = 3$ needed for a spanning
+affinely independent subset. The proof is a linear-algebra inversion.
 
-## 5.6 Identifiability of $\beta$ modulo the row-shift gauge {#sec-m1-beta .unnumbered}
+## 5.6 $\beta$ remains an irreducible nuisance {#sec-m1-beta .unnumbered}
 
 ::: {.callout-note appearance="simple"}
-**Proposition 5.3 (Identifiability of $\beta$).** With $\delta$ pinned by risky
-choices and $\alpha$ pinned by either block, $\beta$ is identified from uncertain
-choices modulo the additive row-shift gauge of §[2.6](#sec-notation).
+**Proposition 5.3 ($\beta$ as an irreducible nuisance).** With $\delta$ pinned by
+risky choices and $\alpha$ pinned by either block, the uncertain-choice
+probabilities identify only the expected utilities $\eta_r = \bm{\psi}_r^\top
+\bm{\upsilon}$. For $K \geq 3$ these scalars do not determine the belief
+simplices $\bm{\psi}_r$, so $\beta$ is not point-identified beyond the level sets
+of $\beta \mapsto (\eta_r)_r$ together with the row-shift gauge of
+§[2.6](#sec-notation); it remains a nuisance even in the extended model.
 :::
 
 Once $\delta$ (hence $\bm{\upsilon}$) is fixed, the uncertain-choice likelihood
-constrains $\bm{\psi}_r = \mathrm{softmax}(\beta w_r)$, which pins $\beta$ up to
-the row-shift gauge; the argument is bookkeeping once Proposition 5.2 is in place
-(Appendix B.4).
+constrains $\beta$ only through the scalar expected utilities $\eta_r =
+\bm{\psi}_r^\top \bm{\upsilon}$. Because a scalar does not recover the
+$(K-1)$-dimensional simplex $\bm{\psi}_r$ when $K \geq 3$, the contribution of
+the risky block is to sharpen $\bm{\upsilon}$, not to recover $\beta$ (Appendix
+B.4).
 
 ## 5.7 The conceptual upshot --- and its finite-sample caveat {#sec-m1-upshot .unnumbered}
 
 Enriching the choice domain with risky alternatives yields, *in principle*,
-simultaneous identification of beliefs and utilities: $\delta$ from the
-$\beta$-free risky block (Step 1) plus lottery diversity (Step 2), $\alpha$ from
-either block, and $\beta$ from the uncertain block modulo the row-shift gauge.
-But in-principle identification implies only estimability *in the limit*.
+identification of $\alpha$ (from either block) and of the utilities $\delta$
+(from the $\beta$-free risky block, Step 1, plus lottery diversity, Step 2). It
+does *not* deliver the beliefs: $\beta$ enters uncertain choices only through the
+scalar expected utilities and remains an irreducible nuisance for $K \geq 3$
+(Proposition 5.3). And even the utility gain is an in-principle one --- it
+implies estimability only *in the limit*.
 §[6](#sec-m1-implementation) asks whether the gain is realized at
 realistic finite sample sizes, and finds that for $\delta$ it largely is not ---
 the cleanest illustration in the paper of the gap between identifiability and

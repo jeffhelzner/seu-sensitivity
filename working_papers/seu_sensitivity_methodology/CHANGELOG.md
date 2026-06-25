@@ -15,6 +15,75 @@ Each archive deposit pins the supporting repository to a specific commit/tag.
 ## [Unreleased]
 
 ### Changed
+- **Appendix E reproducibility wording softened to future tense.** E.0 now reads
+  "at the point of archival deposit, a DOI *will be* minted from that tagged commit
+  ... and substituted for the commit pin" (was stated as established policy); E.1's
+  closing parenthetical now reads the order-of-magnitude figures "are reported as
+  such" and "a timed clean-room reproduction ... *will be* the authoritative source
+  and *will be* recorded alongside the archival deposit" (was present tense "is ...
+  and is recorded"). No promised artifact (Zenodo DOI, timed budget) is implied to
+  exist before deposit. Renders clean. These two remain the only open
+  reproducibility items, both requiring author action at deposit time.
+- **Referee 36-comment revision complete — all 36 comments now Resolved.**
+  Verified the remaining 21 pending comments (C4, C5, C8, C9, C11, C14, C15, C16,
+  C17, C19, C20, C21, C22, C23, C25, C27, C31, C32, C34, C35, C36) against the
+  current `.qmd` sources. A prior edit pass had already applied the substantive
+  reframes and fixes; 20 of 21 required only a Status-field update, and only C21
+  needed a small clarification:
+  - C21 (§7.3 prior calibration): made explicit that the random-choice baseline is
+    set by the *menu size* ($1/N_m$, with $N_m\in\{2,3,4\}$ identical across tasks),
+    not the consequence count $K$; recalibration is attributed to $K=4$ widening
+    the EU spread / softmax curvature, not to a $1/3\to1/4$ baseline shift.
+  - Verified in place (no further edits): C4 (§8.4 α conditional on η; near-linear-
+    regime trade-off), C5 (§7.5 cross-task read descriptively, no cross-task
+    probability promised), C8 (§7.2 urns enter only via LLM-assessment embedding),
+    C9 (D.2 4 chains × 1000 = 4000 draws), C11 (D.4 design external/fresh per iter),
+    C14 (§2.3 menu-relative sets $\mathcal{A}_m$), C15 (§7.4 SBC-inheritance
+    Qualification: provider-specific $w$ ⇒ approximation, not identity), C16 (§7.3
+    Ellsberg Lognormal(3.5,0.75) reported), C17 (§7.6.5 cross-domain replication,
+    not stage isolation), C19 (§7.7 reversed-precision argument removed →
+    partial-pooling/generalization), C20 (§6.3 per-block rate = prior statement;
+    posterior-predictive flagged as the real test), C22/C36 (§7.4 υ reclassified as
+    global length-$K$ utility on the weakly-informed side, not a per-trial latent),
+    C23 (§6.4 sign-convention note; A→B +27.1% [+15.0, +38.5]), C25 (§8.3 marginal
+    insufficiency vs weak informativeness kept apart), C27 (§4.4 "(i)" softened —
+    marginal ranks do not certify the joint posterior), C31 (§7.6.2 non-reproduction
+    inconclusive at the resolution floor), C32 (E.2 report-level −3.6 vs population-
+    OLS −2.9 spelled out, C16 named), C34 (§7.5.2 MDE box ~10–12× either 2.9 or 3.6),
+    C35 (§7.1 "withholds support" = inconclusive at resolution, not an established
+    zero).
+  - Flipped all 21 detailed Status fields plus the Overall Feedback status to
+    [Resolved] in
+    `feedback-measuring-sensitivity-to-subjective-expected-utili-2026-06-25.md`.
+  - Render clean (quarto→pdflatex 3 passes, Output created, 0 undefined refs/cites).
+    No numeric changes; `claims_ledger` untouched.
+- **Referee 36-comment revision (formal/notation set) verified complete.**
+  Confirmed against the current `.qmd` sources that the remaining formal comments
+  are resolved (no further edits required; all were already applied):
+  - C10 (δ simplex dimension): §2.6, §3.1, and the notation glossary use
+    δ∈Δ^{K-2} (K−1 increments summing to one; matches Stan `simplex[K - 1]`).
+  - C12 (β–δ correlation statistic): §3.4 states precisely what is computed — an
+    across-recovery-replicate Pearson correlation of the posterior-mean errors of
+    representative components β_{1,1} and δ_1 (Report 4), flagged as an
+    illustrative non-gauge-invariant signature, not a within-posterior statistic.
+  - C33 (α=0 differentiability): §3.3 boundary remark gives ℓ smooth at α=0 with
+    ∂_α ℓ|_0 = η_y − η̄, reframes α=0 as non-regularity, log-odds injective on
+    [0,∞), genericity not vacuous. Appendix A carries no separate (incorrect)
+    differentiability remark.
+  - Audit of early comments (all Resolved): C1/C3/C7 (Appendix B.3/B.4 + §5.1/
+    §5.5/§5.6), C2 (§7.6.5↔§7.7 assessment-stage consistency), C6 (Theorem A.1 /
+    §2.3 Property 1 log-odds + maximizing-set monotonicity), C18 (A.4 scale pair),
+    C24 (§1.7(e)), C26 (§2.2 softmax/Luce link), C28 (§1.6), C29 (§4 gauge prior:
+    likelihood flat, Gaussian prior not), C30 (§1.7(a)).
+  - Status fields updated in
+    `feedback-measuring-sensitivity-to-subjective-expected-utili-2026-06-25.md`.
+    Render clean (quarto→pdflatex 3 passes, 0 undefined refs/cites). No numeric
+    changes; claims_ledger untouched.
+  - C13 (insurance consequences vs actions): VERIFIED resolved — §7.2 defines the
+    K=3 consequences as investigator-agreement outcomes (neither/one/both),
+    matching `applications/claude_insurance_study/results/problems.json`, and
+    names the alternatives as the pool items (menu size N_m∈{2,3,4}). The earlier
+    action-like "forward/hold/decline" wording is gone.
 - **Author review pass on the draft PDF (prose, terminology, and a table-margin
   fix).** Addressed the comments in `my_comments_on_draft.md`:
   - Abstract: clarified the α sentence ("identifiability in principle does not by

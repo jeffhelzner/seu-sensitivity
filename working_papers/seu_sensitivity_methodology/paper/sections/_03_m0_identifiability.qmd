@@ -5,7 +5,8 @@
 Recall from §[2.6](#sec-notation) the uncertain-choice ("`m_0`") model.
 Subjective probabilities are generated from $D$-dimensional features $w_r$ via
 $\bm{\psi}_r = \mathrm{softmax}(\beta\, w_r)$ with $\beta \in \mathbb{R}^{K\times
-D}$. Utilities are constructed from increments $\delta \in \Delta^{K-1}$ by
+D}$. Utilities are constructed from increments $\delta \in \Delta^{K-2}$ (the
+$K-1$ nonnegative increments summing to one; Stan `simplex[K - 1] delta`) by
 cumulative summation, yielding $0 = \upsilon_1 \le \upsilon_2 \le \cdots \le
 \upsilon_K = 1$. Expected utilities are $\eta_r = \bm{\psi}_r^\top \bm{\upsilon}$,
 and choices follow @eq-softmax with $V(r) = \eta_r$. The $\beta$ gauge
@@ -35,13 +36,20 @@ log-odds between two alternatives with $\eta_r \neq \eta_s$ is $\log[P(r)/P(s)] 
 choice-probability map is therefore injective in $\alpha$ on such a menu.
 
 ::: {.callout-note appearance="simple"}
-**Boundary remark ($\alpha = 0$).** Proposition 3.1 guarantees identifiability
-throughout the open cone $\alpha > 0$ and approachability of $\alpha = 0$ from
-above. At $\alpha = 0$ the choice rule is uniform (Theorem A.3), the likelihood
-is not differentiable in the usual sense, and the genericity condition on
-$\{\eta_r\}$ becomes vacuous; the proposition does not silently exclude the
-near-random null, it simply does not assert differentiable identification *at*
-the boundary.
+**Boundary remark ($\alpha = 0$).** Proposition 3.1 identifies $\alpha$
+throughout the open cone $\alpha > 0$, and the log-odds identity
+$\log[P(r)/P(s)] = \alpha(\eta_r - \eta_s)$ is injective on the closed half-line
+$[0, \infty)$ whenever $\eta_r \neq \eta_s$, so $\alpha = 0$ is reached
+continuously from above and the genericity condition on $\{\eta_r\}$ is *not*
+vacuous there. With $\eta$ fixed the softmax log-likelihood $\ell = \alpha\eta_y
+- \log\sum_j \exp(\alpha\eta_j)$ is in fact smooth at $\alpha = 0$, with
+$\partial_\alpha \ell\big|_{\alpha=0} = \eta_y - \bar\eta$. What is special
+about $\alpha = 0$ is therefore not non-differentiability but *non-regularity*:
+the choice rule is uniform (Theorem A.3) and derivatives with respect to any
+parameter entering only through $\eta$ are multiplied by $\alpha$, so $\beta$ and
+$\delta$ become locally unidentified at the boundary. The proposition does not
+silently exclude the near-random null; it simply does not assert differentiable
+identification of the $\eta$-generating parameters *at* the boundary.
 :::
 
 The structure of the claim matters: $\alpha$ is identified *from* $\eta$, not
@@ -74,8 +82,15 @@ This shows up directly in the Bayesian workflow rather than as a separate
 formal claim. Parameter recovery in `m_0` (§[4.3](#sec-m0-recovery)) returns
 wide marginal credible intervals for both $\beta$ and $\delta$ --- in contrast to
 the tight, well-calibrated $\alpha$ intervals --- together with a pronounced
-*negative $\beta$–$\delta$ error correlation*: the posterior concentrates not on
-$(\beta,\delta)$ individually but on a trade-off between them. That correlated,
+*negative $\beta$–$\delta$ error correlation*: concretely, across recovery
+replicates the posterior-mean estimation errors of a representative weight entry
+$\beta_{1,1}$ and a representative increment $\delta_1$ are negatively correlated
+(Pearson; §[4.3](#sec-m0-recovery), Report 4). This is an *across-replicate*
+error correlation, not a within-posterior one; because raw $\beta$ entries carry
+the row-shift gauge we read this representative-component diagnostic as an
+illustrative signature of the coupling rather than a gauge-invariant statistic.
+The recovered posteriors concentrate not on $(\beta,\delta)$ individually but on
+a compensating trade-off between them. That correlated,
 barely-contracted joint posterior is the practical signature of the
 multiplicative coupling, and it is what we mean throughout by calling
 $(\beta,\delta)$ *weakly informed* by uncertain choices.
@@ -94,9 +109,15 @@ ingredients of $\eta$ --- beliefs and utilities --- are only weakly informed by
 uncertain choices (§[3.4](#sec-bd-weak)). These are two sides of one fact: the
 map $(\beta,\delta) \to \eta$ collapses beliefs and utilities multiplicatively
 into a single scalar per alternative, and choices act on those scalars through
-$\alpha$. The data therefore speak clearly about $\alpha$ --- read off the
-within-menu $\eta$-contrasts --- while saying little about how a given $\eta$
-splits into its $(\beta,\delta)$ parts.
+$\alpha$. Given the design and prior, the data therefore speak clearly about
+$\alpha$ --- the within-menu $\eta$-contrasts identify it up to the scale fixed
+by the $\bm{\upsilon}$-endpoint convention --- while saying little about how a
+given $\eta$ splits into its $(\beta,\delta)$ parts. Strictly, the observed
+log-odds identify the products $\alpha(\eta_r - \eta_s)$; it is the endpoint
+convention that fixes the utility scale, together with the prior and design, that
+turns this into a sharp statement about $\alpha$ itself --- as the
+posterior-contraction, parameter-recovery, and SBC diagnostics of
+§[4](#sec-m0-implementation) confirm.
 
 **Why $\alpha$ recovers cleanly anyway.** Empirically, the two effects do not
 interfere: in parameter recovery (§[4.3](#sec-m0-recovery)) $\alpha$ is recovered

@@ -31,27 +31,45 @@ temperature $T = 1/\alpha$ because *higher* $\alpha$ corresponds to *higher*
 sensitivity, the more intuitive direction for our purposes.
 
 *Why softmax rather than probit or another stochastic-choice wrapping?* Three
-properties recommend it. It is the unique rule satisfying Luce's
-independence-of-irrelevant-alternatives axiom [@luce1959]; it embeds the
-optimization and uniform-choice limits as the two endpoints of a single scalar
-$\alpha$ (Properties 2 and 3 of §[2.3](#sec-three-properties), proved as Theorems
-A.2 and A.3 in Appendix A); and its log-likelihood is concave in $\alpha V$
-[@mcfadden1974; @train2009], which makes the sensitivity parameter both
-interpretable and well-behaved for estimation. Probit lacks the closed-form IIA
-structure and a single sensitivity scalar with these limit properties.
+features recommend it. Luce's [-@luce1959]
+independence-of-irrelevant-alternatives axiom yields a ratio form
+$P(r \mid \mathcal{A}) = w(r)/\sum_{j \in \mathcal{A}} w(j)$ over positive
+weights; specifying an exponential link $w(r) = \exp(\alpha V(r))$ from the
+real-valued value scale to those weights --- equivalently, log-odds linearity in
+value differences --- selects the softmax (@eq-softmax). Given that link, softmax
+embeds the optimization and uniform-choice limits as the two endpoints of a
+single scalar $\alpha$ (Properties 2 and 3 of §[2.3](#sec-three-properties),
+proved as Theorems A.2 and A.3 in Appendix A), and its log-likelihood is concave
+in $\alpha V$ [@mcfadden1974; @train2009], which makes the sensitivity parameter
+both interpretable and well-behaved for estimation. Probit lacks this
+closed-form IIA/log-odds structure and a single sensitivity scalar with these
+limit properties.
 
 ## 2.3 Three characterizing properties of softmax {#sec-three-properties .unnumbered}
 
-The following hold for *any* value function $V$. Write
-$V^\ast = \max_r V(r)$ for the maximal value, $\mathcal{R}^\ast = \{r : V(r) =
-V^\ast\}$ for the value-maximizing set, and $\mathcal{R}^- = \mathcal{R}
-\setminus \mathcal{R}^\ast$. Proofs are in Appendix A.
+The following hold for *any* value function $V$, within each decision problem
+$m$ and relative to its available set $\mathcal{A}_m = \{r : I_{m,r} = 1\}$.
+Write $V^\ast_m = \max_{r \in \mathcal{A}_m} V(r)$ for the maximal available
+value, $\mathcal{R}^\ast_m = \{r \in \mathcal{A}_m : V(r) = V^\ast_m\}$ for the
+value-maximizing set, and $\mathcal{R}^-_m = \mathcal{A}_m \setminus
+\mathcal{R}^\ast_m$. Proofs are in Appendix A.
 
 ::: {.callout-note appearance="simple"}
-**Property 1 (Monotonicity in sensitivity).** Holding $V$ fixed, for
-$r \in \mathcal{R}^\ast$ the probability $P(\text{choose } r \mid \alpha, V)$ is
-strictly increasing in $\alpha$; for $r \in \mathcal{R}^-$ it is strictly
-decreasing in $\alpha$.
+**Property 1 (Monotonicity in sensitivity).** Holding $V$ fixed, for any two
+available alternatives $r, s \in \mathcal{A}_m$ the log-odds are linear in
+$\alpha$,
+$$
+\frac{\partial}{\partial \alpha}
+  \log\frac{P(\text{choose } r \mid \alpha, V)}{P(\text{choose } s \mid \alpha, V)}
+  = V(r) - V(s),
+$$
+so the odds always shift monotonically toward the higher-valued alternative as
+$\alpha$ increases. Consequently the *total* probability on the value-maximizing
+set $\mathcal{R}^\ast_m$ is strictly increasing in $\alpha$; in particular a
+single value-maximizing alternative ($r \in \mathcal{R}^\ast_m$) gains and a
+value-minimizing alternative loses probability. (An individual non-maximal
+alternative whose value exceeds the current choice-weighted mean can rise before
+it falls, so non-maximal probabilities are not monotone one-by-one.)
 :::
 
 ::: {.callout-note appearance="simple"}
@@ -123,8 +141,11 @@ For the parameterized models of §[3](#sec-m0-identifiability) and
 feature vectors $w_r$ via a linear-softmax belief map
 $\bm{\psi}_r = \mathrm{softmax}(\beta\, w_r)$ with $\beta \in \mathbb{R}^{K
 \times D}$, in the multinomial-logit tradition [@mcfadden1974; @train2009]. The
-utility vector is built from increments $\delta \in \Delta^{K-1}$ via cumulative
-sums, with endpoints fixed by convention.
+utility vector is built from increments $\delta \in \Delta^{K-2}$ via cumulative
+sums, with endpoints fixed by convention. (The $K-1$ increments $\delta_j =
+\upsilon_{j+1} - \upsilon_j$ are nonnegative and sum to $\upsilon_K - \upsilon_1
+= 1$, so $\delta$ lies in the $(K-2)$-simplex $\Delta^{K-2}$, matching the Stan
+declaration `simplex[K - 1] delta`.)
 
 Two facts about this parameterization recur throughout and are stated once here,
 then referenced rather than redefined. The first fixes the zero and unit of the
@@ -165,7 +186,7 @@ referenced, not redefined, elsewhere.
 | $\bm{\psi}_r$ | subjective probabilities for uncertain alternative $r$ (from $\beta$) | §2.4 |
 | $\beta \in \mathbb{R}^{K\times D}$ | belief-formation weights; $\bm{\psi}_r = \mathrm{softmax}(\beta w_r)$ | §2.6 |
 | $w_r$ | $D$-dimensional feature vector of alternative $r$ | §2.6 |
-| $\delta \in \Delta^{K-1}$ | utility increments | §2.6 |
+| $\delta \in \Delta^{K-2}$ | utility increments ($K-1$ entries; Stan `simplex[K - 1]`) | §2.6 |
 | $\bm{\upsilon}$ | ordered utilities, $\upsilon_1 = 0 \le \cdots \le \upsilon_K = 1$ | §2.6 |
 | $\pi_s$ | objective lottery simplex for risky alternative $s$ (Stan: `x_risky`) | §5.2 |
 | $\beta$ gauge | additive row-shift indeterminacy of the belief softmax | §2.6 |

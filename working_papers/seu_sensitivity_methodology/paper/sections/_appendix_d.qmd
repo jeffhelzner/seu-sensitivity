@@ -47,13 +47,16 @@ versions above are the essential ones for reproducing the inference.
 
 ## D.2 Sampler configuration and diagnostics policy {#sec-d2 .unnumbered}
 
-**Sampler.** Posterior fits (parameter recovery and the application) use
-**4 chains**, **1000 warmup** and **2000 sampling** iterations per chain
-(8000 retained draws), at CmdStan's NUTS defaults --- target acceptance
-$\mathrm{adapt\_delta} = 0.8$ and maximum tree depth $10$, not overridden.
-Random seeds are deterministic per iteration: the simulation draw uses seed
-$12345 + i$ and the inference fit uses $54321 + i$ for iteration $i$, so every
-recovery iteration is independently reproducible.
+**Sampler.** Posterior fits use **4 chains** and **1000 sampling** iterations per
+chain (**4000 retained draws**), at CmdStan's NUTS defaults --- target acceptance
+$\mathrm{adapt\_delta} = 0.8$ and maximum tree depth $10$, not overridden. Warmup
+is $500$ iterations per chain in the parameter-recovery driver and $1000$ in the
+§[7](#sec-application) application fits; either way 4000 post-warmup draws are
+retained, the denominator behind the §[7.4](#sec-app-validation) divergence and
+$\hat{R}$-exceedance fractions. (The SBC fits of D.3 use a different,
+single-chain configuration.) Random seeds are deterministic per iteration: the
+simulation draw uses seed $12345 + i$ and the inference fit uses $54321 + i$ for
+iteration $i$, so every recovery iteration is independently reproducible.
 
 **Diagnostics policy.** A fit is considered well-behaved when, for the
 key parameters, the potential-scale-reduction factor satisfies
@@ -92,10 +95,15 @@ $\delta$-optimal design study; it is a controlled slicing of one fixed design.
 Each of $n = 100$ iterations (the pre-registered re-run; the 30-iteration pilot
 is superseded) proceeds as:
 
-1. draw a fresh study design (feature draws, lottery menus) and a fresh true
-   $(\alpha, \beta, \delta)$ from the prior via `m_1_sim` (Appendix C.4);
-2. simulate uncertain choices `y` ($M = 50$) and risky choices `z` ($N = 50$)
-   from those same parameters;
+1. generate a fresh study design *externally* --- the feature draws $w$ and the
+   lottery menus, which enter the simulator as data ($w, I, x, J$; Appendix C.4),
+   not as quantities `m_1_sim` itself draws --- and draw a fresh true
+   $(\alpha, \beta, \delta)$ from the prior; each of the $n = 100$ iterations uses
+   its own freshly generated design, not a single design held fixed across
+   iterations;
+2. with that design supplied as data, `m_1_sim` (Appendix C.4) draws choices
+   *conditional on* the true parameters --- uncertain choices `y` ($M = 50$) and
+   risky choices `z` ($N = 50$);
 3. fit four conditions to **slices of the same simulated choices**, so the true
    parameters are matched across conditions within the iteration:
 

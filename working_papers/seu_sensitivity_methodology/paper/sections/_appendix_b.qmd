@@ -1,7 +1,8 @@
 # Appendix B. Identifiability Results {#sec-appendix-b .unnumbered}
 
-> *Three of the results below (B.1, B.3, B.4) are proofs under explicit
-> genericity conditions; B.2 is not a proposition but a brief empirical note on
+> *B.1 and B.3 are proofs under explicit genericity conditions; B.4 records what
+> uncertain choices do and do not pin down about $\beta$, identifying it as an
+> irreducible nuisance; B.2 is not a proposition but a brief empirical note on
 > the Bayesian workflow, recording that uncertain-choice data weakly inform
 > $(\beta,\delta)$ as seen directly in parameter recovery.*
 
@@ -65,55 +66,76 @@ quantifies how little the risky block adds to this separation at realistic $n$.
 ## B.3 Global identifiability of $\delta$ in `m_1` {#sec-b3 .unnumbered}
 
 ::: {.callout-note appearance="simple"}
-**Proposition B.3.** Let the risky problems present lotteries from a set
-$\{\pi_s\}_{s=1}^{S} \subset \Delta^{K-1}$ whose elements are *affinely
-independent* (which requires $S \geq K$ and a generic configuration). Then, with
-$\alpha > 0$ known to be positive and the endpoint convention $\upsilon_1 = 0$,
-$\upsilon_K = 1$ in force, the utility vector $\bm{\upsilon}$ --- and hence
-$\delta$ --- is globally identified from risky-choice probabilities alone.
+**Proposition B.3.** Let the risky problems present lotteries
+$\{\pi_s\}_{s=1}^{S} \subset \Delta^{K-1}$ whose differences span the
+$(K-1)$-dimensional tangent space of the simplex --- equivalently, the set
+contains an affinely independent subset of $K$ lotteries (which requires
+$S \geq K$ and a generic configuration) --- and let the menu-contrast graph be
+connected. Then, with $\alpha > 0$ known to be positive and the endpoint
+convention $\upsilon_1 = 0$, $\upsilon_K = 1$ in force, the utility vector
+$\bm{\upsilon}$ --- and hence $\delta$ --- together with $\alpha$ is globally
+identified from risky-choice probabilities alone.
 :::
 
-*Proof.* By Proposition B.1 (applied to the risky menus), $\alpha$ and, for each
-risky menu, the within-menu contrasts of $\eta^{(r)}_s = \pi_s^\top \bm{\upsilon}$
-are determined by the choice probabilities. Thus the differences $(\pi_s -
-\pi_{s'})^\top \bm{\upsilon}$ are identified for lotteries appearing in a common
-menu, and by chaining menus over the design, the linear functionals
-$\{\pi_s^\top \bm{\upsilon}\}$ are identified up to a single common additive
-constant. Stack the affinely independent lotteries: affine independence means the
-vectors $\{\pi_s - \pi_1\}_{s=2}^{S}$ span the $(K-1)$-dimensional tangent space
-of the simplex, so the linear map
+*Proof.* For each risky menu and each co-menu pair $s, s'$, the softmax
+(@eq-softmax) gives the log-odds
 $$
-L : \bm{\upsilon} \longmapsto \big((\pi_s - \pi_1)^\top \bm{\upsilon}\big)_{s=2}^{S}
+\log\frac{P(s)}{P(s')} = \alpha\,(\pi_s - \pi_{s'})^\top \bm{\upsilon}.
 $$
-has rank $K-1$ and is injective on the $(K-1)$-dimensional space of
-endpoint-constrained utilities. Hence the identified contrasts determine
-$\bm{\upsilon}$ uniquely, and the cumulative-sum map $\delta \mapsto
-\bm{\upsilon}$ being a bijection onto the ordered-utility set, $\delta$ is
-identified. $\qquad\blacksquare$
+The choice probabilities therefore identify the products
+$c_s := \alpha\,(\pi_s - \pi_1)^\top \bm{\upsilon}$ for every lottery $s$ sharing
+a menu with a common reference $\pi_1$, and --- chaining across the connected
+menu-contrast graph --- for all $s = 2, \dots, S$. We do *not* invoke
+Proposition B.1 here: $\alpha$ and $\bm{\upsilon}$ are identified jointly, as
+follows. Ratios $c_s / c_{s'}$ cancel the unknown $\alpha > 0$ and identify the
+linear functionals $(\pi_s - \pi_1)^\top \bm{\upsilon}$ up to one common positive
+scale. Because the differences $\{\pi_s - \pi_1\}$ span the $(K-1)$-dimensional
+tangent space, these functionals determine $\bm{\upsilon}$ up to a positive
+affine transformation; the endpoint convention $\upsilon_1 = 0$, $\upsilon_K = 1$
+fixes that transformation, so $\bm{\upsilon}$ is identified uniquely. Finally
+$\alpha = c_s / (\pi_s - \pi_1)^\top \bm{\upsilon}$ for any $s$ with non-zero
+denominator (one exists, as $\bm{\upsilon}$ is non-constant), identifying
+$\alpha$. The cumulative-sum map $\delta \mapsto \bm{\upsilon}$ being a bijection
+onto the ordered-utility set, $\delta$ is identified. $\qquad\blacksquare$
 
-*Remark.* This is the cleanest of the four results: it is a finite-dimensional
-linear inversion, with the only substantive hypothesis being affine independence
-of the presented lotteries --- a design condition the experimenter controls.
+*Remark.* The substantive hypothesis is a design condition the experimenter
+controls: the presented lotteries' differences must span the simplex tangent
+space (equivalently, the design contains an affinely independent subset of $K$
+lotteries), and the menus must be linked into a connected contrast graph.
+Affine independence of *all* $S$ lotteries is neither required nor possible when
+$S > K$ (here $S = 15$, $K = 3$); what is needed is a spanning affinely
+independent *subset*.
 
-## B.4 Identifiability of $\beta$ modulo the row-shift gauge {#sec-b4 .unnumbered}
+## B.4 Uncertain choices sharpen utilities; $\beta$ remains a nuisance {#sec-b4 .unnumbered}
 
 ::: {.callout-note appearance="simple"}
 **Proposition B.4.** Suppose $\delta$ (hence $\bm{\upsilon}$) is identified by
-B.3 and $\alpha > 0$ by B.1. Then $\beta$ is identified from the uncertain-choice
-probabilities modulo the additive row-shift gauge of §[2.6](#sec-notation),
-provided the feature design $\{w_r\}$ is of full rank $D$ and the induced
-expected utilities are non-constant across some positive-probability menus.
+B.3 and $\alpha > 0$ by B.1. Then the uncertain-choice probabilities identify the
+expected utilities $\eta_r = \bm{\psi}_r^\top \bm{\upsilon}$ up to a per-menu
+additive constant, and constrain $\beta$ only through the composite map
+$\beta \mapsto \big(\mathrm{softmax}(\beta w_r)^\top \bm{\upsilon}\big)_r$. For
+$K \geq 3$ a scalar expected utility does not determine the $(K-1)$-dimensional
+belief simplex $\bm{\psi}_r$, so absent an independent rank/Jacobian condition on
+this composite map, $\beta$ is identified at most up to the level sets of
+$\beta \mapsto (\eta_r)_r$ together with the additive row-shift gauge of
+§[2.6](#sec-notation). In the uncertain-choice model $\beta$ is thus an
+irreducible nuisance; the contribution of the risky block (B.3) is to sharpen
+$\bm{\upsilon}$, not to recover $\beta$.
 :::
 
-*Proof (bookkeeping).* With $\alpha$ and $\bm{\upsilon}$ fixed, the
-uncertain-choice probabilities determine the within-menu contrasts of $\eta_r =
-\bm{\psi}_r^\top \bm{\upsilon}$ (Proposition B.1), hence --- as $\bm{\upsilon}$ is
-known and the menus vary --- the expected utilities $\eta_r = \bm{\psi}_r^\top
-\bm{\upsilon}$ up to the usual common constant per menu. Generic variation of the
-features $w_r$ across alternatives makes the map $\bm{\psi} \mapsto (\eta_r)_r$
-injective on the relevant region (the utilities $\bm{\upsilon}$ are not constant
-across consequences once $\delta$ is interior), so the simplices $\bm{\psi}_r$
-are recovered. Finally, $\bm{\psi}_r = \mathrm{softmax}(\beta w_r)$ with
-full-rank features determines $\beta$ up to the additive row-shift gauge, which
-is the exact invariance of the belief softmax and cannot be resolved from choice
-data. $\qquad\blacksquare$
+*Proof.* With $\alpha$ and $\bm{\upsilon}$ fixed, Proposition B.1 applied within
+each menu shows the choice probabilities determine the within-menu contrasts of
+$\eta_r = \bm{\psi}_r^\top \bm{\upsilon}$, hence the $\eta_r$ up to a common
+per-menu constant. Each such value is a *single* linear equation in the $(K-1)$
+free coordinates of $\bm{\psi}_r$; for $K \geq 3$ the level set
+$\{\bm{\psi} : \bm{\psi}^\top \bm{\upsilon} = \eta_r\}$ is $(K-2)$-dimensional
+whenever $\bm{\upsilon}$ is non-constant, so $\bm{\psi}_r$ is not recovered. The
+map $\bm{\psi} \mapsto \bm{\psi}^\top \bm{\upsilon}$ is therefore not injective,
+and $\beta$ enters the likelihood only through the composite
+$\beta \mapsto (\eta_r)_r$. Any two weight matrices inducing the same expected
+utilities on every presented menu --- including those related by the row-shift
+gauge, for which $\mathrm{softmax}(\beta w_r)$ itself is unchanged --- are
+observationally indistinguishable. Point identification of $\beta$ would require
+the composite map to be injective modulo the gauge under the design, an
+additional rank condition the scalar expected utilities do not supply.
+$\qquad\blacksquare$

@@ -22,6 +22,7 @@ Status values:
 | C6 | 4.3.2 | α recovery: low bias, calibrated 90% intervals | `04_parameter_recovery.qmd` | true-vs-estimated scatter + CIs | computed |
 | C7 | 4.3.3 | β/δ recovery: wider CIs, negative β–δ error correlation | `04_parameter_recovery.qmd` | recovery summaries | computed |
 | C8 | 7.3.2 | Insurance α prior Lognormal(3.0, 0.75): median ≈ 20, 90% ≈ [5.5, 67], SEU-max rate ≈ 78% | `temperature_study/01_initial_study.qmd` | grid-search summary | computed |
+| C8b | 7.3 | Ellsberg (m_02, K=4) α prior recalibrated to Lognormal(3.5, 0.75): median ≈ 33, 90% ≈ [10, 124], SEU-max rate ≈ 76% — recalibration reflects K=4 changing EU-spread/softmax curvature, not a baseline shift (menu size N_m ∈ {2,3,4} identical across tasks) | `ellsberg_study/01_ellsberg_study.qmd` | grid-search summary | computed |
 | C9 | 7.5.1 | GPT-4o × insurance: slope median ≈ −31, 90% CI ≈ [−66, −8], P(slope<0) ≈ 0.99; P(strict monotone) ≈ 0.12 | `temperature_study/01_initial_study.qmd` | template (§7.1b) | computed |
 | C10 | 7.5.2 | Claude × insurance: medians ≈ {74,55,77,74,57}; slope median ≈ −3.6, 90% CI ≈ [−54,39], P(slope<0) ≈ 0.56 | `claude_insurance_study/01_claude_insurance_study.qmd` | template (§7.1b) | computed |
 | C11 | 7.5.2a | Cross-LLM insurance: P(GPT-4o slope < Claude slope) = **0.817 full grid**, **0.824 restricted** to Claude's T ≤ 1.0 (GPT-4o re-summarized, T=1.5 dropped) — the directional LLM contrast is robust to the unequal-grid confound; GPT-4o slope median −30.8 (P<0 0.991, matches C9), Claude −3.6 (P<0 0.560) | `spikes/report11_cross_llm_spike.py` → `report11_cross_llm_results.json` (seed 20260618); cross-checked vs `factorial_synthesis/01_factorial_synthesis.qmd` (~0.80–0.82) | both numbers + qualitative pattern | computed |
@@ -93,6 +94,15 @@ The recomputed slope posterior reproduces `primary_analysis.json` exactly
 - **Reading.** The Claude null is *inconclusive at the achievable resolution*,
   not a positive claim of no temperature effect; this licenses the §7.6.1(iii)
   "declines to support" framing and blocks any "no effect" over-reading.
+- **Slope convention (insurance cell).** Two summaries of the same Claude-insurance
+  effect coexist and must not be conflated: the **report-level** slope ≈ −3.6
+  (C10/C11 — an OLS through the four per-condition α posterior medians, the
+  canonical 2×2 headline) and the **draw-level** population-OLS median ≈ −2.9
+  (this section — `b_i = Cov(T, α_i)/Var(T)` over pooled draws, the quantity the
+  MDE power calculation operates on). They are the same effect read at two
+  resolutions (≈ 12× below the MDE floor either way); the §7.5.5 forest-plot
+  diagnostic population-OLS cross-check (Appendix E.2) differs from the canonical
+  2×2 only on this insurance-cell magnitude for exactly this reason.
 
 ## C14 outcome (MCMC diagnostics — resolved, ⚠ plan wording corrected)
 

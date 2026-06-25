@@ -41,7 +41,10 @@ design seed 20260617, 10\,000 resamples) is the citable source for every §6.4
 magnitude, and it overturned the $\alpha$ claim (sign and significance) while
 shrinking the $\delta$ magnitude. Every §6.4 percentage is a paired-iteration
 median or bootstrap-over-iteration ratio with a 90% CI, never a bare point
-estimate.
+estimate. **Sign convention.** Throughout §6.4 a *positive* percentage denotes an
+*improvement* --- a reduction in RMSE or in CI width --- and its 90% CI is reported
+on the same scale, so a CI lying wholly above zero means a reliable improvement; a
+negative value denotes the effect running the other way (degraded precision).
 :::
 
 **What we do not claim.** We do not engineer a design that makes the $\delta$ CI
@@ -56,10 +59,14 @@ here.
 
 On the combined (uncertain + risky) prior predictive, the SEU-maximizer rate
 again covers the full sensitivity range. Because `m_1` assumes a *shared*
-$\alpha$ across blocks (§[5.3](#sec-m1-properties)), we also report the SEU-max
-rate **per block** (uncertain vs risky) as a visual sanity check that a common
-$\alpha$ is not grossly violated --- the light posterior-predictive check the
-single-$\alpha$ caveat calls for.
+$\alpha$ across blocks (§[5.3](#sec-m1-properties)), we also report the
+prior-predictive SEU-max rate **per block** (uncertain vs risky) as a sanity check
+that the prior alone places plausible mass on both blocks under a common $\alpha$.
+This is a statement about the *prior*, not a test of the shared-$\alpha$ assumption
+against data: confirming that risky and uncertain choices are mutually compatible
+with a single $\alpha$ would require a *posterior*-predictive block check, which we
+flag as the appropriate diagnostic for the single-$\alpha$ caveat
+(§[6.4.1](#sec-m1-alpha-recovery)) rather than claim to have performed here.
 
 ## 6.4 Parameter recovery --- what the matched comparison actually shows {#sec-m1-recovery .unnumbered}
 
@@ -83,10 +90,12 @@ per-choice advantage. This *reverses* the pilot's attribution (§[6.4.4](#sec-m1
 ::: {.callout-note appearance="simple"}
 **Conditional on the single-$\alpha$ assumption.** Comparing $\alpha$ precision
 across the uncertain and risky blocks presupposes a common $\alpha$ scale across
-blocks (§[5.3](#sec-m1-properties)). The per-block SEU-maximizer-rate check of
-§[6.3](#sec-m1-prior) is the available sanity check; the quantity-versus-type
-reading is reported as explicitly conditional on this assumption, not asserted
-outright. The block-specific generalization (`m_2`) is out of scope.
+blocks (§[5.3](#sec-m1-properties)). The per-block *prior*-predictive
+SEU-maximizer-rate check of §[6.3](#sec-m1-prior) is the available prior-level
+sanity check --- a genuine data-level test of shared $\alpha$ would be
+posterior-predictive --- so the quantity-versus-type reading is reported as
+explicitly conditional on this assumption, not asserted outright. The
+block-specific generalization (`m_2`) is out of scope.
 :::
 
 ### 6.4.2 $\delta$: the payoff is essentially nil {#sec-m1-delta-recovery .unnumbered}
@@ -123,8 +132,8 @@ size --- the identifiability-versus-estimability gap in its starkest form.
 **(ii) For $\alpha$ --- finite-$n$ precision tracks quantity, not type.** The
 pilot read the `m_1` $\alpha$ gain as a per-choice advantage of the $\beta$-free
 risky block; at $n = 100$ there is no such advantage (B$\to$C null). What
-sharpens $\alpha$ is simply *more data of the same kind* (A$\to$B: $-27.1\%$
-RMSE). The correct lesson is *not* "a special structure sharpens an
+sharpens $\alpha$ is simply *more data of the same kind* (A$\to$B: a $27.1\%$
+RMSE *reduction*). The correct lesson is *not* "a special structure sharpens an
 already-identified parameter"; it is that **in-principle identifiability tells
 you nothing about where finite-$n$ precision comes from** --- here it comes from
 quantity, not type. Phenomena (i) and (ii) are distinct.
@@ -142,8 +151,8 @@ reported CIs before drawing the lesson is what caught the error.
 | --- | --- | --- |
 | Identifiable in `m_0`? | yes (jointly weak) | yes |
 | What §5 promises | becomes identifiable via the $\beta$-free risky block | already identified |
-| Matched-count payoff (B$\to$C) | CI-width $-0.8\%$ $[0.6, 1.2]$; RMSE null | none: $-8.1\%$ $[-22.0, +6.8]$ |
-| Where finite-$n$ precision comes from | not realized at design $n$ | data *quantity* (A$\to$B: $-27.1\%$ RMSE $[+15.0, +38.5]$), not choice *type* |
+| Matched-count payoff (B$\to$C) | CI-width $+0.8\%$ $[0.6, 1.2]$; RMSE null | none: $-8.1\%$ $[-22.0, +6.8]$ |
+| Where finite-$n$ precision comes from | not realized at design $n$ | data *quantity* (A$\to$B: $+27.1\%$ RMSE reduction $[+15.0, +38.5]$), not choice *type* |
 | Phenomenon | identifiability $\neq$ precise estimability at realistic $n$ | in-principle identification $\neq$ finite-$n$ gain; precision tracks quantity, not type |
 
 : The corrected matched-design contrast. All percentages are paired-iteration medians / bootstrap-over-iteration 90% CIs from the $n = 100$ re-run (`spikes/report14_rerun_results.json`, design seed 20260617, 10\,000 resamples). The 30-iteration pilot's $\approx 15\%$ / $\approx 2\%$ figures are superseded and must not be cited. {#tbl-matched}

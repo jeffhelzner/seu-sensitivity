@@ -244,7 +244,7 @@ We fit the **m_02** model, which is structurally identical to the foundational m
 | $K$ | generic | 3 | 4 |
 | All other priors | — | Identical to m_0 | Identical to m_0 |
 
-The m_02 prior is slightly wider than m_01's because $K = 4$ consequences create a lower random-choice baseline ($\frac{1}{4}$ vs $\frac{1}{3}$), requiring higher $\alpha$ values to achieve comparable SEU-maximization rates.
+The m_02 prior is slightly wider than m_01's because the larger $K = 4$ consequence space spreads expected utilities across alternatives differently, flattening the softmax response so that higher $\alpha$ values are needed to achieve comparable SEU-maximization rates. (This is *not* because the random-choice baseline changes: the menu size $N_m \in \{2, 3, 4\}$ is the same in both studies, so a uniform-random chooser selects the SEU-maximizer at the same rate regardless of $K$.)
 
 ### Prior Predictive Grid Search
 

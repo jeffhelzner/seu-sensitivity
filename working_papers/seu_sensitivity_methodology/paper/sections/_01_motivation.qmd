@@ -130,8 +130,9 @@ rather than constituting an independent contribution.
 §§[2](#sec-abstract-model)--[6](#sec-m1-implementation) specify, motivate,
 and validate the instrument: the abstract choice model and its three
 characterizing properties (§[2](#sec-abstract-model)), the identifiability of
-$\alpha$ together with the *weak* identifiability of the belief and utility
-parameters $(\beta, \delta)$ in an uncertain-choice-only model
+$\alpha$ together with the finding that the belief and utility parameters
+$(\beta, \delta)$ are only *weakly informed* in the finite-sample Bayesian
+workflow for an uncertain-choice-only model
 (§[3](#sec-m0-identifiability)), a Stan implementation validated by prior
 predictive checks, parameter recovery, and simulation-based calibration (SBC)
 (§[4](#sec-m0-implementation)), and the same arc for an extended model that adds
@@ -168,11 +169,13 @@ resting on that explication, a four-part *methodological* package that makes the
 explication measurable and validates the measurement.
 
 ::: {.callout-note appearance="simple"}
-**(a) A principled explication of SEU sensitivity.** The three characterizing
-properties of the softmax choice rule (§[2.3](#sec-three-properties), proved in
-Appendix A) pin down a single scalar parameter $\alpha$ as the degree to which an
-agent's choices track SEU maximization, with $\alpha = 0$ at indifference to
-expected utility and $\alpha \to \infty$ at deterministic maximization. This
+**(a) A principled explication of SEU sensitivity.** Within the
+softmax/Luce--McFadden specification, three characterizing
+properties of the choice rule (§[2.3](#sec-three-properties), proved in
+Appendix A) license reading its single scalar parameter $\alpha$ as the degree to
+which an agent's choices track SEU maximization, with $\alpha = 0$ at
+indifference to expected utility and $\alpha \to \infty$ at deterministic
+maximization. This
 gives a graded, well-defined meaning to "alignment with expected-utility
 reasoning" across the family of decision problems the estimable model
 accommodates (the experiments expressible in the data block of the Stan models,
@@ -194,7 +197,8 @@ sizes they do not: uncertain choices leave $(\beta, \delta)$ only *weakly
 informed*, as the Bayesian workflow shows directly --- wide, negatively
 correlated $(\beta, \delta)$ posteriors against tight $\alpha$ intervals
 (§[3.4](#sec-bd-weak), §[4.3](#sec-m0-recovery)). The two are one structural
-picture (§[3.5](#sec-m0-link)): $\alpha$ is read off the curvature of choice
+picture (§[3.5](#sec-m0-link)): given the $\bm{\upsilon}$-endpoint convention
+that fixes the utility scale, $\alpha$ is read off the curvature of choice
 probabilities in $\eta$, while beliefs and utilities enter only *through* $\eta$
 and trade off against each other in a way that uncertain-choice data barely
 resolve.
@@ -219,21 +223,26 @@ recoverable from a realistic amount of data --- and we show a case where an earl
 finding looked clean, then reversed on a larger re-run.
 
 **(d) The marginal-SBC demarcation.** Marginal rank uniformity is *necessary but
-not sufficient* for joint posterior calibration: the negatively correlated,
-barely-contracted joint $(\beta, \delta)$ posterior is invisible to per-parameter
-SBC, which passes for both models even where the joint belief--utility posterior
-is only weakly informed (§§[4.4](#sec-m0-sbc), [6.5](#sec-m1-sbc),
-[8.3](#sec-discussion)).
+not sufficient* for joint posterior calibration. Separately, the negatively
+correlated, barely-contracted joint $(\beta, \delta)$ posterior --- which can
+itself be perfectly calibrated --- reflects weak joint *informativeness*, and
+marginal SBC does not reveal it: per-parameter ranks pass for both models even
+where beliefs and utilities are jointly only weakly resolved
+(§§[4.4](#sec-m0-sbc), [6.5](#sec-m1-sbc), [8.3](#sec-discussion)).
 *In plain terms:* a standard calibration check can look healthy one parameter at
 a time while still concealing that two parameters are jointly unresolved.
 
 **(e) An illustrative full-pipeline application** of the instrument to LLM
-choice data, in which every validation diagnostic comes in clean and the
-framework detects a structured comparative effect in two of four LLM$\times$task
-cells while declining to support one in the other two
-(§[7](#sec-application)).
-*In plain terms:* run end-to-end on real language-model choices, the instrument
-behaves as designed and reports an effect in two of four settings.
+choice data, in which the $\alpha$ inference and the posterior-predictive
+summaries come in clean --- the only flagged diagnostics being confined to the
+weakly-informed nuisance parameters (§[7.4](#sec-app-validation)) --- and the
+framework reports posterior support for a structured comparative effect in two of
+four LLM$\times$task cells while withholding it in the other two, where the
+design's resolution is insufficient (§[7](#sec-application)).
+*In plain terms:* run end-to-end on real language-model choices, the instrument's
+sensitivity estimates behave as designed and report an effect in two of four
+settings, with the non-detections reflecting limited resolution rather than
+established absence.
 :::
 
 ## 1.8 Roadmap {#sec-roadmap .unnumbered}

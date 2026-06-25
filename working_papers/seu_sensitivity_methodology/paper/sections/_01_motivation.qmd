@@ -22,7 +22,7 @@ the harder of the two to score. The paragraphs that follow describe them.
 
 ## 1.2 Why labeled accuracy under-determines decision quality {#sec-why-labels-fail .unnumbered}
 
-The natural way to evaluate choices is to score them against labels: known
+The standard way to evaluate choices is to score them against labels: known
 correct answers, realized outcomes, or expert adjudications. For the normative
 question, scoring against labels faces two difficulties.
 
@@ -70,12 +70,11 @@ expected utility is greatest [@savage1954; @anscombe1963definition;
 rational choice, and nothing below depends on that stronger claim. The argument
 is conditional: *if* SEU is the reference standard, then a graded, statistically
 rigorous measure of conformity to it is methodologically useful. SEU is the
-natural first case for such an instrument for two reasons. It is the most widely
+natural first case for such an instrument: it is the most widely
 shared normative benchmark in decision theory, so a conformity measure built on
-it speaks to the largest audience; and its likelihood structure is the
-best understood, which makes it the cleanest setting in which to ask the
-identifiability questions that occupy §§[3](#sec-m0-identifiability) and
-[5](#sec-m1-identifiability).
+it reaches the largest audience. The identifiability questions that occupy
+§§[3](#sec-m0-identifiability) and [5](#sec-m1-identifiability) are then taken up
+for that instrument in turn.
 
 Two qualifications bound the sense in which other standards could be substituted
 for SEU. First, several theories often mentioned alongside SEU are not normative
@@ -166,8 +165,7 @@ of these tools. It is, first, a *conceptual* one --- a principled explication of
 what it means for a decision maker to be *sensitive to*, or *aligned with*, the
 requirements of SEU maximization across a range of decision contexts --- and,
 resting on that explication, a four-part *methodological* package that makes the
-explication measurable and validates the measurement. Each item is followed by a
-one-line gloss in non-technical terms.
+explication measurable and validates the measurement.
 
 ::: {.callout-note appearance="simple"}
 **(a) A principled explication of SEU sensitivity.** The three characterizing
@@ -215,7 +213,7 @@ by data *quantity*, not by the *type* of choice that an in-principle argument
 might privilege. A first-pass recovery study at $n = 30$ reported a tidy
 $\approx 15\%$ $\alpha$ gain attributable to choice type; a pre-registered re-run
 at $n = 100$ reversed it. We report that reversal as a cautionary instance of the
-very discipline the paper advocates.
+methodological discipline this paper advocates.
 *In plain terms:* a quantity that is recoverable in theory may still not be
 recoverable from a realistic amount of data --- and we show a case where an early
 finding looked clean, then reversed on a larger re-run.
@@ -229,14 +227,13 @@ is only weakly informed (§§[4.4](#sec-m0-sbc), [6.5](#sec-m1-sbc),
 *In plain terms:* a standard calibration check can look healthy one parameter at
 a time while still concealing that two parameters are jointly unresolved.
 
-**(e) An honestly reported full-pipeline application** of the instrument to LLM
+**(e) An illustrative full-pipeline application** of the instrument to LLM
 choice data, in which every validation diagnostic comes in clean and the
 framework detects a structured comparative effect in two of four LLM$\times$task
 cells while declining to support one in the other two
 (§[7](#sec-application)).
 *In plain terms:* run end-to-end on real language-model choices, the instrument
-behaves as designed and reports an effect in two of four settings while honestly
-declining to claim one in the other two.
+behaves as designed and reports an effect in two of four settings.
 :::
 
 ## 1.8 Roadmap {#sec-roadmap .unnumbered}
@@ -251,8 +248,8 @@ identifiability, and §[6](#sec-m1-implementation) realizes and validates the
 extension --- inheriting both the design and the identifiability questions from
 the earlier pair. §[7](#sec-application) runs the validated workflow on real LLM
 data, and §[8](#sec-discussion-top) draws the methodological lessons together.
-The formal backbone --- the proofs that close §§[3](#sec-m0-identifiability) and
-[5](#sec-m1-identifiability) --- lives in Appendix B; the body states results and
+The formal core --- the proofs that close §§[3](#sec-m0-identifiability) and
+[5](#sec-m1-identifiability) --- is in Appendix B; the body states results and
 points to it. Concretely, the dependency structure is
 
 $$

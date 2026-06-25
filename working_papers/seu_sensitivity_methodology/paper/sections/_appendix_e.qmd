@@ -1,13 +1,13 @@
 # Appendix E. Reproducibility {#sec-appendix-e .unnumbered}
 
 > *Provenance, compute budget, and a per-figure manifest. The goal is that every
-> load-bearing empirical claim in the paper can be regenerated from a pinned
+> key empirical claim in the paper can be regenerated from a pinned
 > state of the supporting repository, with no number depending on an artifact
 > that is not itself version-controlled.*
 
 ## E.0 Citation and provenance policy {#sec-e-provenance .unnumbered}
 
-Every load-bearing empirical claim cites the supporting repository at a **pinned
+Every key empirical claim cites the supporting repository at a **pinned
 commit or tag** --- and, for the archival deposit, a DOI minted from that tagged
 commit (a Zenodo release) --- never a homepage or blog URL. Supporting materials
 (data, analysis scripts, configs, figures) are **referenced at that pin, not
@@ -69,15 +69,25 @@ canonical design constants of D.0 in-script and reuse the generic
 and `configs/*recovery*.json` files (smaller smoke-scale designs) are not the
 pinned source for these three plots.
 
+```{=latex}
+\begingroup\footnotesize\setlength{\tabcolsep}{3pt}
+```
+
 | Fig/Tab | § | Description | Script | Config | Seed | Status |
 | --- | --- | --- | --- | --- | --- | --- |
 | Fig 6.4 | 6.4.1 | $\alpha$/$\delta$ RMSE + CI-width, matched A/B/C/D ($n=100$) | `spikes/report14_rerun_analysis.py` | `configs/m1_matched_recovery_n100_config.json` | design 20260617 / boot 20260617 | computed |
 | Tab (§7.5.5) | 7.5 | $2\times2$ per-cell global-slope posteriors (C9–C13) | `analysis/model_estimation.py` | `applications/*/configs/` | per-cell (see cell data) | computed |
 | Fig (§7.5.5) | 7.5.5 | $2\times2$ forest plot of the per-cell global-slope posteriors (companion to @tbl-2x2) | `spikes/report_2x2_forest_spike.py` | canonical cell summaries (C9/C10/C12/C13) | deterministic (no RNG) | computed |
-| Fig 7.5.2 | 7.5.2 / 7.6.1 | Claude-null MDE power curve; MDE $\approx 36$ marker (C16) | `spikes/report16_mde_spike.py` | inline (data `…/claude_insurance_study/data/alpha_draws_T*.npz`) | 20260618 | computed |
-| Fig (§4.3) | 4.3.2 | $\alpha$ true-vs-estimated recovery scatter (`m_0`) | `analysis/parameter_recovery.py` (`reports/foundations/04_parameter_recovery.qmd`) | inline (`m_0`: $M25$ $K3$ $D5$ $R15$; 50 iters, 4 chains $\times$ 1000) | design np $42$; $12345+i$ sim / $54321+i$ fit (D.2) | computed |
-| Fig (§4.4) | 4.4 | `m_0` SBC rank histograms + ECDF/KS | `analysis/sbc.py` (`reports/foundations/06_sbc_validation.qmd`) | inline (`m_0`: $M25$ $K3$ $D5$ $R15$; $N_{\mathrm{sbc}}999$ thin4 1 chain) | design np $42$; $123+i$ per draw (D.3) | computed |
-| Fig (§6.5) | 6.5 | `m_1` SBC rank histograms + ECDF/KS | `analysis/sbc.py` (`reports/foundations/06_sbc_validation.qmd`) | inline (`m_1`: $M25$ $N25$ $K3$ $D5$ $R15$ $S15$; $N_{\mathrm{sbc}}999$ thin4 1 chain) | design np $42$; $123+i$ per draw (D.3) | computed |
+| Fig 7.5.2 | 7.5.2 / 7.6.1 | Claude-null MDE power curve; MDE $\approx 36$ marker (C16) | `spikes/report16_mde_spike.py` | inline (data `alpha_draws_T*.npz`) | 20260618 | computed |
+| Fig (§4.3) | 4.3.2 | $\alpha$ true-vs-estimated recovery scatter (`m_0`) | `analysis/parameter_recovery.py` | inline (`m_0`: $M25$ $K3$ $D5$ $R15$; 50 iters, 4 chains $\times$ 1000) | design np $42$; $12345+i$ sim / $54321+i$ fit (D.2) | computed |
+| Fig (§4.4) | 4.4 | `m_0` SBC rank histograms + ECDF/KS | `analysis/sbc.py` | inline (`m_0`: $M25$ $K3$ $D5$ $R15$; $N_{\mathrm{sbc}}999$ thin4 1 chain) | design np $42$; $123+i$ per draw (D.3) | computed |
+| Fig (§6.5) | 6.5 | `m_1` SBC rank histograms + ECDF/KS | `analysis/sbc.py` | inline (`m_1`: $M25$ $N25$ $K3$ $D5$ $R15$ $S15$; $N_{\mathrm{sbc}}999$ thin4 1 chain) | design np $42$; $123+i$ per draw (D.3) | computed |
+
+: Per-figure manifest: each headline figure or table mapped to its script, config, and seed. {#tbl-manifest tbl-colwidths="[7,4,18,22,24,16,9]"}
+
+```{=latex}
+\endgroup
+```
 
 The cross-LLM robustness number (C11) and the per-cell diagnostics/PPC summaries
 (C14, C15) are reproduced by `spikes/report11_cross_llm_spike.py` and

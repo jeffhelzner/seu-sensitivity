@@ -31,7 +31,7 @@ Anscombe and Aumann [-@anscombe1963definition] combined the two by considering
 acts mapping states to lotteries, which lets one identify utilities from the
 risky margin and beliefs from the state margin. Our `m_1` uses a *related
 empirical strategy*: the connection is conceptual, not a direct application of
-the Anscombe–Aumann representation theorem. The load-bearing fact is Steps 1+2,
+the Anscombe–Aumann representation theorem. The important part is Steps 1+2,
 not the representation theorem.
 
 ## 5.2 The extended model {#sec-m1-model .unnumbered}
@@ -51,11 +51,11 @@ and risky sub-problems. Therefore the interpretation of $\alpha$ as
 sensitivity-to-SEU-maximization is preserved in the extended model.
 
 ::: {.callout-warning appearance="simple"}
-**Single-$\alpha$ assumption (load-bearing; stated as a conditional).** `m_1`
+**Single-$\alpha$ assumption (essential; stated as a conditional).** `m_1`
 asserts a *single* $\alpha$ governing both sub-problems --- i.e., the agent's
 responsiveness to expected-utility differences does not depend on whether
 probabilities are objective or subjective. This is a substantive, testable
-assumption, and it is load-bearing for the §[6.4](#sec-m1-recovery)
+assumption, and it is essential to the §[6.4](#sec-m1-recovery)
 interpretation of the matched recovery contrasts: the
 quantity-versus-type reading of those contrasts requires a *common* $\alpha$
 scale across blocks. If $\alpha$ differed across blocks, the matched comparison

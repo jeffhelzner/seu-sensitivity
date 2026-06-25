@@ -15,7 +15,7 @@ and choices follow @eq-softmax with $V(r) = \eta_r$. The $\beta$ gauge
 
 Linear-softmax for $\bm{\psi}$ aligns with the multinomial-logit / discrete-choice
 tradition [@mcfadden1974; @train2009]; ordered utilities with endpoints fixed by
-convention remove the affine scale-and-shift gauge of vNM utility (Theorem A.4).
+convention remove the affine scale-and-shift indeterminacy of vNM utility (Theorem A.4).
 The two conventions together leave $\alpha$ as a scalar with the limit
 interpretation of §[2.3](#sec-three-properties).
 
@@ -63,10 +63,12 @@ the product of a $\beta$-driven simplex and a $\delta$-driven utility vector.
 Uncertain choices see $(\beta, \delta)$ only through this scalar $\eta_r$, so a
 family of $(\beta, \delta)$ pairs that trades a change in beliefs against a
 compensating change in utilities leaves the implied expected utilities --- and
-hence the choice probabilities --- almost unchanged. The endpoint convention on
-$\bm{\upsilon}$ (§[2.6](#sec-notation)) removes the affine utility gauge, but the
-*multiplicative* $(\beta,\delta)$ coupling is not a gauge and is not removed: it
-leaves the two only weakly informed by uncertain-choice data.
+hence the choice probabilities --- almost unchanged. The
+$\bm{\upsilon}$-endpoint convention (§[2.6](#sec-notation)) fixes the zero and
+unit of the utility scale, but it does not touch this *multiplicative*
+$(\beta,\delta)$ coupling, which is not an indeterminacy that any convention
+removes; the coupling is what leaves $\beta$ and $\delta$ only weakly informed by
+uncertain-choice data.
 
 This shows up directly in the Bayesian workflow rather than as a separate
 formal claim. Parameter recovery in `m_0` (§[4.3](#sec-m0-recovery)) returns

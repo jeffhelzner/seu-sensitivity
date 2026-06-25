@@ -44,9 +44,9 @@ $$
 so uncertain choices see $(\beta,\delta)$ only through the scalar $\eta_r$. A
 change in beliefs offset by a compensating change in utilities leaves the implied
 expected utilities --- and hence the choice probabilities --- almost unchanged.
-The endpoint convention on $\bm{\upsilon}$ (§[2.6](#sec-notation)) removes the
-affine utility gauge, but the multiplicative $(\beta,\delta)$ coupling is not a
-gauge and is not removed.
+The $\bm{\upsilon}$-endpoint convention (§[2.6](#sec-notation)) fixes the zero
+and unit of the utility scale, but the multiplicative $(\beta,\delta)$ coupling
+is not an indeterminacy that any convention removes.
 
 **What recovery shows.** Parameter recovery in `m_0`
 (§[4.3](#sec-m0-recovery), Report 4) returns wide marginal credible intervals for

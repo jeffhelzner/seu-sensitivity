@@ -15,6 +15,40 @@ Each archive deposit pins the supporting repository to a specific commit/tag.
 ## [Unreleased]
 
 ### Changed
+- **Author review pass on the draft PDF (prose, terminology, and a table-margin
+  fix).** Addressed the comments in `my_comments_on_draft.md`:
+  - Abstract: clarified the α sentence ("identifiability in principle does not by
+    itself reveal what governs its precision at finite n --- which we find to be
+    the *quantity* of choice data, not the *type* of choice").
+  - §1.2 "natural way" → "standard way".
+  - §1.4: dropped the "likelihood structure is best understood" claim (SEU is not
+    a statistical theory); kept the widest-benchmark reason and a plain pointer to
+    §§3/5.
+  - §1.7: deleted the "one-line gloss in non-technical terms" sentence; item (e)
+    heading "An honestly reported full-pipeline application" → "An illustrative
+    full-pipeline application"; removed "while honestly declining to claim one in
+    the other two" from its plain-terms gloss.
+  - §2.6: clarified the unclear "only β indeterminacy used in the paper" → "we
+    rely on no other invariance of the belief map".
+  - Terminology consistency with `@tbl-notation`: "gauge" is reserved for the β
+    additive row-shift; the utility-scale fixing is the υ-endpoint convention /
+    affine *indeterminacy*. Fixed §3.2, reworked the unclear §3.4 sentence, and
+    mirrored it in Appendix B.2.
+  - Removed figurative/metaphorical language paper-wide: "load-bearing"
+    (→ essential/key, §5, §8, App D, App E), "formal backbone" (→ formal core),
+    "lives in" (→ is in), "mantra" (§6.4.4 + §8.2), "the discipline the paper
+    preaches", "cautionary tale" heading (→ "a caution"), "in the loop". §6.4.4(iii)
+    rewritten to drop the two flagged sentences while keeping the n=30→100 content.
+  - §7.6.5 expanded into two paragraphs: what the insurance α estimand actually is
+    (a property of the composed assessment-LLM + feature-pipeline + choice-LLM
+    system) and how the Ellsberg replication isolates the choice stage.
+  - Appendix E.2 per-figure manifest no longer overflows the right margin: added
+    `\usepackage[htt]{hyphenat}`, wrapped the table in `\footnotesize` with
+    reduced `\tabcolsep`, set explicit `tbl-colwidths`, and trimmed redundant
+    report paths (already named in the surrounding prose). Renders clean
+    (quarto → pdflatex, 0 undefined refs, no overfull boxes).
+  - No numeric/claims changes; `claims_ledger.md` untouched.
+
 - **Removed the weak-identifiability (Fisher/ridge) apparatus; re-grounded the
   (β, δ) claim on the Bayesian workflow.** The only numerically-supported
   "proposition" (Prop 3.2 / Appendix B.2 — the η-Jacobian Fisher block, condition

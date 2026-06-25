@@ -149,8 +149,8 @@ one-unit utility scale.
 $\gamma \in \mathbb{R}^D$ to every row of $\beta$ --- that is,
 $\beta_{k\cdot} \mapsto \beta_{k\cdot} + \gamma^\top$ for all $k$ --- shifts every
 entry $(\beta\,w_r)_k$ by the common amount $\gamma^\top w_r$ and so leaves
-$\mathrm{softmax}(\beta\,w_r)$ unchanged. This is the only $\beta$ indeterminacy
-used in the paper; we refer to it as the **$\beta$ gauge** and reference it in
+$\mathrm{softmax}(\beta\,w_r)$ unchanged. We rely on no other invariance of the
+belief map; we refer to it as the **$\beta$ gauge** and reference it in
 §[3.3](#sec-alpha-from-eta), §[4](#sec-m0-implementation),
 §[6](#sec-m1-implementation), and Appendix B.4.
 :::

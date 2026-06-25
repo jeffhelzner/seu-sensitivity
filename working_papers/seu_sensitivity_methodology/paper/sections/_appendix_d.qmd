@@ -43,7 +43,7 @@ reduction of the insurance application, D.5), and Matplotlib ($\geq 3.4$). LLM
 choice data were collected via the OpenAI ($\geq 1.0$) and Anthropic
 ($\geq 0.18$) Python clients. The exact, pinned versions are recorded in
 `requirements.txt` and `environment.yml` at the commit of Appendix E.0; the
-versions above are the load-bearing ones for reproducing the inference.
+versions above are the essential ones for reproducing the inference.
 
 ## D.2 Sampler configuration and diagnostics policy {#sec-d2 .unnumbered}
 
@@ -56,11 +56,11 @@ $12345 + i$ and the inference fit uses $54321 + i$ for iteration $i$, so every
 recovery iteration is independently reproducible.
 
 **Diagnostics policy.** A fit is considered well-behaved when, for the
-load-bearing parameters, the potential-scale-reduction factor satisfies
+key parameters, the potential-scale-reduction factor satisfies
 $\hat{R} \le 1.01$ and both bulk- and tail-effective sample size are adequate
 for the reported quantiles; divergent transitions are tracked per fit and
 reported as a fraction. In the application (§[7.4](#sec-app-validation),
-claim C14) $\alpha$ --- the only load-bearing parameter for the
+claim C14) $\alpha$ --- the only parameter of primary interest for the
 temperature analysis --- is never $\hat{R}$-flagged and has satisfactory ESS in
 all 20 fits; divergences are $\le 0.15\%$ per fit; the only $\hat{R} > 1.01$
 exceedances fall on the weakly-informed $\beta, \delta$ and the per-trial

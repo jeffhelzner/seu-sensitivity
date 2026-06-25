@@ -299,16 +299,37 @@ literature.) The paper's contribution lies elsewhere.
 
 ### 7.6.5 The insurance application measures the whole pipeline {#sec-app-pipeline-caveat .unnumbered}
 
-Because LLM-mediated text-to-features is in the loop (two-stage prompting
-$\to$ embedding $\to$ PCA, §[7.2](#sec-app-design)), the insurance $\alpha$
-captures the *assembled* behavior of two LLM calls plus the feature pipeline, not
-the choice stage in isolation. The GPT-4o insurance monotonicity is therefore
-consistent with temperature affecting (i) the assessment stage, (ii) the choice
-stage, or (iii) both. **The Ellsberg replication is what disambiguates:** it strips
-the assessment layer (alternatives are stated structurally), so the GPT-4o pattern
-reproduced there cannot be an artifact of (i) alone. This *strengthens* the case
-rather than weakening it; the caveat does not apply symmetrically across the two
-task families.
+The insurance application does not isolate a single cognitive stage, and it is
+worth being precise about what its $\alpha$ actually measures. Each insurance
+trial is produced by a *composed system*: a first LLM call assesses the
+free-text claim, a second renders that assessment into the structured terms the
+analysis consumes, an embedding model maps the resulting text to a vector, and a
+PCA step reduces it to the feature space the choice model reads
+(§[7.2](#sec-app-design)). The fitted sensitivity $\alpha$ is a property of that
+whole assembly --- the two LLM calls together with the deterministic feature
+pipeline --- and not of the choice stage taken on its own. The estimand is
+therefore the SEU sensitivity *of the pipeline as configured*, and the
+temperature lever acts on every LLM-mediated component of it at once. This is the
+appropriate object of study for the methodological claim --- the workflow
+recovers a well-calibrated $\alpha$ for a realistic end-to-end system --- but it
+means that a within-cell change in $\alpha$ cannot, by itself, be attributed to
+any one stage. The GPT-4o insurance monotonicity is thus consistent with
+temperature affecting (i) the assessment stage, (ii) the choice stage, or
+(iii) both.
+
+The Ellsberg replication is what narrows this down, because it removes the
+assessment layer rather than holding it fixed. There the alternatives are stated
+structurally --- explicit urns and payoffs --- so no free-text assessment or
+embedding step intervenes between the stimulus and the choice, and the fitted
+$\alpha$ reflects the choice stage far more directly. That the GPT-4o temperature
+pattern *reproduces* under this stripped-down design shows it cannot be an
+artifact of the assessment stage (i) alone: a comparable effect survives when
+stage (i) is absent. The two task families therefore license different readings
+--- the insurance cell speaks to the assembled pipeline, the Ellsberg cell to
+something much closer to the choice stage --- and taking them together
+*strengthens* the case rather than weakening it. The caveat is asymmetric: it
+bounds what an insurance-only result would establish, and the Ellsberg
+replication is precisely what supplies the missing isolation.
 
 ## 7.7 What the application motivates for follow-up work {#sec-app-followup .unnumbered}
 

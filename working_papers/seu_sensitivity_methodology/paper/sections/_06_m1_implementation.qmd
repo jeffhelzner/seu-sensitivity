@@ -106,14 +106,14 @@ $\beta$ recovery in `m_1` is improved relative to `m_0` but remains subject to
 the additive row-shift gauge (§[2.6](#sec-notation); Appendix B.4); summaries
 target contrasts and induced $\bm{\psi}$, not absolute row levels.
 
-### 6.4.4 The methodological lesson --- two phenomena and a cautionary tale {#sec-m1-lesson .unnumbered}
+### 6.4.4 The methodological lesson --- two phenomena and a caution {#sec-m1-lesson .unnumbered}
 
 The matched comparison yields two separable substantive lessons plus a
 meta-lesson about the subsection itself; we keep all three apart.
 
-**(i) For $\delta$ --- the canonical lesson, sharpened.** State the mantra
-verbatim: *identifiable (hence estimable in the limit) $\neq$ precisely estimable
-at realistic sample sizes.* $\delta$ is identifiable in `m_1`
+**(i) For $\delta$ --- the canonical lesson, sharpened.** The principle is that
+*identifiability (hence estimability in the limit) does not entail precise
+estimability at realistic sample sizes.* $\delta$ is identifiable in `m_1`
 (§[5.5](#sec-delta-id)), but the information about $\delta$ contributed by
 25 risky choices at moderate $\alpha$ is small: the matched B$\to$C comparison
 shrinks the $\delta$ CI width by $\approx 0.8\%$ and moves $\delta$ RMSE not at
@@ -129,16 +129,14 @@ already-identified parameter"; it is that **in-principle identifiability tells
 you nothing about where finite-$n$ precision comes from** --- here it comes from
 quantity, not type. Phenomena (i) and (ii) are distinct.
 
-**(iii) Meta-lesson.** This subsection is itself an instance of the paper's
-central caution. A first-pass recovery study at $n = 30$ reported a clean
+**(iii) Meta-lesson.** A first-pass recovery study at $n = 30$ reported a clean
 $\approx 15\%$ $\alpha$ gain and a $\approx 2\%$ $\delta$ gain attributable to
 choice *type*; the pre-registered re-run at $n = 100$ with bootstrap CIs reversed
 the $\alpha$ claim (sign and significance) and roughly quartered the $\delta$
 magnitude. Under-powered recovery studies can manufacture tidy effects that do
 not replicate, and in-principle identifiability arguments do not predict
-finite-$n$ estimability. The discipline the paper preaches --- run the recovery
-study, report CIs, *re-run at adequate $n$ before drawing the lesson* --- is
-exactly what caught the error.
+finite-$n$ estimability. Re-running the recovery study at an adequate $n$ with
+reported CIs before drawing the lesson is what caught the error.
 
 | | $\delta$ in `m_1` | $\alpha$ in `m_1` |
 | --- | --- | --- |
@@ -156,7 +154,7 @@ Rank histograms and ECDF-difference plots for $\alpha$, $\beta$, $\delta$ are
 consistent with uniformity (Report 6). We do **not** claim an `m_0`$\to$`m_1`
 $\delta$-calibration improvement (e.g., a flatter histogram): marginal SBC is
 uniform for $\delta$ in *both* models, because the relevant $(\beta,\delta)$
-weakness lives in the *joint* posterior (the **marginal-SBC demarcation** again,
+weakness is in the *joint* posterior (the **marginal-SBC demarcation** again,
 §[4.4](#sec-m0-sbc)). The appropriate diagnostic is a joint or projection-based
 rank statistic (§[8.3](#sec-discussion)). The usual single-chain
 SBC caveats apply: thinning, single-chain Monte-Carlo error, and sample-size

@@ -1,7 +1,10 @@
 ---
 title: "Sensitivity to Subjective Expected Utility Maximization: A Methodological Study, with an Illustrative Application to LLM Decision-Making"
+subtitle: "Working draft (pre-v1) --- comments welcome"
 author:
   - name: Jeff Helzner
+date: today
+date-format: "D MMMM YYYY"
 abstract: |
   Evaluating the quality of decisions made under uncertainty is hard when
   labeled outcomes are scarce, costly, or confounded with luck. We treat

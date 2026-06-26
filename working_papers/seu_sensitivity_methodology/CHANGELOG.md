@@ -14,6 +14,19 @@ Each archive deposit pins the supporting repository to a specific commit/tag.
 
 ## [Unreleased]
 
+### Added
+- **Publish the rendered PDF for a pre-arXiv feedback round.** A Quarto
+  `post-render` hook (`paper/publish-pdf.py`) copies `_output/paper.pdf` to a
+  clean, committed path, `seu-sensitivity-methodology.pdf`, one directory up, so
+  the PDF can be linked publicly (e.g. from the author homepage) without exposing
+  the `_output/` build directory and without a hand-maintained duplicate that
+  could go stale — it is regenerated on every render. The root `.gitignore` gains
+  a single negation un-ignoring that one path (the `*.pdf` rule and the
+  `_output/` build artifact are otherwise untouched). The title block gains a
+  `subtitle` banner ("Working draft (pre-v1) --- comments welcome") and an
+  auto-stamped `date: today`, so feedback maps to a known render. GitHub
+  tag/Zenodo DOI deferred to the arXiv freeze (v1).
+
 ### Changed
 - **§1.1–§1.3 disambiguate two senses of a "labeled set" (author comment).**
   The draft conflated (A) a key of *correct choices* (which alternative an

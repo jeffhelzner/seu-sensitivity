@@ -46,6 +46,11 @@ Thumbs.db
 *.log
 *.out
 
+# Published methodology working-paper PDF (committed for public sharing).
+# Auto-regenerated from the Quarto render via paper/publish-pdf.sh, so it stays
+# in sync with the source; un-ignored here to override the *.pdf rule above.
+!working_papers/seu_sensitivity_methodology/seu-sensitivity-methodology.pdf
+
 # Temporary files
 *.tmp
 .DS_Store

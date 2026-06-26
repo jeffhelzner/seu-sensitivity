@@ -1,6 +1,10 @@
 project:
   type: default
   output-dir: _output
+  # After each render, copy the PDF to a clean, committed path one level up
+  # (see publish-pdf.py) so it can be linked publicly without exposing _output/.
+  post-render:
+    - publish-pdf.py
 
 # Single-source-of-truth bibliography: the foundational reports' .bib plus a
 # small paper-local supplement for entries the reports do not carry.

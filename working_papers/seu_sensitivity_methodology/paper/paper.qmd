@@ -20,10 +20,9 @@ abstract: |
   the extended model `m_1`, $\delta$ becomes
   identifiable in principle (hence estimable in the limit) via a $\beta$-free
   risky block, but its practical recovery gain at realistic sample sizes is
-  negligible (a matched-count CI-width reduction under 1%); and the block's
-  apparent benefit for $\alpha$ did *not* survive a pre-registered re-run at
-  $n = 100$ --- at matched choice count the $\beta$-free risky block yields no
-  $\alpha$-precision gain, so finite-sample $\alpha$ precision is driven by data
+  negligible (a matched-count CI-width reduction under 1%); and at matched choice
+  count the $\beta$-free risky block yields no $\alpha$-precision gain either, so
+  finite-sample $\alpha$ precision is driven by data
   *quantity*, not the *type* of choice. These are two distinct phenomena: for
   $\delta$, identifiability does not imply precise estimability at realistic
   $n$; and for $\alpha$, identifiability in principle does not by itself reveal

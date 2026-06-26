@@ -15,6 +15,87 @@ Each archive deposit pins the supporting repository to a specific commit/tag.
 ## [Unreleased]
 
 ### Changed
+- **§1.1–§1.3 disambiguate two senses of a "labeled set" (author comment).**
+  The draft conflated (A) a key of *correct choices* (which alternative an
+  informed judge would select) with (B) a key of *realized outcomes*; (A) is the
+  primary external contrast for this paper, while (B) is the locus of the
+  good-outcome-vs-good-decision warning. Fixes: §1.1 ¶1 now frames the external
+  approach as a correct-choice key (examples recast from outcome form — "did the
+  gamble pay off" — to choice form — "would an informed judge have taken the same
+  gamble"); §1.1 ¶2 drops the misplaced "because the decision is made before the
+  relevant uncertainty resolves" (that is outcome/sense-B reasoning) and instead
+  grounds the come-apart in the right place (the consistency standard constrains
+  how choices hang together, not which alternative a key marks correct). §1.2
+  reorganized so its two difficulties map cleanly to the two senses: (1) a
+  correct-choice key is impractical to obtain — insurance would require polling
+  subject-matter experts on what they would choose, costly and sensitive to which
+  experts; (2) an *outcome* key measures the wrong thing (good outcome ≠ good
+  decision; outcomes depend on factors outside the agent's control). Removed the
+  muddled "Consistency-based evaluation by this route would still require a
+  labeled set of decisions." §1.3 sharpened to state the central point plainly:
+  internal-consistency evaluation requires **no** labeled set — neither a
+  correct-choice key nor an outcome record. Renders clean (quarto→pdflatex 3-pass,
+  no errors/undefined). No numeric changes; claims_ledger untouched.
+- **§1.1 overclaim softened + intellectual-history corrected (author comment).**
+  (1) Dropped the sentence claiming the internal-consistency assessment is "the
+  one we care about" and "the harder of the two to score" (both overclaims); the
+  analyst/institution/LLM examples are kept but recast as settings where the
+  assessment is *especially relevant* because a correct-choice key is unavailable
+  or costly. (2) The "long precedent" paragraph now distinguishes two strands of
+  internal-consistency critique instead of lumping both under heuristics-and-
+  biases: Allais [@allais1953] = a violation of *expected utility* as a standard
+  for decision under *risk* (independence axiom), which Kahneman–Tversky took up
+  in prospect theory; the "Linda problem" [@tversky1983] = the *heuristics-and-
+  biases* program proper, a violation of the *probability axioms* as a coherence
+  standard on degrees of belief (Dutch-book tradition), motivating the
+  representativeness heuristic. Closing line notes SEU couples both kinds of
+  coherence (on beliefs and on preferences). Renders clean; no numeric changes.
+- **§1.7 "What is new" layout + framing fixes, and §7.4.2 lemma reframed (author
+  comments).** Four items. (1) *Four-vs-five mismatch:* the lead-in promised a
+  "four-part" package but the box listed five entries (a)–(e); the lead-in now
+  states explicitly that (a) is the *conceptual* contribution and items (b)–(e)
+  are the four-part *methodological* package. (2)+(3) *Layout pathologies:* the
+  contribution list was a Quarto simple-callout, whose icon+content render as
+  side-by-side `minipage`s — the content `minipage` is **unbreakable**, so the
+  ~one-page list could not start mid-page (left ~half of the preceding page blank),
+  overflowed the box bottom, and ran (e) past the frame mid-sentence. Removed the
+  `.callout-note` wrapper so the (a)–(e) list flows as ordinary prose with bold
+  run-in headers; page-7 whitespace, box-top gap, and (e) overflow all resolved.
+  No text content changed inside (a)–(e). (4) *§7.4.2 "Lemma (SBC inheritance)":*
+  renamed to **"Remark (SBC reuse)"** and prefaced as "a workflow convention rather
+  than a proved proposition" — it is not a formal theorem (and its own
+  *Qualification* calls the inheritance "an approximation … not an identity"), so
+  the "lemma without proof" framing was misleading; added a clause stating the work
+  it does (spares a second, expensive calibration for the matched Claude×insurance
+  cell). NB: this reverses the earlier plan-doc instruction to "state the
+  inheritance argument as an explicit lemma." Renders clean (quarto→pdflatex, 3
+  passes, no errors/undefined). No numeric changes; `claims_ledger.md` untouched.
+- **Abstract + §1.1–§1.3 reframed per author comments (`my_comments.md`).** Two
+  clusters. (1) Abstract: the `m_1` α sentence no longer alludes to an unseen
+  internal pilot or a "pre-registered re-run" — it now states positively that at
+  matched choice count the β-free risky block yields no α-precision gain, so
+  finite-sample α precision is driven by data *quantity*, not *type*. (2) §1.1
+  retitled "Two questions about a decision" → **"Two approaches to assessing a
+  decision maker"** (anchor `#sec-two-questions` kept) and recast around the right
+  axis: *external / label-based* criterion (agreement with a curated key) vs.
+  *internal* standard of consistency (coherence among the agent's own choices),
+  with "internal" qualifying the standard, not the agent's cognition (behavioral
+  stance preserved). Added a historical-precedent paragraph: heuristics-and-biases
+  (Allais [@allais1953] → independence-axiom violation motivating prospect theory
+  [@kahneman1979; @tversky1992]; Linda/conjunction fallacy [@tversky1983]) assess
+  against internal-consistency standards, vs. the nudge tradition [@thaler2008nudge]
+  scoring against an externally curated (dietician-labeled) good set. §1.2/§1.3
+  wording migrated from "normative" to "consistency-based / internal-consistency"
+  for the *contrast*; §1.3 heading → "The need for consistency-based evaluation"
+  (anchor `#sec-normative` kept). "normative" retained where it legitimately
+  describes SEU-as-benchmark and normative-vs-descriptive (CPT) in §1.4/§2/§7.6.4.
+  Pre-registration wording also corrected in §6.4/§6.4.4 to "confirmatory,
+  higher-powered re-run". Three bib entries added to `references_extra.bib`
+  (`allais1953`, `tversky1983`, `thaler2008nudge`). Renders clean
+  (quarto→pdflatex, 3 passes, 0 undefined refs/cites; new cites resolve). No
+  numeric changes; `claims_ledger.md` untouched.
+
+### Changed (earlier)
 - **Appendix E reproducibility wording softened to future tense.** E.0 now reads
   "at the point of archival deposit, a DOI *will be* minted from that tagged commit
   ... and substituted for the commit pin" (was stated as established policy); E.1's

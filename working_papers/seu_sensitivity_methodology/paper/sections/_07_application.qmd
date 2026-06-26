@@ -142,9 +142,11 @@ purpose.
 is conditionally independent of which agent generated the held-out empirical data.
 
 ::: {.callout-note appearance="simple"}
-**Lemma (SBC inheritance).** If two fitted studies use the same Stan model, the
-same prior hyperparameters, and the same feature pipeline, an SBC result
-established for one transfers to the other without re-running. *Application:* SBC
+**Remark (SBC reuse).** This is a workflow convention rather than a proved
+proposition: if two fitted studies use the same Stan model, the same prior
+hyperparameters, and the same feature pipeline, an SBC result established for one
+can be reused for the other without re-running --- which is what spares us a
+second, expensive calibration for the matched cell. *Application:* SBC
 for $\alpha$ under $\mathrm{Lognormal}(3.0, 0.75)$ and the insurance likelihood is
 established once in the GPT-4o $\times$ insurance report and inherited by the
 Claude $\times$ insurance study. The Ellsberg studies differ in $K$ and in the

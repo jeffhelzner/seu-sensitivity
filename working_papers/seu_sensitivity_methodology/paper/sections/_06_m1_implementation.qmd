@@ -35,7 +35,7 @@ the model fixed.
 **Statistical-power note (resolved).** The original matched study used 30
 iterations, which proved well-sized to detect a *direction* of effect but not to
 pin effect *magnitudes*: the pilot's $\approx 15\%$ $\alpha$ and $\approx 2\%$
-$\delta$ figures did not survive a pre-registered re-run. The re-run at
+$\delta$ figures did not survive a confirmatory, higher-powered re-run. The re-run at
 **$n = 100$ with bootstrap 90% CIs** (`spikes/report14_rerun_results.json`,
 design seed 20260617, 10\,000 resamples) is the citable source for every §6.4
 magnitude, and it overturned the $\alpha$ claim (sign and significance) while
@@ -140,7 +140,7 @@ quantity, not type. Phenomena (i) and (ii) are distinct.
 
 **(iii) Meta-lesson.** A first-pass recovery study at $n = 30$ reported a clean
 $\approx 15\%$ $\alpha$ gain and a $\approx 2\%$ $\delta$ gain attributable to
-choice *type*; the pre-registered re-run at $n = 100$ with bootstrap CIs reversed
+choice *type*; the confirmatory re-run at $n = 100$ with bootstrap CIs reversed
 the $\alpha$ claim (sign and significance) and roughly quartered the $\delta$
 magnitude. Under-powered recovery studies can manufacture tidy effects that do
 not replicate, and in-principle identifiability arguments do not predict

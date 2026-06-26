@@ -1,64 +1,100 @@
 # Motivation {#sec-motivation .unnumbered}
 
-## 1.1 Two questions about a decision {#sec-two-questions .unnumbered}
+## 1.1 Two approaches to assessing a decision maker {#sec-two-questions .unnumbered}
 
-There are two distinct questions one can ask about a decision. The first is
-*label-based*: do the agent's choices agree with a labeled test set --- did the
-claim that was forwarded turn out to be fraudulent, did the gamble that was
-taken pay off, did an expert sign off on the call? The second is *normative*: are
-the choices consistent with a stated normative theory of decision making --- are
-they responsive to the probabilities, the stakes, and the tradeoffs in the way
-the theory prescribes? We ask the second question of an agent's choices as
-observed, without attributing to the agent any particular internal computation
-or deliberative procedure: the standard constrains behavior, and the question is
-whether the behavior conforms to it. The two questions can come apart. A choice
-can be consistent with the normative standard and still disagree with the labels,
-because the decision is made before the relevant uncertainty resolves; and a
-choice can be inconsistent with the standard and still agree with the labels.
-There are important situations --- evaluating a human analyst, an institution,
-or, increasingly, a large language model deployed to make or recommend choices
---- in which the normative question is the one we care about, and in which it is
-the harder of the two to score. The paragraphs that follow describe them.
+There are two broad approaches to assessing a decision maker from a body of
+choices. The first is *external*, or label-based: do the agent's choices agree
+with a labeled set of decisions held to be correct --- a key that records, for
+each decision problem, which alternative an informed judge would select; would
+such a judge have forwarded the same claim, taken the same gamble, made the same
+call? The criterion is agreement with a curated answer key, whoever supplies it.
+The second is *internal*: are the choices coherent with one another in the way a
+stated standard of consistency requires --- responsive to the probabilities, the
+stakes, and the tradeoffs in the way the standard prescribes? We assess this
+second kind of conformity from the agent's choices as observed, without
+attributing to the agent any particular internal computation or deliberative
+procedure: "internal" qualifies the *standard* --- coherence among the agent's
+own choices --- not the agent's cognition. The standard constrains behavior, and
+the question is whether the behavior conforms to it.
+
+The two assessments answer to different things and can come apart. The
+consistency standard constrains how an agent's choices hang together, not which
+alternative an external key marks as correct: an agent whose beliefs and values
+differ from those the key encodes can be fully consistent yet disagree with it,
+and an agent can match the key on a given decision while its choices violate the
+standard elsewhere. The internal-consistency assessment is the one this paper
+develops, and it is especially relevant where a correct-choice key is unavailable
+or costly to construct --- in assessing a human analyst, an institution, or,
+increasingly, a large language model deployed to make or recommend choices.
+
+Both approaches have a long precedent in the study of decision makers. One strand
+of internal-consistency critique assesses choices against expected utility theory
+as a standard for decision making under risk: the Allais paradox [@allais1953]
+exhibits a pattern of preferences that violates the independence axiom, a tension
+Kahneman and Tversky took up in developing prospect theory [@kahneman1979;
+@tversky1992]. A second strand --- the heuristics-and-biases program --- assesses
+judgments about uncertainty against the probability axioms, construed as a
+coherence standard on degrees of belief in the Dutch-book tradition: the
+conjunction fallacy of the "Linda problem" [@tversky1983] exhibits credences that
+violate that calculus, evidence used to motivate the representativeness
+heuristic. In each case the decision maker is faulted not against a labeled key
+but against a coherence requirement that its own choices or judgments fail to
+meet. The contrasting tradition scores choices against an externally curated set
+of good options: the choice architecture of @thaler2008nudge, for instance,
+assesses diners against a menu whose "healthy" items have been labeled by
+dieticians. The instrument developed here belongs to the internal-consistency
+tradition --- it measures conformity to an internal standard --- with subjective
+expected utility maximization, which couples a coherence requirement on degrees
+of belief with one on preferences, in the role the axioms of rational choice play
+in those precedents.
 
 ## 1.2 Why labeled accuracy under-determines decision quality {#sec-why-labels-fail .unnumbered}
 
-The standard way to evaluate choices is to score them against labels: known
-correct answers, realized outcomes, or expert adjudications. For the normative
-question, scoring against labels faces two difficulties.
+The label-based approach scores choices against a key, drawn either from an
+adjudicated set of correct choices or from the realized outcomes of the
+decisions. Two difficulties limit what such a key can tell us about the quality
+of the decisions: a key of correct choices is often impractical to obtain, and a
+key of outcomes measures the wrong thing.
 
-The first concerns the labels themselves. Normative evaluation by this route
-requires a labeled set of decisions, and obtaining one can be difficult. In some
-settings it is straightforward; in others it is not. The insurance-claims study
-we report in §[7](#sec-application) is a case of the second kind: there is no
-readily available key that records, decision by decision, which choice was the
-correct one, and constructing such a key under realistic experimental conditions
-is not something we could do credibly.
+The first concerns obtaining the labels at all. A key of correct choices records,
+decision by decision, which alternative is the right one to select, and
+assembling one is often impractical. The insurance-claims study we report in
+§[7](#sec-application) is a case in point: there is no off-the-shelf key that says
+which choice was correct, and constructing one would mean asking subject-matter
+experts what they would choose across the decision problems --- an exercise that
+is costly and, because expert judgment varies, sensitive to which experts are
+consulted. We could not produce such a key credibly under realistic experimental
+conditions.
 
-The second difficulty is more basic, and remains even when labels *are*
-available. A score computed purely from outcomes ignores the way the context in
-which a decision is made informs the beliefs and desires of the decision maker.
-Treating outcomes as a direct measure of decision quality is defensible only
-under strong assumptions --- for instance, that the decision maker is properly
-incentivized and has enough information to learn the "objective" probabilities of
-the relevant states. Those assumptions are reasonable in some controlled
-settings, but we would not want to impose them in a study like the insurance
-experiment of §[7](#sec-application), where neither condition can be taken for
-granted. A decision that is well structured given the agent's information may
-still be scored poorly by an outcome key that was generated under different
-information, and vice versa.
+The second difficulty is more basic, and remains even where a key *is* at hand ---
+in particular where it records realized *outcomes* rather than adjudicated
+choices. A good outcome is not the same as a good decision: the outcome of a
+choice typically depends on how the relevant uncertainty happens to resolve,
+which lies outside the decision maker's control. A score computed purely from
+outcomes also ignores the way the context in which a decision is made informs the
+beliefs and desires of the decision maker. Treating outcomes as a direct measure
+of decision quality is defensible only under strong assumptions --- for instance,
+that the decision maker is properly incentivized and has enough information to
+learn the "objective" probabilities of the relevant states. Those assumptions are
+reasonable in some controlled settings, but we would not want to impose them in a
+study like the insurance experiment of §[7](#sec-application), where neither
+condition can be taken for granted. A decision that is well structured given the
+agent's information may still be scored poorly by an outcome key that was
+generated under different information, and vice versa.
 
-## 1.3 The need for normative evaluation {#sec-normative .unnumbered}
+## 1.3 The need for consistency-based evaluation {#sec-normative .unnumbered}
 
-What remains available when clean labels are absent is the *structure* of the
-choices themselves. If we are willing to state a standard of good decision making
-explicitly, we can ask whether an agent's choices are responsive to
+What remains available when neither kind of key can be had is the *structure* of
+the choices themselves. If we are willing to state a standard of good decision
+making explicitly, we can ask whether an agent's choices are responsive to
 probabilities, utilities, and tradeoffs in the way that standard prescribes ---
-without ever needing to know which choice was, in hindsight, correct. Normative
-evaluation in this sense replaces a claim about outcomes with a claim about
-conformity to a stated standard. It requires that the standard be named
-explicitly; in return it yields an evaluation that is well defined even where no
-outcome key exists, and that does not depend on which outcome happened to be
-realized.
+without a labeled set of correct choices, and without reference to which outcome
+happened to be realized. Evaluation of this internal-consistency kind replaces a
+claim about outcomes with a claim about conformity to a stated standard. It does
+not require any labeled set of decisions; it requires only that the standard be
+named explicitly. In return it yields an evaluation that is well defined even
+where no key of correct choices and no outcome record exist, and that does not
+depend on which outcome happened to be realized.
 
 ## 1.4 SEU as the stated standard {#sec-seu-standard .unnumbered}
 
@@ -162,13 +198,13 @@ licensed).
 Multinomial logit is McFadden's [@mcfadden1974]; Stan, SBC, and the
 prior-predictive/recovery/SBC workflow have been standard practice for a decade
 [@carpenter2017; @talts2018; @gelman2020]. The contribution here is not any one
-of these tools. It is, first, a *conceptual* one --- a principled explication of
-what it means for a decision maker to be *sensitive to*, or *aligned with*, the
-requirements of SEU maximization across a range of decision contexts --- and,
-resting on that explication, a four-part *methodological* package that makes the
-explication measurable and validates the measurement.
+of these tools. It is, first, a *conceptual* contribution --- item (a) below: a
+principled explication of what it means for a decision maker to be *sensitive to*,
+or *aligned with*, the requirements of SEU maximization across a range of decision
+contexts --- and, resting on that explication, a four-part *methodological*
+package, items (b)--(e), that makes the explication measurable and validates the
+measurement.
 
-::: {.callout-note appearance="simple"}
 **(a) A principled explication of SEU sensitivity.** Within the
 softmax/Luce--McFadden specification, three characterizing
 properties of the choice rule (§[2.3](#sec-three-properties), proved in
@@ -215,7 +251,7 @@ reduction under 1% (§[6.4](#sec-m1-recovery)). For the sensitivity parameter
 $\alpha$, a matched recovery study shows that finite-sample precision is governed
 by data *quantity*, not by the *type* of choice that an in-principle argument
 might privilege. A first-pass recovery study at $n = 30$ reported a tidy
-$\approx 15\%$ $\alpha$ gain attributable to choice type; a pre-registered re-run
+$\approx 15\%$ $\alpha$ gain attributable to choice type; a confirmatory re-run
 at $n = 100$ reversed it. We report that reversal as a cautionary instance of the
 methodological discipline this paper advocates.
 *In plain terms:* a quantity that is recoverable in theory may still not be
@@ -243,7 +279,6 @@ design's resolution is insufficient (§[7](#sec-application)).
 sensitivity estimates behave as designed and report an effect in two of four
 settings, with the non-detections reflecting limited resolution rather than
 established absence.
-:::
 
 ## 1.8 Roadmap {#sec-roadmap .unnumbered}
 

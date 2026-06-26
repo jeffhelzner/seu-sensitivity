@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Jeff Helzner">
-<meta name="dcterms.date" content="2026-06-24">
+<meta name="dcterms.date" content="2026-06-26">
 <meta name="description" content="An investigation of how LLM sampling temperature affects estimated sensitivity (α) to subjective expected utility maximization, using Ellsberg-style urn gambles (K=4) and Claude 3.5 Sonnet (Anthropic). This study tests whether the monotonic temperature–α relationship found in the initial temperature study (GPT-4o, insurance triage) generalizes to a different task domain and a different foundational model.">
 
 <title>Temperature and SEU Sensitivity: Ellsberg Study – SEU Sensitivity</title>
@@ -169,10 +169,10 @@ window.Quarto = {
 <link rel="stylesheet" href="../../styles/seu-sensitivity.css">
 <meta name="citation_title" content="Temperature and SEU Sensitivity: Ellsberg Study">
 <meta name="citation_author" content="Jeff Helzner">
-<meta name="citation_publication_date" content="2026-06-24">
-<meta name="citation_cover_date" content="2026-06-24">
+<meta name="citation_publication_date" content="2026-06-26">
+<meta name="citation_cover_date" content="2026-06-26">
 <meta name="citation_year" content="2026">
-<meta name="citation_online_date" content="2026-06-24">
+<meta name="citation_online_date" content="2026-06-26">
 <meta name="citation_fulltext_html_url" content="https://jeffhelzner.github.io/seu-sensitivity/applications/ellsberg_study/01_ellsberg_study.html">
 <meta name="citation_language" content="en">
 <meta name="citation_journal_title" content="SEU Sensitivity Project">
@@ -636,7 +636,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">June 24, 2026</p>
+      <p class="date">June 26, 2026</p>
     </div>
   </div>
   
@@ -1143,7 +1143,7 @@ Table&nbsp;3: Design comparison between the initial temperature study and the El
 </tr>
 </tbody>
 </table>
-<p>The m_02 prior is slightly wider than m_01’s because <span class="math inline">\(K = 4\)</span> consequences create a lower random-choice baseline (<span class="math inline">\(\frac{1}{4}\)</span> vs <span class="math inline">\(\frac{1}{3}\)</span>), requiring higher <span class="math inline">\(\alpha\)</span> values to achieve comparable SEU-maximization rates.</p>
+<p>The m_02 prior is slightly wider than m_01’s because the larger <span class="math inline">\(K = 4\)</span> consequence space spreads expected utilities across alternatives differently, flattening the softmax response so that higher <span class="math inline">\(\alpha\)</span> values are needed to achieve comparable SEU-maximization rates. (This is <em>not</em> because the random-choice baseline changes: the menu size <span class="math inline">\(N_m \in \{2, 3, 4\}\)</span> is the same in both studies, so a uniform-random chooser selects the SEU-maximizer at the same rate regardless of <span class="math inline">\(K\)</span>.)</p>
 </section>
 <section id="prior-predictive-grid-search" class="level3" data-number="0.3.2">
 <h3 data-number="0.3.2" class="anchored" data-anchor-id="prior-predictive-grid-search"><span class="header-section-number">0.3.2</span> Prior Predictive Grid Search</h3>
@@ -2539,13 +2539,13 @@ Sutton, Richard S., and Andrew G. Barto. 2018. <em>Reinforcement Learning: An In
 <div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{helzner2026,
   author = {Helzner, Jeff},
   title = {Temperature and {SEU} {Sensitivity:} {Ellsberg} {Study}},
-  date = {2026-06-24},
+  date = {2026-06-26},
   url = {https://jeffhelzner.github.io/seu-sensitivity/applications/ellsberg_study/01_ellsberg_study.html},
   langid = {en}
 }
 </code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-helzner2026" class="csl-entry quarto-appendix-citeas" role="listitem">
 Helzner, Jeff. 2026. <span>“Temperature and SEU Sensitivity: Ellsberg
-Study.”</span> SEU Sensitivity Project, June 24. <a href="https://jeffhelzner.github.io/seu-sensitivity/applications/ellsberg_study/01_ellsberg_study.html">https://jeffhelzner.github.io/seu-sensitivity/applications/ellsberg_study/01_ellsberg_study.html</a>.
+Study.”</span> SEU Sensitivity Project, June 26. <a href="https://jeffhelzner.github.io/seu-sensitivity/applications/ellsberg_study/01_ellsberg_study.html">https://jeffhelzner.github.io/seu-sensitivity/applications/ellsberg_study/01_ellsberg_study.html</a>.
 </div></div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
@@ -3257,7 +3257,7 @@ Study.”</span> SEU Sensitivity Project, June 24. <a href="https://jeffhelzner.
 <span id="cb30-258"><a href="#cb30-258" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> $K$ <span class="pp">|</span> generic <span class="pp">|</span> 3 <span class="pp">|</span> 4 <span class="pp">|</span></span>
 <span id="cb30-259"><a href="#cb30-259" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> All other priors <span class="pp">|</span> — <span class="pp">|</span> Identical to m_0 <span class="pp">|</span> Identical to m_0 <span class="pp">|</span></span>
 <span id="cb30-260"><a href="#cb30-260" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb30-261"><a href="#cb30-261" aria-hidden="true" tabindex="-1"></a>The m_02 prior is slightly wider than m_01's because $K = 4$ consequences create a lower random-choice baseline ($\frac{1}{4}$ vs $\frac{1}{3}$), requiring higher $\alpha$ values to achieve comparable SEU-maximization rates.</span>
+<span id="cb30-261"><a href="#cb30-261" aria-hidden="true" tabindex="-1"></a>The m_02 prior is slightly wider than m_01's because the larger $K = 4$ consequence space spreads expected utilities across alternatives differently, flattening the softmax response so that higher $\alpha$ values are needed to achieve comparable SEU-maximization rates. (This is *not* because the random-choice baseline changes: the menu size $N_m \in <span class="sc">\{</span>2, 3, 4<span class="sc">\}</span>$ is the same in both studies, so a uniform-random chooser selects the SEU-maximizer at the same rate regardless of $K$.)</span>
 <span id="cb30-262"><a href="#cb30-262" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb30-263"><a href="#cb30-263" aria-hidden="true" tabindex="-1"></a><span class="fu">### Prior Predictive Grid Search</span></span>
 <span id="cb30-264"><a href="#cb30-264" aria-hidden="true" tabindex="-1"></a></span>

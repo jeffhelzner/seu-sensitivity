@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Jeff Helzner">
-<meta name="dcterms.date" content="2026-06-24">
+<meta name="dcterms.date" content="2026-06-26">
 
 <title>SEU Sensitivity</title>
 <style>
@@ -117,10 +117,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link rel="stylesheet" href="styles/seu-sensitivity.css">
 <meta name="citation_title" content="SEU Sensitivity">
 <meta name="citation_author" content="Jeff Helzner">
-<meta name="citation_publication_date" content="2026-06-24">
-<meta name="citation_cover_date" content="2026-06-24">
+<meta name="citation_publication_date" content="2026-06-26">
+<meta name="citation_cover_date" content="2026-06-26">
 <meta name="citation_year" content="2026">
-<meta name="citation_online_date" content="2026-06-24">
+<meta name="citation_online_date" content="2026-06-26">
 <meta name="citation_fulltext_html_url" content="https://jeffhelzner.github.io/seu-sensitivity/">
 <meta name="citation_language" content="en">
 <meta name="citation_journal_title" content="SEU Sensitivity Project">
@@ -496,9 +496,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#foundational-reports" id="toc-foundational-reports" class="nav-link" data-scroll-target="#foundational-reports"><span class="header-section-number">0.2.1</span> Foundational Reports</a></li>
   <li><a href="#application-reports" id="toc-application-reports" class="nav-link" data-scroll-target="#application-reports"><span class="header-section-number">0.2.2</span> Application Reports</a></li>
   </ul></li>
-  <li><a href="#key-insights" id="toc-key-insights" class="nav-link" data-scroll-target="#key-insights"><span class="header-section-number">0.3</span> Key Insights</a></li>
-  <li><a href="#getting-started" id="toc-getting-started" class="nav-link" data-scroll-target="#getting-started"><span class="header-section-number">0.4</span> Getting Started</a></li>
-  <li><a href="#citation" id="toc-citation" class="nav-link" data-scroll-target="#citation"><span class="header-section-number">0.5</span> Citation</a></li>
+  <li><a href="#getting-started" id="toc-getting-started" class="nav-link" data-scroll-target="#getting-started"><span class="header-section-number">0.3</span> Getting Started</a></li>
+  <li><a href="#citation" id="toc-citation" class="nav-link" data-scroll-target="#citation"><span class="header-section-number">0.4</span> Citation</a></li>
   </ul>
 </nav>
     </div>
@@ -526,7 +525,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">June 24, 2026</p>
+      <p class="date">June 26, 2026</p>
     </div>
   </div>
   
@@ -541,6 +540,24 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="introduction" class="level2" data-number="0.1">
 <h2 data-number="0.1" class="anchored" data-anchor-id="introduction"><span class="header-section-number">0.1</span> Introduction</h2>
 <p>This project provides a Bayesian framework for modeling and analyzing decision-making behavior through the lens of Subjective Expected Utility (SEU) theory. We develop computational tools for measuring an agent’s <strong>sensitivity to SEU maximization</strong>—captured by a parameter α that governs how consistently agents maximize expected utility.</p>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>Start here: the working paper
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The core methodological results in this project have been consolidated, revised, and reviewed in a working paper:</p>
+<blockquote class="blockquote">
+<p><strong><a href="https://github.com/jeffhelzner/seu-sensitivity/blob/main/working_papers/seu_sensitivity_methodology/seu-sensitivity-methodology.pdf">Sensitivity to Subjective Expected Utility Maximization: A Methodological Study, with an Illustrative Application to LLM Decision-Making</a></strong> (PDF) — Jeff Helzner</p>
+</blockquote>
+<p>The working paper is the <strong>canonical reference</strong> for this work. It consolidates and supersedes the foundational reports on <code>m_0</code> and <code>m_1</code> (Reports 1–6) and the application reports below; where a technical report and the paper differ, the paper reflects our current, more considered view.</p>
+<p>The technical reports are retained as a more detailed, work-in-progress record of the analyses that fed into the paper — useful for implementation specifics, intermediate results, and provenance, but rougher and not always current. The reports on generalization (<code>m_2</code>/<code>m_3</code>, Report 7) and the hierarchical model (Reports 8–14) explore directions not yet incorporated into the paper.</p>
+</div>
+</div>
 </section>
 <section id="report-series" class="level2" data-number="0.2">
 <h2 data-number="0.2" class="anchored" data-anchor-id="report-series"><span class="header-section-number">0.2</span> Report Series</h2>
@@ -605,48 +622,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 </section>
 </section>
-<section id="key-insights" class="level2" data-number="0.3">
-<h2 data-number="0.3" class="anchored" data-anchor-id="key-insights"><span class="header-section-number">0.3</span> Key Insights</h2>
-<div class="callout callout-style-default callout-note callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>The Sensitivity Parameter α
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>The parameter α has a natural interpretation:</p>
-<ul>
-<li><strong>α → 0</strong>: Random choice (uniform over alternatives)</li>
-<li><strong>α → ∞</strong>: Perfect SEU maximization (deterministic optimal choice)</li>
-<li><strong>Intermediate α</strong>: Probabilistic choice with tendency toward higher-SEU alternatives</li>
-</ul>
-<p>With utilities normalized to [0,1], α represents the log-odds change per unit of standardized SEU difference.</p>
-</div>
-</div>
-<div class="callout callout-style-default callout-important callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Important</span>A Central Finding
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>Decisions under uncertainty alone cannot fully identify the utility function—utilities and subjective probabilities are confounded. The foundational reports demonstrate that incorporating <strong>risky choices</strong> (with known probabilities) provides a structural decoupling of β and δ in the likelihood, following the Anscombe–Aumann approach from classical decision theory (<a href="./foundations/05_adding_risky_choices.html">Report 5</a>).</p>
-<p>A matched-design follow-up (<a href="./foundations/14_does_m1_identify_delta.html">Report 14</a>) quantifies how large that decoupling actually is at the sample sizes contemplated for the alignment study: relative to uncertain-only <code>m_0</code>, adding risky choices in <code>m_1</code> tightens recovery of α by roughly 15% but tightens recovery of δ by only ~2%. The structural identification argument is correct; its practical magnitude on δ is small for the lottery designs and sample sizes considered here. Two complementary routes — a more concentrated Dirichlet prior on δ (<a href="./foundations/13_concentrated_delta_prior.html">Report 13</a>) and hierarchical pooling across cells (<a href="./foundations/08_hierarchical_formulation.html">Reports 08–12</a>) — are evaluated as alternative or compounding sources of δ precision.</p>
-</div>
-</div>
-</section>
-<section id="getting-started" class="level2" data-number="0.4">
-<h2 data-number="0.4" class="anchored" data-anchor-id="getting-started"><span class="header-section-number">0.4</span> Getting Started</h2>
+<section id="getting-started" class="level2" data-number="0.3">
+<h2 data-number="0.3" class="anchored" data-anchor-id="getting-started"><span class="header-section-number">0.3</span> Getting Started</h2>
 <p>See the <a href="https://github.com/jeffhelzner/seu-sensitivity">GitHub repository</a> for installation instructions and code.</p>
 </section>
-<section id="citation" class="level2" data-number="0.5">
-<h2 data-number="0.5" class="anchored" data-anchor-id="citation"><span class="header-section-number">0.5</span> Citation</h2>
+<section id="citation" class="level2" data-number="0.4">
+<h2 data-number="0.4" class="anchored" data-anchor-id="citation"><span class="header-section-number">0.4</span> Citation</h2>
 <p>If you use this work, please cite:</p>
 <pre><code>Helzner, J. (2026). SEU Sensitivity: A Bayesian Framework for Modeling 
 Decision-Making Sensitivity. https://github.com/jeffhelzner/seu-sensitivity</code></pre>
@@ -659,13 +640,13 @@ Decision-Making Sensitivity. https://github.com/jeffhelzner/seu-sensitivity</cod
 <div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{helzner2026,
   author = {Helzner, Jeff},
   title = {SEU {Sensitivity}},
-  date = {2026-06-24},
+  date = {2026-06-26},
   url = {https://jeffhelzner.github.io/seu-sensitivity/},
   langid = {en}
 }
 </code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-helzner2026" class="csl-entry quarto-appendix-citeas" role="listitem">
 Helzner, Jeff. 2026. <span>“SEU Sensitivity.”</span> SEU Sensitivity
-Project, June 24. <a href="https://jeffhelzner.github.io/seu-sensitivity/">https://jeffhelzner.github.io/seu-sensitivity/</a>.
+Project, June 26. <a href="https://jeffhelzner.github.io/seu-sensitivity/">https://jeffhelzner.github.io/seu-sensitivity/</a>.
 </div></div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
@@ -1140,88 +1121,78 @@ Project, June 24. <a href="https://jeffhelzner.github.io/seu-sensitivity/">https
 <span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>This project provides a Bayesian framework for modeling and analyzing decision-making behavior through the lens of Subjective Expected Utility (SEU) theory. We develop computational tools for measuring an agent's **sensitivity to SEU maximization**—captured by a parameter α that governs how consistently agents maximize expected utility.</span>
 <span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="fu">## Report Series</span></span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="fu">### Foundational Reports</span></span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>These reports establish the theoretical and methodological foundations:</span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>**[Abstract Formulation](foundations/01_abstract_formulation.qmd)** — Mathematical specification and key theoretical properties</span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>**[Concrete Implementation](foundations/02_concrete_implementation.qmd)** — Stan model implementation details</span>
-<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>**[Prior Analysis](foundations/03_prior_analysis.qmd)** — Prior predictive analysis and prior selection</span>
-<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span>**[Parameter Recovery](foundations/04_parameter_recovery.qmd)** — Validation that parameters can be recovered from data</span>
-<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="ss">5. </span>**[Adding Risky Choices](foundations/05_adding_risky_choices.qmd)** — Extension to model m_1 for utility identification</span>
-<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a><span class="ss">6. </span>**[SBC Validation](foundations/06_sbc_validation.qmd)** — Simulation-based calibration results</span>
-<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a><span class="ss">7. </span>**[Generalizing Sensitivity](foundations/07_generalizing_sensitivity.qmd)** — Generalized models m_2 and m_3</span>
-<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a><span class="ss">8. </span>**[Hierarchical Formulation](foundations/08_hierarchical_formulation.qmd)** — Hierarchical extension for population-level inference</span>
-<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a><span class="ss">9. </span>**[Hierarchical Implementation](foundations/09_hierarchical_implementation.qmd)** — Stan implementation and validation of hierarchical models</span>
-<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a><span class="ss">10. </span>**[Hierarchical Prior Analysis](foundations/10_hierarchical_prior_analysis.qmd)** — Prior predictive analysis for <span class="in">`h_m01`</span></span>
-<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a><span class="ss">11. </span>**[Hierarchical Parameter Recovery](foundations/11_hierarchical_parameter_recovery.qmd)** — Recovery validation for the hierarchical model</span>
-<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a><span class="ss">12. </span>**[Hierarchical SBC Validation](foundations/12_hierarchical_sbc_validation.qmd)** — Simulation-based calibration for <span class="in">`h_m01`</span></span>
-<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a><span class="ss">13. </span>**[Concentrated δ Prior](foundations/13_concentrated_delta_prior.qmd)** — Evaluating a more concentrated Dirichlet prior on δ as a route to tighter β–δ recovery</span>
-<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a><span class="ss">14. </span>**[Does m_1 Identify δ?](foundations/14_does_m1_identify_delta.qmd)** — Matched-design recovery testing whether adding risky choices delivers the δ-identification gain predicted by Report 5</span>
-<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a><span class="fu">### Application Reports</span></span>
-<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Temperature Study</span></span>
-<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>**[Initial Results](applications/temperature_study/01_initial_study.qmd)** — How LLM temperature affects estimated SEU sensitivity</span>
-<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Temperature Study: EU Prompt</span></span>
-<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>**[EU Prompt Study](applications/temperature_study_with_eu_prompt/01_eu_prompt_study.qmd)** — Effect of explicit EU-maximization framing on sensitivity</span>
-<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Temperature Study: Risky Alternatives</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>::: {.callout-important}</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="fu">## Start here: the working paper</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>The core methodological results in this project have been consolidated, revised, and reviewed in a working paper:</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; **[Sensitivity to Subjective Expected Utility Maximization: A Methodological Study, with an Illustrative Application to LLM Decision-Making](https://github.com/jeffhelzner/seu-sensitivity/blob/main/working_papers/seu_sensitivity_methodology/seu-sensitivity-methodology.pdf)** (PDF) — Jeff Helzner</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>The working paper is the **canonical reference** for this work. It consolidates and supersedes the foundational reports on <span class="in">`m_0`</span> and <span class="in">`m_1`</span> (Reports 1–6) and the application reports below; where a technical report and the paper differ, the paper reflects our current, more considered view.</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>The technical reports are retained as a more detailed, work-in-progress record of the analyses that fed into the paper — useful for implementation specifics, intermediate results, and provenance, but rougher and not always current. The reports on generalization (<span class="in">`m_2`</span>/<span class="in">`m_3`</span>, Report 7) and the hierarchical model (Reports 8–14) explore directions not yet incorporated into the paper.</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a><span class="fu">## Report Series</span></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a><span class="fu">### Foundational Reports</span></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>These reports establish the theoretical and methodological foundations:</span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>**[Abstract Formulation](foundations/01_abstract_formulation.qmd)** — Mathematical specification and key theoretical properties</span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>**[Concrete Implementation](foundations/02_concrete_implementation.qmd)** — Stan model implementation details</span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>**[Prior Analysis](foundations/03_prior_analysis.qmd)** — Prior predictive analysis and prior selection</span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span>**[Parameter Recovery](foundations/04_parameter_recovery.qmd)** — Validation that parameters can be recovered from data</span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a><span class="ss">5. </span>**[Adding Risky Choices](foundations/05_adding_risky_choices.qmd)** — Extension to model m_1 for utility identification</span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a><span class="ss">6. </span>**[SBC Validation](foundations/06_sbc_validation.qmd)** — Simulation-based calibration results</span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a><span class="ss">7. </span>**[Generalizing Sensitivity](foundations/07_generalizing_sensitivity.qmd)** — Generalized models m_2 and m_3</span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a><span class="ss">8. </span>**[Hierarchical Formulation](foundations/08_hierarchical_formulation.qmd)** — Hierarchical extension for population-level inference</span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a><span class="ss">9. </span>**[Hierarchical Implementation](foundations/09_hierarchical_implementation.qmd)** — Stan implementation and validation of hierarchical models</span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a><span class="ss">10. </span>**[Hierarchical Prior Analysis](foundations/10_hierarchical_prior_analysis.qmd)** — Prior predictive analysis for <span class="in">`h_m01`</span></span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a><span class="ss">11. </span>**[Hierarchical Parameter Recovery](foundations/11_hierarchical_parameter_recovery.qmd)** — Recovery validation for the hierarchical model</span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a><span class="ss">12. </span>**[Hierarchical SBC Validation](foundations/12_hierarchical_sbc_validation.qmd)** — Simulation-based calibration for <span class="in">`h_m01`</span></span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a><span class="ss">13. </span>**[Concentrated δ Prior](foundations/13_concentrated_delta_prior.qmd)** — Evaluating a more concentrated Dirichlet prior on δ as a route to tighter β–δ recovery</span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a><span class="ss">14. </span>**[Does m_1 Identify δ?](foundations/14_does_m1_identify_delta.qmd)** — Matched-design recovery testing whether adding risky choices delivers the δ-identification gain predicted by Report 5</span>
 <span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>**[Risky Alternatives Extension](applications/temperature_study_with_risky_alts/01_risky_alternatives_study.qmd)** — Risky choice data for utility identification across temperatures</span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a><span class="fu">### Application Reports</span></span>
 <span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Ellsberg Study</span></span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Temperature Study</span></span>
 <span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>**[Ellsberg Study](applications/ellsberg_study/01_ellsberg_study.qmd)** — Claude 3.5 Sonnet on Ellsberg urn gambles</span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>**[Initial Results](applications/temperature_study/01_initial_study.qmd)** — How LLM temperature affects estimated SEU sensitivity</span>
 <span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Factorial Cells</span></span>
+<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Temperature Study: EU Prompt</span></span>
 <span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**[Claude × Insurance](applications/claude_insurance_study/01_claude_insurance_study.qmd)** — Claude 3.5 Sonnet on insurance claims triage</span>
-<span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**[GPT-4o × Ellsberg](applications/gpt4o_ellsberg_study/01_gpt4o_ellsberg_study.qmd)** — GPT-4o on Ellsberg urn gambles</span>
-<span id="cb2-53"><a href="#cb2-53" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Factorial Synthesis</span></span>
-<span id="cb2-55"><a href="#cb2-55" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-56"><a href="#cb2-56" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>**[2×2 Factorial Analysis](applications/factorial_synthesis/01_factorial_synthesis.qmd)** — Cross-LLM × cross-task synthesis</span>
-<span id="cb2-57"><a href="#cb2-57" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-58"><a href="#cb2-58" aria-hidden="true" tabindex="-1"></a><span class="fu">## Key Insights</span></span>
-<span id="cb2-59"><a href="#cb2-59" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-60"><a href="#cb2-60" aria-hidden="true" tabindex="-1"></a>::: {.callout-note}</span>
-<span id="cb2-61"><a href="#cb2-61" aria-hidden="true" tabindex="-1"></a><span class="fu">## The Sensitivity Parameter α</span></span>
+<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>**[EU Prompt Study](applications/temperature_study_with_eu_prompt/01_eu_prompt_study.qmd)** — Effect of explicit EU-maximization framing on sensitivity</span>
+<span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-53"><a href="#cb2-53" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Temperature Study: Risky Alternatives</span></span>
+<span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-55"><a href="#cb2-55" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>**[Risky Alternatives Extension](applications/temperature_study_with_risky_alts/01_risky_alternatives_study.qmd)** — Risky choice data for utility identification across temperatures</span>
+<span id="cb2-56"><a href="#cb2-56" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-57"><a href="#cb2-57" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Ellsberg Study</span></span>
+<span id="cb2-58"><a href="#cb2-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-59"><a href="#cb2-59" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>**[Ellsberg Study](applications/ellsberg_study/01_ellsberg_study.qmd)** — Claude 3.5 Sonnet on Ellsberg urn gambles</span>
+<span id="cb2-60"><a href="#cb2-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-61"><a href="#cb2-61" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Factorial Cells</span></span>
 <span id="cb2-62"><a href="#cb2-62" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-63"><a href="#cb2-63" aria-hidden="true" tabindex="-1"></a>The parameter α has a natural interpretation:</span>
-<span id="cb2-64"><a href="#cb2-64" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-65"><a href="#cb2-65" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**α → 0**: Random choice (uniform over alternatives)</span>
-<span id="cb2-66"><a href="#cb2-66" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**α → ∞**: Perfect SEU maximization (deterministic optimal choice)</span>
-<span id="cb2-67"><a href="#cb2-67" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Intermediate α**: Probabilistic choice with tendency toward higher-SEU alternatives</span>
-<span id="cb2-68"><a href="#cb2-68" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-69"><a href="#cb2-69" aria-hidden="true" tabindex="-1"></a>With utilities normalized to <span class="co">[</span><span class="ot">0,1</span><span class="co">]</span>, α represents the log-odds change per unit of standardized SEU difference.</span>
-<span id="cb2-70"><a href="#cb2-70" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb2-63"><a href="#cb2-63" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**[Claude × Insurance](applications/claude_insurance_study/01_claude_insurance_study.qmd)** — Claude 3.5 Sonnet on insurance claims triage</span>
+<span id="cb2-64"><a href="#cb2-64" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**[GPT-4o × Ellsberg](applications/gpt4o_ellsberg_study/01_gpt4o_ellsberg_study.qmd)** — GPT-4o on Ellsberg urn gambles</span>
+<span id="cb2-65"><a href="#cb2-65" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-66"><a href="#cb2-66" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Factorial Synthesis</span></span>
+<span id="cb2-67"><a href="#cb2-67" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-68"><a href="#cb2-68" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>**[2×2 Factorial Analysis](applications/factorial_synthesis/01_factorial_synthesis.qmd)** — Cross-LLM × cross-task synthesis</span>
+<span id="cb2-69"><a href="#cb2-69" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-70"><a href="#cb2-70" aria-hidden="true" tabindex="-1"></a><span class="fu">## Getting Started</span></span>
 <span id="cb2-71"><a href="#cb2-71" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-72"><a href="#cb2-72" aria-hidden="true" tabindex="-1"></a>::: {.callout-important}</span>
-<span id="cb2-73"><a href="#cb2-73" aria-hidden="true" tabindex="-1"></a><span class="fu">## A Central Finding</span></span>
-<span id="cb2-74"><a href="#cb2-74" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-75"><a href="#cb2-75" aria-hidden="true" tabindex="-1"></a>Decisions under uncertainty alone cannot fully identify the utility function—utilities and subjective probabilities are confounded. The foundational reports demonstrate that incorporating **risky choices** (with known probabilities) provides a structural decoupling of β and δ in the likelihood, following the Anscombe–Aumann approach from classical decision theory (<span class="co">[</span><span class="ot">Report 5</span><span class="co">](foundations/05_adding_risky_choices.qmd)</span>).</span>
-<span id="cb2-76"><a href="#cb2-76" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-77"><a href="#cb2-77" aria-hidden="true" tabindex="-1"></a>A matched-design follow-up (<span class="co">[</span><span class="ot">Report 14</span><span class="co">](foundations/14_does_m1_identify_delta.qmd)</span>) quantifies how large that decoupling actually is at the sample sizes contemplated for the alignment study: relative to uncertain-only <span class="in">`m_0`</span>, adding risky choices in <span class="in">`m_1`</span> tightens recovery of α by roughly 15% but tightens recovery of δ by only ~2%. The structural identification argument is correct; its practical magnitude on δ is small for the lottery designs and sample sizes considered here. Two complementary routes — a more concentrated Dirichlet prior on δ (<span class="co">[</span><span class="ot">Report 13</span><span class="co">](foundations/13_concentrated_delta_prior.qmd)</span>) and hierarchical pooling across cells (<span class="co">[</span><span class="ot">Reports 08–12</span><span class="co">](foundations/08_hierarchical_formulation.qmd)</span>) — are evaluated as alternative or compounding sources of δ precision.</span>
-<span id="cb2-78"><a href="#cb2-78" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb2-79"><a href="#cb2-79" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-80"><a href="#cb2-80" aria-hidden="true" tabindex="-1"></a><span class="fu">## Getting Started</span></span>
-<span id="cb2-81"><a href="#cb2-81" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-82"><a href="#cb2-82" aria-hidden="true" tabindex="-1"></a>See the <span class="co">[</span><span class="ot">GitHub repository</span><span class="co">](https://github.com/jeffhelzner/seu-sensitivity)</span> for installation instructions and code.</span>
-<span id="cb2-83"><a href="#cb2-83" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-84"><a href="#cb2-84" aria-hidden="true" tabindex="-1"></a><span class="fu">## Citation</span></span>
-<span id="cb2-85"><a href="#cb2-85" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-86"><a href="#cb2-86" aria-hidden="true" tabindex="-1"></a>If you use this work, please cite:</span>
-<span id="cb2-87"><a href="#cb2-87" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-88"><a href="#cb2-88" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb2-89"><a href="#cb2-89" aria-hidden="true" tabindex="-1"></a><span class="in">Helzner, J. (2026). SEU Sensitivity: A Bayesian Framework for Modeling </span></span>
-<span id="cb2-90"><a href="#cb2-90" aria-hidden="true" tabindex="-1"></a><span class="in">Decision-Making Sensitivity. https://github.com/jeffhelzner/seu-sensitivity</span></span>
-<span id="cb2-91"><a href="#cb2-91" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
+<span id="cb2-72"><a href="#cb2-72" aria-hidden="true" tabindex="-1"></a>See the <span class="co">[</span><span class="ot">GitHub repository</span><span class="co">](https://github.com/jeffhelzner/seu-sensitivity)</span> for installation instructions and code.</span>
+<span id="cb2-73"><a href="#cb2-73" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-74"><a href="#cb2-74" aria-hidden="true" tabindex="-1"></a><span class="fu">## Citation</span></span>
+<span id="cb2-75"><a href="#cb2-75" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-76"><a href="#cb2-76" aria-hidden="true" tabindex="-1"></a>If you use this work, please cite:</span>
+<span id="cb2-77"><a href="#cb2-77" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-78"><a href="#cb2-78" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb2-79"><a href="#cb2-79" aria-hidden="true" tabindex="-1"></a><span class="in">Helzner, J. (2026). SEU Sensitivity: A Bayesian Framework for Modeling </span></span>
+<span id="cb2-80"><a href="#cb2-80" aria-hidden="true" tabindex="-1"></a><span class="in">Decision-Making Sensitivity. https://github.com/jeffhelzner/seu-sensitivity</span></span>
+<span id="cb2-81"><a href="#cb2-81" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 

@@ -7,6 +7,18 @@ subtitle: "Modeling Sensitivity to Subjective Expected Utility Maximization"
 
 This project provides a Bayesian framework for modeling and analyzing decision-making behavior through the lens of Subjective Expected Utility (SEU) theory. We develop computational tools for measuring an agent's **sensitivity to SEU maximization**—captured by a parameter α that governs how consistently agents maximize expected utility.
 
+::: {.callout-important}
+## Start here: the working paper
+
+The core methodological results in this project have been consolidated, revised, and reviewed in a working paper:
+
+> **[Sensitivity to Subjective Expected Utility Maximization: A Methodological Study, with an Illustrative Application to LLM Decision-Making](https://github.com/jeffhelzner/seu-sensitivity/blob/main/working_papers/seu_sensitivity_methodology/seu-sensitivity-methodology.pdf)** (PDF) — Jeff Helzner
+
+The working paper is the **canonical reference** for this work. It consolidates and supersedes the foundational reports on `m_0` and `m_1` (Reports 1–6) and the application reports below; where a technical report and the paper differ, the paper reflects our current, more considered view.
+
+The technical reports are retained as a more detailed, work-in-progress record of the analyses that fed into the paper — useful for implementation specifics, intermediate results, and provenance, but rougher and not always current. The reports on generalization (`m_2`/`m_3`, Report 7) and the hierarchical model (Reports 8–14) explore directions not yet incorporated into the paper.
+:::
+
 ## Report Series
 
 ### Foundational Reports
@@ -54,28 +66,6 @@ These reports establish the theoretical and methodological foundations:
 #### Factorial Synthesis
 
 1. **[2×2 Factorial Analysis](applications/factorial_synthesis/01_factorial_synthesis.qmd)** — Cross-LLM × cross-task synthesis
-
-## Key Insights
-
-::: {.callout-note}
-## The Sensitivity Parameter α
-
-The parameter α has a natural interpretation:
-
-- **α → 0**: Random choice (uniform over alternatives)
-- **α → ∞**: Perfect SEU maximization (deterministic optimal choice)
-- **Intermediate α**: Probabilistic choice with tendency toward higher-SEU alternatives
-
-With utilities normalized to [0,1], α represents the log-odds change per unit of standardized SEU difference.
-:::
-
-::: {.callout-important}
-## A Central Finding
-
-Decisions under uncertainty alone cannot fully identify the utility function—utilities and subjective probabilities are confounded. The foundational reports demonstrate that incorporating **risky choices** (with known probabilities) provides a structural decoupling of β and δ in the likelihood, following the Anscombe–Aumann approach from classical decision theory ([Report 5](foundations/05_adding_risky_choices.qmd)).
-
-A matched-design follow-up ([Report 14](foundations/14_does_m1_identify_delta.qmd)) quantifies how large that decoupling actually is at the sample sizes contemplated for the alignment study: relative to uncertain-only `m_0`, adding risky choices in `m_1` tightens recovery of α by roughly 15% but tightens recovery of δ by only ~2%. The structural identification argument is correct; its practical magnitude on δ is small for the lottery designs and sample sizes considered here. Two complementary routes — a more concentrated Dirichlet prior on δ ([Report 13](foundations/13_concentrated_delta_prior.qmd)) and hierarchical pooling across cells ([Reports 08–12](foundations/08_hierarchical_formulation.qmd)) — are evaluated as alternative or compounding sources of δ precision.
-:::
 
 ## Getting Started
 

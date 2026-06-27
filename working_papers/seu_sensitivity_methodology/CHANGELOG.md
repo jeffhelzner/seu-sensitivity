@@ -14,6 +14,20 @@ Each archive deposit pins the supporting repository to a specific commit/tag.
 
 ## [Unreleased]
 
+### Changed
+- **Author comments on the draft PDF (`comments.md`).** Four edits: (1) §1.1 ---
+  added Ramsey (1926) and de Finetti (1937) citations supporting the
+  "coherence standard on degrees of belief in the Dutch-book tradition" passage
+  (two `@incollection` entries added to `references_extra.bib`); (2) §1.2 title
+  "Why labeled accuracy under-determines decision quality" →
+  "Challenges for label-based assessment of decision quality" (anchor kept);
+  (3) §1.6 Scope --- "Its primary object is" → "Its focus is", and "…material
+  sets the terms of that analysis rather than constituting an independent
+  contribution." → "…material frames that analysis."; (4) §5.3 callout title
+  parenthetical "(essential; stated as a conditional)" removed (the body already
+  states both points). No numeric changes; `claims_ledger` untouched. Renders
+  clean (quarto → pdflatex 3-pass, 0 undefined refs/cites).
+
 ### Added
 - **Publish the rendered PDF for a pre-arXiv feedback round.** A Quarto
   `post-render` hook (`paper/publish-pdf.py`) copies `_output/paper.pdf` to a

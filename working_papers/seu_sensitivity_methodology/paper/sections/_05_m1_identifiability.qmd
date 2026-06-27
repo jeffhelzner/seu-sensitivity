@@ -53,7 +53,7 @@ and risky sub-problems. Therefore the interpretation of $\alpha$ as
 sensitivity-to-SEU-maximization is preserved in the extended model.
 
 ::: {.callout-warning appearance="simple"}
-**Single-$\alpha$ assumption (essential; stated as a conditional).** `m_1`
+**Single-$\alpha$ assumption.** `m_1`
 asserts a *single* $\alpha$ governing both sub-problems --- i.e., the agent's
 responsiveness to expected-utility differences does not depend on whether
 probabilities are objective or subjective. This is a substantive, testable

@@ -34,7 +34,8 @@ exhibits a pattern of preferences that violates the independence axiom, a tensio
 Kahneman and Tversky took up in developing prospect theory [@kahneman1979;
 @tversky1992]. A second strand --- the heuristics-and-biases program --- assesses
 judgments about uncertainty against the probability axioms, construed as a
-coherence standard on degrees of belief in the Dutch-book tradition: the
+coherence standard on degrees of belief in the Dutch-book tradition
+[@ramsey1926; @definetti1937]: the
 conjunction fallacy of the "Linda problem" [@tversky1983] exhibits credences that
 violate that calculus, evidence used to motivate the representativeness
 heuristic. In each case the decision maker is faulted not against a labeled key
@@ -48,7 +49,7 @@ expected utility maximization, which couples a coherence requirement on degrees
 of belief with one on preferences, in the role the axioms of rational choice play
 in those precedents.
 
-## 1.2 Why labeled accuracy under-determines decision quality {#sec-why-labels-fail .unnumbered}
+## 1.2 Challenges for label-based assessment of decision quality {#sec-why-labels-fail .unnumbered}
 
 The label-based approach scores choices against a key, drawn either from an
 adjudicated set of correct choices or from the realized outcomes of the
@@ -159,10 +160,9 @@ the *content* of the commitment (the agent's beliefs and utilities) and the
 
 ## 1.6 Scope {#sec-scope .unnumbered}
 
-This paper is methodological. Its primary object is a calibrated measurement
+This paper is methodological. Its focus is a calibrated measurement
 instrument and the identifiability analysis that licenses it; the
-decision-theoretic and philosophical material sets the terms of that analysis
-rather than constituting an independent contribution.
+decision-theoretic and philosophical material frames that analysis.
 §§[2](#sec-abstract-model)--[6](#sec-m1-implementation) specify, motivate,
 and validate the instrument: the abstract choice model and its three
 characterizing properties (§[2](#sec-abstract-model)), the identifiability of

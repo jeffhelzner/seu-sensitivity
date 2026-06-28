@@ -164,6 +164,24 @@ natural relaxation is a block-specific model fitting separate
 $\alpha_{\mathrm{unc}}, \alpha_{\mathrm{risky}}$ (our internal `m_2`); it is named
 here, not pursued.
 
+**Menu size and sensitivity.** The model places no restriction on the number of
+alternatives in a decision problem: the available set $\mathcal{A}_m$ may be of any
+size, the softmax of §[2.2](#sec-softmax-rule) is taken over it, and the Stan
+implementation already accepts a per-problem alternative count (Appendix C). The
+classical prospect-theory paradigm and its large-scale replication
+[@kahneman1979; @tversky1992; @ruggeri2020] restricted attention to pairwise
+choice, appropriately for their purpose; the present formulation does not, which
+makes the *relationship between sensitivity and menu size* an estimable object
+rather than a fixed feature of the design. Treating menu size $N_m$ as a covariate
+on $\log \alpha$ --- e.g. $\log \alpha = \gamma_0 + \gamma_1 N_m$ in the
+hierarchical vehicle above --- would let one ask whether sensitivity rises or falls
+as alternatives are added; one illustrative, model-agnostic hypothesis is that a
+larger menu raises the cognitive load on the decision maker and thereby lowers
+$\alpha$, but the sign is left open. This is named, not pursued: the §[7](#sec-application)
+designs randomize and position-counterbalance $N_m$ and fit a single $\alpha$
+pooled across menu sizes, so estimating a menu-size effect cleanly would require a
+purpose-built design that varies menu size as a factor rather than a nuisance.
+
 **Functional form.** Linear-softmax belief formation
 ($\psi_r = \mathrm{softmax}(\beta w_r)$) is a strong functional form; extensions
 to nonlinear belief formation and richer feature maps are possible.

@@ -15,6 +15,26 @@ Each archive deposit pins the supporting repository to a specific commit/tag.
 ## [Unreleased]
 
 ### Changed
+- **Non-pairwise generality / menu-size extension (author idea).** Added a
+  conceptual note that the instrument places no restriction on the number of
+  alternatives, unlike the classical pairwise prospect-theory paradigm and its
+  large-scale replication. (1) §1.1 motivation --- new sentence after the
+  prospect-theory passage observing that those demonstrations and the replication
+  [@ruggeri2020] were pairwise "appropriately for their purpose," whereas this
+  formulation is menu-size-general, opening the possibility of probing how
+  sensitivity varies with menu size (forward-ptr to §8.5). (2) §8.5 Limitations
+  and extensions --- new "Menu size and sensitivity" named-but-not-pursued item:
+  the model is already general (available set $\mathcal{A}_m$, per-problem
+  alternative count in the Stan impl), so $\log\alpha = \gamma_0 + \gamma_1 N_m$
+  could estimate the sensitivity/menu-size relationship; a model-agnostic
+  cognitive-load hypothesis (larger menu → lower $\alpha$) given as one
+  illustration with sign left open; caveat that current designs randomize/pool
+  $N_m$, so a clean estimate needs a purpose-built design. New `@article{ruggeri2020}`
+  (Nature Human Behaviour, 2020) added to `references_extra.bib`. No new analysis
+  and no numeric changes; `claims_ledger` untouched. Renders clean (quarto →
+  pdflatex 3-pass, 0 undefined refs/cites; cite resolves to "(Ruggeri et al. 2020)").
+
+### Changed (earlier)
 - **Author comments on the draft PDF (`comments.md`).** Four edits: (1) §1.1 ---
   added Ramsey (1926) and de Finetti (1937) citations supporting the
   "coherence standard on degrees of belief in the Dutch-book tradition" passage

@@ -32,7 +32,13 @@ of internal-consistency critique assesses choices against expected utility theor
 as a standard for decision making under risk: the Allais paradox [@allais1953]
 exhibits a pattern of preferences that violates the independence axiom, a tension
 Kahneman and Tversky took up in developing prospect theory [@kahneman1979;
-@tversky1992]. A second strand --- the heuristics-and-biases program --- assesses
+@tversky1992]. These demonstrations, and the large-scale replication that
+subsequently confirmed their patterns [@ruggeri2020], were built on *pairwise*
+choices --- a restriction well suited to their purpose of isolating axiom
+violations --- whereas the instrument developed here places no such restriction on
+the number of alternatives in a decision problem, which opens the possibility of
+probing how sensitivity itself varies with menu size (an extension we return to in
+§[8.5](#sec-disc-limitations)). A second strand --- the heuristics-and-biases program --- assesses
 judgments about uncertainty against the probability axioms, construed as a
 coherence standard on degrees of belief in the Dutch-book tradition
 [@ramsey1926; @definetti1937]: the

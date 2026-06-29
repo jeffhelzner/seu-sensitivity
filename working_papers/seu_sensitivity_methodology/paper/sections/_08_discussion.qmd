@@ -49,14 +49,13 @@ paper is careful to keep the two sides apart (§[6.4.4](#sec-m1-lesson)):
   ($B \to C$: $-8.1\%$, 90% CI $[-22.0, +6.8]$, straddling zero). An in-principle
   identification argument predicts neither of these finite-$n$ facts.
 
-A worked instance of the discipline sits inside the paper itself: a first-pass
-recovery study at $n = 30$ reported a tidy $\approx 15\%$ $\alpha$ gain
-attributable to choice type, and a confirmatory re-run at $n = 100$ with
-bootstrap CIs reversed it (sign and significance) while roughly quartering the
-$\delta$ magnitude (§[6.4.4](#sec-m1-lesson)). Under-powered recovery studies can
-manufacture clean effects that do not replicate; the remedy --- run the recovery
-study, report CIs, and re-run at adequate $n$ before drawing the lesson --- is
-exactly what caught the error.
+A worked instance of the discipline sits inside the paper itself: an
+under-powered recovery study can report a tidy $\alpha$ gain attributable to
+choice type that an adequately powered study with bootstrap CIs does not support,
+and can likewise overstate the $\delta$ payoff (§[6.4.4](#sec-m1-lesson)).
+Under-powered recovery studies can manufacture clean effects that do not
+replicate; the remedy --- run the recovery study, report CIs, and use an adequate
+$n$ before drawing the lesson --- is exactly what guards against it.
 
 ## 8.3 The methodological role of computational validation {#sec-discussion .unnumbered}
 

@@ -256,13 +256,13 @@ precision at the design sample size --- a matched-count credible-interval-width
 reduction under 1% (§[6.4](#sec-m1-recovery)). For the sensitivity parameter
 $\alpha$, a matched recovery study shows that finite-sample precision is governed
 by data *quantity*, not by the *type* of choice that an in-principle argument
-might privilege. A first-pass recovery study at $n = 30$ reported a tidy
-$\approx 15\%$ $\alpha$ gain attributable to choice type; a confirmatory re-run
-at $n = 100$ reversed it. We report that reversal as a cautionary instance of the
-methodological discipline this paper advocates.
+might privilege. We treat this as a cautionary instance of the methodological
+discipline this paper advocates: an under-powered recovery study can report a
+tidy $\alpha$ gain attributable to choice type that an adequately powered one
+does not support.
 *In plain terms:* a quantity that is recoverable in theory may still not be
-recoverable from a realistic amount of data --- and we show a case where an early
-finding looked clean, then reversed on a larger re-run.
+recoverable from a realistic amount of data --- and an apparently clean recovery
+finding can dissolve once the study is run at an adequate sample size.
 
 **(d) The marginal-SBC demarcation.** Marginal rank uniformity is *necessary but
 not sufficient* for joint posterior calibration. Separately, the negatively

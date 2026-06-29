@@ -15,6 +15,57 @@ Each archive deposit pins the supporting repository to a specific commit/tag.
 ## [Unreleased]
 
 ### Changed
+- **Author comments on draft PDF (`comments.md`, 2026-06-29): §2.2 log-sum-exp
+  wording, removal of the invisible "pilot" narrative across Part 6 (+ §1/§8),
+  bootstrap aside, and Wilcoxon explanation.** Framing/clarity edits, no numeric
+  changes; `claims_ledger` untouched. (1) §2.2 (`_02_abstract_model.qmd`): dropped
+  the imprecise clause "since the log-sum-exp normalizer of @eq-softmax is convex"
+  (Equation 1 is the choice probability, not on the log scale); concavity is now
+  carried solely by the standard-MNL attribution [@mcfadden1974; @train2009]. The
+  index-$\alpha V$ scope note and the interpretable-vs-well-behaved split are kept.
+  (2) Removed the now-invisible 30-iteration "pilot" / confirmatory-re-run narrative
+  (it lived only in internal technical reports, so readers cannot see the headline
+  it overturned). Recast *generically* — the methodological caution about
+  under-powered recovery studies is retained but no longer framed as a confession
+  about unseen internal work. Edits: §6.2 power callout, §6.4.1 opener +
+  "reverses the pilot's attribution" → plain forward-ref, §6.4.2 "smaller than the
+  pilot's ≈2%" dropped, §6.4.4(ii)/(iii) generalized, @tbl-matched caption
+  (`_06_m1_implementation.qmd`); §1.7(c) contribution preview (`_01_motivation.qmd`)
+  and §8.2 (`_08_discussion.qmd`); Appendix D.4 parenthetical (`_appendix_d.qmd`,
+  spike filename + seed kept as reproducibility provenance). Internal spike
+  filenames/seeds removed from the body (§6.2 callout, @tbl-matched caption); kept
+  only in Appendix D/E provenance. §7.2 "earlier pilot" → "preliminary elicitation
+  runs". (3) §6.2 "Why a bootstrap rather than a posterior interval" body paragraph
+  → shortened `.callout-note` aside. (4) §6.4.1 "slightly *adverse*" → "slightly
+  *worse* (it favors `m_0`)"; added a one-time gloss on the Wilcoxon signed-rank
+  test (paired, distribution-free test of whether per-iteration paired differences
+  are centered at zero; reported alongside the bootstrap CI, no normality assumed),
+  covering the later §6.4.2/§8.3 uses. Renders clean (quarto → pdflatex 3-pass,
+  0 undefined refs/cites; verified §2.2 p.9, §6.2 callout-note + §6.4.1 pp.19–20).
+- **Author comments on draft PDF (`comments.md`): §2.2 concavity/probit and §6.2
+  matched-comparison clarity.** Two clarity edits, no numeric changes. (1) §2.2
+  "Why softmax" paragraph (`_02_abstract_model.qmd`): the log-likelihood-concavity
+  claim is now attributed to the references as a standard multinomial-logit result
+  [@mcfadden1974; @train2009] with an inline reason (the log-sum-exp normalizer of
+  @eq-softmax is convex) and a scope note (concavity is in the index $\alpha V$ /
+  the $\alpha$-conditional surface with $V$ fixed, *not* joint concavity in $\alpha$
+  and the value parameters, since $\alpha V$ is bilinear). The previously conflated
+  clause is split into two distinct virtues: log-odds linearity + single-scalar
+  limit structure make $\alpha$ *interpretable*, while concavity makes it
+  *well-behaved to estimate*. The probit sentence is reframed as a standard
+  discrete-choice contrast (Gaussian latent errors → no closed-form IIA/log-odds,
+  no single sensitivity scalar with the two limits) citing @train2009, not Luce.
+  (2) §6.2 "Statistical-power note" (`_06_m1_implementation.qmd`): the dense
+  callout is unpacked. The callout now carries only the resolved-power message;
+  three new body paragraphs spell out what each reported magnitude is (the §4.3
+  recovery loop on the matched design, the paired-condition structure, the
+  paired-iteration median + bootstrap 90% CI over the $n=100$ iterations) and *why*
+  a bootstrap rather than a posterior interval (it summarizes a property of the
+  estimator/design under repeated simulation; the Bayesian fit lives inside each
+  iteration; distribution-free because the per-iteration paired differences are
+  non-normal). Sign-convention sentence retained as its own paragraph. Renders
+  clean (quarto → pdflatex 3-pass, 0 undefined refs/cites; verified §2.2 on PDF p.9,
+  §6.2 on pp.19--20). `claims_ledger` untouched.
 - **Non-pairwise generality / menu-size extension (author idea).** Added a
   conceptual note that the instrument places no restriction on the number of
   alternatives, unlike the classical pairwise prospect-theory paradigm and its

@@ -32,20 +32,43 @@ informative control is **A vs B**: doubling the *uncertain* block alone, holding
 the model fixed.
 
 ::: {.callout-warning appearance="simple"}
-**Statistical-power note (resolved).** The original matched study used 30
-iterations, which proved well-sized to detect a *direction* of effect but not to
-pin effect *magnitudes*: the pilot's $\approx 15\%$ $\alpha$ and $\approx 2\%$
-$\delta$ figures did not survive a confirmatory, higher-powered re-run. The re-run at
-**$n = 100$ with bootstrap 90% CIs** (`spikes/report14_rerun_results.json`,
-design seed 20260617, 10\,000 resamples) is the citable source for every §6.4
-magnitude, and it overturned the $\alpha$ claim (sign and significance) while
-shrinking the $\delta$ magnitude. Every §6.4 percentage is a paired-iteration
-median or bootstrap-over-iteration ratio with a 90% CI, never a bare point
-estimate. **Sign convention.** Throughout §6.4 a *positive* percentage denotes an
-*improvement* --- a reduction in RMSE or in CI width --- and its 90% CI is reported
-on the same scale, so a CI lying wholly above zero means a reliable improvement; a
-negative value denotes the effect running the other way (degraded precision).
+**Statistical-power note.** A recovery contrast at this scale needs enough
+iterations to pin effect *magnitudes*, not merely a *direction* of effect: with
+too few iterations the matched-count differences are too noisy to bound. We
+therefore report every §6.4 magnitude from a study of **$n = 100$** iterations,
+each summarized with a bootstrap 90% CI over iterations.
 :::
+
+**What each reported magnitude is.** Each of the $n = 100$ iterations runs the
+recovery loop of §[4.3](#sec-m0-recovery) on the matched design: draw one set of
+true parameters from the prior, simulate the four sliced choice sets
+(conditions A--D) under those parameters, fit the corresponding model in each
+condition, and record a per-iteration recovery metric --- a posterior-mean RMSE
+against the known truth, or a posterior credible-interval width --- for each
+condition. Because every condition within an iteration shares the *same* true
+parameters, the conditions are *paired*: a contrast such as B vs C or A vs B is
+formed within each iteration and then summarized across iterations by its
+paired-iteration median. The interval we report is a **bootstrap 90% CI over the
+$n = 100$ iterations** (10\,000 resamples): we resample iterations with
+replacement, recompute the paired median on each resample, and take its central
+90% range, so the CI measures how stable the aggregate contrast is across
+simulated datasets.
+
+::: {.callout-note appearance="simple"}
+**Why a bootstrap rather than a posterior interval.** The quantity summarized is
+a property of the *estimator and design under repeated simulation*, not a model
+parameter with a posterior --- so a credible interval is not the right object.
+The Bayesian fit lives *inside* each iteration (every per-iteration RMSE or
+interval width comes from a full posterior); the bootstrap only quantifies the
+across-iteration variability of their paired median, distribution-free because
+those per-iteration paired differences are non-normal.
+:::
+
+**Sign convention.** Throughout §6.4 a *positive* percentage denotes an
+*improvement* --- a reduction in RMSE or in CI width --- and its 90% CI is
+reported on the same scale, so a CI lying wholly above zero means a reliable
+improvement; a negative value denotes the effect running the other way (degraded
+precision).
 
 **What we do not claim.** We do not engineer a design that makes the $\delta$ CI
 "materially" smaller than `m_0`'s; at $n = 100$ the matched-count $\delta$
@@ -72,12 +95,16 @@ flag as the appropriate diagnostic for the single-$\alpha$ caveat
 
 ### 6.4.1 $\alpha$: no per-choice advantage from the risky block {#sec-m1-alpha-recovery .unnumbered}
 
-The 30-iteration pilot led with $\alpha$ as the headline `m_1` win; the
-$n = 100$ re-run does not support it. At matched total choice count (B vs C),
-swapping in the $\beta$-free risky block yields **no** $\alpha$-RMSE improvement:
-$-8.1\%$, bootstrap 90% CI $[-22.0, +6.8]$ --- the point estimate is slightly
-*adverse* and the interval straddles zero. The CI-width measure agrees (paired
-median $-1.4\%$, Wilcoxon $p \approx 0.39$, improved in only 44% of iterations).
+At matched total choice count (B vs C), swapping in the $\beta$-free risky block
+yields **no** $\alpha$-RMSE improvement: $-8.1\%$, bootstrap 90% CI
+$[-22.0, +6.8]$ --- the point estimate is slightly *worse* (it favors `m_0`) and
+the interval straddles zero. The CI-width measure agrees (paired median
+$-1.4\%$, improved in only 44% of iterations; Wilcoxon signed-rank
+$p \approx 0.39$). Here and below the Wilcoxon signed-rank test is a paired,
+distribution-free test of whether the per-iteration paired differences between
+conditions are centered at zero; we report it alongside the bootstrap CI because
+it makes no normality assumption about those differences and a small $p$ would
+indicate a systematic shift in one direction across iterations.
 
 The informative control is A$\to$B: doubling the *uncertain* block alone cuts
 $\alpha$ RMSE by **27.1%** (90% CI $[+15.0, +38.5]$; CI-width paired median
@@ -85,7 +112,8 @@ $+14.0\%$, improved in 78% of iterations). Read together, the two contrasts show
 that $\alpha$ precision at realistic $n$ is driven by data *quantity*, not by the
 *type* of choice: per choice, uncertain choices are at least as informative for
 $\alpha$ as risky ones, so the $\beta$-free risky block confers no special
-per-choice advantage. This *reverses* the pilot's attribution (§[6.4.4](#sec-m1-lesson)).
+per-choice advantage. We draw out the methodological reading in
+§[6.4.4](#sec-m1-lesson).
 
 ::: {.callout-note appearance="simple"}
 **Conditional on the single-$\alpha$ assumption.** Comparing $\alpha$ precision
@@ -104,8 +132,8 @@ At matched choice count (B vs C), `m_1` narrows the $\delta$ CI width by only
 $\approx 0.8\%$ (paired-iteration median; bootstrap 90% CI $[0.6, 1.2]$; narrower
 in 72% of iterations; Wilcoxon signed-rank $p \approx 1.2\times10^{-6}$) and
 leaves $\delta$ RMSE statistically unchanged ($0.3\%$, 90% CI $[-4.0, +4.5]$).
-The CI-width effect is *real but practically negligible* --- even smaller than
-the pilot's $\approx 2\%$. The reading: $\delta$ is identifiable in `m_1`
+The CI-width effect is *real but practically negligible*. The reading: $\delta$
+is identifiable in `m_1`
 (§[5.5](#sec-delta-id), hence estimable *in the limit*) but **not precisely
 estimable at realistic sample sizes** in this design.
 
@@ -129,23 +157,22 @@ shrinks the $\delta$ CI width by $\approx 0.8\%$ and moves $\delta$ RMSE not at
 all. In-principle identification buys *essentially nothing* at the design sample
 size --- the identifiability-versus-estimability gap in its starkest form.
 
-**(ii) For $\alpha$ --- finite-$n$ precision tracks quantity, not type.** The
-pilot read the `m_1` $\alpha$ gain as a per-choice advantage of the $\beta$-free
-risky block; at $n = 100$ there is no such advantage (B$\to$C null). What
-sharpens $\alpha$ is simply *more data of the same kind* (A$\to$B: a $27.1\%$
+**(ii) For $\alpha$ --- finite-$n$ precision tracks quantity, not type.** One
+might expect the `m_1` $\alpha$ gain to be a per-choice advantage of the
+$\beta$-free risky block; at $n = 100$ there is no such advantage (B$\to$C null).
+What sharpens $\alpha$ is simply *more data of the same kind* (A$\to$B: a $27.1\%$
 RMSE *reduction*). The correct lesson is *not* "a special structure sharpens an
 already-identified parameter"; it is that **in-principle identifiability tells
 you nothing about where finite-$n$ precision comes from** --- here it comes from
 quantity, not type. Phenomena (i) and (ii) are distinct.
 
-**(iii) Meta-lesson.** A first-pass recovery study at $n = 30$ reported a clean
-$\approx 15\%$ $\alpha$ gain and a $\approx 2\%$ $\delta$ gain attributable to
-choice *type*; the confirmatory re-run at $n = 100$ with bootstrap CIs reversed
-the $\alpha$ claim (sign and significance) and roughly quartered the $\delta$
-magnitude. Under-powered recovery studies can manufacture tidy effects that do
-not replicate, and in-principle identifiability arguments do not predict
-finite-$n$ estimability. Re-running the recovery study at an adequate $n$ with
-reported CIs before drawing the lesson is what caught the error.
+**(iii) Meta-lesson.** Under-powered recovery studies can manufacture tidy
+effects that do not replicate: a contrast like B$\to$C, run at too few
+iterations, can show an apparent $\alpha$ gain and a larger $\delta$ payoff than
+the $n = 100$ study supports, because the matched-count differences are too
+noisy to bound at small iteration counts. In-principle identifiability arguments
+do not predict finite-$n$ estimability, so the safeguard is to run the recovery
+study at an adequate $n$ with reported CIs before drawing any lesson from it.
 
 | | $\delta$ in `m_1` | $\alpha$ in `m_1` |
 | --- | --- | --- |
@@ -155,7 +182,7 @@ reported CIs before drawing the lesson is what caught the error.
 | Where finite-$n$ precision comes from | not realized at design $n$ | data *quantity* (A$\to$B: $+27.1\%$ RMSE reduction $[+15.0, +38.5]$), not choice *type* |
 | Phenomenon | identifiability $\neq$ precise estimability at realistic $n$ | in-principle identification $\neq$ finite-$n$ gain; precision tracks quantity, not type |
 
-: The corrected matched-design contrast. All percentages are paired-iteration medians / bootstrap-over-iteration 90% CIs from the $n = 100$ re-run (`spikes/report14_rerun_results.json`, design seed 20260617, 10\,000 resamples). The 30-iteration pilot's $\approx 15\%$ / $\approx 2\%$ figures are superseded and must not be cited. {#tbl-matched}
+: The matched-design contrast. All percentages are paired-iteration medians / bootstrap-over-iteration 90% CIs from the $n = 100$ study (10\,000 resamples). {#tbl-matched}
 
 ## 6.5 SBC for `m_1` {#sec-m1-sbc .unnumbered}
 

@@ -92,8 +92,7 @@ all replicates.)
 
 The matched study underlying §[6.4](#sec-m1-recovery) (claims C1–C3) is **not** a
 $\delta$-optimal design study; it is a controlled slicing of one fixed design.
-Each of $n = 100$ iterations (the confirmatory re-run; the 30-iteration pilot
-is superseded) proceeds as:
+Each of $n = 100$ iterations proceeds as:
 
 1. generate a fresh study design *externally* --- the feature draws $w$ and the
    lottery menus, which enter the simulator as data ($w, I, x, J$; Appendix C.4),

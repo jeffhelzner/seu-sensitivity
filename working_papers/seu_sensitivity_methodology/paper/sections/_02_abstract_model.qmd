@@ -40,10 +40,17 @@ value differences --- selects the softmax (@eq-softmax). Given that link, softma
 embeds the optimization and uniform-choice limits as the two endpoints of a
 single scalar $\alpha$ (Properties 2 and 3 of §[2.3](#sec-three-properties),
 proved as Theorems A.2 and A.3 in Appendix A), and its log-likelihood is concave
-in $\alpha V$ [@mcfadden1974; @train2009], which makes the sensitivity parameter
-both interpretable and well-behaved for estimation. Probit lacks this
-closed-form IIA/log-odds structure and a single sensitivity scalar with these
-limit properties.
+in the index $\alpha V$ --- a standard multinomial-logit property
+[@mcfadden1974; @train2009] --- so that, with the value scale $V$ held fixed, the
+$\alpha$-likelihood is unimodal and free of spurious local optima. (The concavity is in the index
+$\alpha V$, i.e. the surface in $\alpha$ with $V$ fixed; it is *not* joint
+concavity in $\alpha$ together with the value parameters, because $\alpha V$ is
+bilinear in the two.) These are two distinct virtues, and we keep them apart: the
+log-odds linearity and single-scalar limit structure above make $\alpha$
+*interpretable*, while the concavity is what makes it *well-behaved to estimate*.
+Probit, by contrast, replaces the Luce ratio with Gaussian latent errors and so
+offers neither a closed-form IIA/log-odds structure nor a single sensitivity
+scalar carrying these two limit properties [@train2009].
 
 ## 2.3 Three characterizing properties of softmax {#sec-three-properties .unnumbered}
 

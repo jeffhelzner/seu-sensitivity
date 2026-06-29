@@ -16,7 +16,7 @@ not on $\beta$ (§[5.1](#sec-m1-twostep), Step 1).
 
 **Design.** We use the existing risky-choice configuration ($K = 3$, $S = 15$
 lotteries; full constants in Appendix D.0), *not* a
-$\delta$-optimal design. Report 14's matched design fixes one study design across
+$\delta$-optimal design. The matched design fixes one study design across
 conditions and slices the same simulated choices four ways:
 
 | Condition | Model | Uncertain $M$ | Risky $N$ | Total choices |
@@ -160,7 +160,7 @@ reported CIs before drawing the lesson is what caught the error.
 ## 6.5 SBC for `m_1` {#sec-m1-sbc .unnumbered}
 
 Rank histograms and ECDF-difference plots for $\alpha$, $\beta$, $\delta$ are
-consistent with uniformity (Report 6). We do **not** claim an `m_0`$\to$`m_1`
+consistent with uniformity. We do **not** claim an `m_0`$\to$`m_1`
 $\delta$-calibration improvement (e.g., a flatter histogram): marginal SBC is
 uniform for $\delta$ in *both* models, because the relevant $(\beta,\delta)$
 weakness is in the *joint* posterior (the **marginal-SBC demarcation** again,

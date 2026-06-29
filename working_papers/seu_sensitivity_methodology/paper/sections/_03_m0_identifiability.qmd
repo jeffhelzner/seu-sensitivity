@@ -85,7 +85,7 @@ the tight, well-calibrated $\alpha$ intervals --- together with a pronounced
 *negative $\beta$–$\delta$ error correlation*: concretely, across recovery
 replicates the posterior-mean estimation errors of a representative weight entry
 $\beta_{1,1}$ and a representative increment $\delta_1$ are negatively correlated
-(Pearson; §[4.3](#sec-m0-recovery), Report 4). This is an *across-replicate*
+(Pearson; §[4.3](#sec-m0-recovery)). This is an *across-replicate*
 error correlation, not a within-posterior one; because raw $\beta$ entries carry
 the row-shift gauge we read this representative-component diagnostic as an
 illustrative signature of the coupling rather than a gauge-invariant statistic.

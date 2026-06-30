@@ -16,6 +16,30 @@ monotonicity in $\alpha$, the optimization limit, and the uniform-choice limit
 near-uniform choice ($\alpha \to 0$) to deterministic SEU maximization
 ($\alpha \to \infty$).
 
+This reading returns to Isaac Levi's distinction between an agent's
+*commitment* to a standard and the agent's *performance* relative to it
+[@levi1980, Chapter 1], introduced in §[2.5](#sec-conceptual-payoff). One can be
+committed to a standard one fails to live up to: most of us are committed to the
+laws of arithmetic yet occasionally make calculation errors, and those errors are
+lapses of performance rather than rejections of the standard. Taking SEU theory
+to specify the agent's normative commitment, $\alpha$ is exactly the agent's
+*tendency to perform in accordance with that commitment*.
+
+Two clarifications keep this borrowing honest. First, Levi was no defender of
+SEU as the standard of rational choice; on the contrary, he developed an
+influential generalization of it that admits indeterminate (imprecise)
+probabilities and utilities [@levi1986], and his substantive decision theory
+therefore falls outside the real-valued template of this paper (§[1.4](#sec-procedural)).
+What we borrow is his *meta-level* distinction between commitment and
+performance, not his account of the standard itself. Second, that distinction is
+of interest even once SEU is granted as the relevant standard. Consider the SEU
+violations documented by Kahneman and Tversky [@kahneman1979; @tversky1992]: do
+they reveal failures of *performance* by agents committed to SEU, or an *absence
+of commitment* to SEU as a standard? Our framework does not settle that
+question, but it does make it tractable: *under the assumption* that the agent is
+committed to SEU, $\alpha$ is an estimate of the strength of that commitment ---
+the agent's disposition to fulfil it.
+
 ## 8.2 The methodological role of identifiability analysis {#sec-disc-identifiability .unnumbered}
 
 Identifiability is a property of the *likelihood*: it tells us which parameters

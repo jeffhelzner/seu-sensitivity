@@ -116,7 +116,11 @@ alternative.
 ## 2.5 The conceptual payoff {#sec-conceptual-payoff .unnumbered}
 
 Sensitivity to SEU maximization is the disposition of an SEU-committed agent to
-*act in accordance with its commitments*. It is distinct from (a) the *content*
+*act in accordance with its commitments*. The contrast between an agent's
+*commitment* to a standard and its *performance* relative to that standard is
+Levi's [@levi1980, Chapter 1]; we return to it, and to the sense in which $\alpha$
+measures a tendency to perform, in §[8.1](#sec-disc-meaning). The disposition is
+distinct from (a) the *content*
 of those commitments --- the agent's beliefs $\bm{\psi}$ and utilities
 $\bm{\upsilon}$ --- and (b) the *outcomes* the agent happens to realize. The
 SEU construction thus decomposes choice behavior conceptually into beliefs,

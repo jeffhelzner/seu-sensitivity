@@ -15,6 +15,42 @@ Each archive deposit pins the supporting repository to a specific commit/tag.
 ## [Unreleased]
 
 ### Changed
+- **Author comment on draft PDF (`comments.md`, 2026-06-29): §8.1 Levi
+  commitment/performance elaboration.** Framing/clarity edit, no numeric changes;
+  `claims_ledger` untouched. Added two paragraphs to §8.1
+  (`_08_discussion.qmd`, `#sec-disc-meaning`) after the opening restatement.
+  Paragraph 1 ties the restated meaning of "sensitivity to SEU maximization" to
+  Isaac Levi's distinction between *commitment* to a standard and *performance*
+  relative to it [@levi1980, Chapter 1] — reading $\alpha$ as the agent's tendency
+  to *perform* in accordance with an SEU commitment (arithmetic-error analogy;
+  flagged as the natural epistemological home for the graded notion, since formal
+  epistemologists are among the intended readers). Paragraph 2 adds two honesty
+  clarifications echoed from the foundational reports: (i) Levi was *not* a defender
+  of SEU as the standard — he generalized it to indeterminate/imprecise
+  probabilities and utilities [@levi1986], so his substantive decision theory falls
+  outside the real-valued template (cross-ref §[1.4](#sec-procedural)); what is
+  borrowed is his *meta-level* commitment/performance distinction, not his account
+  of the standard; (ii) the distinction is of interest even granting SEU — the
+  Kahneman–Tversky violations [@kahneman1979; @tversky1992] pose performance-failure
+  vs. absence-of-commitment, which the framework does not settle but, *under the
+  assumption* of an SEU commitment, renders tractable as the strength of that
+  commitment. Cite keys `levi1980`/`levi1986`/`kahneman1979`/`tversky1992` already
+  in the bibliography (no new entries). Also credited the commitment/performance
+  distinction to Levi at its *first* substantive use --- §2.5
+  (`_02_abstract_model.qmd`, `#sec-conceptual-payoff`), where the "disposition of
+  an SEU-committed agent to act in accordance with its commitments" sentence
+  previously appeared without attribution --- with a forward pointer to §8.1; and
+  reworded the §8.1 opening from "connects to" to "returns to ... introduced in
+  §2.5" so the two passages read as one thread rather than two independent
+  introductions. Per a follow-up author note, *removed* the §8.1 qualifying
+  sentence "We make this connection explicit because formal epistemologists are
+  among the intended readers ... natural epistemological home ..." (it read as
+  downplaying the connection). Renders clean (quarto 3-pass → pdflatex;
+  paper now 51 pp.; verified §8.1 on PDF pp.29–30 via gs rasterize — citations and
+  the §1.4 cross-ref resolve, no overfull). GOTCHA: a prior interrupted render left
+  a truncated `paper.aux` (tail `st{51}`) that made quarto's pass-2 fail with
+  "Missing \begin{document}"; fix is `rm -f paper.aux paper.out paper.toc` then
+  re-render — unrelated to the edit.
 - **Author comments on draft PDF (`comments.md`, 2026-06-29): §2.2 log-sum-exp
   wording, removal of the invisible "pilot" narrative across Part 6 (+ §1/§8),
   bootstrap aside, and Wilcoxon explanation.** Framing/clarity edits, no numeric

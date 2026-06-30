@@ -81,14 +81,16 @@ uncertain-choice data.
 This shows up directly in the Bayesian workflow rather than as a separate
 formal claim. Parameter recovery in `m_0` (§[4.3](#sec-m0-recovery)) returns
 wide marginal credible intervals for both $\beta$ and $\delta$ --- in contrast to
-the tight, well-calibrated $\alpha$ intervals --- together with a pronounced
-*negative $\beta$–$\delta$ error correlation*: concretely, across recovery
+the tight, well-calibrated $\alpha$ intervals --- together with
+*correlated $\beta$–$\delta$ estimation errors*: concretely, across recovery
 replicates the posterior-mean estimation errors of a representative weight entry
-$\beta_{1,1}$ and a representative increment $\delta_1$ are negatively correlated
+$\beta_{1,1}$ and a representative increment $\delta_1$ are correlated
 (Pearson; §[4.3](#sec-m0-recovery)). This is an *across-replicate*
 error correlation, not a within-posterior one; because raw $\beta$ entries carry
 the row-shift gauge we read this representative-component diagnostic as an
-illustrative signature of the coupling rather than a gauge-invariant statistic.
+illustrative signature of the coupling rather than a gauge-invariant statistic,
+and we do not attach significance to its sign (which varies with the
+true-$\alpha$ regime).
 The recovered posteriors concentrate not on $(\beta,\delta)$ individually but on
 a compensating trade-off between them. That correlated,
 barely-contracted joint posterior is the practical signature of the

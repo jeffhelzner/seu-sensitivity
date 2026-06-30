@@ -15,6 +15,32 @@ Each archive deposit pins the supporting repository to a specific commit/tag.
 ## [Unreleased]
 
 ### Changed
+- **Numeric audit (2026-06-30, prompted by the β–δ sign fix): full ledger
+  cross-check; one reporting error corrected in §7.5.2.** Cross-checked all 17
+  ledger claims (C1–C16, C8b) both ledger↔committed-source and body↔ledger;
+  15/17 matched. Fixes: (1) **C10 / §7.5.2** Claude×insurance per-condition
+  α values were the posterior **means** but labelled "medians" — replaced
+  {74,55,77,74,57} with the true posterior **medians** {71,53,73,71,55} from
+  `claude_insurance_study/data/primary_analysis.json` (the −3.6 slope is correct,
+  the report-level estimator matching `report11_cross_llm_results.json`).
+  (2) **§7.5.1** dropped the inconsistent "draw-wise" label on the GPT-4o
+  report-level slope (−31 is the OLS-through-medians estimator; the draw-wise
+  population-OLS value is −24.6, the superseded `primary_analysis.json` slope
+  field) — number unchanged. (3) **C15** ledger range max corrected 0.656→0.657
+  (source 0.6565 rounds up; paper body "[0.32, 0.66]" unaffected). All other
+  claims verified correct.
+- **Author comment on draft PDF (2026-06-30): β–δ error-correlation claim
+  de-signed in §3.4, §4.3, §8.3, App B.2.** Removed "visible negative Pearson
+  correlation" / "pronounced negative β–δ error correlation" wording. The
+  committed pooled value (`reports/_freeze/foundations/04_parameter_recovery/`
+  `fig-beta-delta-correlation`) is r = +0.387 (positive), and the concentration
+  sweep (Report 13) shows the across-iteration sign is true-α-regime dependent
+  (+0.37 at α₀=1 → −0.32 at α₀=5) and non-gauge-invariant (β[1,1] carries the
+  row-shift gauge). Reframed as *correlated* β–δ posterior-mean errors across
+  recovery replicates — an illustrative, non-gauge-invariant signature whose
+  *presence* (not direction) matters. `claims_ledger` C4/C7 updated to drop the
+  "negative" descriptor. No numeric/figure changes (the source report already
+  frames the diagnostic as suggestive/non-gauge-invariant).
 - **Author comment on draft PDF (`comments.md`, 2026-06-29): §8.1 Levi
   commitment/performance elaboration.** Framing/clarity edit, no numeric changes;
   `claims_ledger` untouched. Added two paragraphs to §8.1

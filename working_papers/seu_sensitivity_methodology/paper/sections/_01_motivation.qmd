@@ -236,8 +236,8 @@ under an explicit genericity condition (§[3.3](#sec-alpha-from-eta), Appendix
 B.1) --- from the question of whether the data also pin down the ingredients of
 $\eta$, namely beliefs ($\beta$) and utilities ($\delta$). At realistic sample
 sizes they do not: uncertain choices leave $(\beta, \delta)$ only *weakly
-informed*, as the Bayesian workflow shows directly --- wide, negatively
-correlated $(\beta, \delta)$ posteriors against tight $\alpha$ intervals
+informed*, as the Bayesian workflow shows directly --- wide, correlated
+$(\beta, \delta)$ posteriors against tight $\alpha$ intervals
 (§[3.4](#sec-bd-weak), §[4.3](#sec-m0-recovery)). The two are one structural
 picture (§[3.5](#sec-m0-link)): given the $\bm{\upsilon}$-endpoint convention
 that fixes the utility scale, $\alpha$ is read off the curvature of choice
@@ -261,8 +261,8 @@ might privilege.
 recoverable from a realistic amount of data.
 
 **(d) The marginal-SBC demarcation.** Marginal rank uniformity is *necessary but
-not sufficient* for joint posterior calibration. Separately, the negatively
-correlated, barely-contracted joint $(\beta, \delta)$ posterior --- which can
+not sufficient* for joint posterior calibration. Separately, the correlated,
+barely-contracted joint $(\beta, \delta)$ posterior --- which can
 itself be perfectly calibrated --- reflects weak joint *informativeness*, and
 marginal SBC does not reveal it: per-parameter ranks pass for both models even
 where beliefs and utilities are jointly only weakly resolved

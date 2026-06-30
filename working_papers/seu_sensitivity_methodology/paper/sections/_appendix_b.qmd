@@ -52,8 +52,9 @@ is not an indeterminacy that any convention removes.
 **What recovery shows.** Parameter recovery in `m_0`
 (§[4.3](#sec-m0-recovery)) returns wide marginal credible intervals for
 both $\beta$ and $\delta$ --- in sharp contrast to the tight, well-calibrated
-$\alpha$ intervals --- together with a pronounced *negative $\beta$–$\delta$ error
-correlation*: the posterior concentrates on a trade-off between beliefs and
+$\alpha$ intervals --- together with *correlated $\beta$–$\delta$ estimation
+errors* across recovery replicates: the posterior concentrates on a trade-off
+between beliefs and
 utilities rather than on either separately. That correlated, barely-contracted
 joint posterior is the practical signature of the multiplicative coupling and is
 what we mean by calling $(\beta,\delta)$ *weakly informed* by uncertain choices.

@@ -92,7 +92,7 @@ rather than discursive:
 ::: {.callout-warning appearance="simple"}
 **The marginal-SBC demarcation.** Two points must be kept apart. *First*, marginal
 rank uniformity is *necessary but not sufficient* for *joint* posterior
-calibration. *Second --- and distinctly* --- the negatively correlated,
+calibration. *Second --- and distinctly* --- the correlated,
 barely-contracted joint $(\beta, \delta)$ posterior reflects *weak joint
 informativeness* (a broad, trade-off-shaped likelihood geometry), **not** a
 calibration failure: a correctly specified model and sampler can be exactly

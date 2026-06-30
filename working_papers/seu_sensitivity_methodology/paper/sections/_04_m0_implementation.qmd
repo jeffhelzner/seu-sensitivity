@@ -84,13 +84,17 @@ Proposition 3.1: $\alpha$ is identified from $\eta$, and the data supply ample
 curvature to pin it.
 
 **$\beta$ and $\delta$ recovery.** By contrast $(\beta, \delta)$ show detectably
-wider intervals, intervals that narrow more slowly with sample size, and a
-visible negative Pearson correlation, computed *across recovery iterations*,
-between the posterior-mean estimation errors of a representative weight entry
-$\beta_{1,1}$ and a representative increment $\delta_1$. This is the
-*computational manifestation* of the
+wider intervals and intervals that narrow more slowly with sample size, together
+with correlated posterior-mean estimation errors --- computed *across recovery
+iterations* between a representative weight entry $\beta_{1,1}$ and a
+representative increment $\delta_1$. We report this last item as an
+illustrative, non-gauge-invariant signature rather than a signed quantity: its
+sign is not robust (it depends on the true-$\alpha$ regime, since $\beta_{1,1}$
+carries the row-shift gauge of §[2.6](#sec-notation)), and it is the *presence*
+of across-replicate error coupling, not its direction, that matters here. This
+is the *computational manifestation* of the
 weakly-informed $(\beta,\delta)$ of §[3.4](#sec-bd-weak): the multiplicative
-$(\beta,\delta)$ coupling made visible as a correlated joint posterior and wide
+$(\beta,\delta)$ coupling realized as a correlated joint posterior and wide
 marginal intervals. Crucially, the poor $(\beta, \delta)$ recovery does *not*
 contaminate $\alpha$ --- exactly as the empirical separation noted in
 §[3.5](#sec-m0-link).

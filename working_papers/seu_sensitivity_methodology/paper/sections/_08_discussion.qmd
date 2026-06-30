@@ -73,14 +73,6 @@ paper is careful to keep the two sides apart (§[6.4.4](#sec-m1-lesson)):
   ($B \to C$: $-8.1\%$, 90% CI $[-22.0, +6.8]$, straddling zero). An in-principle
   identification argument predicts neither of these finite-$n$ facts.
 
-A worked instance of the discipline sits inside the paper itself: an
-under-powered recovery study can report a tidy $\alpha$ gain attributable to
-choice type that an adequately powered study with bootstrap CIs does not support,
-and can likewise overstate the $\delta$ payoff (§[6.4.4](#sec-m1-lesson)).
-Under-powered recovery studies can manufacture clean effects that do not
-replicate; the remedy --- run the recovery study, report CIs, and use an adequate
-$n$ before drawing the lesson --- is exactly what guards against it.
-
 ## 8.3 The methodological role of computational validation {#sec-discussion .unnumbered}
 
 Three checks should be standard practice for any choice-theoretic measurement
@@ -235,10 +227,10 @@ computational validation pipeline, and an end-to-end illustrative application
 together provide a transparent, reusable framework for *procedurally* evaluating
 decision makers --- human or machine --- against a stated rationality standard
 expressible as expected-value maximization, with SEU as the canonical case. The
-framework's honesty is part of its contribution: it reports where a parameter is
+framework reports where a parameter is
 identifiable but not precisely estimable, where in-principle arguments fail to
 predict finite-sample behavior, where marginal calibration is blind to a jointly
 weakly-informed posterior, and where an instrument declines to support an effect its own
-diagnostics cannot resolve. An evaluation framework that always reported an
-effect would be a scoreboard; one that knows the limits of what it can measure is
-an instrument.
+diagnostics cannot resolve. Reporting these limits is part of what makes the
+framework usable as a measurement instrument rather than a procedure that returns
+an effect by construction.

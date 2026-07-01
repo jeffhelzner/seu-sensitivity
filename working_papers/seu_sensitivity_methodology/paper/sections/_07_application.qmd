@@ -34,6 +34,16 @@ deepens this; it is stated here so the reader reaches the §[7.5](#sec-app-resul
 headline already holding it.
 :::
 
+::: {.callout-important appearance="simple"}
+**A recovered $\alpha$ is model-conditional (read before the numbers).** The
+$\alpha$ values reported below are parameters of the §[3](#sec-m0-identifiability)
+softmax-over-SEU likelihood, not context-free rationality scores. The
+within-design comparisons of §[7.5](#sec-app-results) --- same model, same prior,
+same features --- are licensed; an $\alpha$ read in isolation is *not* a
+model-free measure of an agent's rationality. We return to this at
+§[8.4](#sec-disc-alpha).
+:::
+
 ::: {.callout-note appearance="simple"}
 **Reporting template (applied uniformly to all four cells).** Every LLM $\times$
 task cell is reported with the *same* quantities, to pre-empt cherry-picking:
@@ -71,8 +81,10 @@ flag this again at §[7.5.2a](#sec-app-results).
 
 **Feature pipeline.** Both task families use the *same* two-stage construction.
 *Insurance:* a per-claim LLM assessment, then choice over those assessments;
-assessment text embedded via `text-embedding-3-small`; pooled-PCA projection to
-$D = 32$. *Ellsberg:* the identical pipeline applied to gambles --- a per-gamble
+assessment text embedded via `text-embedding-3-small` (embedding turns each
+assessment's text into a numeric vector), then reduced by pooled PCA (a linear
+projection onto the leading directions of variation) to $D = 32$ features ---
+large enough to retain task structure while keeping the fit tractable. *Ellsberg:* the identical pipeline applied to gambles --- a per-gamble
 LLM assessment of each urn (a short free-text analysis of the payoff
 probabilities and ambiguity), then choice over those assessments, embedded and
 pooled-PCA-projected to $D = 32$. The objective urn composition is *not* entered
@@ -94,12 +106,19 @@ $\alpha$ calibrated to each application's design and consequence space: `m_01` f
 the insurance task ($K = 3$) and `m_02` for the Ellsberg task ($K = 4$). The two
 differ only in that $\alpha$ prior.
 
-**Prior calibration anchor.** The calibration target is the prior predictive
-SEU-maximizer selection rate (fraction of simulated problems on which the
-simulated agent picks the EU-maximal available alternative). The foundational
+**Prior calibration anchor.** Why does the $K = 4$ Ellsberg task need a different
+$\alpha$ prior than the $K = 3$ insurance task? Not because random choice differs
+--- the menu size is the same --- but because four consequences spread the
+expected-utility values across alternatives more widely, steepening the softmax,
+so a larger $\alpha$ is needed to reach the same prior-implied rate of good
+choice; the calibration below makes this precise. The calibration target is the prior predictive
+SEU-maximizer selection rate --- the fraction of prior-simulated agents that pick
+the EU-maximal available alternative, obtained by drawing choice problems from the
+design and parameters from the prior and tabulating the outcome. The foundational
 $\mathrm{Lognormal}(0,1)$ prior of §[4.1](#sec-m0-spec) places excessive mass on near-random
 regimes and, at the application's $R$ and $K$, on tails that cause softmax
-overflow under the study design. A grid search over twelve Lognormal
+overflow (extremely large $\alpha$ makes $\exp(\alpha\eta)$ numerically unstable,
+corrupting the likelihood) under the study design. A grid search over twelve Lognormal
 hyperparameter pairs selects $\mathrm{Lognormal}(3.0, 0.75)$ for the insurance
 task ($K = 3$): median $\alpha \approx 20$, 90% interval $\approx [5.5, 67]$,
 implied SEU-max rate $\approx 78\%$. For the Ellsberg task ($K = 4$) the prior is
@@ -138,7 +157,8 @@ bias within $\pm 10\%$ of the mean true value, relative RMSE well below 25%, and
 cross-condition comparison is a claim about $\alpha$, and $\alpha$ is fit for
 purpose.
 
-**SBC for $\alpha$.** SBC validates the *(prior, likelihood, sampler)* triple and
+**SBC for $\alpha$.** SBC (simulation-based calibration, defined in
+§[4.4](#sec-m0-sbc)) validates the *(prior, likelihood, sampler)* triple and
 is conditionally independent of which agent generated the held-out empirical data.
 
 ::: {.callout-note appearance="simple"}
@@ -161,7 +181,10 @@ dimensions, not an identity; the per-cell parameter-recovery diagnostics above a
 what confirm that calibration holds at each realized design.
 :::
 
-**MCMC diagnostics.** Across all 20 factorial fits, $\alpha$ --- the parameter the
+**MCMC diagnostics.** The split-$\hat{R}$ statistic compares between- and
+within-chain variance and should sit at or below $1.01$ for a well-mixed chain;
+the effective sample size (ESS) reports how many independent draws the correlated
+chain is worth. Across all 20 factorial fits, $\alpha$ --- the parameter the
 §[7.5](#sec-app-results) temperature analysis rests on --- is **never**
 $\hat{R}$-flagged, and ESS is satisfactory in every fit, so the per-condition
 $\alpha$ posteriors are a sound basis for the cross-condition comparison.
@@ -210,7 +233,9 @@ The oscillation in the medians is consistent with posterior noise around a rough
 flat function, not a substantive non-monotonic response.
 
 ::: {.callout-warning appearance="simple"}
-**Minimum-detectable-effect (calibrating the Claude null).** The design could
+**Minimum-detectable-effect (calibrating the Claude null).** To read a null
+correctly we ask the design's *resolution*: what is the smallest
+temperature-on-$\alpha$ slope this study could reliably detect? The design could
 resolve a temperature-on-$\alpha$ slope at $P(\text{slope} < 0) \geq 0.95$ only if
 its magnitude were $|\Delta\alpha/\Delta T| \gtrsim 36$ $\alpha$-units per unit
 temperature (three independent estimators agree: analytic-Gaussian 36.3,
@@ -250,6 +275,10 @@ task. $\alpha$ medians $\{110.4, 106.9, 99.5, 84.0, 52.2\}$ at $T = \{0.0, 0.3,
 $[57.1, 126.1]$ / $[35.5, 80.3]$); global slope $\Delta\alpha/\Delta T$ median
 $-38.4$, 90% CI $[-72.1, -10.0]$, $P(\text{slope} < 0) \, 0.984$;
 $P(\text{strict monotone} \downarrow) \, 0.090$ (a noisy decline, not step-wise).
+In behavioral terms, the fitted decline means the model selects the
+expected-utility-maximizing gamble progressively less often as temperature rises,
+drifting toward the menu-uniform choice of the §[2.3](#sec-three-properties)
+low-$\alpha$ limit without reaching it.
 
 ### 7.5.4 Claude $\times$ Ellsberg {#sec-app-claude-ellsberg .unnumbered}
 
@@ -314,11 +343,15 @@ GPT-4o is "more rational" than Claude in any context-free sense.** The licensed
 reading of $\alpha$ here is a *within-design comparative* one, not an
 absolute-rationality ranking. **(c) Anything about ambiguity aversion in the
 Ellsberg study.** The SEU+softmax model is, by assumption, of the wrong form to
-distinguish ambiguity-driven choice from EU-driven choice; testing for ambiguity
-aversion requires a model with explicit ambiguity-attitude parameters (e.g.,
-@gilboa1989; $\alpha$-MEU à la @ghirardato2004), and pooling across the three
-ambiguity tiers as the application does would yield a mixture rather than identify
-a mechanism. Tier-stratified $\alpha$ is named as future work, not a paper claim.
+distinguish ambiguity-driven choice from EU-driven choice: any departure from
+EU-maximal choice is absorbed into a lower $\alpha$ (more randomness), so genuine
+ambiguity aversion and plain noise are not separable within it. Testing for
+ambiguity aversion requires a model with explicit ambiguity-attitude parameters
+--- for instance maxmin expected utility [@gilboa1989], which adds a parameter
+governing how heavily the agent weights the worst-case prior over an ambiguous
+event, or its $\alpha$-MEU generalization [@ghirardato2004]; and pooling across
+the three ambiguity tiers as the application does would yield a mixture rather
+than identify a mechanism. Tier-stratified $\alpha$ is named as future work, not a paper claim.
 **(d) That LLM identity is the only relevant axis in general.** With only two task
 families and two LLMs, the $2\times2$ supports a pattern statement, not a factorial
 generalization.

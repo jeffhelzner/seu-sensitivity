@@ -5,10 +5,12 @@
 Recall from §[2.6](#sec-notation) the uncertain-choice ("`m_0`") model.
 Subjective probabilities are generated from $D$-dimensional features $w_r$ via
 $\bm{\psi}_r = \mathrm{softmax}(\beta\, w_r)$ with $\beta \in \mathbb{R}^{K\times
-D}$. Utilities are constructed from increments $\delta \in \Delta^{K-2}$ (the
-$K-1$ nonnegative increments summing to one; Stan `simplex[K - 1] delta`) by
+D}$. Utilities are constructed from increments $\delta$ by
 cumulative summation, yielding $0 = \upsilon_1 \le \upsilon_2 \le \cdots \le
-\upsilon_K = 1$. Expected utilities are $\eta_r = \bm{\psi}_r^\top \bm{\upsilon}$,
+\upsilon_K = 1$. There are $K-1$ nonnegative increments, summing to one, so
+$\delta$ ranges over the $(K-2)$-dimensional simplex $\Delta^{K-2}$ --- the
+sum-to-one constraint removes one degree of freedom --- and Stan declares it
+`simplex[K - 1] delta`, counting the $K-1$ entries. Expected utilities are $\eta_r = \bm{\psi}_r^\top \bm{\upsilon}$,
 and choices follow @eq-softmax with $V(r) = \eta_r$. The $\beta$ gauge
 (§[2.6](#sec-notation)) is the only $\beta$ indeterminacy we use.
 
@@ -42,8 +44,10 @@ $\log[P(r)/P(s)] = \alpha(\eta_r - \eta_s)$ is injective on the closed half-line
 $[0, \infty)$ whenever $\eta_r \neq \eta_s$, so $\alpha = 0$ is reached
 continuously from above and the genericity condition on $\{\eta_r\}$ is *not*
 vacuous there. With $\eta$ fixed the softmax log-likelihood $\ell = \alpha\eta_y
-- \log\sum_j \exp(\alpha\eta_j)$ is in fact smooth at $\alpha = 0$, with
-$\partial_\alpha \ell\big|_{\alpha=0} = \eta_y - \bar\eta$. What is special
+- \log\sum_j \exp(\alpha\eta_j)$ --- where $\eta_y$ is the expected utility of
+the chosen alternative and the sum runs over the menu --- is in fact smooth at
+$\alpha = 0$, with $\partial_\alpha \ell\big|_{\alpha=0} = \eta_y - \bar\eta$,
+where $\bar\eta$ is the menu-average expected utility. What is special
 about $\alpha = 0$ is therefore not non-differentiability but *non-regularity*:
 the choice rule is uniform (Theorem A.3) and derivatives with respect to any
 parameter entering only through $\eta$ are multiplied by $\alpha$, so $\beta$ and
@@ -71,7 +75,10 @@ the product of a $\beta$-driven simplex and a $\delta$-driven utility vector.
 Uncertain choices see $(\beta, \delta)$ only through this scalar $\eta_r$, so a
 family of $(\beta, \delta)$ pairs that trades a change in beliefs against a
 compensating change in utilities leaves the implied expected utilities --- and
-hence the choice probabilities --- almost unchanged. The
+hence the choice probabilities --- almost unchanged. The compensation is
+approximate rather than exact: the data can pin down $\eta$ (and through it
+$\alpha$) sharply while still failing to separate the two factors whose product
+forms it. The
 $\bm{\upsilon}$-endpoint convention (§[2.6](#sec-notation)) fixes the zero and
 unit of the utility scale, but it does not touch this *multiplicative*
 $(\beta,\delta)$ coupling, which is not an indeterminacy that any convention

@@ -17,7 +17,9 @@ not on $\beta$ (§[5.1](#sec-m1-twostep), Step 1).
 **Design.** We use the existing risky-choice configuration ($K = 3$, $S = 15$
 lotteries; full constants in Appendix D.0), *not* a
 $\delta$-optimal design. The matched design fixes one study design across
-conditions and slices the same simulated choices four ways:
+conditions and slices the same simulated choices four ways, so that precision
+differences across conditions reflect the estimand and the choice type rather
+than random variation between separate simulations:
 
 | Condition | Model | Uncertain $M$ | Risky $N$ | Total choices |
 | --- | --- | --- | --- | --- |
@@ -39,6 +41,16 @@ therefore report every §6.4 magnitude from a study of **$n = 100$** iterations,
 each summarized with a bootstrap 90% CI over iterations.
 :::
 
+::: {.callout-note appearance="simple"}
+**Why a bootstrap rather than a posterior interval.** The quantity summarized is
+a property of the *estimator and design under repeated simulation*, not a model
+parameter with a posterior --- so a credible interval is not the right object.
+The Bayesian fit lives *inside* each iteration (every per-iteration RMSE or
+interval width comes from a full posterior); the bootstrap only quantifies the
+across-iteration variability of their paired median, distribution-free because
+those per-iteration paired differences are non-normal.
+:::
+
 **What each reported magnitude is.** Each of the $n = 100$ iterations runs the
 recovery loop of §[4.3](#sec-m0-recovery) on the matched design: draw one set of
 true parameters from the prior, simulate the four sliced choice sets
@@ -54,16 +66,6 @@ replacement, recompute the paired median on each resample, and take its central
 90% range, so the CI measures how stable the aggregate contrast is across
 simulated datasets.
 
-::: {.callout-note appearance="simple"}
-**Why a bootstrap rather than a posterior interval.** The quantity summarized is
-a property of the *estimator and design under repeated simulation*, not a model
-parameter with a posterior --- so a credible interval is not the right object.
-The Bayesian fit lives *inside* each iteration (every per-iteration RMSE or
-interval width comes from a full posterior); the bootstrap only quantifies the
-across-iteration variability of their paired median, distribution-free because
-those per-iteration paired differences are non-normal.
-:::
-
 **Sign convention.** Throughout §6.4 a *positive* percentage denotes an
 *improvement* --- a reduction in RMSE or in CI width --- and its 90% CI is
 reported on the same scale, so a CI lying wholly above zero means a reliable
@@ -75,8 +77,7 @@ precision).
 CI-width gain is $\approx 0.8\%$ and $\delta$ RMSE is statistically unchanged. A
 $\delta$-information-optimal lottery design --- pitting, e.g., the certain
 intermediate consequence against a 50/50 mix of the extremes to triangulate each
-$\delta_k$ --- is named as future work (§[8.5](#sec-disc-limitations)), not a deliverable
-here.
+$\delta_k$ --- is named as future work (§[8.5](#sec-disc-limitations)).
 
 ## 6.3 Prior predictive analysis {#sec-m1-prior .unnumbered}
 
@@ -154,8 +155,10 @@ estimability at realistic sample sizes.* $\delta$ is identifiable in `m_1`
 (§[5.5](#sec-delta-id)), but the information about $\delta$ contributed by
 25 risky choices at moderate $\alpha$ is small: the matched B$\to$C comparison
 shrinks the $\delta$ CI width by $\approx 0.8\%$ and moves $\delta$ RMSE not at
-all. In-principle identification buys *essentially nothing* at the design sample
-size --- the identifiability-versus-estimability gap in its starkest form.
+all. With unboundedly many risky choices $\delta$ would be recovered exactly;
+with the design's 25 it is not. In-principle identification buys *essentially
+nothing* at the design sample size --- the identifiability-versus-estimability
+gap in its starkest form.
 
 **(ii) For $\alpha$ --- finite-$n$ precision tracks quantity, not type.** One
 might expect the `m_1` $\alpha$ gain to be a per-choice advantage of the

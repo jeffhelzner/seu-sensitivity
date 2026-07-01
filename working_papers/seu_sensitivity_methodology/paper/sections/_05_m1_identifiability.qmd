@@ -9,8 +9,10 @@ steps; Step 1 alone does *not* identify $\delta$ --- Step 2 closes the argument.
 ::: {.callout-note appearance="simple"}
 **Step 1 ($\beta$-free risky expected utility).** A risky alternative $s$ carries
 an objective lottery $\pi_s \in \Delta^{K-1}$ over the $K$ consequences, and its
-expected utility is $\eta^{(r)}_s = \pi_s^\top \bm{\upsilon}$, which does *not*
-pass through the belief-formation map. The risky block therefore supplies
+expected utility is $\eta^{(r)}_s = \pi_s^\top \bm{\upsilon}$, which depends only
+on the utilities $\bm{\upsilon}$ (hence $\delta$) and not on the beliefs $\beta$
+--- it does not pass through the belief map
+$\bm{\psi}_r = \mathrm{softmax}(\beta w_r)$. The risky block therefore supplies
 information about $\bm{\upsilon}$ (hence $\delta$) that is *free of* $\beta$: the
 gradient of the risky log-likelihood with respect to $\delta$ does not also
 depend on $\beta$. By itself this supplies unconfounded gradients but not
@@ -18,7 +20,10 @@ invertibility.
 :::
 
 ::: {.callout-note appearance="simple"}
-**Step 2 (lottery diversity $\Rightarrow$ identification).** *Given sufficient
+**Step 2 (lottery diversity $\Rightarrow$ identification).** Recovering the $K$
+utilities from risky choices requires the lotteries to point in enough different
+directions across the consequence space --- intuitively, at least $K$ lotteries
+whose payoff profiles differ enough to solve for each utility. *Given sufficient
 lottery diversity* --- the presented lotteries' differences span the simplex
 tangent space, equivalently a spanning affinely independent subset of $K$
 lotteries with the menus linked into a connected contrast graph
@@ -56,7 +61,11 @@ sensitivity-to-SEU-maximization is preserved in the extended model.
 **Single-$\alpha$ assumption.** `m_1`
 asserts a *single* $\alpha$ governing both sub-problems --- i.e., the agent's
 responsiveness to expected-utility differences does not depend on whether
-probabilities are objective or subjective. This is a substantive, testable
+probabilities are objective or subjective. The motivation is that $\alpha$ is
+meant to capture one disposition --- the care an agent brings to acting on
+expected-utility differences --- which one would expect to be a property of the
+agent rather than of whether the probabilities it faces happen to be objective or
+subjective. This is a substantive, testable
 assumption, and it is essential to the §[6.4](#sec-m1-recovery)
 interpretation of the matched recovery contrasts: the
 quantity-versus-type reading of those contrasts requires a *common* $\alpha$
@@ -92,7 +101,10 @@ globally identifiable from risky-choice probabilities alone.
 :::
 
 *Intuition (full proof in Appendix B.3).* A risky menu's softmax depends on the
-linear functional $\pi_s^\top \bm{\upsilon}$. When the lottery differences span
+linear functional $\pi_s^\top \bm{\upsilon}$. Pinning down $K$ utilities requires
+$K-1$ independent lottery directions (one degree of freedom is fixed by the
+endpoint convention); with enough diverse lotteries those directions are present.
+Formally, when the lottery differences span
 the simplex tangent space, the map $\bm{\upsilon} \mapsto ((\pi_s - \pi_1)^\top
 \bm{\upsilon})_s$ has rank $K-1$, so the risky log-odds recover $\bm{\upsilon}$
 --- and jointly $\alpha$ --- once the endpoint convention fixes the scale, hence

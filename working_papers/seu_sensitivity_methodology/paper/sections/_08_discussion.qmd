@@ -29,7 +29,7 @@ Two clarifications keep this borrowing honest. First, Levi was no defender of
 SEU as the standard of rational choice; on the contrary, he developed an
 influential generalization of it that admits indeterminate (imprecise)
 probabilities and utilities [@levi1986], and his substantive decision theory
-therefore falls outside the real-valued template of this paper (§[1.4](#sec-procedural)).
+therefore falls outside the real-valued template of this paper (§[1.4](#sec-seu-standard)).
 What we borrow is his *meta-level* distinction between commitment and
 performance, not his account of the standard itself. Second, that distinction is
 of interest even once SEU is granted as the relevant standard. Consider the SEU
@@ -169,7 +169,7 @@ helps less when $\alpha$ is small (shallow softmax at moderate $\alpha$ is a
 co-dampener), so precise $\delta$ recovery likely requires improvements on
 *multiple* axes at once. Naming the levers separately is a useful taxonomy, not a
 single-lever roadmap. A $\delta$-optimal lottery-design study is named here as
-future work, not promised as a deliverable of this paper.
+future work rather than attempted in this paper.
 
 **The single-$\alpha$ assumption.** A single $\alpha$ governing both the
 uncertain and risky blocks (§[5.3](#sec-m1-properties)) is substantive and

@@ -30,7 +30,9 @@ increasingly, a large language model deployed to make or recommend choices.
 Both approaches have a long precedent in the study of decision makers. One strand
 of internal-consistency critique assesses choices against expected utility theory
 as a standard for decision making under risk: the Allais paradox [@allais1953]
-exhibits a pattern of preferences that violates the independence axiom, a tension
+exhibits a pattern of preferences that violates the independence axiom (roughly,
+that a component common to two options should not affect the preference between
+them), a tension
 Kahneman and Tversky took up in developing prospect theory [@kahneman1979;
 @tversky1992]. These demonstrations, and the large-scale replication that
 subsequently confirmed their patterns [@ruggeri2020], were built on *pairwise*
@@ -41,7 +43,8 @@ probing how sensitivity itself varies with menu size (an extension we return to 
 §[8.5](#sec-disc-limitations)). A second strand --- the heuristics-and-biases program --- assesses
 judgments about uncertainty against the probability axioms, construed as a
 coherence standard on degrees of belief in the Dutch-book tradition
-[@ramsey1926; @definetti1937]: the
+[@ramsey1926; @definetti1937], on which a set of degrees of belief is faulted if
+it would sanction a combination of bets guaranteeing a sure loss: the
 conjunction fallacy of the "Linda problem" [@tversky1983] exhibits credences that
 violate that calculus, evidence used to motivate the representativeness
 heuristic. In each case the decision maker is faulted not against a labeled key
@@ -126,7 +129,9 @@ actually choose; cumulative prospect theory [@kahneman1979; @tversky1992] is the
 clearest example. Substituting such a theory is therefore more than a change of
 functional form: the quantity being measured changes from conformity to a norm
 to fit to a behavioral model, and the interpretation of the instrument changes
-with it. Maxmin expected utility [@gilboa1989] is more plausibly read as a
+with it. Put plainly: a descriptive substitute would still return a number, but
+that number would measure fit to observed behavior, not conformity to a standard
+of good decision making. Maxmin expected utility [@gilboa1989] is more plausibly read as a
 normative alternative, and it supplies an admissible value function for the
 softmax construction; but because that value function is a *minimum* over a set
 of priors, it is not smooth, and substituting it into the gradient-based
@@ -315,3 +320,14 @@ with §[3](#sec-m0-identifiability) feeding *both* §[4](#sec-m0-implementation)
 (§§[4](#sec-m0-implementation), [6](#sec-m1-implementation)) converging on the
 application, and Appendix B supplying the proofs that close the two
 identifiability sections.
+
+**How to read this paper.** Readers approaching from statistics or the Bayesian
+workflow may treat §§[2](#sec-abstract-model)--[3](#sec-m0-identifiability) and
+[5](#sec-m1-identifiability) as the modeling setup and concentrate on the
+validation and application (§§[4](#sec-m0-implementation),
+[6](#sec-m1-implementation), [7](#sec-application)); readers approaching from
+decision theory or formal epistemology will find the conceptual claims in
+§§[1](#sec-motivation)--[2](#sec-abstract-model) and [8](#sec-discussion-top) and
+can take the identifiability propositions (§§[3](#sec-m0-identifiability),
+[5](#sec-m1-identifiability)) on their statements, with proofs in Appendix B.
+Terms of art from each field are glossed at first use for the others.

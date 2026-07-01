@@ -15,6 +15,35 @@ Each archive deposit pins the supporting repository to a specific commit/tag.
 ## [Unreleased]
 
 ### Changed
+- **Clarity/exposition pass (prompted by a draft-review request): 24 targeted
+  expositional additions across §§1–7 plus two reader aids; no numeric changes.**
+  Goal was to slow down passages that move too fast for the paper's cross-field
+  reader (glossing each field's terms of art for the others). Edits: §1.1 glossed
+  the independence axiom and the Dutch-book coherence standard; §1.4 added a
+  plain-language landing on normative-vs-descriptive substitution; §1.8 appended a
+  "How to read this paper" reader's-guide paragraph (AID-1). §2.2 added a sentence
+  unifying the three softmax precedents; §2.3 unpacked the non-monotone
+  parenthetical and defined the choice-weighted mean. §3.1 clarified the
+  $\Delta^{K-2}$ vs `simplex[K-1]` dimension bookkeeping; §3.3 defined $\eta_y$ and
+  $\bar\eta$; §3.4 flagged the belief–utility compensation as approximate, not
+  exact. §4.1 spelled out the row-contrast payoff of the $\beta$ gauge; §4.4 added
+  an SBC lead-in and a rank-uniformity intuition, and split the marginal-SBC
+  demarcation into three labelled points. §5.1 made the belief-map dependence
+  concrete and added a lottery-diversity intuition; §5.3 motivated the single-$\alpha$
+  assumption; §5.5 added an independent-directions intuition. §6.2 glossed the
+  matched design's purpose and moved the "why a bootstrap" aside ahead of the
+  procedure; §6.4.4(i) tied the identifiability–estimability gap to the
+  infinite-data limit. §7.1 added a "model-conditional $\alpha$" caution callout
+  forward-referencing §8.4 (AID-2); §7.2 glossed embeddings/PCA; §7.3 framed the
+  $K=4$ recalibration up front and glossed the prior-predictive rate and softmax
+  overflow; §7.4 glossed split-$\hat R$/ESS and back-referenced the SBC definition;
+  §7.5.2 added a resolution framing to the minimum-detectable-effect box; §7.5.3
+  added a qualitative behavioural gloss of the declining-$\alpha$ fit; §7.6.2(c)
+  unpacked why SEU+softmax cannot separate ambiguity aversion from noise and what
+  maxmin/$\alpha$-MEU add. Also fixed a pre-existing broken cross-reference in §8.1
+  (`#sec-procedural` → `#sec-seu-standard`, the current §1.4 anchor). Renders clean
+  (quarto 3-pass, 0 undefined refs/cites, 0 overfull >6pt; 52 pp). No numeric
+  changes; `claims_ledger.md` untouched.
 - **Numeric audit (2026-06-30, prompted by the β–δ sign fix): full ledger
   cross-check; one reporting error corrected in §7.5.2.** Cross-checked all 17
   ledger claims (C1–C16, C8b) both ledger↔committed-source and body↔ledger;

@@ -26,7 +26,9 @@ $$ {#eq-softmax}
 The functional form has independent precedents: Luce's [-@luce1959]
 ratio-scale choice axiom, McFadden's [-@mcfadden1974] random-utility derivation
 of multinomial logit, and the Boltzmann distribution of statistical mechanics
-(where $\alpha$ is inverse temperature). We use $\alpha$ rather than a
+(where $\alpha$ is inverse temperature). These three routes reach the same
+functional form --- a choice likelihood exponential in value differences ---
+from independent starting points, which is part of what recommends it here. We use $\alpha$ rather than a
 temperature $T = 1/\alpha$ because *higher* $\alpha$ corresponds to *higher*
 sensitivity, the more intuitive direction for our purposes.
 
@@ -74,9 +76,12 @@ so the odds always shift monotonically toward the higher-valued alternative as
 $\alpha$ increases. Consequently the *total* probability on the value-maximizing
 set $\mathcal{R}^\ast_m$ is strictly increasing in $\alpha$; in particular a
 single value-maximizing alternative ($r \in \mathcal{R}^\ast_m$) gains and a
-value-minimizing alternative loses probability. (An individual non-maximal
-alternative whose value exceeds the current choice-weighted mean can rise before
-it falls, so non-maximal probabilities are not monotone one-by-one.)
+value-minimizing alternative loses probability. One subtlety is worth flagging:
+while the *total* probability on the value-maximizing set rises monotonically, an
+individual *non-maximal* alternative need not. If its value exceeds the current
+choice-weighted mean --- the average of the available values weighted by their
+current choice probabilities --- its probability can rise before it falls as
+$\alpha$ increases, so non-maximal probabilities are not monotone one-by-one.
 :::
 
 ::: {.callout-note appearance="simple"}

@@ -45,7 +45,9 @@ alternatives available in problem $m$.
 ::: {.callout-note appearance="simple"}
 **The $\beta$ gauge in the implementation.** Softmax invariance to a common
 per-column row shift (§[2.6](#sec-notation)) means $\beta$ has only $(K-1)\times
-D$ effective degrees of freedom. Rather than fix a reference row, `m_0` places an
+D$ effective degrees of freedom: adding the same shift to every row leaves all
+choice probabilities unchanged, so the data can identify row *contrasts* but not
+absolute row levels. Rather than fix a reference row, `m_0` places an
 independent $\mathcal{N}(0,1)$ prior on all $K\times D$ entries. The *likelihood*
 is flat along the gauge direction, but the Gaussian *prior* is not: its density
 decays as the common row shift moves $\beta$ away from the origin, so the prior
@@ -101,9 +103,18 @@ contaminate $\alpha$ --- exactly as the empirical separation noted in
 
 ## 4.4 Simulation-based calibration {#sec-m0-sbc .unnumbered}
 
+Simulation-based calibration (SBC) checks whether the model-and-sampler together
+return posteriors that are calibrated on average: if a true parameter is drawn
+from the prior, data are simulated from it, and the model is refit, then a
+well-calibrated 90% credible interval should contain that truth 90% of the time.
+The rank test below checks this across all quantiles at once.
+
 **Method.** SBC draws a parameter from the prior, simulates data, fits the
 model, and computes the rank of the true value within the posterior draws; under
-correct calibration these ranks are uniform [@talts2018]. We diagnose
+correct calibration these ranks are uniform [@talts2018] --- a truth drawn from
+the prior is equally likely to fall at any rank within a correctly calibrated
+posterior, so systematic departures from uniformity flag a mismatch among model,
+data, and sampler. We diagnose
 uniformity with rank histograms and the ECDF-difference plot with a simultaneous
 confidence band [@modrak2023], at $N_{\mathrm{sbc}} = 999$, thinning $4$, single
 chain, with the $L = N_{\mathrm{sbc}}$ convention (Appendix D.3).
@@ -117,13 +128,14 @@ $(\beta,\delta)$ posterior that can itself be perfectly calibrated --- to which
 marginal SBC is blind.
 
 ::: {.callout-important appearance="simple"}
-**The marginal-SBC demarcation.** Two distinct points must be kept apart.
-*First*, marginal rank uniformity is necessary but not sufficient for *joint*
-posterior calibration: a joint miscalibration that left every margin uniform
-would not be caught here. *Second --- and separately ---* the correlated,
-barely-contracted joint $(\beta,\delta)$ posterior is a statement about weak
-*joint informativeness and geometry*, not about miscalibration: such a posterior
-can be exactly calibrated when the model and sampler are correct. What marginal
+**The marginal-SBC demarcation.** Three points must be kept apart.
+**Marginal versus joint.** Marginal rank uniformity is necessary but not
+sufficient for *joint* posterior calibration: a joint miscalibration that left
+every margin uniform would not be caught here. **Weak informativeness is not
+miscalibration.** The correlated, barely-contracted joint $(\beta,\delta)$
+posterior is a statement about weak *joint informativeness and geometry*, not
+about miscalibration: such a posterior can be exactly calibrated when the model
+and sampler are correct. **What marginal SBC leaves unseen.** What marginal
 SBC fails to reveal in our case is therefore the weak joint identification and
 contraction of $(\beta,\delta)$, not a hidden joint calibration failure --- we
 report no non-uniform joint SBC statistic. The positive contribution of SBC here

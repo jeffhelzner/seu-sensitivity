@@ -250,9 +250,11 @@ $\approx 0.53$ of the grand-mean $\alpha$
 $T \in [0, 1]$, roughly halving $\alpha$. So the Claude null is *no effect at the
 achievable resolution*, **not** a measured zero; even a GPT-4o-sized slope
 ($\approx 31$, full-grid reference) sits below this floor ($0.86\times$). See the
-power curve (Fig 7.5.2). This calibration prevents the §[7.6.1](#sec-app-limits)
+power curve (@fig-mde-power). This calibration prevents the §[7.6.1](#sec-app-limits)
 "declines to support" framing from being read as a positive no-effect claim.
 :::
+
+![Claude $\times$ insurance: power to resolve a temperature-on-$\alpha$ slope. $P(\text{posterior slope} < 0)$ as a function of the counterfactual true slope magnitude $|\Delta\alpha/\Delta T|$. The minimum detectable effect at the $P \geq 0.95$ criterion is $\approx 36$ $\alpha$-units per unit temperature (three estimators agree: analytic-Gaussian, empirical-quantile, constant-CV Monte-Carlo), against an observed $|\text{slope}| \approx 2.9$ and a GPT-4o full-grid reference $\approx 31$ --- both far below the floor.](../figures/report16_mde_power_curve.png){#fig-mde-power width=85%}
 
 ### 7.5.2a Cross-LLM comparison --- pattern first, number second {#sec-app-cross-llm .unnumbered}
 
@@ -307,8 +309,10 @@ effect**: GPT-4o exhibits the temperature--$\alpha$ relationship across both tas
 families, Claude exhibits it in neither. *In this $2\times2$,* task family does not
 appear to be the relevant axis; the LLM does. With only two task families and two
 LLMs this is a **pattern statement, not a factorial generalization**
-(§[7.6.2](#sec-app-limits)(d)). It is best presented as a $2\times2$ forest plot of
-the per-cell global-slope posteriors.
+(§[7.6.2](#sec-app-limits)(d)). @fig-forest presents it as a $2\times2$ forest plot
+of the per-cell global-slope posteriors.
+
+![Per-cell global-slope $\Delta\alpha/\Delta T$ posteriors (median and 90% credible interval) for the $2\times2$ LLM $\times$ task design, with $P(\text{slope} < 0)$ annotated at right. Intervals that exclude zero (blue) mark a detected temperature--$\alpha$ decline --- GPT-4o in both tasks; intervals that straddle zero (grey) mark a non-detection --- Claude in neither. Visual companion to @tbl-2x2.](../figures/report_2x2_forest.png){#fig-forest width=85%}
 
 ## 7.6 What the application demonstrates --- and what it does not {#sec-app-limits .unnumbered}
 

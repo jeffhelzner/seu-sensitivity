@@ -14,6 +14,30 @@ Each archive deposit pins the supporting repository to a specific commit/tag.
 
 ## [Unreleased]
 
+### Added
+- **Five headline figures embedded for the pre-arXiv review round (prompted by a
+  draft-review request; reviewers noted figure references with no figures in the
+  draft).** Author-selected the subset that most improves the paper; embedded via
+  Quarto `@fig-` cross-references (auto-numbered Figures 1–5, document order):
+  Figure 1 §4.3 `fig-alpha-recovery` — α true-vs-estimated recovery scatter +
+  per-replicate 90% CIs, `m_0` (`figures/fig_m0_alpha_recovery.pdf`); Figure 2
+  §6.4 `fig-matched` — matched-design A/B/C α/δ CI + RMSE
+  (`figures/report14_rerun_matched.png`); Figure 3 §6.5 `fig-sbc-ecdf` — δ ECDF
+  comparison (`m_0` and `m_1`) with 95% KS band, marginal-SBC demarcation
+  (`figures/fig_sbc_delta_ecdf.pdf`); Figure 4 §7.5.2 `fig-mde-power` —
+  Claude-null MDE/power curve (`figures/report16_mde_power_curve.png`); Figure 5
+  §7.5.5 `fig-forest` — 2×2 per-cell global-slope forest, companion to
+  @tbl-2x2 (`figures/report_2x2_forest.png`). The two SVG-only foundational
+  figures (§4.3, §6.5) were converted from the report freeze SVGs to PDF with
+  `rsvg-convert` (librsvg 2.62.3). §4.4 keeps the `m_0` SBC result in prose (no
+  clean `m_0`-only artifact); the embedded δ ECDF at §6.5 carries the marginal-SBC
+  demarcation for both models. Prose updated to introduce each figure by
+  cross-reference; the two Appendix E figure-manifest SBC rows consolidated into
+  one δ ECDF row and `figure_manifest.md` reconciled to match. Renders clean
+  (quarto 3-pass, 0 undefined refs/cites, all five Figure 1–5 and Table 4
+  cross-references resolved; 55 pp). No numeric changes; `claims_ledger.md`
+  untouched.
+
 ### Changed
 - **Clarity/exposition pass (prompted by a draft-review request): 24 targeted
   expositional additions across §§1–7 plus two reader aids; no numeric changes.**

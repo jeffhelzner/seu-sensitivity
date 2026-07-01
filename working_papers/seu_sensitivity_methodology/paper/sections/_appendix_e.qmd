@@ -60,8 +60,8 @@ source and will be recorded alongside the archival deposit.)
 
 Each headline figure and table maps to a script, a config, and a seed, so it is
 reproducible in isolation. Every entry is *computed* --- its numbers are
-finalized from a completed run. The foundational-report figures (§4.3, §4.4,
-§6.5) carry their canonical design inline rather than through a committed JSON
+finalized from a completed run. The foundational-report figures (§4.3 recovery
+and §6.5 SBC) carry their canonical design inline rather than through a committed JSON
 config: the methodological reports
 ([`04_parameter_recovery.qmd`](reports/foundations/04_parameter_recovery.qmd),
 [`06_sbc_validation.qmd`](reports/foundations/06_sbc_validation.qmd)) fix the
@@ -80,9 +80,8 @@ pinned source for these three plots.
 | Tab (§7.5.5) | 7.5 | $2\times2$ per-cell global-slope posteriors (C9–C13) | `analysis/model_estimation.py` | `applications/*/configs/` | per-cell (see cell data) | computed |
 | Fig (§7.5.5) | 7.5.5 | $2\times2$ forest plot of the per-cell global-slope posteriors (companion to @tbl-2x2) | `spikes/report_2x2_forest_spike.py` | canonical cell summaries (C9/C10/C12/C13) | deterministic (no RNG) | computed |
 | Fig 7.5.2 | 7.5.2 / 7.6.1 | Claude-null MDE power curve; MDE $\approx 36$ marker (C16) | `spikes/report16_mde_spike.py` | inline (data `alpha_draws_T*.npz`) | 20260618 | computed |
-| Fig (§4.3) | 4.3.2 | $\alpha$ true-vs-estimated recovery scatter (`m_0`) | `analysis/parameter_recovery.py` | inline (`m_0`: $M25$ $K3$ $D5$ $R15$; 50 iters, 4 chains $\times$ 1000) | design np $42$; $12345+i$ sim / $54321+i$ fit (D.2) | computed |
-| Fig (§4.4) | 4.4 | `m_0` SBC rank histograms + ECDF/KS | `analysis/sbc.py` | inline (`m_0`: $M25$ $K3$ $D5$ $R15$; $N_{\mathrm{sbc}}999$ thin4 1 chain) | design np $42$; $123+i$ per draw (D.3) | computed |
-| Fig (§6.5) | 6.5 | `m_1` SBC rank histograms + ECDF/KS | `analysis/sbc.py` | inline (`m_1`: $M25$ $N25$ $K3$ $D5$ $R15$ $S15$; $N_{\mathrm{sbc}}999$ thin4 1 chain) | design np $42$; $123+i$ per draw (D.3) | computed |
+| Fig (§4.3) | 4.3.2 | $\alpha$ true-vs-estimated recovery scatter + per-replicate 90% CIs (`m_0`) | `analysis/parameter_recovery.py` | inline (`m_0`: $M25$ $K3$ $D5$ $R15$; 50 iters, 4 chains $\times$ 1000) | design np $42$; $12345+i$ sim / $54321+i$ fit (D.2) | computed |
+| Fig (§6.5) | 6.5 | $\delta$ ECDF comparison (`m_0` and `m_1`) with 95% KS band --- marginal-SBC demarcation | `analysis/sbc.py` | inline (`m_0` and `m_1` canonical SBC designs; $N_{\mathrm{sbc}}999$ thin4 1 chain) | design np $42$; $123+i$ per draw (D.3) | computed |
 
 : Per-figure manifest: each headline figure or table mapped to its script, config, and seed. {#tbl-manifest tbl-colwidths="[7,4,18,22,24,16,9]"}
 

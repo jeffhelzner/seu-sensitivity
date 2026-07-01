@@ -179,6 +179,10 @@ quantity, not type. Phenomena (i) and (ii) are distinct.
 
 : The matched-design contrast. All percentages are paired-iteration medians / bootstrap-over-iteration 90% CIs from the $n = 100$ study (10\,000 resamples). {#tbl-matched}
 
+@fig-matched summarizes the three matched conditions visually.
+
+![The matched-design comparison (conditions A: $M=25$; B: $M=50$, `m_0`; C: $M=25$, $N=25$, `m_1`), $n = 100$ replicates. Left and centre: per-replicate 90% credible-interval widths for $\alpha$ and $\delta$ at the matched conditions B versus C, against the identity line. Right: RMSE for $\alpha$ and $\delta$ relative to condition B. Doubling the uncertain block (A$\to$B) sharpens $\alpha$; swapping in the $\beta$-free risky block at matched count (B$\to$C) does not, and the $\delta$ payoff is negligible.](../figures/report14_rerun_matched.png){#fig-matched width=100%}
+
 ## 6.5 SBC for `m_1` {#sec-m1-sbc .unnumbered}
 
 Rank histograms and ECDF-difference plots for $\alpha$, $\beta$, $\delta$ are
@@ -186,7 +190,11 @@ consistent with uniformity. We do **not** claim an `m_0`$\to$`m_1`
 $\delta$-calibration improvement (e.g., a flatter histogram): marginal SBC is
 uniform for $\delta$ in *both* models, because the relevant $(\beta,\delta)$
 weakness is in the *joint* posterior (the **marginal-SBC demarcation** again,
-§[4.4](#sec-m0-sbc)). The appropriate diagnostic is a joint or projection-based
+§[4.4](#sec-m0-sbc)). @fig-sbc-ecdf makes this concrete for $\delta$: the
+empirical-CDF diagnostic keeps both models inside the same simultaneous band.
+The appropriate diagnostic is a joint or projection-based
 rank statistic (§[8.3](#sec-discussion)). The usual single-chain
 SBC caveats apply: thinning, single-chain Monte-Carlo error, and sample-size
 driven rank-resolution all bound what the histograms can detect.
+
+![Empirical CDF of normalized SBC ranks for $\delta_1$ and $\delta_2$ under `m_0` and `m_1`, with the 95% simultaneous (Kolmogorov--Smirnov) band. Both models stay inside the band, so marginal $\delta$ calibration holds in each --- the marginal-SBC demarcation: marginal rank uniformity coexists with a jointly weakly-informed $(\beta,\delta)$ posterior that marginal SBC cannot resolve.](../figures/fig_sbc_delta_ecdf.pdf){#fig-sbc-ecdf width=95%}

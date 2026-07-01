@@ -80,10 +80,13 @@ evaluate bias ($\approx 0$ ideal), credible-interval coverage ($\approx$ nominal
 90%), and interval width / RMSE as precision measures.
 
 **$\alpha$ recovery.** $\alpha$ recovers with low bias, well-calibrated 90%
-intervals, and useful precision; the headline display is a true-versus-estimated
-scatter with 90% credible intervals. This is the computational counterpart of
-Proposition 3.1: $\alpha$ is identified from $\eta$, and the data supply ample
-curvature to pin it.
+intervals, and useful precision, as @fig-alpha-recovery shows: a
+true-versus-estimated scatter with 90% credible intervals, and per-replicate
+intervals whose empirical coverage matches the nominal 90%. This is the
+computational counterpart of Proposition 3.1: $\alpha$ is identified from $\eta$,
+and the data supply ample curvature to pin it.
+
+![Parameter recovery for $\alpha$ under `m_0` on the canonical design (50 recovery replicates). Left: posterior-mean $\alpha$ against the true value with the identity line; bias and RMSE are small (annotated in-panel). Right: per-replicate 90% credible intervals against the true value, with empirical coverage at the nominal 90%.](../figures/fig_m0_alpha_recovery.pdf){#fig-alpha-recovery width=100%}
 
 **$\beta$ and $\delta$ recovery.** By contrast $(\beta, \delta)$ show detectably
 wider intervals and intervals that narrow more slowly with sample size, together

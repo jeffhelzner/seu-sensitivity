@@ -20,8 +20,11 @@ over the available set $\mathcal{A}$.
 *(i)* for any two alternatives $r, s \in \mathcal{A}$ the pairwise log-odds are
 linear in $\alpha$, $\partial_\alpha \log[P(r)/P(s)] = V(r) - V(s)$, so the odds
 move monotonically toward the higher-valued alternative;
-*(ii)* the total probability $P(\mathcal{R}^\ast) = \sum_{r \in \mathcal{R}^\ast}
-P(r)$ on the value-maximizing set is strictly increasing in $\alpha$;
+*(ii)* provided the values $\{V(j)\}_{j \in \mathcal{A}}$ are not all equal, the
+total probability $P(\mathcal{R}^\ast) = \sum_{r \in \mathcal{R}^\ast}
+P(r)$ on the value-maximizing set is strictly increasing in $\alpha$ (if all
+values coincide then $\mathcal{R}^\ast = \mathcal{A}$ and every $P(r)$ is constant
+in $\alpha$);
 *(iii)* each $r \in \mathcal{R}^\ast$ has $P(r)$ strictly increasing in $\alpha$
 and each value-*minimizing* $r$ (with $V(r) = \min_{j} V(j)$) has $P(r)$ strictly
 decreasing. A non-maximal alternative with $V(r) > \mathbb{E}_\alpha[V]$ has

@@ -110,11 +110,13 @@ indicate a systematic shift in one direction across iterations.
 The informative control is A$\to$B: doubling the *uncertain* block alone cuts
 $\alpha$ RMSE by **27.1%** (90% CI $[+15.0, +38.5]$; CI-width paired median
 $+14.0\%$, improved in 78% of iterations). Read together, the two contrasts show
-that $\alpha$ precision at realistic $n$ is driven by data *quantity*, not by the
-*type* of choice: per choice, uncertain choices are at least as informative for
-$\alpha$ as risky ones, so the $\beta$-free risky block confers no special
-per-choice advantage. We draw out the methodological reading in
-§[6.4.4](#sec-m1-lesson).
+that, *in this matched design*, $\alpha$ precision at realistic $n$ tracks data
+*quantity* rather than the *type* of choice: the $\beta$-free risky block confers
+no *detected* per-choice advantage --- the B$\to$C interval straddles zero, so a
+modest risky-block advantage remains compatible with the data --- whereas more
+uncertain choices sharpen $\alpha$ directly. This is a statement about the
+realized, unoptimized design, not a general claim that choice type cannot matter.
+We draw out the methodological reading in §[6.4.4](#sec-m1-lesson).
 
 ::: {.callout-note appearance="simple"}
 **Conditional on the single-$\alpha$ assumption.** Comparing $\alpha$ precision
@@ -166,13 +168,15 @@ $\beta$-free risky block; at $n = 100$ there is no such advantage (B$\to$C null)
 What sharpens $\alpha$ is simply *more data of the same kind* (A$\to$B: a $27.1\%$
 RMSE *reduction*). The correct lesson is *not* "a special structure sharpens an
 already-identified parameter"; it is that **in-principle identifiability tells
-you nothing about where finite-$n$ precision comes from** --- here it comes from
-quantity, not type. Phenomena (i) and (ii) are distinct.
+you nothing about where finite-$n$ precision comes from** --- here, *in this
+design*, it comes from quantity, not type (the matched contrast detects no
+risky-block advantage but does not rule out a smaller one). Phenomena (i) and (ii)
+are distinct.
 
 | | $\delta$ in `m_1` | $\alpha$ in `m_1` |
 | --- | --- | --- |
-| Identifiable in `m_0`? | yes (jointly weak) | yes |
-| What §5 promises | becomes identifiable via the $\beta$-free risky block | already identified |
+| Identifiable in `m_0`? | yes, but jointly weakly informed | yes |
+| What §5 promises | a $\beta$-free identification route that sharpens $\bm{\upsilon}$ | already identified |
 | Matched-count payoff (B$\to$C) | CI-width $+0.8\%$ $[0.6, 1.2]$; RMSE null | none: $-8.1\%$ $[-22.0, +6.8]$ |
 | Where finite-$n$ precision comes from | not realized at design $n$ | data *quantity* (A$\to$B: $+27.1\%$ RMSE reduction $[+15.0, +38.5]$), not choice *type* |
 | Phenomenon | identifiability $\neq$ precise estimability at realistic $n$ | in-principle identification $\neq$ finite-$n$ gain; precision tracks quantity, not type |

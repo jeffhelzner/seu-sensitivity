@@ -37,8 +37,9 @@ violations documented by Kahneman and Tversky [@kahneman1979; @tversky1992]: do
 they reveal failures of *performance* by agents committed to SEU, or an *absence
 of commitment* to SEU as a standard? Our framework does not settle that
 question, but it does make it tractable: *under the assumption* that the agent is
-committed to SEU, $\alpha$ is an estimate of the strength of that commitment ---
-the agent's disposition to fulfil it.
+committed to SEU, $\alpha$ estimates how *reliably the agent's choices conform*
+to that commitment --- its performance in acting on the SEU ranking, not the
+strength of the commitment itself.
 
 ## 8.2 The methodological role of identifiability analysis {#sec-disc-identifiability .unnumbered}
 
@@ -138,8 +139,8 @@ scale while leaving the $(\beta, \delta)$ trade-off broad (§[3.4](#sec-bd-weak)
 --- not a structural guarantee read off the conditional proposition. The
 §[7](#sec-application) application instantiates the claim: the cross-condition
 comparison is a claim about $\alpha$, $\alpha$ is sharply and calibratedly
-recovered in `m_0` / `m_01`, and the weak identifiability of $(\beta, \delta)$
-does not undermine that comparison.
+recovered in `m_0` and the calibrated-prior variants `m_01`/`m_02`, and the weak
+*informativeness* of $(\beta, \delta)$ does not undermine that comparison.
 
 ::: {.callout-note appearance="simple"}
 **Interpretive caveat (model-conditional reading of $\alpha$).** A low recovered
@@ -209,10 +210,14 @@ independently at each temperature), fitting `m_01` independently per condition
 leaves two things on the table --- partial pooling of information across
 conditions (generalization beyond the realized pool) and an explicit
 pool-by-temperature interaction. Modelling
-$\log \alpha_c = \gamma_0 + \gamma_1 T_c + \eta_c$ turns between-condition
-contrasts into estimated regression effects on $\log \alpha$ and lets the shared
-pool be modelled as a common random effect rather than ignored. `h_m01` will be
-the analysis vehicle of a planned alignment-study companion paper and is out of
+$\log \alpha_c = \gamma_0 + \gamma_1 T_c + \eta_c$ with condition-level effects
+$\eta_c$ partially pools the five temperature conditions and turns
+between-condition contrasts into estimated regression effects on $\log \alpha$.
+Because a *single* pool is reused across all conditions, however, `h_m01` still
+cannot separate a pool *main* effect (confounded with the intercept $\gamma_0$)
+or a pool-by-temperature interaction (absorbed into the slope $\gamma_1$); doing
+so requires several distinct pools. That multi-pool generalization is the
+analysis vehicle of a planned alignment-study companion paper and is out of
 scope here.
 
 **Further application studies.** A tier-stratified Ellsberg analysis, a non-SEU

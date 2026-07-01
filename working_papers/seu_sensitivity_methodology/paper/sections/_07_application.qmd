@@ -39,7 +39,7 @@ headline already holding it.
 $\alpha$ values reported below are parameters of the §[3](#sec-m0-identifiability)
 softmax-over-SEU likelihood, not context-free rationality scores. The
 within-design comparisons of §[7.5](#sec-app-results) --- same model, same prior,
-same features --- are licensed; an $\alpha$ read in isolation is *not* a
+same feature pipeline --- are licensed; an $\alpha$ read in isolation is *not* a
 model-free measure of an agent's rationality. We return to this at
 §[8.4](#sec-disc-alpha).
 :::
@@ -108,18 +108,23 @@ differ only in that $\alpha$ prior.
 
 **Prior calibration anchor.** Why does the $K = 4$ Ellsberg task need a different
 $\alpha$ prior than the $K = 3$ insurance task? Not because random choice differs
---- the menu size is the same --- but because four consequences spread the
-expected-utility values across alternatives more widely, steepening the softmax,
-so a larger $\alpha$ is needed to reach the same prior-implied rate of good
-choice; the calibration below makes this precise. The calibration target is the prior predictive
+--- the menu size is the same --- but because with four consequences a larger
+$\alpha$ is empirically required to reach the same prior-implied rate of good
+choice; the calibration below determines it directly rather than from a
+closed-form softmax argument. The calibration target is the prior predictive
 SEU-maximizer selection rate --- the fraction of prior-simulated agents that pick
 the EU-maximal available alternative, obtained by drawing choice problems from the
-design and parameters from the prior and tabulating the outcome. The foundational
-$\mathrm{Lognormal}(0,1)$ prior of §[4.1](#sec-m0-spec) places excessive mass on near-random
-regimes and, at the application's $R$ and $K$, on tails that cause softmax
-overflow (extremely large $\alpha$ makes $\exp(\alpha\eta)$ numerically unstable,
-corrupting the likelihood) under the study design. A grid search over twelve Lognormal
-hyperparameter pairs selects $\mathrm{Lognormal}(3.0, 0.75)$ for the insurance
+design and parameters from the prior and tabulating the outcome. At the application's $R$ and $K$ the foundational $\mathrm{Lognormal}(0,1)$ prior of
+§[4.1](#sec-m0-spec) places most of its mass on near-random regimes, so the prior
+predictive concentrates well below plausible SEU-max rates. (Numerical overflow in
+$\exp(\alpha\eta)$ is handled by the softmax implementation and is *not* the reason
+for recalibration --- indeed the calibrated priors place *more* mass at large
+$\alpha$.) The $76$--$78\%$ target places the prior mode in the broad interior
+between chance and determinism: committal enough to leave the near-random regime
+that dominates under $\mathrm{Lognormal}(0,1)$, yet loose enough --- a wide 90%
+prior interval on $\alpha$ --- to let the likelihood move the posterior. A grid
+search over twelve Lognormal hyperparameter pairs scans $(\mu, \sigma)$ to hit this
+interior target, selecting $\mathrm{Lognormal}(3.0, 0.75)$ for the insurance
 task ($K = 3$): median $\alpha \approx 20$, 90% interval $\approx [5.5, 67]$,
 implied SEU-max rate $\approx 78\%$. For the Ellsberg task ($K = 4$) the prior is
 *re-recalibrated* by the same procedure, selecting $\mathrm{Lognormal}(3.5, 0.75)$
@@ -128,10 +133,11 @@ $\approx 76\%$). The recalibration is needed not because the random-choice
 baseline changes --- that baseline is set by the menu size, not the consequence
 count $K$, and the menu size $N_m \in \{2, 3, 4\}$ is identical across the two
 tasks, so a uniform-random chooser selects the SEU-maximizer with the same
-$1/N_m$ probability either way --- but because the larger consequence space
-($K = 4$) changes the
-spread of expected utilities across alternatives, and hence the softmax curvature,
-so a higher $\alpha$ is required to reach the same prior-implied SEU-max rate.
+$1/N_m$ probability either way --- but because the larger consequence space ($K = 4$) changes the distribution of
+expected-utility contrasts across alternatives, so the same grid search selects a
+higher $\alpha$ to reach the same prior-implied SEU-max rate --- a direction we
+read off the calibration empirically rather than from a closed-form softmax
+argument.
 
 ::: {.callout-note appearance="simple"}
 **Only the prior is recalibrated, not the likelihood.** The $\alpha$-identifiability
@@ -193,8 +199,9 @@ total), though spread across 12/20 fits in both tasks and both providers rather
 than confined to the highest GPT-4o temperatures. $\hat{R} > 1.01$ appears in
 4/20 fits as marginal exceedances on a minority of high-dimensional components,
 **confined to the weakly-informed nuisance parameters** --- $\beta$, $\delta$, and
-the global length-$K$ utility vector $\upsilon$ (pinned only up to the
-§[3](#sec-m0-identifiability) gauge) --- together with the per-trial latents
+the global length-$K$ utility vector $\upsilon$ (whose scale is fixed by the
+endpoint convention but whose interior levels are only weakly informed, tracking
+$\delta$) --- together with the per-trial latents
 $\eta$ and $\psi$ in the harder $K = 4$ GPT-4o $\times$ Ellsberg fits (plus one
 Claude $\times$ insurance fit, $\eta$ only). This *corroborates* the §[3.4](#sec-bd-weak)/§[6.4](#sec-m1-recovery)
 weakly-informed $(\beta,\delta)$ finding --- the poorly-mixing parameters are
@@ -290,8 +297,12 @@ $[38.2, 84.1]$ / $[52.3, 135.3]$ / $[36.0, 80.5]$ / $[45.3, 99.8]$) --- the
 medians oscillate rather than decline; global slope $\Delta\alpha/\Delta T$ median
 $-18.8$, 90% CI $[-65.3, 24.5]$, $P(\text{slope} < 0) \, 0.766$;
 $P(\text{strict monotone} \downarrow) \, 0.0085$. As with Claude $\times$
-insurance, this is *does not detect*, not *establishes absence* (cf.\ the
-§[7.5.2](#sec-app-claude-insurance) MDE discipline).
+insurance, this is *does not detect*, not *establishes absence*. We do not
+transfer the insurance minimum-detectable-effect number here --- the Ellsberg cell
+differs in $K$, in the $\alpha$ prior, and in its wider per-condition posteriors
+--- so we read this cell as an inconclusive null on its own diagnostics
+(oscillating, non-monotone medians and a slope CI spanning zero), the narrower
+claim the resolution discipline of §[7.5.2](#sec-app-claude-insurance) licenses.
 
 ### 7.5.5 The $2\times2$ reading {#sec-app-2x2 .unnumbered}
 
@@ -304,7 +315,7 @@ insurance, this is *does not detect*, not *establishes absence* (cf.\ the
 $P(\text{slope}<0)$). GPT-4o shows the temperature--$\alpha$ decline in both task
 families; Claude shows it in neither. {#tbl-2x2}
 
-In this $2\times2$, the LLM $\times$ task factorial isolates a clean **LLM
+In this $2\times2$, the LLM $\times$ task factorial points to an **LLM
 effect**: GPT-4o exhibits the temperature--$\alpha$ relationship across both task
 families, Claude exhibits it in neither. *In this $2\times2$,* task family does not
 appear to be the relevant axis; the LLM does. With only two task families and two
@@ -398,7 +409,15 @@ the workflow recovers a well-calibrated $\alpha$ for a realistic end-to-end
 system --- but it means that a within-cell change in $\alpha$ cannot, by itself, be
 attributed to any one stage. The GPT-4o monotonicity is thus consistent with
 temperature affecting (i) the assessment stage, (ii) the choice stage, or
-(iii) both.
+(iii) both. A further caveat concerns the feature geometry itself: the
+belief-feature vectors $w_r$ are produced by `text-embedding-3-small` for *both*
+providers, so Claude's choices are read through an external embedding space that
+need not preserve the distinctions driving its selections. A within-cell change
+in $\alpha$ could therefore reflect the assessment stage, the choice stage, or
+upstream embedding/PCA mismatch. Fixed-feature and alternative-embedding
+robustness checks --- holding features constant across temperature, or
+re-embedding with a provider-matched model --- are the natural way to separate
+these, and we leave them to future work.
 
 The Ellsberg cell does *not* remove the assessment layer. It applies the *same*
 assess--embed--choose construction to a different decision domain ($K = 4$ monetary
@@ -416,6 +435,32 @@ The two cells together show that the effect travels across domains; isolating it
 locus within the pipeline would require dedicated stage-ablation designs
 (assessment-only versus choice-only manipulations) that lie beyond this paper's
 scope.
+
+### 7.6.6 The cross-condition findings are robust to the $\alpha$ prior {#sec-app-prior-sensitivity .unnumbered}
+
+Because each cell's headline object is a report-level temperature-slope of a
+parameter carrying an informative, prior-predictive-calibrated prior
+(§[7.3](#sec-app-model)), it is fair to ask whether the slope findings are an
+artifact of that prior. They are not. We re-estimated every condition of all four
+cells under three alternative $\alpha$ priors --- shifting the lognormal location
+by $\pm 0.5$ ($\mathrm{Lognormal}(\mu_{\text{base}} \mp 0.5,\, 0.75)$) and widening
+the scale to $\mathrm{Lognormal}(\mu_{\text{base}},\, 1.25)$ --- holding the choice
+data and the feature matrices fixed (the committed per-condition Stan data), and
+recomputing each cell's slope and $P(\text{slope} < 0)$ with the same draw-wise
+population-OLS functional. Across all four priors the qualitative reading of every
+cell is unchanged (@fig-prior-sensitivity): both GPT-4o cells retain a clearly
+negative slope --- insurance median in $[-30.7, -22.6]$ with
+$P(\text{slope}<0) \in [0.987, 0.991]$, Ellsberg median in $[-44.8, -36.8]$ with
+$P(\text{slope}<0) \in [0.984, 0.994]$ --- while both Claude cells remain
+inconclusive nulls, insurance median in $[-4.2, -2.7]$ with
+$P(\text{slope}<0) \in [0.55, 0.58]$ and Ellsberg median in $[-17.0, -14.0]$ with
+$P(\text{slope}<0) \in [0.75, 0.77]$. The wider-prior variant moves the slope
+magnitudes the most, as expected, but never flips a sign or crosses a resolution
+threshold. The prior calibrates the *scale* on which $\alpha$ is read; it does not
+manufacture the cross-condition contrasts. (Sweep code:
+`spikes/report_prior_sensitivity_spike.py`; claims-ledger row C17.)
+
+![Prior sensitivity of the report-level temperature-slope $\Delta\alpha/\Delta T$ for each of the four cells. Each panel shows the slope posterior median and 90% credible interval under the calibrated baseline prior and three alternatives (location shifted by $\pm 0.5$; scale widened to $1.25$), with $P(\text{slope}<0)$ annotated. The two GPT-4o cells remain clearly negative and the two Claude cells remain inconclusive nulls under every prior: the qualitative conclusions do not depend on the $\alpha$ prior.](../figures/report_prior_sensitivity_forest.png){#fig-prior-sensitivity width=100%}
 
 ## 7.7 What the application motivates for follow-up work {#sec-app-followup .unnumbered}
 

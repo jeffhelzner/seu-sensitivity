@@ -249,18 +249,19 @@ that fixes the utility scale, $\alpha$ is read off the curvature of choice
 probabilities in $\eta$, while beliefs and utilities enter only *through* $\eta$
 and trade off against each other in a way that uncertain-choice data barely
 resolve.
-*In plain terms:* the alignment number $\alpha$ can be recovered from choice
-data, but the agent's underlying beliefs and utilities often cannot be told apart
-from one another by that same data.
+*In plain terms:* under a given design and prior, the alignment number $\alpha$
+can be recovered from choice data, but the agent's underlying beliefs and
+utilities often cannot be told apart from one another by that same data.
 
 **(c) A worked demonstration that in-principle identifiability does not predict
 finite-sample estimability.** The `m_0`/`m_1` contrast makes the gap concrete in
 two distinct ways. For the utility parameter $\delta$, adding the risky block
-makes it identifiable in principle (§[5.5](#sec-delta-id)) yet buys almost no
-precision at the design sample size --- a matched-count credible-interval-width
-reduction under 1% (§[6.4](#sec-m1-recovery)). For the sensitivity parameter
-$\alpha$, a matched recovery study shows that finite-sample precision is governed
-by data *quantity*, not by the *type* of choice that an in-principle argument
+supplies a $\beta$-free route that secures its identifiability in principle
+(§[5.5](#sec-delta-id)) yet buys almost no precision at the design sample size ---
+a matched-count credible-interval-width reduction under 1%
+(§[6.4](#sec-m1-recovery)). For the sensitivity parameter $\alpha$, a matched
+recovery study shows that finite-sample precision, *in this design*, is governed
+by data *quantity* rather than the *type* of choice that an in-principle argument
 might privilege.
 *In plain terms:* a quantity that is recoverable in theory may still not be
 recoverable from a realistic amount of data.

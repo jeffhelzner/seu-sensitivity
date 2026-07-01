@@ -88,9 +88,11 @@ $c_s := \alpha\,(\pi_s - \pi_1)^\top \bm{\upsilon}$ for every lottery $s$ sharin
 a menu with a common reference $\pi_1$, and --- chaining across the connected
 menu-contrast graph --- for all $s = 2, \dots, S$. We do *not* invoke
 Proposition B.1 here: $\alpha$ and $\bm{\upsilon}$ are identified jointly, as
-follows. Ratios $c_s / c_{s'}$ cancel the unknown $\alpha > 0$ and identify the
-linear functionals $(\pi_s - \pi_1)^\top \bm{\upsilon}$ up to one common positive
-scale. Because the differences $\{\pi_s - \pi_1\}$ span the $(K-1)$-dimensional
+follows. Because $\alpha > 0$, the identified vector
+$c = \big(\alpha\,(\pi_s - \pi_1)^\top \bm{\upsilon}\big)_{s}$ determines the
+linear functionals $(\pi_s - \pi_1)^\top \bm{\upsilon}$ up to the single common
+positive factor $\alpha$ --- no ratios are needed (and ratios would discard sign
+information and be undefined wherever a denominator vanishes). Because the differences $\{\pi_s - \pi_1\}$ span the $(K-1)$-dimensional
 tangent space, these functionals determine $\bm{\upsilon}$ up to a positive
 affine transformation; the endpoint convention $\upsilon_1 = 0$, $\upsilon_K = 1$
 fixes that transformation, so $\bm{\upsilon}$ is identified uniquely. Finally
@@ -140,3 +142,13 @@ observationally indistinguishable. Point identification of $\beta$ would require
 the composite map to be injective modulo the gauge under the design, an
 additional rank condition the scalar expected utilities do not supply.
 $\qquad\blacksquare$
+
+*Remark (what is and is not claimed).* The proposition asserts non-identification
+of $\beta$ *from the uncertain choices under the stated design*, not a structural
+impossibility. A sufficiently rich feature design could in principle make the
+composite map $\beta \mapsto (\eta_r)_r$ injective modulo the gauge, restoring
+point identification. Nor do crude dimension counts settle the matter: a nominal
+inequality such as $R \geq (K-1)D$ is necessary but not sufficient, since it
+ignores the rank of the induced Jacobian. The narrow claim we rely on is that
+each uncertain choice supplies only the *scalar* $\eta_r$, so absent an explicit
+rank/Jacobian condition $\beta$ is not recovered.

@@ -91,8 +91,10 @@ all replicates.)
 ## D.4 The matched-design comparison (conditions A/B/C/D) {#sec-d4 .unnumbered}
 
 The matched study underlying §[6.4](#sec-m1-recovery) (claims C1–C3) is **not** a
-$\delta$-optimal design study; it is a controlled slicing of one fixed design.
-Each of $n = 100$ iterations proceeds as:
+$\delta$-optimal design study; it is a controlled *within-iteration* slicing.
+Within each iteration all four conditions share one freshly simulated design and
+one parameter draw (so the conditions are matched), but the design is *not* held
+fixed across iterations. Each of $n = 100$ iterations proceeds as:
 
 1. generate a fresh study design *externally* --- the feature draws $w$ and the
    lottery menus, which enter the simulator as data ($w, I, x, J$; Appendix C.4),
@@ -136,7 +138,7 @@ model `m_01` (Appendix C.5) at a larger scale. Per LLM $\times$ task cell:
 | Choices per temperature condition | 300 | 300 |
 | Temperature conditions per cell | 5 | 5 |
 | Alternatives per pool $R$ | 30 | 30 |
-| Belief-feature dimension $D$ | 32 (PCA) | --- (objective urns) |
+| Belief-feature dimension $D$ | 32 (PCA) | 32 (PCA) |
 | Parameter-recovery iterations | 20 | 20 |
 
 **Temperature grids** differ by provider: GPT-4o uses $T \in \{0.0, 0.3, 0.7,

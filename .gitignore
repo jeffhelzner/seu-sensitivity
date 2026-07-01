@@ -105,6 +105,7 @@ models/m_21_sbc
 models/m_31_sim
 models/m_31
 models/m_31_sbc
+models/m_0_prior_sweep
 
 .env
 
@@ -120,6 +121,11 @@ reports/**/.jupyter_cache/
 # Reports legacy data (keep source .qmd files)
 reports/*.csv 
 reports/*.json  
+
+# Prior-sensitivity sweep: regenerable MCMC draw caches (rebuilt by
+# working_papers/seu_sensitivity_methodology/spikes/report_prior_sensitivity_spike.py
+# from the committed stan_data_T*.json). The analysis output JSON is kept.
+reports/applications/*/data/prior_sweep/
 
 reports/applications/prompt_framing_study/data/pilot_study_1/*/*.csv
 

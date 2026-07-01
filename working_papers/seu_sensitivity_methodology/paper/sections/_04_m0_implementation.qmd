@@ -66,8 +66,10 @@ per-dataset **SEU-maximizer rate**: the fraction of choices that select the
 expected-utility-maximal available alternative under the simulated parameters.
 Drawing $(\alpha, \beta, \delta)$ from the prior, simulating data via
 `m_0_sim.stan`, and tabulating this rate shows its prior-predictive distribution
-covering the full range from near-uniform choice (rate $\approx 1/\bar N$, the
-chance baseline) to near-deterministic SEU maximization (rate $\approx 1$). The
+covering the full range from near-uniform choice (rate
+$\approx M^{-1}\sum_m 1/N_m$, the chance baseline --- equal to $1/\bar N$ only
+when menu sizes are equal) to near-deterministic SEU maximization
+(rate $\approx 1$). The
 $\mathrm{Lognormal}(0,1)$ prior on $\alpha$ places substantial mass at both low
 (near-random) and high (near-deterministic) sensitivities, so neither regime is
 ruled out a priori.
@@ -83,8 +85,11 @@ evaluate bias ($\approx 0$ ideal), credible-interval coverage ($\approx$ nominal
 intervals, and useful precision, as @fig-alpha-recovery shows: a
 true-versus-estimated scatter with 90% credible intervals, and per-replicate
 intervals whose empirical coverage matches the nominal 90%. This is the
-computational counterpart of Proposition 3.1: $\alpha$ is identified from $\eta$,
-and the data supply ample curvature to pin it.
+computational counterpart of Proposition 3.1 --- which identifies $\alpha$ *given*
+$\eta$ --- made empirical: under this design and prior the data supply enough
+curvature to pin $\alpha$, with intervals widening somewhat in the large-$\alpha$
+regime. The clean recovery is thus a design- and prior-dependent fact, not a
+corollary of the proposition alone.
 
 ![Parameter recovery for $\alpha$ under `m_0` on the canonical design (50 recovery replicates). Left: posterior-mean $\alpha$ against the true value with the identity line; bias and RMSE are small (annotated in-panel). Right: per-replicate 90% credible intervals against the true value, with empirical coverage at the nominal 90%.](../figures/fig_m0_alpha_recovery.pdf){#fig-alpha-recovery width=100%}
 

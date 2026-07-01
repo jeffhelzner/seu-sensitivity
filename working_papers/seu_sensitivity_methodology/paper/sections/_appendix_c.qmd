@@ -31,7 +31,11 @@ data{
   int<lower=2> R; // the number of distinct alternatives
   array[R] vector[D] w; // the descriptions of each distinct alternative
   array[M,R] int<lower=0,upper=1> I; // I[m,r] = 1 if alternative r is in problem m
-  array[M] int<lower=1> y; // selected alternative (bounds checked in transformed data)
+  array[M] int<lower=1> y; // selected alternative, as a LOCAL index into problem m's
+                           // menu: y[m] in 1..N[m] gives the position (in ascending
+                           // global-r order, matching the compacted x rows) of the
+                           // chosen alternative, NOT a global index in 1..R
+                           // (bounds checked in transformed data)
 }
 transformed data {
   array[M] int<lower=2> N; // the number of alternatives in each decision problem
@@ -267,8 +271,9 @@ generated quantities {
   array[M] int y_pred; array[N] int z_pred;
   for (m in 1:M) y_pred[m] = categorical_rng(chi_uncertain[m]);
   for (n in 1:N) z_pred[n] = categorical_rng(chi_risky[n]);
-  // Block-wise and combined PPC statistics (ppc_ll / ppc_modal / ppc_prob,
-  // built exactly as in m_0.stan for each block) are computed here.
+  // Block-wise and combined PPC statistics (ppc_ll / ppc_modal / ppc_prob) are
+  // omitted here for brevity; they are built exactly as in m_0.stan (C.1),
+  // separately for the uncertain and risky blocks and for the pooled data.
 }
 ```
 

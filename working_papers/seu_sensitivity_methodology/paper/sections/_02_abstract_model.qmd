@@ -50,9 +50,12 @@ concavity in $\alpha$ together with the value parameters, because $\alpha V$ is
 bilinear in the two.) These are two distinct virtues, and we keep them apart: the
 log-odds linearity and single-scalar limit structure above make $\alpha$
 *interpretable*, while the concavity is what makes it *well-behaved to estimate*.
-Probit, by contrast, replaces the Luce ratio with Gaussian latent errors and so
-offers neither a closed-form IIA/log-odds structure nor a single sensitivity
-scalar carrying these two limit properties [@train2009].
+Probit, by contrast, replaces the Luce ratio with Gaussian latent errors: a
+probit scale parameter carries the same two limits (uniform choice as it grows,
+deterministic optimization as it vanishes), but probit offers no closed-form
+IIA/log-odds structure and no comparably tractable single-scalar link, so it is
+the softmax's closed-form log-odds linearity that singles it out here
+[@train2009].
 
 ## 2.3 Three characterizing properties of softmax {#sec-three-properties .unnumbered}
 
@@ -73,10 +76,12 @@ $$
   = V(r) - V(s),
 $$
 so the odds always shift monotonically toward the higher-valued alternative as
-$\alpha$ increases. Consequently the *total* probability on the value-maximizing
-set $\mathcal{R}^\ast_m$ is strictly increasing in $\alpha$; in particular a
-single value-maximizing alternative ($r \in \mathcal{R}^\ast_m$) gains and a
-value-minimizing alternative loses probability. One subtlety is worth flagging:
+$\alpha$ increases. Consequently, *provided the available values are not all
+equal*, the *total* probability on the value-maximizing set $\mathcal{R}^\ast_m$
+is strictly increasing in $\alpha$; in particular a single value-maximizing
+alternative ($r \in \mathcal{R}^\ast_m$) gains and a value-minimizing alternative
+loses probability. (If all available values coincide, every alternative is
+value-maximizing and all choice probabilities are constant in $\alpha$.) One subtlety is worth flagging:
 while the *total* probability on the value-maximizing set rises monotonically, an
 individual *non-maximal* alternative need not. If its value exceeds the current
 choice-weighted mean --- the average of the available values weighted by their
@@ -177,8 +182,9 @@ $$
 0 = \upsilon_1 \leq \upsilon_2 \leq \cdots \leq \upsilon_K = 1
 $$
 fixes the zero and unit of the utility scale, removing this affine
-indeterminacy and making $\alpha$ identifiable as sensitivity on a standardized
-one-unit utility scale.
+indeterminacy and making $\alpha$ a well-posed sensitivity target on a
+standardized one-unit utility scale; its identifiability additionally requires
+nonconstant expected utilities on some menu (§[3.3](#sec-alpha-from-eta)).
 :::
 
 ::: {.callout-important appearance="simple"}

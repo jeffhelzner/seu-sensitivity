@@ -1,0 +1,392 @@
+{
+  "model": "models/m_0_prior_sweep.stan",
+  "base_sigma": 0.75,
+  "sampler": {
+    "chains": 4,
+    "warmup": 500,
+    "sampling": 500,
+    "base_seed": 20260701
+  },
+  "cells": {
+    "gpt4o_insurance": {
+      "label": "GPT-4o x Insurance",
+      "ledger": "C9",
+      "temps": [
+        0.0,
+        0.3,
+        0.7,
+        1.0,
+        1.5
+      ],
+      "base_mu": 3.0,
+      "priors": {
+        "baseline": {
+          "per_condition_alpha_median": [
+            74.0776505,
+            54.862015,
+            56.3213925,
+            39.084129,
+            36.047354999999996
+          ],
+          "slope_median": -24.62648514492752,
+          "slope_mean": -26.250669273097817,
+          "slope_sd": 14.111198402773248,
+          "slope_ci_low": -52.42053836956519,
+          "slope_ci_high": -6.677534025362312,
+          "p_slope_negative": 0.9905,
+          "n_draws": 4000,
+          "mu": 3.0,
+          "sigma": 0.75,
+          "source": "committed"
+        },
+        "down": {
+          "per_condition_alpha_median": [
+            69.7250985,
+            52.4715625,
+            53.747652,
+            37.393015500000004,
+            34.981945499999995
+          ],
+          "slope_median": -22.59901489130434,
+          "slope_mean": -23.839928347898542,
+          "slope_sd": 12.347924505507123,
+          "slope_ci_low": -45.18799435869563,
+          "slope_ci_high": -6.025505094202888,
+          "p_slope_negative": 0.987,
+          "n_draws": 2000,
+          "mu": 2.5,
+          "sigma": 0.75,
+          "source": "refit"
+        },
+        "up": {
+          "per_condition_alpha_median": [
+            80.82271850000001,
+            57.715967,
+            58.789617,
+            41.216477,
+            37.419285
+          ],
+          "slope_median": -27.316906413043462,
+          "slope_mean": -28.67692070326086,
+          "slope_sd": 14.625486882899015,
+          "slope_ci_low": -54.98118791666664,
+          "slope_ci_high": -6.735071496376801,
+          "p_slope_negative": 0.9905,
+          "n_draws": 2000,
+          "mu": 3.5,
+          "sigma": 0.75,
+          "source": "refit"
+        },
+        "wide": {
+          "per_condition_alpha_median": [
+            86.92996,
+            59.706160999999994,
+            61.478426,
+            40.5350555,
+            37.4575955
+          ],
+          "slope_median": -30.72405311594202,
+          "slope_mean": -32.061130638478254,
+          "slope_sd": 15.911253392916036,
+          "slope_ci_low": -59.46627276086954,
+          "slope_ci_high": -8.794999579710138,
+          "p_slope_negative": 0.991,
+          "n_draws": 2000,
+          "mu": 3.0,
+          "sigma": 1.25,
+          "source": "refit"
+        }
+      },
+      "slope_sign_stable": true,
+      "p_slope_negative_range": [
+        0.987,
+        0.991
+      ]
+    },
+    "gpt4o_ellsberg": {
+      "label": "GPT-4o x Ellsberg",
+      "ledger": "C12",
+      "temps": [
+        0.0,
+        0.3,
+        0.7,
+        1.0,
+        1.5
+      ],
+      "base_mu": 3.5,
+      "priors": {
+        "baseline": {
+          "per_condition_alpha_median": [
+            110.369925,
+            106.899915,
+            99.45683149999999,
+            84.046989,
+            52.1680245
+          ],
+          "slope_median": -38.37483873188404,
+          "slope_mean": -39.605724515579695,
+          "slope_sd": 19.495435585830883,
+          "slope_ci_low": -72.12682073913041,
+          "slope_ci_high": -10.007828608695657,
+          "p_slope_negative": 0.984,
+          "n_draws": 4000,
+          "mu": 3.5,
+          "sigma": 0.75,
+          "source": "committed"
+        },
+        "down": {
+          "per_condition_alpha_median": [
+            106.12451999999999,
+            100.210275,
+            93.4365875,
+            80.860055,
+            49.9501725
+          ],
+          "slope_median": -36.768730181159405,
+          "slope_mean": -37.570649254384044,
+          "slope_sd": 17.918675161179287,
+          "slope_ci_low": -68.50169319927535,
+          "slope_ci_high": -9.566858362318836,
+          "p_slope_negative": 0.9895,
+          "n_draws": 2000,
+          "mu": 3.0,
+          "sigma": 0.75,
+          "source": "refit"
+        },
+        "up": {
+          "per_condition_alpha_median": [
+            117.10751,
+            113.63463999999999,
+            105.38866999999999,
+            88.4501865,
+            55.038275999999996
+          ],
+          "slope_median": -41.71488478260868,
+          "slope_mean": -42.58843753293476,
+          "slope_sd": 20.49338246082261,
+          "slope_ci_low": -77.63766578260868,
+          "slope_ci_high": -11.262223282608684,
+          "p_slope_negative": 0.9875,
+          "n_draws": 2000,
+          "mu": 4.0,
+          "sigma": 0.75,
+          "source": "refit"
+        },
+        "wide": {
+          "per_condition_alpha_median": [
+            121.71535,
+            116.79439500000001,
+            110.39336,
+            92.96133499999999,
+            53.9495485
+          ],
+          "slope_median": -44.827389710144914,
+          "slope_mean": -48.38067660753621,
+          "slope_sd": 27.06233124458015,
+          "slope_ci_low": -92.97702934420286,
+          "slope_ci_high": -12.683860311594202,
+          "p_slope_negative": 0.9935,
+          "n_draws": 2000,
+          "mu": 3.5,
+          "sigma": 1.25,
+          "source": "refit"
+        }
+      },
+      "slope_sign_stable": true,
+      "p_slope_negative_range": [
+        0.984,
+        0.9935
+      ]
+    },
+    "claude_insurance": {
+      "label": "Claude x Insurance",
+      "ledger": "C10",
+      "temps": [
+        0.0,
+        0.2,
+        0.5,
+        0.8,
+        1.0
+      ],
+      "base_mu": 3.0,
+      "priors": {
+        "baseline": {
+          "per_condition_alpha_median": [
+            70.5364905,
+            52.557104499999994,
+            73.20288,
+            70.5583975,
+            55.492149999999995
+          ],
+          "slope_median": -2.8943491176470535,
+          "slope_mean": -3.876370380073525,
+          "slope_sd": 22.088570305761223,
+          "slope_ci_low": -42.88951141911764,
+          "slope_ci_high": 30.782346470588237,
+          "p_slope_negative": 0.55975,
+          "n_draws": 4000,
+          "mu": 3.0,
+          "sigma": 0.75,
+          "source": "committed"
+        },
+        "down": {
+          "per_condition_alpha_median": [
+            65.732959,
+            49.869245,
+            67.123797,
+            65.9978255,
+            51.152732
+          ],
+          "slope_median": -2.8496063235294047,
+          "slope_mean": -3.6725891148529373,
+          "slope_sd": 20.085212711040874,
+          "slope_ci_low": -38.4319228235294,
+          "slope_ci_high": 27.86077114705883,
+          "p_slope_negative": 0.5755,
+          "n_draws": 2000,
+          "mu": 2.5,
+          "sigma": 0.75,
+          "source": "refit"
+        },
+        "up": {
+          "per_condition_alpha_median": [
+            75.127994,
+            56.1858015,
+            79.6464315,
+            76.2987825,
+            59.473079999999996
+          ],
+          "slope_median": -2.6700302205882323,
+          "slope_mean": -3.3157378399999953,
+          "slope_sd": 24.5868888823854,
+          "slope_ci_low": -42.61837100000001,
+          "slope_ci_high": 34.82520551470589,
+          "p_slope_negative": 0.548,
+          "n_draws": 2000,
+          "mu": 3.5,
+          "sigma": 0.75,
+          "source": "refit"
+        },
+        "wide": {
+          "per_condition_alpha_median": [
+            81.4487135,
+            56.979389499999996,
+            85.00279950000001,
+            81.4309505,
+            59.6926435
+          ],
+          "slope_median": -4.19298838235294,
+          "slope_mean": -6.262339078014702,
+          "slope_sd": 27.95008361195523,
+          "slope_ci_low": -54.07129902205881,
+          "slope_ci_high": 36.49745933823531,
+          "p_slope_negative": 0.574,
+          "n_draws": 2000,
+          "mu": 3.0,
+          "sigma": 1.25,
+          "source": "refit"
+        }
+      },
+      "slope_sign_stable": true,
+      "p_slope_negative_range": [
+        0.548,
+        0.5755
+      ]
+    },
+    "claude_ellsberg": {
+      "label": "Claude x Ellsberg",
+      "ledger": "C13",
+      "temps": [
+        0.0,
+        0.2,
+        0.5,
+        0.8,
+        1.0
+      ],
+      "base_mu": 3.5,
+      "priors": {
+        "baseline": {
+          "per_condition_alpha_median": [
+            85.39877949999999,
+            56.0838855,
+            82.25922399999999,
+            53.025301999999996,
+            66.449225
+          ],
+          "slope_median": -15.016789411764703,
+          "slope_mean": -15.495402365698526,
+          "slope_sd": 21.93667448247915,
+          "slope_ci_low": -52.238105360294114,
+          "slope_ci_high": 19.59849042647057,
+          "p_slope_negative": 0.766,
+          "n_draws": 4000,
+          "mu": 3.5,
+          "sigma": 0.75,
+          "source": "committed"
+        },
+        "down": {
+          "per_condition_alpha_median": [
+            81.2604265,
+            52.801649,
+            77.1197725,
+            50.745813,
+            62.662431999999995
+          ],
+          "slope_median": -13.966273308823531,
+          "slope_mean": -14.74786420485294,
+          "slope_sd": 20.723606681557506,
+          "slope_ci_low": -49.83121673529411,
+          "slope_ci_high": 18.357828794117648,
+          "p_slope_negative": 0.774,
+          "n_draws": 2000,
+          "mu": 3.0,
+          "sigma": 0.75,
+          "source": "refit"
+        },
+        "up": {
+          "per_condition_alpha_median": [
+            90.14993949999999,
+            59.922426,
+            86.85428350000001,
+            56.787825999999995,
+            70.445547
+          ],
+          "slope_median": -15.455658455882347,
+          "slope_mean": -15.923290101102939,
+          "slope_sd": 23.967792675225187,
+          "slope_ci_low": -55.355833095588245,
+          "slope_ci_high": 23.407240727941172,
+          "p_slope_negative": 0.7515,
+          "n_draws": 2000,
+          "mu": 4.0,
+          "sigma": 0.75,
+          "source": "refit"
+        },
+        "wide": {
+          "per_condition_alpha_median": [
+            92.0581685,
+            58.695206999999996,
+            91.93311349999999,
+            55.5207875,
+            69.2503465
+          ],
+          "slope_median": -17.03147830882353,
+          "slope_mean": -18.031358068897053,
+          "slope_sd": 24.672831076489548,
+          "slope_ci_low": -58.465788669117664,
+          "slope_ci_high": 20.672573448529416,
+          "p_slope_negative": 0.772,
+          "n_draws": 2000,
+          "mu": 3.5,
+          "sigma": 1.25,
+          "source": "refit"
+        }
+      },
+      "slope_sign_stable": true,
+      "p_slope_negative_range": [
+        0.7515,
+        0.774
+      ]
+    }
+  }
+}

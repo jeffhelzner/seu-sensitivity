@@ -39,7 +39,9 @@ are those of Appendix C under `models/`.
 ## E.1 Compute budget {#sec-e-compute .unnumbered}
 
 All models are small --- a few hundred categorical choices, three structural
-parameters plus per-trial deterministic transforms --- so a single posterior fit
+parameter *blocks* ($\alpha$ a scalar, $\beta$ a $K\times D$ matrix, $\delta$ a
+$(K-2)$-simplex) plus per-trial deterministic transforms --- so a single
+posterior fit
 (4 chains $\times$ 1000 draws) completes in seconds to a low number of minutes on
 one core of a contemporary 8-core workstation. The end-to-end cost is dominated
 not by any single fit but by the **simulation-based-calibration** runs, which
@@ -100,8 +102,9 @@ script records a population-OLS cross-check over the committed draws in its
 results JSON (diagnostic only). It agrees with the canonical summaries on
 $P(\text{slope}<0)$ and on both Ellsberg cells; it differs only on the
 insurance-cell slope *magnitude*, because the canonical $2\times2$ entry reports
-the **report-level** slope --- an OLS through the four per-condition $\alpha$
-posterior medians ($\approx -3.6$ for the Claude insurance cell) --- whereas the
+the **report-level** slope --- an OLS through the five per-condition $\alpha$
+posterior medians ($\approx -3.6$ for the Claude insurance cell, whose grid has
+five temperatures) --- whereas the
 diagnostic pools all posterior draws into a single **population OLS**
 ($\approx -2.9$ draw-level median). Claim C16 records this convention
 (report-level $-3.6$ as the canonical headline, draw-level $\approx 2.9$ as the

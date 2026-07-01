@@ -17,16 +17,18 @@ abstract: |
   checks, parameter recovery, and simulation-based calibration (SBC). The
   findings are reported with their finite-sample caveats intact. In the
   uncertain-choice-only model
-  `m_0`, $\alpha$ is identifiable but $(\beta, \delta)$ are only weakly
+  `m_0`, $\alpha$ is identifiable *given* the expected-utility vector $\eta$ ---
+  and, under the study's prior and design, sharply recovered --- while
+  $(\beta, \delta)$ are only weakly
   informed by uncertain choices: the joint posterior barely contracts and
   concentrates on a $\beta$--$\delta$ trade-off at realistic sample sizes. In
   the extended model `m_1`, $\delta$ becomes
   identifiable in principle (hence estimable in the limit) via a $\beta$-free
   risky block, but its practical recovery gain at realistic sample sizes is
   negligible (a matched-count CI-width reduction under 1%); and at matched choice
-  count the $\beta$-free risky block yields no $\alpha$-precision gain either, so
-  finite-sample $\alpha$ precision is driven by data
-  *quantity*, not the *type* of choice. These are two distinct phenomena: for
+  count the $\beta$-free risky block yields no *detected* $\alpha$-precision gain
+  in this design either, so finite-sample $\alpha$ precision here tracks data
+  *quantity* rather than the *type* of choice. These are two distinct phenomena: for
   $\delta$, identifiability does not imply precise estimability at realistic
   $n$; and for $\alpha$, identifiability in principle does not by itself reveal
   what governs its precision at finite $n$ --- which we find to be the

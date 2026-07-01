@@ -15,6 +15,23 @@ Each archive deposit pins the supporting repository to a specific commit/tag.
 ## [Unreleased]
 
 ### Added
+- **Prior-sensitivity analysis of the four report-level temperature-slopes
+  (2026-07-01 referee revision, theme 3; claims-ledger row C17).** New §7.6.6 and
+  Figure `fig-prior-sensitivity`. Each cell was refit under three alternative
+  $\alpha$ priors --- lognormal location shifted by $\pm 0.5$ and scale widened to
+  $1.25$ --- holding the choice data and feature matrices fixed (the committed
+  per-condition Stan data), via a data-driven-prior program
+  `models/m_0_prior_sweep.stan` (structurally identical to `m_01`/`m_02`; the two
+  lognormal hyperparameters moved into the data block). Every cell's qualitative
+  reading is unchanged across all four priors: GPT-4o slopes stay clearly negative
+  (insurance median $\in[-30.7,-22.6]$, $P(\text{slope}<0)\in[0.987,0.991]$;
+  Ellsberg $\in[-44.8,-36.8]$, $[0.984,0.994]$) and the Claude cells stay
+  inconclusive nulls (insurance $\in[-4.2,-2.7]$, $[0.55,0.58]$; Ellsberg
+  $\in[-17.0,-14.0]$, $[0.75,0.77]$). Sweep code
+  `spikes/report_prior_sensitivity_spike.py` (base_seed 20260701) →
+  `spikes/report_prior_sensitivity_results.json`,
+  `figures/report_prior_sensitivity_forest.png`; refits cached under
+  `reports/applications/*/data/prior_sweep/`. `claims_ledger.md` gains row C17.
 - **Five headline figures embedded for the pre-arXiv review round (prompted by a
   draft-review request; reviewers noted figure references with no figures in the
   draft).** Author-selected the subset that most improves the paper; embedded via
@@ -39,6 +56,37 @@ Each archive deposit pins the supporting repository to a specific commit/tag.
   untouched.
 
 ### Changed
+- **Referee-response caveat/reframe pass (2026-07-01 review; themes 1, 2, 4, 5
+  plus 40 detailed comments), no numeric changes.** Sharpened the identifiability
+  claim throughout to read as *conditional on $\eta$* and *design/prior-dependent*
+  rather than unconditional: abstract, §1.7(b)/(c), §2.6, §4.3, and the §8.4
+  synthesis now state that $\alpha$'s clean recovery is an empirical fact about the
+  calibrated prior and realized design, not a corollary of Proposition 3.1 alone.
+  Scoped the “quantity, not type” finding as a statement about the realized,
+  unoptimized matched design (§6.4.1/§6.4.4, Table `tbl-matched`): the B→C interval
+  straddles zero, so a modest risky-block advantage remains compatible with the
+  data. Reframed the $2\times2$ estimand as the SEU sensitivity of the *composed
+  pipeline* (§7.1 “same feature pipeline”; §7.5.5 “points to an LLM effect”; §7.6.5
+  adds the shared-embedding caveat and names fixed-feature/alternative-embedding
+  robustness as future work). Corrected the $K=4$ recalibration rationale (§7.3):
+  dropped softmax overflow as the reason (calibrated priors place *more* tail mass)
+  and stated the higher $\alpha$ is read off the calibration empirically rather
+  than from a closed-form softmax-steepening argument. Softened §8.1 ($\alpha$
+  estimates how *reliably choices conform* to the SEU commitment, not the strength
+  of the commitment). Clarified `h_m01` (§8.5): a single reused pool cannot
+  separate a pool main effect (confounded with intercept) or pool-by-temperature
+  interaction (absorbed into slope); the multi-pool generalization is the companion
+  paper. Formal/exposition fixes: Property 1 and Theorem A.1(ii) now carry the
+  not-all-values-equal condition; §2.2 probit comparison corrected (probit has a
+  scale parameter with the same two limits, but lacks the closed-form log-odds
+  link); B.3 replaced the ratio argument with a vector-$c$ argument (no ratios;
+  preserves sign, defined where denominators vanish); B.4 gains a Remark on what is
+  and is not claimed about $\beta$ identifiability; §4.2 chance baseline generalized
+  to $M^{-1}\sum_m 1/N_m$; E.1 spells out the three parameter *blocks*; E.2 corrects
+  “four”→“five” per-condition medians; D.4 clarifies within-iteration slicing;
+  D.5 corrects the Ellsberg belief-feature dimension to 32 (PCA), matching the
+  code; C.1 documents the local-menu `y[m]` indexing and C.3 the omitted PPC block.
+  No numeric changes to any committed result.
 - **Clarity/exposition pass (prompted by a draft-review request): 24 targeted
   expositional additions across §§1–7 plus two reader aids; no numeric changes.**
   Goal was to slow down passages that move too fast for the paper's cross-field

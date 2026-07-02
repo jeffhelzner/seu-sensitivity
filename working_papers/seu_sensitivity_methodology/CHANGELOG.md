@@ -14,6 +14,24 @@ Each archive deposit pins the supporting repository to a specific commit/tag.
 
 ## [Unreleased]
 
+### Changed
+- **§1.1 Allais sentence softened + Levi footnote (2026-07-01 author comment).**
+  "exhibits a pattern of preferences that violates the independence axiom" →
+  "standardly read as violating the independence axiom", since the
+  independence-violation diagnosis is analysis-relative. Added a footnote
+  crediting Levi's alternative account [@levi1986]: the same pattern is
+  accommodated within a generalization of SEU admitting indeterminacy in
+  probabilities and utilities by relaxing comparability of alternatives, with
+  no independence violation; unlike the descriptive theories built on the
+  pattern, Levi's theory is not reducible to a binary preference relation.
+  Cross-refs §1.4, where his theory is already discussed. No numeric changes.
+- **§1.4 Levi clause reworded (2026-07-01 author comment).** "in which
+  admissible options need not be totally ordered" was off: under
+  ordering-based theories the admissible (maximizing) options are totally
+  ordered only trivially (all equally preferred). Now: "in which admissibility
+  does not reduce to maximizing a preference ordering: two admissible options
+  may be incomparable rather than equally preferred."
+
 ### Added
 - **Prior-sensitivity analysis of the four report-level temperature-slopes
   (2026-07-01 referee revision, theme 3; claims-ledger row C17).** New §7.6.6 and

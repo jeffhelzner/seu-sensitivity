@@ -30,9 +30,16 @@ increasingly, a large language model deployed to make or recommend choices.
 Both approaches have a long precedent in the study of decision makers. One strand
 of internal-consistency critique assesses choices against expected utility theory
 as a standard for decision making under risk: the Allais paradox [@allais1953]
-exhibits a pattern of preferences that violates the independence axiom (roughly,
-that a component common to two options should not affect the preference between
-them), a tension
+exhibits a pattern of preferences standardly read as violating the independence
+axiom (roughly, that a component common to two options should not affect the
+preference between them),^[The diagnosis is analysis-relative rather than
+forced. @levi1986 accounts for the same pattern within a generalization of
+subjective expected utility theory that admits indeterminacy in both
+probabilities and utilities: relaxing the assumption that any two alternatives
+are comparable in terms of preference accommodates the Allais choices with no
+violation of independence. Unlike the descriptive theories built on the
+pattern, Levi's theory is not reducible to a binary preference relation; we
+return to it in §[1.4](#sec-seu-standard).] a tension
 Kahneman and Tversky took up in developing prospect theory [@kahneman1979;
 @tversky1992]. These demonstrations, and the large-scale replication that
 subsequently confirmed their patterns [@ruggeri2020], were built on *pairwise*
@@ -145,7 +152,9 @@ at all without abandoning the normative reading. Second, the template applies
 only to standards that rank alternatives by
 a single real-valued evaluation. Standards that decline to reduce choice to such
 an evaluation --- for instance the decision theory of @levi1980 [@levi1986], in
-which admissible options need not be totally ordered --- fall outside the
+which admissibility does not reduce to maximizing a preference ordering: two
+admissible options may be incomparable rather than equally preferred --- fall
+outside the
 framework entirely, not merely outside its current scope. Parallel instruments
 for the real-valued non-SEU standards are possible by the same template and are
 out of scope here.

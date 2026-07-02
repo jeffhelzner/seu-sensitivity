@@ -16,12 +16,14 @@ Appendix E.2).
 | Fig (§6.5) | 6.5 | δ ECDF comparison (m_0 and m_1) with 95% KS band — marginal-SBC demarcation — **embedded as Figure 3** (`figures/fig_sbc_delta_ecdf.pdf`) | `analysis/sbc.py` (`reports/foundations/06_sbc_validation.qmd`) | inline (m_0 and m_1 canonical SBC designs; N_sbc=999 thin4 1 chain) | design np 42; 123+i per draw (D.3) | computed |
 | Fig 7.5.2 | 7.5.2 / 7.6.1 | Claude-null MDE / power curve: P(slope<0) vs \|Δα/ΔT\|, MDE ≈ 36 marker — **embedded as Figure 4** (`figures/report16_mde_power_curve.png`) | `spikes/report16_mde_spike.py` | (inline; data `reports/applications/claude_insurance_study/data/alpha_draws_T*.npz`) | 20260618 | computed |
 | Fig 7.5.5 | 7.5.5 | 2×2 forest plot of per-cell global-slope posteriors (median, 90% CI, P(slope<0)); companion to @tbl-2x2 — **embedded as Figure 5** (`figures/report_2x2_forest.png`) | `spikes/report_2x2_forest_spike.py` | canonical cell summaries (claims_ledger C9/C10/C12/C13) | deterministic render (no RNG) | computed |
+| Tab 7.5.5 | 7.5.5 | @tbl-2x2: per-cell global-slope posteriors (C9–C13) | `analysis/model_estimation.py` | `applications/*/configs/` | per-cell (see cell data) | computed |
+| Fig 7.6.6 | 7.6.6 | Prior-sensitivity forest: per-cell slope posteriors under baseline + 3 alternative α priors — **embedded as Figure 6** (`figures/report_prior_sensitivity_forest.png`; claims_ledger C17) | `spikes/report_prior_sensitivity_spike.py` (+ `models/m_0_prior_sweep.stan`) | committed per-condition Stan data; refits cached under `reports/applications/*/data/prior_sweep/` | base_seed 20260701 | computed |
 
-> **Embedding status (2026-07-01):** the five headline figures above are now
-> embedded in the paper body via Quarto `@fig-` cross-references (Figures 1–5),
+> **Embedding status (2026-07-01):** the six headline figures above are now
+> embedded in the paper body via Quarto `@fig-` cross-references (Figures 1–6),
 > for the pre-arXiv review round. The two SVG-only foundational figures (§4.3
 > scatter, §6.5 δ ECDF) were converted to PDF with `rsvg-convert`; the other
-> three ship as committed PNGs in `figures/`. §4.4 keeps the m_0 SBC result in
+> four ship as committed PNGs in `figures/`. §4.4 keeps the m_0 SBC result in
 > prose (no separate m_0-only artifact); the embedded δ ECDF (Figure 3, §6.5)
 > carries the marginal-SBC demarcation for both models.
 

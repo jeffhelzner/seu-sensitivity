@@ -290,8 +290,9 @@ choice data, in which the $\alpha$ inference and the posterior-predictive
 summaries come in clean --- the only flagged diagnostics being confined to the
 weakly-informed nuisance parameters (§[7.4](#sec-app-validation)) --- and the
 framework reports posterior support for a structured comparative effect in two of
-four LLM$\times$task cells while withholding it in the other two, where the
-design's resolution is insufficient (§[7](#sec-application)).
+four LLM$\times$task cells while withholding it in the other two, which it reads
+as inconclusive on their own diagnostics --- with the design's resolution
+quantified explicitly for one of them (§[7](#sec-application)).
 *In plain terms:* run end-to-end on real language-model choices, the instrument's
 sensitivity estimates behave as designed and report an effect in two of four
 settings, with the non-detections reflecting limited resolution rather than

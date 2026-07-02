@@ -30,7 +30,10 @@ of multinomial logit, and the Boltzmann distribution of statistical mechanics
 functional form --- a choice likelihood exponential in value differences ---
 from independent starting points, which is part of what recommends it here. We use $\alpha$ rather than a
 temperature $T = 1/\alpha$ because *higher* $\alpha$ corresponds to *higher*
-sensitivity, the more intuitive direction for our purposes.
+sensitivity, the more intuitive direction for our purposes. (This model
+temperature $T = 1/\alpha$ is distinct from the LLM *sampling* temperature that
+appears as an experimental covariate in §[7](#sec-application); the application
+asks, in part, how the estimated $\alpha$ responds to that sampling temperature.)
 
 *Why softmax rather than probit or another stochastic-choice wrapping?* Three
 features recommend it. Luce's [-@luce1959]
@@ -57,6 +60,27 @@ IIA/log-odds structure and no comparably tractable single-scalar link, so it is
 the softmax's closed-form log-odds linearity that singles it out here
 [@train2009].
 
+*Related uses of a softmax precision parameter.* The scalar $\alpha$ has close
+relatives across several literatures. In experimental game theory it is the
+precision parameter $\lambda$ of quantal response equilibrium [@mckelvey1995],
+which plays for strategic choice the role $\alpha$ plays here for single-agent
+choice. In the econometrics of risky choice, @hey1994 estimate expected-utility
+and generalized-EU models wrapped in stochastic choice, initiating a literature
+on how the noise specification shapes inference about the deterministic core. In
+machine learning, the same exponential-in-value rule appears as *Boltzmann
+rationality*, the standard observation model in inverse reinforcement learning
+[@ziebart2008]. Two cautions from the econometric branch carry over. @wilcox2011
+argues that a logit-style precision is not comparable across contexts unless the
+utility scale is normalized per context ("contextual utility"), and
+@apesteguia2018 show that fixed-precision random-utility wrappings can order
+risk attitudes non-monotonically. We take both seriously rather than claiming
+immunity: the $\bm{\upsilon}$-endpoint convention of §[2.6](#sec-notation) fixes
+the utility scale (best consequence $= 1$, worst $= 0$) uniformly across
+problems, supplying the scale normalization the contextual-utility critique asks
+for within our fixed-consequence-space designs, and the paper licenses only
+*within-design comparative* readings of $\alpha$ (§[7.6](#sec-app-limits),
+§[8.4](#sec-disc-alpha)), not cross-instrument cardinal ones.
+
 ## 2.3 Three characterizing properties of softmax {#sec-three-properties .unnumbered}
 
 The following hold for *any* value function $V$, within each decision problem
@@ -78,9 +102,9 @@ $$
 so the odds always shift monotonically toward the higher-valued alternative as
 $\alpha$ increases. Consequently, *provided the available values are not all
 equal*, the *total* probability on the value-maximizing set $\mathcal{R}^\ast_m$
-is strictly increasing in $\alpha$; in particular a single value-maximizing
-alternative ($r \in \mathcal{R}^\ast_m$) gains and a value-minimizing alternative
-loses probability. (If all available values coincide, every alternative is
+is strictly increasing in $\alpha$; in particular each value-maximizing
+alternative $r \in \mathcal{R}^\ast_m$ gains and each value-minimizing
+alternative loses probability. (If all available values coincide, every alternative is
 value-maximizing and all choice probabilities are constant in $\alpha$.) One subtlety is worth flagging:
 while the *total* probability on the value-maximizing set rises monotonically, an
 individual *non-maximal* alternative need not. If its value exceeds the current
@@ -92,7 +116,7 @@ $\alpha$ increases, so non-maximal probabilities are not monotone one-by-one.
 ::: {.callout-note appearance="simple"}
 **Property 2 (Optimization limit).** As $\alpha \to \infty$, choice concentrates
 on the value-maximizing set: $P(\text{choose } r \mid \alpha, V) \to
-1/|\mathcal{R}^\ast|$ for $r \in \mathcal{R}^\ast$ and $\to 0$ otherwise. With a
+1/|\mathcal{R}^\ast_m|$ for $r \in \mathcal{R}^\ast_m$ and $\to 0$ otherwise. With a
 unique maximizer (the generic case under continuous priors) choice becomes
 deterministic.
 :::
@@ -210,7 +234,7 @@ referenced, not redefined, elsewhere.
 | $w_r$ | $D$-dimensional feature vector of alternative $r$ | §2.6 |
 | $\delta \in \Delta^{K-2}$ | utility increments ($K-1$ entries; Stan `simplex[K - 1]`) | §2.6 |
 | $\bm{\upsilon}$ | ordered utilities, $\upsilon_1 = 0 \le \cdots \le \upsilon_K = 1$ | §2.6 |
-| $\pi_s$ | objective lottery simplex for risky alternative $s$ (Stan: `x_risky`) | §5.2 |
+| $\pi_s$ | objective lottery simplex for risky alternative $s$ (Stan data: `x`) | §5.2 |
 | $\beta$ gauge | additive row-shift indeterminacy of the belief softmax | §2.6 |
 | $\bm{\upsilon}$-endpoint convention | fixes the zero and unit of the vNM utility scale | §2.6 |
 

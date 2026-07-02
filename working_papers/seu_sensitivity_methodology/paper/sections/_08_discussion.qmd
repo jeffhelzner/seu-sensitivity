@@ -91,31 +91,22 @@ A specific caution emerges from our results, which we name so it is citable
 rather than discursive:
 
 ::: {.callout-warning appearance="simple"}
-**The marginal-SBC demarcation.** Two points must be kept apart. *First*, marginal
-rank uniformity is *necessary but not sufficient* for *joint* posterior
-calibration. *Second --- and distinctly* --- the correlated,
-barely-contracted joint $(\beta, \delta)$ posterior reflects *weak joint
-informativeness* (a broad, trade-off-shaped likelihood geometry), **not** a
-calibration failure: a correctly specified model and sampler can be exactly
-calibrated and still return such a posterior. Marginal SBC passes for $\alpha$,
-$\beta$, *and* $\delta$ in both `m_0` and `m_1` (§[4.4](#sec-m0-sbc),
-§[6.5](#sec-m1-sbc)); what it does *not* do is reveal the weak joint identification
-of $(\beta, \delta)$ at realistic $n$ (§[3.4](#sec-bd-weak)). We report no
-non-uniform joint SBC statistic and claim none: the demarcation is about what
-marginal ranks can and cannot *diagnose*, not evidence of a hidden joint
-miscalibration.
+**The marginal-SBC demarcation (restated; full statement in
+§[4.4](#sec-m0-sbc)).** Marginal rank uniformity is *necessary but not
+sufficient* for *joint* posterior calibration; and --- distinctly --- the
+correlated, barely-contracted joint $(\beta, \delta)$ posterior reflects *weak
+joint informativeness*, **not** a calibration failure: a correctly specified
+model and sampler can be exactly calibrated and still return such a posterior.
+Marginal SBC passes for $\alpha$, $\beta$, *and* $\delta$ in both `m_0` and
+`m_1` (§[4.4](#sec-m0-sbc), §[6.5](#sec-m1-sbc)); what it does *not* do is
+reveal the weak joint identification of $(\beta, \delta)$ at realistic $n$
+(§[3.4](#sec-bd-weak)). We report no non-uniform joint SBC statistic and claim
+none.
 :::
 
-The positive contribution of SBC here is therefore threefold: (i)
-sampler/implementation validation --- uniform marginal ranks at
-$N_{\mathrm{sbc}} = 999$ are strong evidence against a broad class of
-implementation and sampler defects (simplex parameters, ordered-utility transform,
-softmax curvature) and support marginal calibration, though they do not by
-themselves certify that the encoded *joint* posterior --- including the
-$(\beta, \delta)$ dependence --- is sampled correctly; (ii) per-parameter marginal
-calibration, so the credible intervals are usable as marginal uncertainty
-summaries; and (iii) the demarcation itself, which clarifies *which*
-identifiability properties marginal SBC can and cannot diagnose. When parameters
+The positive contribution of SBC here --- sampler/implementation validation,
+per-parameter marginal calibration, and the demarcation itself --- is stated in
+full in §[4.4](#sec-m0-sbc). When parameters
 trade off in a correlated joint posterior, a *joint* or *projection-based* rank
 statistic is the appropriate diagnostic --- a concrete next step for the SBC
 literature that this paper's null between `m_0` and `m_1` motivates.
@@ -140,7 +131,12 @@ scale while leaving the $(\beta, \delta)$ trade-off broad (§[3.4](#sec-bd-weak)
 §[7](#sec-application) application instantiates the claim: the cross-condition
 comparison is a claim about $\alpha$, $\alpha$ is sharply and calibratedly
 recovered in `m_0` and the calibrated-prior variants `m_01`/`m_02`, and the weak
-*informativeness* of $(\beta, \delta)$ does not undermine that comparison.
+*informativeness* of $(\beta, \delta)$ does not undermine that comparison. This
+comparative discipline is also the paper's answer to the cross-context
+comparability critiques of softmax-precision parameters [@wilcox2011;
+@apesteguia2018]: the $\bm{\upsilon}$-endpoint convention (§[2.6](#sec-notation))
+normalizes the utility scale per problem, and the licensed claims compare
+$\alpha$ only within a fixed design (§[2.2](#sec-softmax-rule)).
 
 ::: {.callout-note appearance="simple"}
 **Interpretive caveat (model-conditional reading of $\alpha$).** A low recovered
@@ -210,8 +206,8 @@ independently at each temperature), fitting `m_01` independently per condition
 leaves two things on the table --- partial pooling of information across
 conditions (generalization beyond the realized pool) and an explicit
 pool-by-temperature interaction. Modelling
-$\log \alpha_c = \gamma_0 + \gamma_1 T_c + \eta_c$ with condition-level effects
-$\eta_c$ partially pools the five temperature conditions and turns
+$\log \alpha_c = \gamma_0 + \gamma_1 T_c + \varepsilon_c$ with condition-level
+effects $\varepsilon_c$ partially pools the five temperature conditions and turns
 between-condition contrasts into estimated regression effects on $\log \alpha$.
 Because a *single* pool is reused across all conditions, however, `h_m01` still
 cannot separate a pool *main* effect (confounded with the intercept $\gamma_0$)

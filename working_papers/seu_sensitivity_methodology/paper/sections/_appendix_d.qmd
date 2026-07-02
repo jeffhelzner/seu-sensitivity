@@ -147,7 +147,8 @@ provider-specific upper bounds drive the unequal-grid caveat of
 §[7.5.2a](#sec-app-cross-llm) and the cross-LLM robustness check, claim C11).
 
 **Calibrated $\alpha$ priors.** Insurance uses $\alpha \sim
-\mathrm{Lognormal}(3.0, 0.75)$ (median $\approx 20$, 90% CI $\approx [5.5, 67]$,
+\mathrm{Lognormal}(3.0, 0.75)$ (median $\approx 20$, 90% CI $\approx [5.5, 67]$ ---
+the empirical quantiles of the grid-search prior draws (§7.3) --- and
 prior-implied SEU-max rate $\approx 0.78$; claim C8). For the $K = 4$ Ellsberg
 cells the prior is re-calibrated by the same SEU-maximizer-rate prior-predictive
 procedure at that menu size, since the SEU-max rate at fixed $\alpha$ depends on

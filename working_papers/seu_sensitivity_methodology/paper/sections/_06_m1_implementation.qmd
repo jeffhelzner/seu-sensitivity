@@ -5,7 +5,7 @@
 `m_1` keeps the `m_0` parameters and priors --- $\alpha \sim
 \mathrm{Lognormal}(0,1)$, $\beta_{k,d} \sim \mathcal{N}(0,1)$, $\delta \sim
 \mathrm{Dirichlet}(1,\dots,1)$ --- and adds $N$ risky problems built from $S$
-distinct objective lotteries $\pi_s \in \Delta^{K-1}$ (Stan: `x_risky`). The
+distinct objective lotteries $\pi_s \in \Delta^{K-1}$ (Stan data: `x`). The
 log-likelihood is the sum of the `m_0` uncertain-choice term and a risky-choice
 term that uses $\eta^{(r)}_s = \pi_s^\top \bm{\upsilon}$ directly --- in Stan,
 `eta_risky[i] = dot_product(x_risky[i], upsilon)`. The key structural contrast is
@@ -31,7 +31,9 @@ than random variation between separate simulations:
 The central test is **B vs C**: same total choice count, same true parameters
 per iteration, with only the model and the *type* of choice differing. The
 informative control is **A vs B**: doubling the *uncertain* block alone, holding
-the model fixed.
+the model fixed. Condition D doubles both blocks and completes the factorial
+slicing; it plays no role in the two named contrasts, so §[6.4](#sec-m1-recovery)
+reports no separate D comparison.
 
 ::: {.callout-warning appearance="simple"}
 **Statistical-power note.** A recovery contrast at this scale needs enough

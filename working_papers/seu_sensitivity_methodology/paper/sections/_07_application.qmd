@@ -6,8 +6,8 @@ The methodology of §§[2](#sec-abstract-model)--[6](#sec-m1-implementation) is
 only useful insofar as it does real evaluative work on real choice data. This
 section runs the full workflow end-to-end on a $2\times2$ factorial design --- two
 LLMs crossed with two task families --- to demonstrate three things: (i) the
-workflow scales from the $N \approx 100$ simulated choices per condition of
-§§[4](#sec-m0-implementation)/[6](#sec-m1-implementation) to $N \approx 300$
+workflow scales from the 25--100 simulated choices per condition of the
+§§[4](#sec-m0-implementation)/[6](#sec-m1-implementation) studies to $N \approx 300$
 real-LLM choices per condition without redesign; (ii) prior recalibration is a
 routine, principled per-study step rather than a redesign of the model; and (iii)
 the framework registers a structured comparative effect when the posterior
@@ -127,9 +127,12 @@ search over twelve Lognormal hyperparameter pairs scans $(\mu, \sigma)$ to hit t
 interior target, selecting $\mathrm{Lognormal}(3.0, 0.75)$ for the insurance
 task ($K = 3$): median $\alpha \approx 20$, 90% interval $\approx [5.5, 67]$,
 implied SEU-max rate $\approx 78\%$. For the Ellsberg task ($K = 4$) the prior is
-*re-recalibrated* by the same procedure, selecting $\mathrm{Lognormal}(3.5, 0.75)$
+*recalibrated* by the same procedure, selecting $\mathrm{Lognormal}(3.5, 0.75)$
 (median $\alpha \approx 33$, 90% interval $\approx [10, 124]$, implied SEU-max rate
-$\approx 76\%$). The recalibration is needed not because the random-choice
+$\approx 76\%$). (The 90% intervals quoted here are the empirical 5%--95%
+quantiles of the 200 $\alpha$ draws used in the grid search, which is why they
+differ slightly from the analytic lognormal quantiles.) The recalibration is
+needed not because the random-choice
 baseline changes --- that baseline is set by the menu size, not the consequence
 count $K$, and the menu size $N_m \in \{2, 3, 4\}$ is identical across the two
 tasks, so a uniform-random chooser selects the SEU-maximizer with the same
@@ -253,7 +256,8 @@ power calculation operates on ($\approx 2.9$) or the report-level headline summa
 ($\approx 3.6$); the two differ only by which posterior draw set is summarized, and
 the null sits an order of magnitude below the floor either way --- and
 $\approx 0.53$ of the grand-mean $\alpha$
-($\approx 67.5$) --- an end-to-end $\alpha$ change of $\approx 36$ over
+($\approx 67.5$, the average of the five per-temperature posterior means) --- an
+end-to-end $\alpha$ change of $\approx 36$ over
 $T \in [0, 1]$, roughly halving $\alpha$. So the Claude null is *no effect at the
 achievable resolution*, **not** a measured zero; even a GPT-4o-sized slope
 ($\approx 31$, full-grid reference) sits below this floor ($0.86\times$). See the
@@ -364,7 +368,9 @@ ambiguity aversion and plain noise are not separable within it. Testing for
 ambiguity aversion requires a model with explicit ambiguity-attitude parameters
 --- for instance maxmin expected utility [@gilboa1989], which adds a parameter
 governing how heavily the agent weights the worst-case prior over an ambiguous
-event, or its $\alpha$-MEU generalization [@ghirardato2004]; and pooling across
+event, or its $\alpha$-MEU generalization [@ghirardato2004] (whose mixing weight,
+conventionally also written $\alpha$, is unrelated to the sensitivity parameter
+$\alpha$ of this paper); and pooling across
 the three ambiguity tiers as the application does would yield a mixture rather
 than identify a mechanism. Tier-stratified $\alpha$ is named as future work, not a paper claim.
 **(d) That LLM identity is the only relevant axis in general.** With only two task
@@ -477,8 +483,8 @@ fits do not address: the cross-condition contrasts may not generalize beyond the
 realized pool, and the pool may interact with temperature --- a
 pool-by-temperature effect that a single-pool design cannot separate from the main
 effect. The principled fix is the hierarchical extension `h_m01`:
-$\log \alpha_c = \gamma_0 + \gamma_1 T_c + \eta_c$ with a small cell-level random
-effect, which estimates the temperature--sensitivity relationship as a single
+$\log \alpha_c = \gamma_0 + \gamma_1 T_c + \varepsilon_c$ with a small cell-level
+random effect $\varepsilon_c$, which estimates the temperature--sensitivity relationship as a single
 regression slope with one calibrated uncertainty statement and partially pools the
 five conditions; its multi-pool generalization (the companion paper) additionally
 lets the item pool be modeled as a source of variation rather than treated as a

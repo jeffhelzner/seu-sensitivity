@@ -28,11 +28,10 @@ abstract: |
   negligible (a matched-count CI-width reduction under 1%); and at matched choice
   count the $\beta$-free risky block yields no *detected* $\alpha$-precision gain
   in this design either, so finite-sample $\alpha$ precision here tracks data
-  *quantity* rather than the *type* of choice. These are two distinct phenomena: for
-  $\delta$, identifiability does not imply precise estimability at realistic
-  $n$; and for $\alpha$, identifiability in principle does not by itself reveal
-  what governs its precision at finite $n$ --- which we find to be the
-  *quantity* of choice data, not the *type* of choice. Marginal SBC passes for both models even
+  *quantity* rather than the *type* of choice. These are two distinct phenomena:
+  for $\delta$, identifiability does not imply precise estimability at realistic
+  $n$; for $\alpha$, identifiability in principle is silent about what governs
+  finite-$n$ precision. Marginal SBC passes for both models even
   where the joint (belief, utility) posterior is only weakly informed --- a
   *marginal-SBC demarcation* we make precise. A two-by-two illustrative
   application (GPT-4o and Claude 3.5 Sonnet, each on insurance-claims triage and

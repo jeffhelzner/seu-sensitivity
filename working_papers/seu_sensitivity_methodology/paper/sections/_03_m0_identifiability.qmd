@@ -39,7 +39,7 @@ choice-probability map is therefore injective in $\alpha$ on such a menu.
 
 ::: {.callout-note appearance="simple"}
 **Boundary remark ($\alpha = 0$).** Proposition 3.1 identifies $\alpha$
-throughout the open cone $\alpha > 0$, and the log-odds identity
+throughout the open half-line $\alpha > 0$, and the log-odds identity
 $\log[P(r)/P(s)] = \alpha(\eta_r - \eta_s)$ is injective on the closed half-line
 $[0, \infty)$ whenever $\eta_r \neq \eta_s$, so $\alpha = 0$ is reached
 continuously from above and the genericity condition on $\{\eta_r\}$ is *not*

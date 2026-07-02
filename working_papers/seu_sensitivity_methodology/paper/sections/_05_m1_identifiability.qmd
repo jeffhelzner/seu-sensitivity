@@ -32,8 +32,8 @@ information *identifies* $\delta$.
 :::
 
 *History (brief).* Knight [-@knight1921risk] distinguished risk from uncertainty;
-von Neumann and Morgenstern [-@vonneumann1944theory] axiomatized expected utility
-under risk; Savage [-@savage1954foundations] gave SEU under uncertainty.
+von Neumann and Morgenstern [-@vonneumann1947] axiomatized expected utility
+under risk; Savage [-@savage1954] gave SEU under uncertainty.
 Anscombe and Aumann [-@anscombe1963definition] combined the two by considering
 acts mapping states to lotteries, which lets one identify utilities from the
 risky margin and beliefs from the state margin. Our `m_1` uses a *related
@@ -47,8 +47,9 @@ Augment the $M$ uncertain problems with $N$ risky problems built from $S$
 distinct lotteries $\pi_s$ (objective simplexes over the $K$ consequences). The
 model shares the same $\alpha$ and the same $\delta \to \bm{\upsilon}$ map across
 both blocks; risky expected utilities $\eta^{(r)}_s = \pi_s^\top \bm{\upsilon}$
-depend only on $\delta$, not on $\beta$. (The Stan code names $\pi_s$ as
-`x_risky`; we gloss this inline in code excerpts and use $\pi$ in the body.)
+depend only on $\delta$, not on $\beta$. (In the Stan code the lottery simplices
+enter the `data` block as `x` and are compacted per problem into `x_risky`; we
+use $\pi$ in the body.)
 
 ## 5.3 Preservation of the three sensitivity properties {#sec-m1-properties .unnumbered}
 
@@ -118,7 +119,8 @@ affinely independent subset. The proof is a linear-algebra inversion.
 **Proposition 5.3 ($\beta$ as an irreducible nuisance).** With $\delta$ pinned by
 risky choices and $\alpha$ pinned by either block, the uncertain-choice
 probabilities identify only the expected utilities $\eta_r = \bm{\psi}_r^\top
-\bm{\upsilon}$. For $K \geq 3$ these scalars do not determine the belief
+\bm{\upsilon}$ --- and these only up to a per-menu additive constant (Appendix
+B.4). For $K \geq 3$ these scalars do not determine the belief
 simplices $\bm{\psi}_r$, so $\beta$ is not point-identified beyond the level sets
 of $\beta \mapsto (\eta_r)_r$ together with the row-shift gauge of
 §[2.6](#sec-notation); it remains a nuisance even in the extended model.

@@ -15,6 +15,43 @@ Each archive deposit pins the supporting repository to a specific commit/tag.
 ## [Unreleased]
 
 ### Changed
+- **Full-paper review pass (2026-07-01, Fable-5 line-by-line review; 19 items in
+  5 phases, all author-approved).** *Correctness:* Theorem A.3 statement/proof now
+  use the available set $\mathcal{A}$ (was $\mathcal{R}$) in the uniform-limit
+  denominator and mean; §2.3 Property 1 restated per-element ("each
+  value-maximizing alternative gains"); Prop 5.3 body now carries B.4's per-menu
+  additive-constant caveat on $\eta$; the §7.7/§8.5 hierarchical random effect
+  renamed $\eta_c \to \varepsilon_c$ (collision with expected-utility $\eta$);
+  duplicate bibliography entries unified (savage1954foundations→savage1954,
+  vonneumann1944theory→vonneumann1947); §5.2 Stan data name corrected (`x`, with
+  `x_risky` the per-problem compaction). *Consistency:* §7.6.6 prior-sensitivity
+  figure (C17) added to the Appendix E.2 manifest and `figure_manifest.md`
+  (plus a Tab 7.5.5 row there); one sentence in §6.2 stating condition D's role
+  (completes the factorial; no separate contrast reported); §1.7(e) resolution
+  claim softened to match §7.5.4 (quantified only for the insurance cell);
+  §7.1(i) "N ≈ 100" corrected to "25–100 simulated choices per condition".
+  *Numeric provenance (verified, not changed):* the quoted prior 90% intervals
+  ($[5.5,67]$, $[10,124]$) confirmed as empirical 5–95% quantiles of the 200
+  grid-search prior draws (grid_results.json: 5.5/67.4 and 10.2/123.8) — gloss
+  added in §7.3 and D.5; grand-mean $\alpha \approx 67.5$ confirmed as the
+  average of the five per-temperature posterior *means*
+  (report16_mde_results.json: 67.505) — parenthetical added in §7.5.2.
+  *Substantive:* new §2.2 related-work paragraph situating $\alpha$ among QRE
+  precision λ [@mckelvey1995], stochastic-choice econometrics [@hey1994],
+  Boltzmann rationality in IRL [@ziebart2008], and the comparability critiques
+  [@wilcox2011; @apesteguia2018], with a §8.4 tie-in noting the
+  $\upsilon$-endpoint convention supplies the contextual-utility normalization;
+  §2.2 sentence disambiguating model temperature $T=1/\alpha$ from the LLM
+  sampling temperature of §7; §7.6.2(c) parenthetical that Ghirardato α-MEU's
+  mixing weight is unrelated to this paper's $\alpha$. Three bib entries added
+  to `paper/references_extra.bib`. *Style:* abstract's duplicated
+  quantity-vs-type sentence condensed; §8.3 marginal-SBC callout shortened to a
+  restatement deferring to §4.4's canonical statement; Figure 1 caption reworded
+  ("bias is low; RMSE dominated by widening spread at large $\alpha$"); §3.3
+  "open cone" → "open half-line"; §7.3 "re-recalibrated" → "recalibrated".
+  No computations rerun; claims ledger unchanged (all checked numbers verified).
+
+### Changed (earlier)
 - **§1.1 Allais sentence softened + Levi footnote (2026-07-01 author comment).**
   "exhibits a pattern of preferences that violates the independence axiom" →
   "standardly read as violating the independence axiom", since the

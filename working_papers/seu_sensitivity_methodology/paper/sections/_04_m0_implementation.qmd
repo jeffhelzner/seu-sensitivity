@@ -91,7 +91,7 @@ curvature to pin $\alpha$, with intervals widening somewhat in the large-$\alpha
 regime. The clean recovery is thus a design- and prior-dependent fact, not a
 corollary of the proposition alone.
 
-![Parameter recovery for $\alpha$ under `m_0` on the canonical design (50 recovery replicates). Left: posterior-mean $\alpha$ against the true value with the identity line; bias and RMSE are small (annotated in-panel). Right: per-replicate 90% credible intervals against the true value, with empirical coverage at the nominal 90%.](../figures/fig_m0_alpha_recovery.pdf){#fig-alpha-recovery width=100%}
+![Parameter recovery for $\alpha$ under `m_0` on the canonical design (50 recovery replicates). Left: posterior-mean $\alpha$ against the true value with the identity line; bias is low, and the annotated in-panel RMSE is dominated by the widening posterior spread in the large-$\alpha$ regime. Right: per-replicate 90% credible intervals against the true value, with empirical coverage at the nominal 90%.](../figures/fig_m0_alpha_recovery.pdf){#fig-alpha-recovery width=100%}
 
 **$\beta$ and $\delta$ recovery.** By contrast $(\beta, \delta)$ show detectably
 wider intervals and intervals that narrow more slowly with sample size, together

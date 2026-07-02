@@ -82,6 +82,7 @@ pinned source for these three plots.
 | Tab (§7.5.5) | 7.5 | $2\times2$ per-cell global-slope posteriors (C9–C13) | `analysis/model_estimation.py` | `applications/*/configs/` | per-cell (see cell data) | computed |
 | Fig (§7.5.5) | 7.5.5 | $2\times2$ forest plot of the per-cell global-slope posteriors (companion to @tbl-2x2) | `spikes/report_2x2_forest_spike.py` | canonical cell summaries (C9/C10/C12/C13) | deterministic (no RNG) | computed |
 | Fig 7.5.2 | 7.5.2 / 7.6.1 | Claude-null MDE power curve; MDE $\approx 36$ marker (C16) | `spikes/report16_mde_spike.py` | inline (data `alpha_draws_T*.npz`) | 20260618 | computed |
+| Fig (§7.6.6) | 7.6.6 | Prior-sensitivity forest: per-cell slope posteriors under baseline + 3 alternative $\alpha$ priors (C17) | `spikes/report_prior_sensitivity_spike.py` | committed per-condition Stan data + `models/m_0_prior_sweep.stan` | 20260701 | computed |
 | Fig (§4.3) | 4.3.2 | $\alpha$ true-vs-estimated recovery scatter + per-replicate 90% CIs (`m_0`) | `analysis/parameter_recovery.py` | inline (`m_0`: $M25$ $K3$ $D5$ $R15$; 50 iters, 4 chains $\times$ 1000) | design np $42$; $12345+i$ sim / $54321+i$ fit (D.2) | computed |
 | Fig (§6.5) | 6.5 | $\delta$ ECDF comparison (`m_0` and `m_1`) with 95% KS band --- marginal-SBC demarcation | `analysis/sbc.py` | inline (`m_0` and `m_1` canonical SBC designs; $N_{\mathrm{sbc}}999$ thin4 1 chain) | design np $42$; $123+i$ per draw (D.3) | computed |
 
@@ -95,7 +96,12 @@ The cross-LLM robustness number (C11) and the per-cell diagnostics/PPC summaries
 (C14, C15) are reproduced by `spikes/report11_cross_llm_spike.py` and
 `spikes/report1415_diagnostics_ppc_spike.py` respectively (both seed 20260618),
 reading the committed per-condition posterior draws under
-`reports/applications/*/data/`. The $2\times2$ forest plot (§7.5.5) is rendered
+`reports/applications/*/data/`. The prior-sensitivity analysis (§7.6.6, C17) is
+reproduced by `spikes/report_prior_sensitivity_spike.py` (base seed 20260701),
+which refits each cell under the alternative $\alpha$ priors via
+`models/m_0_prior_sweep.stan` on the committed per-condition Stan data and
+caches the refits under `reports/applications/*/data/prior_sweep/`. The
+$2\times2$ forest plot (§7.5.5) is rendered
 by `spikes/report_2x2_forest_spike.py` from the canonical report-level cell
 summaries (C9/C10/C12/C13), so it matches @tbl-2x2 by construction; the same
 script records a population-OLS cross-check over the committed draws in its

@@ -83,18 +83,18 @@ gives deterministic optimal choice in the limit.
 ## A.3 Uniform-choice limit (Property 3) {#sec-a-uniform .unnumbered}
 
 ::: {.callout-note appearance="simple"}
-**Theorem A.3.** As $\alpha \to 0$, $P(r) \to 1/|\mathcal{R}|$ for all
-$r \in \mathcal{R}$, independent of $V$.
+**Theorem A.3.** As $\alpha \to 0$, $P(r) \to 1/|\mathcal{A}|$ for all
+$r \in \mathcal{A}$, independent of $V$.
 :::
 
 *Proof.* By the expansion $\exp(x) = 1 + x + O(x^2)$,
 $$
-P(r) = \frac{1 + \alpha V(r) + O(\alpha^2)}{|\mathcal{R}| + \alpha\sum_j V(j) + O(\alpha^2)}
-  \;\longrightarrow\; \frac{1}{|\mathcal{R}|}
+P(r) = \frac{1 + \alpha V(r) + O(\alpha^2)}{|\mathcal{A}| + \alpha\sum_j V(j) + O(\alpha^2)}
+  \;\longrightarrow\; \frac{1}{|\mathcal{A}|}
 $$
-as $\alpha \to 0$. Equivalently, $\log P(r) = -\log|\mathcal{R}| + \alpha[V(r) -
-\bar V] + O(\alpha^2)$ with $\bar V = |\mathcal{R}|^{-1}\sum_j V(j)$, so
-$P(r) \to 1/|\mathcal{R}|$. $\qquad\blacksquare$
+as $\alpha \to 0$. Equivalently, $\log P(r) = -\log|\mathcal{A}| + \alpha[V(r) -
+\bar V] + O(\alpha^2)$ with $\bar V = |\mathcal{A}|^{-1}\sum_j V(j)$, so
+$P(r) \to 1/|\mathcal{A}|$. $\qquad\blacksquare$
 
 ## A.4 Scale invariance and the utility-endpoint convention {#sec-a-scale .unnumbered}
 

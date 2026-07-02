@@ -15,6 +15,15 @@ Each archive deposit pins the supporting repository to a specific commit/tag.
 ## [Unreleased]
 
 ### Changed
+- **Author comments (2026-07-02, §1.1 + §1.4).** §1.1: the claim that pairwise
+  choices are "well suited to isolating axiom violations" softened --- pairwise
+  choices reveal an SEU-inconsistent pattern but do not fix which assumption fails
+  (independence vs. Levi's ordering relaxation), cross-referencing the existing
+  Levi footnote and §1.4. §1.4: "prefers the alternative whose expected utility is
+  greatest" → "prefers an alternative whose expected utility is maximal", plus a
+  clause noting SEU permits non-unique maxima and that *picking* among tied
+  admissible alternatives is beyond the standard's scope (@ullmannmargalit1977).
+  New bib entry `ullmannmargalit1977` in `references_extra.bib`. No numeric changes.
 - **Full-paper review pass (2026-07-01, Fable-5 line-by-line review; 19 items in
   5 phases, all author-approved).** *Correctness:* Theorem A.3 statement/proof now
   use the available set $\mathcal{A}$ (was $\mathcal{R}$) in the uniform-limit

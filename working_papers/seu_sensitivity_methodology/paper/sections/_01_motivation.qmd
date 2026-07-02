@@ -43,11 +43,15 @@ return to it in §[1.4](#sec-seu-standard).] a tension
 Kahneman and Tversky took up in developing prospect theory [@kahneman1979;
 @tversky1992]. These demonstrations, and the large-scale replication that
 subsequently confirmed their patterns [@ruggeri2020], were built on *pairwise*
-choices --- a restriction well suited to their purpose of isolating axiom
-violations --- whereas the instrument developed here places no such restriction on
-the number of alternatives in a decision problem, which opens the possibility of
-probing how sensitivity itself varies with menu size (an extension we return to in
-§[8.5](#sec-disc-limitations)). A second strand --- the heuristics-and-biases program --- assesses
+choices. Such choices reveal a pattern inconsistent with subjective expected
+utility maximization, but they do not by themselves fix *which* assumption of the
+standard is responsible: the same Allais pattern reads as a violation of the
+independence axiom or, on Levi's analysis, as a relaxation of the ordering
+assumption with no independence violation (see the footnote above and
+§[1.4](#sec-seu-standard)). The instrument developed here, by contrast, places no
+restriction on the number of alternatives in a decision problem, which opens the
+possibility of probing how sensitivity itself varies with menu size (an extension
+we return to in §[8.5](#sec-disc-limitations)). A second strand --- the heuristics-and-biases program --- assesses
 judgments about uncertainty against the probability axioms, construed as a
 coherence standard on degrees of belief in the Dutch-book tradition
 [@ramsey1926; @definetti1937], on which a set of degrees of belief is faulted if
@@ -117,9 +121,12 @@ depend on which outcome happened to be realized.
 
 We take *subjective expected utility (SEU) maximization* as the reference
 standard. An SEU-committed agent holds a subjective probability over the states
-of the world and a utility over consequences, and prefers the alternative whose
-expected utility is greatest [@savage1954; @anscombe1963definition;
-@vonneumann1947]. We do *not* argue that SEU is the uniquely correct theory of
+of the world and a utility over consequences, and prefers an alternative whose
+expected utility is maximal [@savage1954; @anscombe1963definition;
+@vonneumann1947]. The standard does not require a unique maximizer: when several
+alternatives attain the maximal expected utility they are all admissible, and
+*picking* among them lies beyond what the standard prescribes [@ullmannmargalit1977].
+We do *not* argue that SEU is the uniquely correct theory of
 rational choice, and nothing below depends on that stronger claim. The argument
 is conditional: *if* SEU is the reference standard, then a graded, statistically
 rigorous measure of conformity to it is methodologically useful. SEU is the

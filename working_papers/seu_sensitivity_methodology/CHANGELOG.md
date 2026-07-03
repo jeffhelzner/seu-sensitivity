@@ -14,6 +14,35 @@ Each archive deposit pins the supporting repository to a specific commit/tag.
 
 ## [Unreleased]
 
+### Fixed
+- **Figure 3 (SBC ECDF) float placement (2026-07-03).** The §6.5 SBC figure
+  (`#fig-sbc-ecdf`), authored at the end of §6.5, floated forward past the §7
+  header and rendered after "7.1 Why include an application here", despite being
+  referenced in §6.5. Added `\usepackage{placeins}` (`paper.qmd`
+  include-in-header) and a raw-LaTeX `\FloatBarrier` immediately before the §7
+  header (`_07_application.qmd`), so no §6 float can cross into §7. The figure now
+  flushes within §6.5, before the "Illustrative Application" header; the barrier
+  also covers Figure 2 and any future §6 figures. No content or numeric changes;
+  claims_ledger untouched.
+- **Matched-design description inconsistency (2026-07-03, comments.md — §6.2 vs
+  D.4).** Author flagged that §6.2 describes the matched-recovery study as running
+  the §4.3 loop on *the* matched design, while Appendix D.4 item (1) described a
+  *freshly generated design per iteration*. Verified against the driver
+  (`scripts/run_m1_matched_recovery.py`): the study design is built **once**
+  (`study.generate()` outside the iteration loop, saved as a single
+  `study_design.json`) and **held fixed across all $n = 100$ iterations**; only the
+  true $(\alpha,\beta,\delta)$ draw (seed $12345+i$) and simulated choices vary per
+  iteration, with the four conditions fit on slices. §6.2 (and §4.3 / the D.3
+  seed-42 note) were correct; **D.4 was the erroneous section** (the "fresh design
+  per iteration / not held fixed across iterations" wording was introduced by an
+  earlier referee-comment edit). Corrected D.4 (`_appendix_d.qmd`): the intro now
+  states a single externally-generated design (feature draws $w$, lottery menus
+  $w,I,x,J$ supplied as data per Appendix C.4) is held fixed across all iterations,
+  and item (1) is reduced to the per-iteration prior draw. Also fixed the mislabel
+  "design seed 20260617" → "bootstrap seed 20260617" (it is the bootstrap-resample
+  seed `BOOT_SEED`, not a design seed). No numeric changes; claims C1–C3 unaffected;
+  claims_ledger untouched.
+
 ### Changed
 - **Author comments (2026-07-02, comments.md — §2.3, §3.4, §4.2, §6.3).**
   *§2.3 softmax subtlety* (`_02_abstract_model.qmd`, Property 1 callout): the

@@ -91,18 +91,16 @@ all replicates.)
 ## D.4 The matched-design comparison (conditions A/B/C/D) {#sec-d4 .unnumbered}
 
 The matched study underlying §[6.4](#sec-m1-recovery) (claims C1–C3) is **not** a
-$\delta$-optimal design study; it is a controlled *within-iteration* slicing.
-Within each iteration all four conditions share one freshly simulated design and
-one parameter draw (so the conditions are matched), but the design is *not* held
-fixed across iterations. Each of $n = 100$ iterations proceeds as:
+$\delta$-optimal design study; it is a controlled *within-iteration* slicing. A
+single study design is generated once *externally* --- the feature draws $w$ and
+the lottery menus, which enter the simulator as data ($w, I, x, J$; Appendix
+C.4), not as quantities `m_1_sim` itself draws --- and is **held fixed across all
+$n = 100$ iterations**. Within each iteration all four conditions share this one
+design and a single fresh parameter draw (so the conditions are matched). Each
+iteration proceeds as:
 
-1. generate a fresh study design *externally* --- the feature draws $w$ and the
-   lottery menus, which enter the simulator as data ($w, I, x, J$; Appendix C.4),
-   not as quantities `m_1_sim` itself draws --- and draw a fresh true
-   $(\alpha, \beta, \delta)$ from the prior; each of the $n = 100$ iterations uses
-   its own freshly generated design, not a single design held fixed across
-   iterations;
-2. with that design supplied as data, `m_1_sim` (Appendix C.4) draws choices
+1. draw a fresh true $(\alpha, \beta, \delta)$ from the prior;
+2. with the fixed design supplied as data, `m_1_sim` (Appendix C.4) draws choices
    *conditional on* the true parameters --- uncertain choices `y` ($M = 50$) and
    risky choices `z` ($N = 50$);
 3. fit four conditions to **slices of the same simulated choices**, so the true
@@ -118,7 +116,7 @@ fixed across iterations. Each of $n = 100$ iterations proceeds as:
 The central comparison is **B vs C** (same total choice count; only the model and
 the *type* of choice differ) and the control is **A vs B** (more uncertain data
 alone). All reported effects are paired-iteration medians or
-bootstrap-over-iteration ratios with 90% CIs (10\,000 resamples, design seed
+bootstrap-over-iteration ratios with 90% CIs (10\,000 resamples, bootstrap seed
 20260617); see `spikes/report14_rerun_analysis.py`. The headline finding ---
 that the $\beta$-free risky block yields no matched-count $\alpha$-precision gain
 (C1) while improving-$\alpha$ comes from data *quantity* (A$\to$B, C2), and the

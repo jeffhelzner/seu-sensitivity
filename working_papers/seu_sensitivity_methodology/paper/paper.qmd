@@ -57,6 +57,7 @@ format:
         \usepackage{amsmath,amssymb,amsthm}
         \usepackage{bm}
         \usepackage[htt]{hyphenat}
+        \usepackage{placeins}
         \newtheorem{proposition}{Proposition}
         \newtheorem{theorem}{Theorem}
         \newtheorem{lemma}{Lemma}

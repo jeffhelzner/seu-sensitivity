@@ -105,12 +105,19 @@ equal*, the *total* probability on the value-maximizing set $\mathcal{R}^\ast_m$
 is strictly increasing in $\alpha$; in particular each value-maximizing
 alternative $r \in \mathcal{R}^\ast_m$ gains and each value-minimizing
 alternative loses probability. (If all available values coincide, every alternative is
-value-maximizing and all choice probabilities are constant in $\alpha$.) One subtlety is worth flagging:
-while the *total* probability on the value-maximizing set rises monotonically, an
-individual *non-maximal* alternative need not. If its value exceeds the current
-choice-weighted mean --- the average of the available values weighted by their
-current choice probabilities --- its probability can rise before it falls as
-$\alpha$ increases, so non-maximal probabilities are not monotone one-by-one.
+value-maximizing and all choice probabilities are constant in $\alpha$.) One
+subtlety is worth flagging. Since the *total* probability on the value-maximizing
+set rises monotonically in $\alpha$, one might expect the probability of every
+individual *non-maximal* alternative to *fall* monotonically in $\alpha$. This is
+not so. As shown in Appendix A (Theorem A.1(iii)), the $\alpha$-derivative of a
+non-maximal alternative's choice probability has the sign of $V(r) -
+\mathbb{E}_\alpha[V]$, where $\mathbb{E}_\alpha[V]$ is the current choice-weighted
+mean --- the average of the available values weighted by their current choice
+probabilities. So while a non-maximal alternative's value still exceeds this mean
+its probability *rises*, and only once the mean overtakes it does its probability
+begin to fall. Such an alternative's probability therefore rises before it falls
+rather than declining monotonically; individual non-maximal probabilities are not
+monotone one-by-one.
 :::
 
 ::: {.callout-note appearance="simple"}

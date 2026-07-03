@@ -85,13 +85,11 @@ $\delta_k$ --- is named as future work (§[8.5](#sec-disc-limitations)).
 
 On the combined (uncertain + risky) prior predictive, the SEU-maximizer rate
 again covers the full sensitivity range. Because `m_1` assumes a *shared*
-$\alpha$ across blocks (§[5.3](#sec-m1-properties)), we also report the
-prior-predictive SEU-max rate **per block** (uncertain vs risky) as a sanity check
-that the prior alone places plausible mass on both blocks under a common $\alpha$.
-This is a statement about the *prior*, not a test of the shared-$\alpha$ assumption
-against data: confirming that risky and uncertain choices are mutually compatible
-with a single $\alpha$ would require a *posterior*-predictive block check, which we
-flag as the appropriate diagnostic for the single-$\alpha$ caveat
+$\alpha$ across blocks (§[5.3](#sec-m1-properties)), one might want to confirm
+that risky and uncertain choices are mutually compatible with a single $\alpha$;
+but that is a claim about the *posterior*, not the prior. A genuine check would
+require a *posterior*-predictive block comparison, which we flag as the
+appropriate diagnostic for the single-$\alpha$ caveat
 (§[6.4.1](#sec-m1-alpha-recovery)) rather than claim to have performed here.
 
 ## 6.4 Parameter recovery --- what the matched comparison actually shows {#sec-m1-recovery .unnumbered}
@@ -123,11 +121,10 @@ We draw out the methodological reading in §[6.4.4](#sec-m1-lesson).
 ::: {.callout-note appearance="simple"}
 **Conditional on the single-$\alpha$ assumption.** Comparing $\alpha$ precision
 across the uncertain and risky blocks presupposes a common $\alpha$ scale across
-blocks (§[5.3](#sec-m1-properties)). The per-block *prior*-predictive
-SEU-maximizer-rate check of §[6.3](#sec-m1-prior) is the available prior-level
-sanity check --- a genuine data-level test of shared $\alpha$ would be
-posterior-predictive --- so the quantity-versus-type reading is reported as
-explicitly conditional on this assumption, not asserted outright. The
+blocks (§[5.3](#sec-m1-properties)). This shared-$\alpha$ assumption cannot be
+verified at the prior level (§[6.3](#sec-m1-prior)); a genuine data-level test
+would be posterior-predictive --- so the quantity-versus-type reading is reported
+as explicitly conditional on this assumption, not asserted outright. The
 block-specific generalization (`m_2`) is out of scope.
 :::
 

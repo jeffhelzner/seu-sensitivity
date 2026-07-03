@@ -115,13 +115,13 @@ closed-form softmax argument. The calibration target is the prior predictive
 SEU-maximizer selection rate --- the fraction of prior-simulated agents that pick
 the EU-maximal available alternative, obtained by drawing choice problems from the
 design and parameters from the prior and tabulating the outcome. At the application's $R$ and $K$ the foundational $\mathrm{Lognormal}(0,1)$ prior of
-§[4.1](#sec-m0-spec) places most of its mass on near-random regimes, so the prior
+§[4.1](#sec-m0-spec) places most of its mass on near-random sensitivities, so the prior
 predictive concentrates well below plausible SEU-max rates. (Numerical overflow in
 $\exp(\alpha\eta)$ is handled by the softmax implementation and is *not* the reason
 for recalibration --- indeed the calibrated priors place *more* mass at large
 $\alpha$.) The $76$--$78\%$ target places the prior mode in the broad interior
-between chance and determinism: committal enough to leave the near-random regime
-that dominates under $\mathrm{Lognormal}(0,1)$, yet loose enough --- a wide 90%
+between chance and determinism: committal enough to leave the near-random end of
+the range that dominates under $\mathrm{Lognormal}(0,1)$, yet loose enough --- a wide 90%
 prior interval on $\alpha$ --- to let the likelihood move the posterior. A grid
 search over twelve Lognormal hyperparameter pairs scans $(\mu, \sigma)$ to hit this
 interior target, selecting $\mathrm{Lognormal}(3.0, 0.75)$ for the insurance

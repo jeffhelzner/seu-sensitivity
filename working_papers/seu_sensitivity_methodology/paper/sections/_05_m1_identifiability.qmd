@@ -76,9 +76,9 @@ $\alpha$-precision. The generalization with separate
 $\alpha_{\text{unc}}, \alpha_{\text{risky}}$ (the companion model `m_2`) is named
 but not pursued here. **Consequently, every conclusion that compares $\alpha$
 across the uncertain and risky blocks is reported as explicitly conditional on
-this single-$\alpha$ assumption**, supported where the data permit by a per-block
-SEU-maximizer-rate sanity check (§[6.3](#sec-m1-prior));
-absent that check, the conditional phrasing is mandatory, not optional.
+this single-$\alpha$ assumption**; the assumption is not verified at the prior
+level (a genuine test would be posterior-predictive, §[6.3](#sec-m1-prior)), so
+the conditional phrasing is mandatory, not optional.
 :::
 
 ## 5.4 Identifiability of $\alpha$ in the extended model {#sec-m1-alpha .unnumbered}

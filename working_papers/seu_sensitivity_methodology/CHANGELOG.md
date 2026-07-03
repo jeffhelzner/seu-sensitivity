@@ -15,7 +15,31 @@ Each archive deposit pins the supporting repository to a specific commit/tag.
 ## [Unreleased]
 
 ### Changed
+- **Author comments (2026-07-02, comments.md — §2.3, §3.4, §4.2, §6.3).**
+  *§2.3 softmax subtlety* (`_02_abstract_model.qmd`, Property 1 callout): the
+  dangling "an individual non-maximal alternative need not" rewritten for rigor
+  — now states the naive expectation (probability of every non-maximal
+  alternative falling monotonically), negates it, and grounds the non-monotonicity
+  in Appendix A Thm A.1(iii) via the sign of $V(r)-\mathbb{E}_\alpha[V]$ (rises
+  while value exceeds the choice-weighted mean, falls once the mean overtakes it).
+  *§3.4 "true-α regime"* (`_03_m0_identifiability.qmd`): the opaque parenthetical
+  "(which varies with the true-α regime)" clarified — the sign of the
+  across-replicate β–δ error correlation is not stable and shifts as the true α
+  used to *generate the recovery data* is varied (parallel §4.4 passage aligned).
+  *"regime" swept paper-wide* (author: term insufficiently rigorous): replaced
+  every occurrence with precise wording — §4.2 "neither extreme of the sensitivity
+  range", §4.3 "at large α" / "large-α range", §7.4 "near-random sensitivities" /
+  "near-random end of the range", §8.3 "near the linear region". `grep regime` = 0
+  in `sections/`. *§6.3 per-block sentence* (author: the promised per-block rate is
+  reported nowhere): dropped the "we also report the prior-predictive SEU-max rate
+  per block" sentence; §6.3 keeps the combined-rate statement + the
+  posterior-predictive caveat. Reconciled the two downstream cross-references that
+  cited that check (§5.3 and the §6.4.1 conditional callout) so the shared-α
+  conclusions now stand as explicitly conditional with a posterior-predictive test
+  named as the genuine diagnostic. No numeric changes; claims_ledger untouched.
+  Renders clean (quarto 3-pass, 0 undefined refs; §2.3 callout verified on PDF p.11).
 - **Author comments (2026-07-02, §1.1 + §1.4).** §1.1: the claim that pairwise
+
   choices are "well suited to isolating axiom violations" softened --- pairwise
   choices reveal an SEU-inconsistent pattern but do not fix which assumption fails
   (independence vs. Levi's ordering relaxation), cross-referencing the existing

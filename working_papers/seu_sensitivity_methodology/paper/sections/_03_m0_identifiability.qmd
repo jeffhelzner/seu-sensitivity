@@ -96,8 +96,9 @@ $\beta_{1,1}$ and a representative increment $\delta_1$ are correlated
 error correlation, not a within-posterior one; because raw $\beta$ entries carry
 the row-shift gauge we read this representative-component diagnostic as an
 illustrative signature of the coupling rather than a gauge-invariant statistic,
-and we do not attach significance to its sign (which varies with the
-true-$\alpha$ regime).
+and we do not attach significance to its sign, which is not stable across
+simulation settings --- it shifts, for instance, as the true $\alpha$ used to
+generate the recovery data is varied.
 The recovered posteriors concentrate not on $(\beta,\delta)$ individually but on
 a compensating trade-off between them. That correlated,
 barely-contracted joint posterior is the practical signature of the

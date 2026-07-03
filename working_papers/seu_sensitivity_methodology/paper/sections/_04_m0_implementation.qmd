@@ -71,8 +71,8 @@ $\approx M^{-1}\sum_m 1/N_m$, the chance baseline --- equal to $1/\bar N$ only
 when menu sizes are equal) to near-deterministic SEU maximization
 (rate $\approx 1$). The
 $\mathrm{Lognormal}(0,1)$ prior on $\alpha$ places substantial mass at both low
-(near-random) and high (near-deterministic) sensitivities, so neither regime is
-ruled out a priori.
+(near-random) and high (near-deterministic) sensitivities, so neither extreme of
+the sensitivity range is ruled out a priori.
 
 ## 4.3 Parameter recovery {#sec-m0-recovery .unnumbered}
 
@@ -87,11 +87,11 @@ true-versus-estimated scatter with 90% credible intervals, and per-replicate
 intervals whose empirical coverage matches the nominal 90%. This is the
 computational counterpart of Proposition 3.1 --- which identifies $\alpha$ *given*
 $\eta$ --- made empirical: under this design and prior the data supply enough
-curvature to pin $\alpha$, with intervals widening somewhat in the large-$\alpha$
-regime. The clean recovery is thus a design- and prior-dependent fact, not a
+curvature to pin $\alpha$, with intervals widening somewhat at large $\alpha$.
+The clean recovery is thus a design- and prior-dependent fact, not a
 corollary of the proposition alone.
 
-![Parameter recovery for $\alpha$ under `m_0` on the canonical design (50 recovery replicates). Left: posterior-mean $\alpha$ against the true value with the identity line; bias is low, and the annotated in-panel RMSE is dominated by the widening posterior spread in the large-$\alpha$ regime. Right: per-replicate 90% credible intervals against the true value, with empirical coverage at the nominal 90%.](../figures/fig_m0_alpha_recovery.pdf){#fig-alpha-recovery width=100%}
+![Parameter recovery for $\alpha$ under `m_0` on the canonical design (50 recovery replicates). Left: posterior-mean $\alpha$ against the true value with the identity line; bias is low, and the annotated in-panel RMSE is dominated by the widening posterior spread in the large-$\alpha$ range. Right: per-replicate 90% credible intervals against the true value, with empirical coverage at the nominal 90%.](../figures/fig_m0_alpha_recovery.pdf){#fig-alpha-recovery width=100%}
 
 **$\beta$ and $\delta$ recovery.** By contrast $(\beta, \delta)$ show detectably
 wider intervals and intervals that narrow more slowly with sample size, together
@@ -99,7 +99,8 @@ with correlated posterior-mean estimation errors --- computed *across recovery
 iterations* between a representative weight entry $\beta_{1,1}$ and a
 representative increment $\delta_1$. We report this last item as an
 illustrative, non-gauge-invariant signature rather than a signed quantity: its
-sign is not robust (it depends on the true-$\alpha$ regime, since $\beta_{1,1}$
+sign is not robust (it depends on the true $\alpha$ used to simulate the recovery
+data, since $\beta_{1,1}$
 carries the row-shift gauge of §[2.6](#sec-notation)), and it is the *presence*
 of across-replicate error coupling, not its direction, that matters here. This
 is the *computational manifestation* of the

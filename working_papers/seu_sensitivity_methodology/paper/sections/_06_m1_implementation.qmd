@@ -68,11 +68,14 @@ replacement, recompute the paired median on each resample, and take its central
 90% range, so the CI measures how stable the aggregate contrast is across
 simulated datasets.
 
-**Sign convention.** Throughout §6.4 a *positive* percentage denotes an
-*improvement* --- a reduction in RMSE or in CI width --- and its 90% CI is
-reported on the same scale, so a CI lying wholly above zero means a reliable
-improvement; a negative value denotes the effect running the other way (degraded
-precision).
+**Sign convention.** Each §6.4 magnitude is a *signed percentage change* in a
+precision measure (a posterior-mean RMSE or a credible-interval width), signed so
+that a *positive* value denotes an *improvement* --- a reduction in RMSE or in CI
+width --- and a negative value denotes degraded precision. Its bootstrap 90% CI is
+expressed in these same signed-percentage units --- it is the interval for that one
+signed quantity, not a separate scale --- so a CI lying wholly above zero indicates
+a reliable improvement, whereas a CI straddling zero leaves the direction
+undetermined.
 
 **What we do not claim.** We do not engineer a design that makes the $\delta$ CI
 "materially" smaller than `m_0`'s; at $n = 100$ the matched-count $\delta$
@@ -176,8 +179,8 @@ are distinct.
 | --- | --- | --- |
 | Identifiable in `m_0`? | yes, but jointly weakly informed | yes |
 | What §5 promises | a $\beta$-free identification route that sharpens $\bm{\upsilon}$ | already identified |
-| Matched-count payoff (B$\to$C) | CI-width $+0.8\%$ $[0.6, 1.2]$; RMSE null | none: $-8.1\%$ $[-22.0, +6.8]$ |
-| Where finite-$n$ precision comes from | not realized at design $n$ | data *quantity* (A$\to$B: $+27.1\%$ RMSE reduction $[+15.0, +38.5]$), not choice *type* |
+| Matched-count payoff (B$\to$C) | CI-width $+0.8\%$ $[0.6, 1.2]$ (real but negligible); RMSE unchanged | no detected gain: RMSE $-8.1\%$ $[-22.0, +6.8]$ (straddles zero); CI-width unchanged |
+| Where finite-$n$ precision comes from | not realized at design $n$ | data *quantity*, not choice *type* (A$\to$B: $+27.1\%$ RMSE reduction $[+15.0, +38.5]$) |
 | Phenomenon | identifiability $\neq$ precise estimability at realistic $n$ | in-principle identification $\neq$ finite-$n$ gain; precision tracks quantity, not type |
 
 : The matched-design contrast. All percentages are paired-iteration medians / bootstrap-over-iteration 90% CIs from the $n = 100$ study (10\,000 resamples). {#tbl-matched}

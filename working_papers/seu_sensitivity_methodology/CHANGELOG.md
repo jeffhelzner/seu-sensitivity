@@ -14,6 +14,23 @@ Each archive deposit pins the supporting repository to a specific commit/tag.
 
 ## [Unreleased]
 
+### Changed
+- **§6.2 sign-convention wording + §6.4.4 matched-design table clarity
+  (2026-07-03, comments.md).** Two author-flagged clarity issues, text-only, no
+  numeric changes. (1) §6.2 "Sign convention" paragraph: the ambiguous "its 90%
+  CI is reported on the same scale" invited the reading that the CI lived on a
+  separate percentage-of-improvement scale. Rewritten to state that each §6.4
+  magnitude *is* a signed percentage change in a precision measure (RMSE or CI
+  width) and that its bootstrap 90% CI is the interval for that one signed
+  quantity in the same units. (2) `@tbl-matched` (Table 3): "Matched-count payoff
+  (B→C)" row — both cells reworded for clarity and made parallel, replacing the
+  gratuitous `null` (δ) vs `none` (α) mismatch with consistent "unchanged / no
+  detected gain" language; "Where finite-n precision comes from" row — α cell
+  shortened and front-loaded ("data *quantity*, not choice *type* (A→B: …)") to
+  improve clarity and row separation. Kept as a Quarto-numbered pandoc table (no
+  raw-LaTeX conversion) to preserve automatic Table numbering. Renders clean
+  (quarto 3-pass, 0 undefined refs); claims_ledger untouched.
+
 ### Fixed
 - **Figure 3 (SBC ECDF) float placement (2026-07-03).** The §6.5 SBC figure
   (`#fig-sbc-ecdf`), authored at the end of §6.5, floated forward past the §7

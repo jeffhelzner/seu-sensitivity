@@ -17,15 +17,13 @@ routine, principled per-study step rather than a redesign of the model; and (iii
 the framework registers a structured comparative effect when the posterior
 supports one and withholds support when it does not --- where "withholds support"
 means *inconclusive at the achievable resolution*, not an established zero
-(§[7.5.2](#sec-app-claude-insurance)). Point (iii) is the methodological-value
-claim: an evaluation framework that *always* reports an effect would be a
-scoreboard, not an instrument.
+(§[7.5.2](#sec-app-claude-insurance)).
 
 ::: {.callout-important appearance="simple"}
-**Reading guide (construct-validity layering; read first).** Three distinct
+**Reading guide (construct-validity layering).** Three distinct
 claims must not be conflated, and this layering frames everything below:
 
-1. **Within-model consistency** --- the model fits the data adequately
+1. **Model adequacy** --- the model fits the data adequately
    (validated in §[7.4](#sec-app-validation)).
 2. **Comparative claims under shared design** --- $\alpha$ differs systematically
    across conditions that share prior, features, and choice model (the
@@ -39,7 +37,7 @@ headline already holding it.
 :::
 
 ::: {.callout-important appearance="simple"}
-**A recovered $\alpha$ is model-conditional (read before the numbers).** The
+**A recovered $\alpha$ is model-conditional.** The
 $\alpha$ values reported below are parameters of the §[3](#sec-m0-identifiability)
 softmax-over-SEU likelihood, not context-free rationality scores. The
 within-design comparisons of §[7.5](#sec-app-results) --- same model, same prior,
@@ -50,11 +48,20 @@ model-free measure of an agent's rationality. We return to this at
 
 ::: {.callout-note appearance="simple"}
 **Reporting template (applied uniformly to all four cells).** Every LLM $\times$
-task cell is reported with the *same* quantities, to pre-empt cherry-picking:
-per-condition $\alpha$ posterior medians with 90% CIs; the global slope
-$\Delta\alpha/\Delta T$ median, 90% CI, and $P(\text{slope} < 0)$;
-$P(\text{strict monotone decrease across all levels})$; and the cross-LLM
-comparison probability. Cross-*task* differences are read descriptively (the
+task cell is reported with the *same* four quantities, defined and computed as
+spelled out in Appendix [D.6](#sec-d6):
+
+1. **Per-condition $\alpha$** --- the posterior median at each temperature, with
+   a 90% credible interval.
+2. **Global temperature slope $\Delta\alpha/\Delta T$** --- summarized by its
+   posterior median, a 90% credible interval *around that median*, and
+   $P(\text{slope} < 0)$ (the posterior probability the slope is negative).
+3. **$P(\text{strict monotone decrease})$** --- the posterior probability that
+   $\alpha$ decreases at every step across all five temperature levels.
+4. **Cross-LLM comparison probability** --- the posterior probability that one
+   LLM's temperature slope is more negative than the other's.
+
+Cross-*task* differences are read descriptively (the
 $2\times2$ pattern of §[7.5.5](#sec-app-2x2)) rather than as a single formal
 contrast probability, because the two tasks differ in $K$ and in their separately
 calibrated $\alpha$ priors and so do not share one design. No cell omits a
@@ -383,8 +390,8 @@ generalization.
 
 ### 7.6.3 Construct-validity layering (reaffirmed) {#sec-app-construct-validity .unnumbered}
 
-The three-layer reading guide of §[7.1](#sec-app-why) --- (1) within-model
-consistency, (2) comparative claims under shared design, (3) absolute claims about
+The three-layer reading guide of §[7.1](#sec-app-why) --- (1) model
+adequacy, (2) comparative claims under shared design, (3) absolute claims about
 EU rationality, with only (1) and (2) licensed --- is the single most important
 reading instruction for this section. The §[7.5](#sec-app-results) cross-condition
 contrast is a layer-(2) claim; it is *not* a layer-(3) certification of either

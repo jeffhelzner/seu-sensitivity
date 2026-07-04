@@ -15,6 +15,26 @@ Each archive deposit pins the supporting repository to a specific commit/tag.
 ## [Unreleased]
 
 ### Changed
+- **§7.1 reporting-template + construct-validity wording, and new Appendix D.6
+  (2026-07-04, comments.md).** Author-flagged clarity edits to §7.1 "Why include
+  an application here", text-only, no numeric changes. (1) Deleted the "an
+  evaluation framework that *always* reports an effect would be a scoreboard, not
+  an instrument" sentence (Point (iii) already carries the methodological-value
+  claim; "scoreboard" read as unserious). (2) Reading-guide callout title:
+  dropped " read first". (3) Renamed reading-guide layer 1 "Within-model
+  consistency" → "Model adequacy" (more standard, avoids overloading
+  "consistency"); mirrored in §7.6.3. (4) Model-conditional callout title:
+  dropped " (read before the numbers)". (5) Reporting-template callout title:
+  dropped ", to pre-empt cherry-picking". (6) Rewrote the run-on quantity list as
+  a numbered list of the four reported quantities, clarifying that the global
+  slope's 90% CI is an interval *around the slope median*, with a forward
+  reference to the new Appendix D.6. (7) Added **Appendix D.6 "Reported summary
+  quantities: definitions and computation"** giving explicit formulas for the
+  per-condition α, the draw-level population-OLS temperature slope and its
+  $P(\text{slope}<0)$, the strict-monotone-decrease probability, and the cross-LLM
+  comparison probability; cross-references the report-level-vs-population-OLS
+  reconciliation in Appendix E.2. Renders clean (quarto 3-pass, 0 undefined
+  refs); claims_ledger untouched.
 - **§6.2 sign-convention wording + §6.4.4 matched-design table clarity
   (2026-07-03, comments.md).** Two author-flagged clarity issues, text-only, no
   numeric changes. (1) §6.2 "Sign convention" paragraph: the ambiguous "its 90%

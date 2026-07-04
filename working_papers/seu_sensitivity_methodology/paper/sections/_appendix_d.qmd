@@ -5,7 +5,9 @@
 > [6](#sec-m1-implementation), [7](#sec-application)) references D.0 and D.5 rather
 > than re-listing. D.0 fixes the foundational (methodological) design; D.5 the
 > application scale. D.1–D.4 give software versions, sampler configuration, the SBC
-> protocol, and the matched-design comparison. Exact, machine-readable values live
+> protocol, and the matched-design comparison; D.6 defines and gives the
+> computation of the summary quantities reported per application cell in §7.1.
+> Exact, machine-readable values live
 > in `configs/*.json` and `applications/*/configs/` at the pinned commit
 > (Appendix E.0); the constants below are the human-readable transcription.*
 
@@ -153,3 +155,62 @@ procedure at that menu size, since the SEU-max rate at fixed $\alpha$ depends on
 $K$ and the number of alternatives. Across all four cells the fit count is
 $5 \text{ temperatures} \times 4 \text{ cells} = 20$ posterior fits, plus
 $20 \times 4 = 80$ recovery iterations.
+
+## D.6 Reported summary quantities: definitions and computation {#sec-d6 .unnumbered}
+
+The reporting template of §[7.1](#sec-app-why) commits every LLM $\times$ task
+cell to the same four quantities. Each is a functional of the per-condition
+$\alpha$ posterior draws --- for a cell with temperature levels
+$T_1 < \dots < T_L$ (here $L = 5$), write $\alpha_\ell^{(s)}$ for the $s$-th
+posterior draw of $\alpha$ at temperature $T_\ell$, $s = 1, \dots, S$. All
+intervals are equal-tailed posterior credible intervals (5th and 95th empirical
+quantiles of the relevant draw set), and all probabilities are Monte-Carlo
+averages over the $S$ draws.
+
+**(1) Per-condition $\alpha$.** For each temperature $T_\ell$ we report the
+posterior median $\mathrm{med}_s\{\alpha_\ell^{(s)}\}$ and the 90% credible
+interval $[\,q_{0.05}, q_{0.95}\,]$ of $\{\alpha_\ell^{(s)}\}_{s=1}^{S}$.
+
+**(2) Global temperature slope $\Delta\alpha/\Delta T$.** For each posterior
+draw $s$ we compute the population ordinary-least-squares slope of $\alpha$ on
+temperature across the $L$ levels,
+$$
+b^{(s)} \;=\; \frac{\widehat{\mathrm{Cov}}\!\left(T,\, \alpha^{(s)}\right)}
+                    {\widehat{\mathrm{Var}}(T)}
+       \;=\; \frac{\sum_{\ell=1}^{L}\left(T_\ell - \bar{T}\right)
+                    \left(\alpha_\ell^{(s)} - \bar{\alpha}^{(s)}\right)}
+                   {\sum_{\ell=1}^{L}\left(T_\ell - \bar{T}\right)^2},
+$$
+where $\bar{T}$ and $\bar{\alpha}^{(s)}$ are the across-level means (the draw
+index $s$ is held fixed, pairing the $L$ per-condition draws that share it). This
+yields a posterior distribution $\{b^{(s)}\}_{s=1}^{S}$, summarized by its median,
+its 90% credible interval, and the negativity probability
+$P(\text{slope} < 0) = \tfrac{1}{S}\sum_s \mathbf{1}\{b^{(s)} < 0\}$. This is the
+*draw-level* population-OLS slope; the $2\times2$ table of §[7.5.5](#sec-app-2x2)
+additionally quotes a *report-level* slope --- an OLS through the $L$ per-condition
+posterior *medians* --- and the two conventions are reconciled in Appendix
+[E.2](#sec-e-manifest) (they agree on $P(\text{slope}<0)$ and differ only in the
+insurance-cell slope magnitude).
+
+**(3) $P(\text{strict monotone decrease})$.** The posterior probability that
+$\alpha$ falls at every step,
+$$
+P(\text{strict monotone} \downarrow)
+   \;=\; \frac{1}{S}\sum_{s=1}^{S}
+         \mathbf{1}\!\left\{\alpha_1^{(s)} > \alpha_2^{(s)} > \dots > \alpha_L^{(s)}\right\}.
+$$
+This is strictly stronger than a negative slope: a draw can have $b^{(s)} < 0$
+while violating one adjacent-step ordering, which is why the reported
+monotone-decrease probabilities are smaller than the corresponding
+$P(\text{slope} < 0)$ (§[7.5.1](#sec-app-gpt4o-insurance)).
+
+**(4) Cross-LLM comparison probability.** For two independently fitted cells with
+per-draw slopes $\{b_A^{(s)}\}$ and $\{b_B^{(s)}\}$, we report
+$P(b_A < b_B) = \tfrac{1}{S}\sum_s \mathbf{1}\{b_A^{(s)} < b_B^{(s)}\}$, pairing the
+two posteriors by the exchangeable draw index (the cells are fit separately, so
+the pairing carries no cross-cell dependence and the probability is weaker than
+either within-cell $P(\text{slope}<0)$). Because the providers use unequal
+temperature grids, this comparison is reported both on the full grids and with the
+wider grid restricted to the shared ceiling; see §[7.5.2a](#sec-app-cross-llm) and
+claim C11. The computation is reproduced by
+`spikes/report11_cross_llm_spike.py`.

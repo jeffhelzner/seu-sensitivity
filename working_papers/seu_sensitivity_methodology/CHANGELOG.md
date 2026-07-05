@@ -14,7 +14,56 @@ Each archive deposit pins the supporting repository to a specific commit/tag.
 
 ## [Unreleased]
 
+### Added
+- **Appendix D.7 — the three MDE estimators (2026-07-05, comments.md).** Author
+  asked that the §7.5.2 warning-box claim "three independent estimators agree"
+  (analytic-Gaussian 36.3, empirical-quantile 34.7, constant-CV Monte-Carlo 36.0;
+  ≈41–43 at P ≥ 0.975) be given appendix background, as done for other Section-7
+  techniques. New subsection D.7 (`#sec-d7`) in `_appendix_d.qmd` after D.6:
+  defines the minimum-detectable-effect via the D.6(2) population-OLS slope
+  functional and spells out each estimator — (A) analytic Gaussian `z·σ_slope`,
+  (B) empirical-quantile / additive-noise, (C) constant-CV Monte-Carlo — plus a
+  "Why they agree" paragraph (all three share the per-condition dispersions that
+  dominate the calculation; they differ only in the counterfactual-dispersion
+  assumption). Sourced from `spikes/report16_mde_spike.py`; power curve noted as
+  estimator (C). Forward-ref added from the §7.5.2 box and the Appendix D intro
+  blockquote. Text-only, no numeric changes; claims_ledger untouched.
+
 ### Changed
+- **§8.1 and §8.3 discussion edits (2026-07-05, comments.md).** Text-only.
+  §8.1: corrected the object of commitment — replaced "Beliefs and utilities are
+  *what* the agent is committed to; α is *how reliably* the agent acts on those
+  commitments" with a statement that the agent is committed to the *SEU standard*,
+  which places requirements on how the agent's beliefs and values bear on choice,
+  while α is how reliably choices track the EU ranking the standard derives from
+  them. Also deleted the unclear closing clause "— its performance in acting on
+  the SEU ranking, not the strength of the commitment itself" (ends now at
+  "conform to that commitment"). §8.3: replaced "Three checks should be standard
+  practice for any choice-theoretic measurement instrument" with a claim scoped
+  to the Bayesian workflow the paper adopts ("Within the Bayesian workflow this
+  paper adopts, three checks are standard practice, and the paper applies all
+  three"), since prior-predictive/recovery/SBC are Bayesian-workflow checks and a
+  choice-theoretic instrument need not be Bayesian.
+- **§7.1–7.4 clarity edits (2026-07-05, comments.md).** Author-flagged wording,
+  text-only, no numeric changes. §7.1 reading-guide callout: "must not be
+  conflated" → "should not be conflated"; "Only layers 1 and 2 are licensed by
+  this paper" → "supported" ("licensed" also softened to "supported" at its four
+  other §7.3/§7.5/§7.6 uses for consistency); "so the reader reaches the §7.5
+  headline already holding it" → "so the reader has these limitations in mind
+  when they reach the §7.5 headline". §7.1 reporting-template callout: reworded
+  "Cross-task differences are read descriptively" to state such differences are
+  informative about the broad pattern but read with care (not a calibrated effect
+  size), and deleted the trailing "No cell omits a quantity." §7.2: clarified
+  that each task has a single fixed design built once and shared across all
+  temperature conditions, within which menu size was drawn at random (was
+  ambiguously "drawn at random per problem"); reframed the D=32 PCA choice as "a
+  compromise between explained variance and keeping the fit tractable" (was
+  "large enough to retain task structure"). §7.3: "EU-maximal" → "SEU-maximal";
+  softened "concentrates well below plausible SEU-max rates" to state the
+  plausible range is posited rather than derived, with a forward reference to the
+  §7.6.6 prior-sensitivity check; "committal enough to leave" → "informative
+  enough to move mass off". §7.4 SBC-reuse Qualification: replaced the undefined
+  "$w$" with the per-item feature vectors $w_r$ of §7.2 and restated the remark.
 - **§7.1 reporting-template + construct-validity wording, and new Appendix D.6
   (2026-07-04, comments.md).** Author-flagged clarity edits to §7.1 "Why include
   an application here", text-only, no numeric changes. (1) Deleted the "an

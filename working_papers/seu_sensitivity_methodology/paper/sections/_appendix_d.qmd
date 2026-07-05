@@ -6,8 +6,9 @@
 > than re-listing. D.0 fixes the foundational (methodological) design; D.5 the
 > application scale. D.1–D.4 give software versions, sampler configuration, the SBC
 > protocol, and the matched-design comparison; D.6 defines and gives the
-> computation of the summary quantities reported per application cell in §7.1.
-> Exact, machine-readable values live
+> computation of the summary quantities reported per application cell in §7.1;
+> D.7 details the three minimum-detectable-effect estimators behind the
+> Claude-null calibration of §7.5.2. Exact, machine-readable values live
 > in `configs/*.json` and `applications/*/configs/` at the pinned commit
 > (Appendix E.0); the constants below are the human-readable transcription.*
 
@@ -214,3 +215,78 @@ temperature grids, this comparison is reported both on the full grids and with t
 wider grid restricted to the shared ceiling; see §[7.5.2a](#sec-app-cross-llm) and
 claim C11. The computation is reproduced by
 `spikes/report11_cross_llm_spike.py`.
+
+## D.7 Minimum-detectable effect: the three estimators {#sec-d7 .unnumbered}
+
+The Claude $\times$ insurance null (§[7.5.2](#sec-app-claude-insurance)) is read
+against the design's *resolution*: the smallest counterfactual temperature-on-$\alpha$
+slope whose posterior would clear a detection criterion. This appendix defines the
+minimum detectable effect (MDE) and the three estimators that the body reports as
+agreeing; the computation is reproduced by `spikes/report16_mde_spike.py` (seed
+`20260618`).
+
+**Setup.** The reported slope is the population-OLS functional of §D.6(2). Writing
+$\alpha_\ell^{(s)}$ for the $s$-th posterior draw at temperature $T_\ell$
+($\ell = 1, \dots, L$, here $L = 5$ at $T \in \{0.0, 0.2, 0.5, 0.8, 1.0\}$), the
+per-draw slope is the fixed linear combination
+$$
+b^{(s)} \;=\; \sum_{\ell=1}^{L} w_\ell\, \alpha_\ell^{(s)},
+\qquad
+w_\ell \;=\; \frac{T_\ell - \bar{T}}{\sum_{j=1}^{L}\left(T_j - \bar{T}\right)^2},
+$$
+so the slope posterior $\{b^{(s)}\}$ is a weighted sum of the five per-condition
+posteriors and $P(\text{slope} < 0) = \tfrac{1}{S}\sum_s \mathbf{1}\{b^{(s)} < 0\}$.
+The *resolving power* of the design is therefore fixed by the per-condition
+posterior dispersions and the temperature weights $w_\ell$. The observed slope
+posterior has standard deviation $\sigma_{\text{slope}} \approx 22.1$ and
+$P(\text{slope} < 0) \approx 0.56$. The MDE is the smallest counterfactual true
+slope magnitude $|\beta|$ for which $P(\text{slope} < 0)$ would reach the
+criterion; the primary criterion is the one-sided $P(\text{slope} < 0) \geq 0.95$
+($z_{0.95} = 1.645$), the secondary $P(\text{slope} < 0) \geq 0.975$
+($z_{0.975} = 1.960$). The three estimators differ only in how they model the
+*counterfactual dispersion* of the slope under a shifted mean; they share the
+per-condition spreads that dominate the calculation, which is why they agree.
+
+**(A) Analytic Gaussian.** Treat the slope posterior as approximately normal with
+its observed dispersion held fixed, so a counterfactual mean $\beta$ gives
+$P(\text{slope} < 0) = \Phi(-\beta / \sigma_{\text{slope}})$ for a decline. The
+criterion then fixes
+$$
+\mathrm{MDE} \;=\; z\,\sigma_{\text{slope}},
+$$
+giving $\approx 36.3$ at $P \geq 0.95$ and $\approx 43$ at $P \geq 0.975$. This is
+the simplest estimator and is exact only to the extent the slope posterior is
+Gaussian.
+
+**(B) Empirical-quantile (additive-noise).** Drop the normality assumption but keep
+the additive-shift model: re-center the actual slope draws to a counterfactual
+mean $\beta$, so $\text{slope}^{\text{cf}}_s = (b^{(s)} - \bar{b}) + \beta$ with
+residuals $\varepsilon_s = b^{(s)} - \bar{b}$ carrying the observed (non-Gaussian)
+shape. For a decline, $P(\text{slope}^{\text{cf}} < 0) = P(\varepsilon < -\beta)$,
+so the MDE is the empirical criterion-quantile of $\varepsilon$: the 95th
+percentile ($\approx 34.7$) at $P \geq 0.95$, the 97.5th at $P \geq 0.975$. This is
+faithful to the actual slope shape but assumes the per-condition dispersion is
+unchanged by the counterfactual mean shift.
+
+**(C) Constant-CV Monte-Carlo.** Allow the dispersion to scale with the $\alpha$
+level, which the per-condition posteriors exhibit (their coefficient of variation
+is near-constant, $\mathrm{CV} \approx 0.28$, across the five conditions). Impose a
+counterfactual mean line $\mu_\ell = \alpha_{\text{ref}} + \beta\,(T_\ell - \bar{T})$
+about the grand-mean level $\alpha_{\text{ref}} \approx 67.5$, preserve each
+condition's *relative* residuals $(\alpha_\ell^{(s)} - \bar\alpha_\ell)/\bar\alpha_\ell$,
+resample choices per condition, recompute the slope through the same $\{w_\ell\}$
+functional, and root-find $\beta$ where $P(\text{slope} < 0)$ hits the criterion
+($2 \times 10^{5}$ Monte-Carlo resamples). This yields $\approx 36.0$ at
+$P \geq 0.95$ and $\approx 41$ at $P \geq 0.975$, and is the estimator that
+accounts for dispersion growing with the mean.
+
+**Why they agree.** All three read off the same slope functional and the same
+per-condition posterior spreads; they differ only in the auxiliary assumption about
+how those spreads behave under a counterfactual mean shift (fixed and Gaussian (A);
+fixed and empirical (B); scaling with the mean at constant CV (C)). Because the
+resolving power is dominated by the shared per-condition dispersions rather than by
+that auxiliary assumption, the estimates cluster tightly --- $34.7$--$36.3$ at
+$P \geq 0.95$ and $41$--$43$ at $P \geq 0.975$ --- and the substantive conclusion
+(the observed $|\text{slope}| \approx 2.9$--$3.6$ sits an order of magnitude below
+the floor) is insensitive to which one is used. The power curve of
+@fig-mde-power is drawn from estimator (C).

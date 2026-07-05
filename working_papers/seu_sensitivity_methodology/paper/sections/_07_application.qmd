@@ -21,7 +21,7 @@ means *inconclusive at the achievable resolution*, not an established zero
 
 ::: {.callout-important appearance="simple"}
 **Reading guide (construct-validity layering).** Three distinct
-claims must not be conflated, and this layering frames everything below:
+claims should not be conflated, and this layering frames everything below:
 
 1. **Model adequacy** --- the model fits the data adequately
    (validated in §[7.4](#sec-app-validation)).
@@ -31,9 +31,9 @@ claims must not be conflated, and this layering frames everything below:
 3. **Absolute claims about EU rationality** --- an LLM's $\alpha$ value certifies
    a context-free rationality level.
 
-**Only layers 1 and 2 are licensed by this paper.** §[7.6.3](#sec-app-limits)
-deepens this; it is stated here so the reader reaches the §[7.5](#sec-app-results)
-headline already holding it.
+**Only layers 1 and 2 are supported by this paper.** §[7.6.3](#sec-app-limits)
+deepens this; it is stated here so the reader has these limitations in mind when
+they reach the §[7.5](#sec-app-results) headline.
 :::
 
 ::: {.callout-important appearance="simple"}
@@ -41,7 +41,7 @@ headline already holding it.
 $\alpha$ values reported below are parameters of the §[3](#sec-m0-identifiability)
 softmax-over-SEU likelihood, not context-free rationality scores. The
 within-design comparisons of §[7.5](#sec-app-results) --- same model, same prior,
-same feature pipeline --- are licensed; an $\alpha$ read in isolation is *not* a
+same feature pipeline --- are supported; an $\alpha$ read in isolation is *not* a
 model-free measure of an agent's rationality. We return to this at
 §[8.4](#sec-disc-alpha).
 :::
@@ -63,9 +63,10 @@ spelled out in Appendix [D.6](#sec-d6):
 
 Cross-*task* differences are read descriptively (the
 $2\times2$ pattern of §[7.5.5](#sec-app-2x2)) rather than as a single formal
-contrast probability, because the two tasks differ in $K$ and in their separately
-calibrated $\alpha$ priors and so do not share one design. No cell omits a
-quantity.
+contrast probability: because the two tasks differ in $K$ and in their separately
+calibrated $\alpha$ priors, they do not share one design, so a cross-task
+difference is informative about the broad pattern but should be read with care
+rather than as a calibrated effect size.
 :::
 
 ## 7.2 The $2\times2$ design {#sec-app-design .unnumbered}
@@ -79,8 +80,9 @@ or both investigators agree the claim warrants investigation); and (ii)
 (\$0, \$1, \$2, \$3 payouts), organized into three ambiguity tiers (Tier 1
 unambiguous, Tier 2 moderately ambiguous, Tier 3 high-ambiguity in the spirit of
 @ellsberg1961). In both tasks the *alternatives* presented in a problem are the
-pool items themselves (claims or gambles), and the menu size
-$N_m \in \{2, 3, 4\}$ is drawn at random per problem.
+pool items themselves (claims or gambles). Each task has a single fixed design,
+built once and shared across all temperature conditions; within that design the
+menu size of each problem was drawn at random from $N_m \in \{2, 3, 4\}$.
 
 **Per cell.** Five sampling-temperature conditions; $M \approx 100$ base problems
 $\times$ 3 position-counterbalanced presentations $= 300$ choices per condition
@@ -95,7 +97,7 @@ flag this again at §[7.5.2a](#sec-app-results).
 assessment text embedded via `text-embedding-3-small` (embedding turns each
 assessment's text into a numeric vector), then reduced by pooled PCA (a linear
 projection onto the leading directions of variation) to $D = 32$ features ---
-large enough to retain task structure while keeping the fit tractable. *Ellsberg:* the identical pipeline applied to gambles --- a per-gamble
+a compromise between explained variance and keeping the fit tractable. *Ellsberg:* the identical pipeline applied to gambles --- a per-gamble
 LLM assessment of each urn (a short free-text analysis of the payoff
 probabilities and ambiguity), then choice over those assessments, embedded and
 pooled-PCA-projected to $D = 32$. The objective urn composition is *not* entered
@@ -124,15 +126,17 @@ $\alpha$ is empirically required to reach the same prior-implied rate of good
 choice; the calibration below determines it directly rather than from a
 closed-form softmax argument. The calibration target is the prior predictive
 SEU-maximizer selection rate --- the fraction of prior-simulated agents that pick
-the EU-maximal available alternative, obtained by drawing choice problems from the
+the SEU-maximal available alternative, obtained by drawing choice problems from the
 design and parameters from the prior and tabulating the outcome. At the application's $R$ and $K$ the foundational $\mathrm{Lognormal}(0,1)$ prior of
 §[4.1](#sec-m0-spec) places most of its mass on near-random sensitivities, so the prior
-predictive concentrates well below plausible SEU-max rates. (Numerical overflow in
+predictive concentrates well below the SEU-max rates we take to be plausible for
+this application --- a range we posit rather than derive, and whose influence on
+the findings is examined in §[7.6.6](#sec-app-prior-sensitivity). (Numerical overflow in
 $\exp(\alpha\eta)$ is handled by the softmax implementation and is *not* the reason
 for recalibration --- indeed the calibrated priors place *more* mass at large
 $\alpha$.) The $76$--$78\%$ target places the prior mode in the broad interior
-between chance and determinism: committal enough to leave the near-random end of
-the range that dominates under $\mathrm{Lognormal}(0,1)$, yet loose enough --- a wide 90%
+between chance and determinism: informative enough to move mass off the near-random
+end of the range that dominates under $\mathrm{Lognormal}(0,1)$, yet loose enough --- a wide 90%
 prior interval on $\alpha$ --- to let the likelihood move the posterior. A grid
 search over twelve Lognormal hyperparameter pairs scans $(\mu, \sigma)$ to hit this
 interior target, selecting $\mathrm{Lognormal}(3.0, 0.75)$ for the insurance
@@ -193,12 +197,14 @@ Claude $\times$ insurance study. The Ellsberg studies differ in $K$ and in the
 $\alpha$ prior and so receive **fresh** SBC under the $K = 4$ recalibrated prior.
 
 *Qualification.* SBC certifies the *(prior, likelihood, sampler)* triple at the
-model's dimensions $(K, D, R)$; it fixes a design when simulating, so strictly it
-speaks to the particular realized feature matrix used. Because GPT-4o and Claude
-generate different assessments --- and hence different $w$ --- the insurance
-inheritance is an approximation across two provider-specific designs of the same
-dimensions, not an identity; the per-cell parameter-recovery diagnostics above are
-what confirm that calibration holds at each realized design.
+model's dimensions $(K, D, R)$, but it fixes a particular design when simulating,
+so strictly it speaks only to the realized feature matrix used in that run --- the
+stacked per-item feature vectors $w_r$ of §[7.2](#sec-app-design). Because GPT-4o
+and Claude generate different assessments, they yield different feature matrices,
+so the insurance inheritance is an approximation across two provider-specific
+designs of the same dimensions $(K, D, R)$, not an identity; the per-cell
+parameter-recovery diagnostics above are what confirm that calibration holds at
+each realized design.
 :::
 
 **MCMC diagnostics.** The split-$\hat{R}$ statistic compares between- and
@@ -261,7 +267,8 @@ resolve a temperature-on-$\alpha$ slope at $P(\text{slope} < 0) \geq 0.95$ only 
 its magnitude were $|\Delta\alpha/\Delta T| \gtrsim 36$ $\alpha$-units per unit
 temperature (three independent estimators agree: analytic-Gaussian 36.3,
 empirical-quantile 34.7, constant-CV Monte-Carlo 36.0; $\approx 41$--$43$ at the
-stricter $P \geq 0.975$). That floor is $\approx 10$--$12\times$ the observed
+stricter $P \geq 0.975$; Appendix [D.7](#sec-d7) defines each estimator and
+explains why they agree). That floor is $\approx 10$--$12\times$ the observed
 $|\text{slope}|$ --- whether taken as the draw-level posterior median that the
 power calculation operates on ($\approx 2.9$) or the report-level headline summary
 ($\approx 3.6$); the two differ only by which posterior draw set is summarized, and
@@ -354,7 +361,7 @@ per-study step. (iii) The framework detects a structured comparative effect in t
 of four LLM $\times$ task cells (GPT-4o, both tasks) and **does not detect** one in
 the other two (Claude, both tasks). This last point is the methodological-value
 claim --- but stated carefully: the Claude cells are *inconclusive nulls*
-(§[7.5.2](#sec-app-claude-insurance)), so the licensed claim is "an instrument
+(§[7.5.2](#sec-app-claude-insurance)), so the supported claim is "an instrument
 that does not manufacture an effect where its own diagnostics cannot resolve one,"
 **not** "an instrument that certifies the absence of an effect." The
 minimum-detectable-effect statement of §[7.5.2](#sec-app-claude-insurance) is what
@@ -369,7 +376,7 @@ that even a GPT-4o-sized slope would sit below this design's resolution floor fo
 Claude, so the non-reproduction is *inconclusive*: it does not establish that
 temperature behaves differently across providers, only that any Claude-side effect,
 if present, is below what these data can resolve. **(b) That
-GPT-4o is "more rational" than Claude in any context-free sense.** The licensed
+GPT-4o is "more rational" than Claude in any context-free sense.** The supported
 reading of $\alpha$ here is a *within-design comparative* one, not an
 absolute-rationality ranking. **(c) Anything about ambiguity aversion in the
 Ellsberg study.** The SEU+softmax model is, by assumption, of the wrong form to
@@ -392,7 +399,7 @@ generalization.
 
 The three-layer reading guide of §[7.1](#sec-app-why) --- (1) model
 adequacy, (2) comparative claims under shared design, (3) absolute claims about
-EU rationality, with only (1) and (2) licensed --- is the single most important
+EU rationality, with only (1) and (2) supported --- is the single most important
 reading instruction for this section. The §[7.5](#sec-app-results) cross-condition
 contrast is a layer-(2) claim; it is *not* a layer-(3) certification of either
 LLM's context-free rationality.

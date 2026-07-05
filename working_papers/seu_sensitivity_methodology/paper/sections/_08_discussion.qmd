@@ -8,8 +8,12 @@ decomposes choice behavior into three conceptually distinct objects: (i) the
 agent's beliefs ($\beta$, hence the subjective probabilities $\psi$); (ii) the
 agent's utilities ($\delta$, hence the ordered utilities $\bm{\upsilon}$); and
 (iii) the agent's sensitivity $\alpha$ to the expected-utility ranking those
-beliefs and utilities induce. Beliefs and utilities are *what* the agent is
-committed to; $\alpha$ is *how reliably* the agent acts on those commitments.
+beliefs and utilities induce. What the agent is committed to is the *SEU
+standard* itself, and that standard places requirements on how the agent's
+beliefs and values --- represented by a subjective probability and a utility ---
+bear on choice; beliefs and utilities are those inputs, while $\alpha$ is *how
+reliably* the agent's choices track the expected-utility ranking the standard
+derives from them.
 The three softmax-choice properties of §[2.3](#sec-three-properties) ---
 monotonicity in $\alpha$, the optimization limit, and the uniform-choice limit
 --- are exactly what license reading $\alpha$ as a graded measure that runs from
@@ -38,8 +42,7 @@ they reveal failures of *performance* by agents committed to SEU, or an *absence
 of commitment* to SEU as a standard? Our framework does not settle that
 question, but it does make it tractable: *under the assumption* that the agent is
 committed to SEU, $\alpha$ estimates how *reliably the agent's choices conform*
-to that commitment --- its performance in acting on the SEU ranking, not the
-strength of the commitment itself.
+to that commitment.
 
 ## 8.2 The methodological role of identifiability analysis {#sec-disc-identifiability .unnumbered}
 
@@ -76,8 +79,8 @@ paper is careful to keep the two sides apart (§[6.4.4](#sec-m1-lesson)):
 
 ## 8.3 The methodological role of computational validation {#sec-discussion .unnumbered}
 
-Three checks should be standard practice for any choice-theoretic measurement
-instrument, and the paper treats them as such. *Prior predictive checks*
+Within the Bayesian workflow this paper adopts, three checks are standard
+practice, and the paper applies all three. *Prior predictive checks*
 (§[4.2](#sec-m0-prior), §[6.3](#sec-m1-prior)) expose what a prior implies before
 any data are seen; in this setting the SEU-maximizer-rate statistic makes the
 $\alpha$ prior's behavioral content legible and turns per-study prior
@@ -135,7 +138,7 @@ recovered in `m_0` and the calibrated-prior variants `m_01`/`m_02`, and the weak
 comparative discipline is also the paper's answer to the cross-context
 comparability critiques of softmax-precision parameters [@wilcox2011;
 @apesteguia2018]: the $\bm{\upsilon}$-endpoint convention (§[2.6](#sec-notation))
-normalizes the utility scale per problem, and the licensed claims compare
+normalizes the utility scale per problem, and the supported claims compare
 $\alpha$ only within a fixed design (§[2.2](#sec-softmax-rule)).
 
 ::: {.callout-note appearance="simple"}
@@ -148,7 +151,7 @@ different value functional, uses a non-softmax stochastic rule, has heterogeneou
 within-session preferences, and so on). The paper's claim is therefore
 conditional: *under* the SEU + softmax model, $\alpha$ measures sensitivity to
 the EU ranking the model attributes to the agent. The §[7](#sec-application)
-application makes this concrete --- the licensed reading is the within-design
+application makes this concrete --- the supported reading is the within-design
 *comparative* one (§[7.6.3](#sec-app-limits)), not an absolute-rationality
 ranking. Model misspecification is a substantive interpretive risk for any
 procedural-evaluation instrument and is acknowledged here rather than buried.

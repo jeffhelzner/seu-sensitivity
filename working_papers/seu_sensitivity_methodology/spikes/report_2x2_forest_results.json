@@ -2,8 +2,8 @@
   "spec": {
     "section": "7.5.5",
     "companion_table": "@tbl-2x2",
-    "quantity": "global OLS slope Dalpha/DT (alpha-units per unit T)",
-    "plotted_values": "canonical report-level summaries (claims_ledger C9/C10/C12/C13)",
+    "quantity": "global population-OLS slope Dalpha/DT (alpha-units per unit T)",
+    "estimator": "draw-wise b = Cov(T, alpha)/Var(T), population moments; single canonical convention paper-wide",
     "ci_level": 0.9
   },
   "cells": [
@@ -11,94 +11,82 @@
       "llm": "GPT-4o",
       "task": "Insurance",
       "ledger": "C9",
-      "median": -31.0,
-      "ci_low": -66.0,
-      "ci_high": -8.0,
-      "p_neg": 0.99,
-      "source": "temperature_study/01_initial_study.qmd"
+      "study": "temperature_study",
+      "temps": [
+        0.0,
+        0.3,
+        0.7,
+        1.0,
+        1.5
+      ],
+      "median": -24.62648514492752,
+      "ci_low": -52.42053836956519,
+      "ci_high": -6.677534025362312,
+      "p_neg": 0.9905,
+      "n_draws": 4000,
+      "superseded_median": -31.0,
+      "superseded_over_canonical": 1.2588
     },
     {
       "llm": "GPT-4o",
       "task": "Ellsberg",
       "ledger": "C12",
-      "median": -38.4,
-      "ci_low": -72.1,
-      "ci_high": -10.0,
+      "study": "gpt4o_ellsberg_study",
+      "temps": [
+        0.0,
+        0.3,
+        0.7,
+        1.0,
+        1.5
+      ],
+      "median": -38.37483873188404,
+      "ci_low": -72.12682073913041,
+      "ci_high": -10.007828608695657,
       "p_neg": 0.984,
-      "source": "gpt4o_ellsberg_study/data/primary_analysis.json"
+      "n_draws": 4000,
+      "superseded_median": -38.4,
+      "superseded_over_canonical": 1.0007
     },
     {
       "llm": "Claude 3.5",
       "task": "Insurance",
       "ledger": "C10",
-      "median": -3.6,
-      "ci_low": -54.0,
-      "ci_high": 39.0,
-      "p_neg": 0.56,
-      "source": "claude_insurance_study/01_claude_insurance_study.qmd"
+      "study": "claude_insurance_study",
+      "temps": [
+        0.0,
+        0.2,
+        0.5,
+        0.8,
+        1.0
+      ],
+      "median": -2.8943491176470535,
+      "ci_low": -42.88951141911764,
+      "ci_high": 30.782346470588237,
+      "p_neg": 0.55975,
+      "n_draws": 4000,
+      "superseded_median": -3.6,
+      "superseded_over_canonical": 1.2438
     },
     {
       "llm": "Claude 3.5",
       "task": "Ellsberg",
       "ledger": "C13",
-      "median": -18.8,
-      "ci_low": -65.3,
-      "ci_high": 24.5,
+      "study": "ellsberg_study",
+      "temps": [
+        0.0,
+        0.2,
+        0.5,
+        0.8,
+        1.0
+      ],
+      "median": -15.016789411764703,
+      "ci_low": -52.238105360294114,
+      "ci_high": 19.59849042647057,
       "p_neg": 0.766,
-      "source": "ellsberg_study/data/primary_analysis.json"
+      "n_draws": 4000,
+      "superseded_median": -18.8,
+      "superseded_over_canonical": 1.2519
     }
   ],
-  "population_ols_crosscheck": {
-    "note": "diagnostic only; NOT plotted. Reproduces the report-level summaries for the Ellsberg cells; smaller-magnitude medians for the insurance cells at identical P(slope<0) (see C16).",
-    "by_ledger": {
-      "C9": {
-        "cell": "GPT-4o x Insurance",
-        "report_level_median": -31.0,
-        "population_ols": {
-          "median": -24.62648514492752,
-          "ci_low": -52.42053836956519,
-          "ci_high": -6.677534025362312,
-          "p_neg": 0.9905,
-          "n_draws": 4000
-        },
-        "p_neg_agrees": true
-      },
-      "C12": {
-        "cell": "GPT-4o x Ellsberg",
-        "report_level_median": -38.4,
-        "population_ols": {
-          "median": -38.37483873188404,
-          "ci_low": -72.12682073913041,
-          "ci_high": -10.007828608695657,
-          "p_neg": 0.984,
-          "n_draws": 4000
-        },
-        "p_neg_agrees": true
-      },
-      "C10": {
-        "cell": "Claude 3.5 x Insurance",
-        "report_level_median": -3.6,
-        "population_ols": {
-          "median": -2.8943491176470535,
-          "ci_low": -42.88951141911764,
-          "ci_high": 30.782346470588237,
-          "p_neg": 0.55975,
-          "n_draws": 4000
-        },
-        "p_neg_agrees": true
-      },
-      "C13": {
-        "cell": "Claude 3.5 x Ellsberg",
-        "report_level_median": -18.8,
-        "population_ols": {
-          "median": -15.016789411764703,
-          "ci_low": -52.238105360294114,
-          "ci_high": 19.59849042647057,
-          "p_neg": 0.766,
-          "n_draws": 4000
-        },
-        "p_neg_agrees": true
-      }
-    }
-  }
+  "superseded_estimator_note": "Earlier report-level summaries used np.cov(T, a)[0,1]/np.var(T) (ddof=1 covariance over ddof=0 variance), inflating each draw's slope -- median and CI endpoints alike -- by n/(n-1) = 1.25 for the 5-point grids; P(slope<0) is scale-invariant and unaffected. GPT-4o x Ellsberg (C12) used the correct formula and is unchanged. See claims_ledger C16 and Appendix E.2."
 }

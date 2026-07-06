@@ -15,6 +15,73 @@ Each archive deposit pins the supporting repository to a specific commit/tag.
 ## [Unreleased]
 
 ### Added
+- **Review-response revision round (2026-07-05, feedback-…-2026-07-05.md; 37
+  comments + 4 overall themes).**
+  - **New spike `spikes/report_design_diagnostics_spike.py`** (seed 20260705;
+    ledger C18): design-conditional information diagnostics now reported in the
+    paper — foundational lottery-spanning rank check (rank 2 = K−1, singular
+    values 1.08/0.67; §5.5), β contrast-Jacobian ranks (foundational 10 = (K−1)D
+    → locally identified mod gauge; applications 29 < 64/96 → not identified;
+    §5.6, B.4), application feature-matrix full row rank 30 (§7.2),
+    prior-predictive η-gap medians (foundational ≈0.52; insurance ≈0.18–0.20;
+    Ellsberg ≈0.10–0.12) and α posterior-to-prior contraction (sd(log α)
+    0.23–0.29 vs prior 0.75) in a new §7.4 callout (theme A).
+  - **New spike `spikes/report_refit_sensitivity_spike.py`** (seed 42; ledger
+    C19, computed): refits all 20 application conditions at adapt_delta 0.99 /
+    max_treedepth 12 / warmup 2000 — 0 divergences and 0 treedepth hits across
+    all 20 fits (baseline: 34 across 12/20), max α-median shift 0.06
+    committed-posterior sd, all four temperature slopes unchanged within
+    Monte-Carlo noise (theme C). Results reported in §7.4 and Appendix D.2.
+  - **Appendix D.3**: SBC sampler lengths now stated (single chain, 1998 warmup,
+    3996 sampling, thin 4 → L = 999) plus single-pass `_sbc` program
+    clarification (c19).
+  - **E.0**: explicit placeholder for the repository pin/tag (c17, author
+    action).
+
+### Changed
+- **Slope-estimator correction (comment 5) — numeric changes.** The −31 / −3.6 /
+  −18.8 headline slopes were inflated exactly ×1.25 by a ddof-mismatched
+  estimator (`np.cov` ddof=1 over `np.var` ddof=0 on 5-point grids). Single
+  canonical draw-level population-OLS convention adopted paper-wide: GPT-4o ×
+  insurance −24.6 [−52.4, −6.7]; Claude × insurance −2.9 [−42.9, 30.8]; Claude ×
+  Ellsberg −15.0 [−52.2, 19.6]; GPT-4o × Ellsberg unchanged −38.4. P(slope<0)
+  scale-invariant, all qualitative readings unchanged. E.2 rewritten as a
+  correction note (replacing the "two conventions/two resolutions" framing);
+  D.6(2) updated; ledger C9/C10/C11/C13/C16 corrected;
+  `spikes/report_2x2_forest_spike.py` now computes the canonical slopes from
+  committed draws; `spikes/report11_cross_llm_spike.py` re-run with the correct
+  estimator (restricted-grid P 0.824 → 0.816; full-grid 0.817 unchanged);
+  `spikes/report16_mde_spike.py` GPT-4o reference −31 → −24.6 (0.68× MDE, was
+  0.86×); figures 4/5 regenerated.
+- **Theme B (β non-identification).** Prop 5.3 recast as a design-rank condition
+  ("β constrained only through η-contrasts"); §5.6 retitled "What the extended
+  model does *not* deliver: β"; B.4 statement/remark rewritten to match, citing
+  the computed ranks; "irreducible nuisance" reserved for designs where the rank
+  condition fails.
+- **Theme A (design-conditionality).** §1.7(b), §3.5, §4.3, §5.4/§5.5 (new Prop
+  5.1 paragraph; spanning verified), §7.2 (full-row-rank acknowledgment) made
+  explicitly design- and prior-conditional.
+- **Theme D (pipeline vs choice stage).** §7.1 layering/callout corrected
+  (shared feature-*construction pipeline*, provider-generated matrices; c18);
+  §7.5.5 "suggestive of an LLM-level difference, not an established LLM effect"
+  (c13); §7.6.2(a) cell-specific MDE (c16); §7.6.2(c) ambiguity-into-β mechanism
+  (c4).
+- **Other comment-level fixes:** c3 (§7.4 SBC-reuse softened), c6 (§4.3
+  aggregate-bias wording), c9 (Fig 1 caption; coloring verified correct — 5/50
+  red, overplotting artifact), c10 (Table 3 δ row), c11 (Fig 2 panel
+  titles/signs fixed, figure regenerated), c14 (binomial coverage caveat), c15
+  (Wilcox contextual-utility correction, §2.2/§8.4), c20 ("monotonic decline"
+  removed), c21 (Thm A.1(iii) nonconstant hypothesis), c23 (§2.2 separation/
+  propriety parenthetical), c24 (§8.5 h_m01 pooling scope), c25 (D.7 signed-β
+  convention), c26 (§7.3 K-differences), c27 (§8.3 SBC vs informativeness), c28
+  (A.4 well-posed ≠ identified), c29 (D.6(4) false inequality replaced; §7.5.2a
+  aligned), c31 (D.2 R̂ denominator), c33 (§1.3 model-conditional), c34 (MEU
+  smoothing "entangled in finite samples"), c35 (C.3 elision precise), c36
+  (template item 4 pairwise), c37 (`alpha_mean` lower bound removed in
+  m_0_sim/m_1_sim + listings; both recompiled). Comments 22/30/32: no action —
+  PDF-extraction artifacts (sources verified correct).
+
+### Added (pre-review)
 - **Appendix D.7 — the three MDE estimators (2026-07-05, comments.md).** Author
   asked that the §7.5.2 warning-box claim "three independent estimators agree"
   (analytic-Gaussian 36.3, empirical-quantile 34.7, constant-CV Monte-Carlo 36.0;
@@ -29,7 +96,7 @@ Each archive deposit pins the supporting repository to a specific commit/tag.
   estimator (C). Forward-ref added from the §7.5.2 box and the Appendix D intro
   blockquote. Text-only, no numeric changes; claims_ledger untouched.
 
-### Changed
+### Changed (pre-review)
 - **§8.1 and §8.3 discussion edits (2026-07-05, comments.md).** Text-only.
   §8.1: corrected the object of commitment — replaced "Beliefs and utilities are
   *what* the agent is committed to; α is *how reliably* the agent acts on those

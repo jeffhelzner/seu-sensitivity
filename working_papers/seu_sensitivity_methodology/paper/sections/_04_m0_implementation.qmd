@@ -81,17 +81,25 @@ fit `m_0.stan`, and compare posterior summaries to the known true values. We
 evaluate bias ($\approx 0$ ideal), credible-interval coverage ($\approx$ nominal
 90%), and interval width / RMSE as precision measures.
 
-**$\alpha$ recovery.** $\alpha$ recovers with low bias, well-calibrated 90%
+**$\alpha$ recovery.** $\alpha$ recovers with low aggregate bias, well-calibrated 90%
 intervals, and useful precision, as @fig-alpha-recovery shows: a
 true-versus-estimated scatter with 90% credible intervals, and per-replicate
-intervals whose empirical coverage matches the nominal 90%. This is the
+intervals whose empirical coverage matches the nominal 90%. Two qualifications
+keep this from overstatement. First, the low bias is an *aggregate* (across-replicate)
+summary; the scatter shows the shrinkage a Bayesian point estimate under a
+proper prior should show --- posterior means pulled toward the prior center,
+visibly so for the largest true $\alpha$, so the signed error is
+*conditionally* negative in the upper range and positive at the bottom even
+though it is near zero on average. Second, precision is not uniform: intervals
+widen materially with $\alpha$, so "useful precision" describes the bulk of the
+prior range, not its upper tail. This is the
 computational counterpart of Proposition 3.1 --- which identifies $\alpha$ *given*
 $\eta$ --- made empirical: under this design and prior the data supply enough
-curvature to pin $\alpha$, with intervals widening somewhat at large $\alpha$.
+information to pin $\alpha$ over the range the prior concentrates on.
 The clean recovery is thus a design- and prior-dependent fact, not a
 corollary of the proposition alone.
 
-![Parameter recovery for $\alpha$ under `m_0` on the canonical design (50 recovery replicates). Left: posterior-mean $\alpha$ against the true value with the identity line; bias is low, and the annotated in-panel RMSE is dominated by the widening posterior spread in the large-$\alpha$ range. Right: per-replicate 90% credible intervals against the true value, with empirical coverage at the nominal 90%.](../figures/fig_m0_alpha_recovery.pdf){#fig-alpha-recovery width=100%}
+![Parameter recovery for $\alpha$ under `m_0` on the canonical design (50 recovery replicates). Left: posterior-mean $\alpha$ against the true value with the identity line; the aggregate signed bias is low, while the scatter shows the expected prior shrinkage at large true $\alpha$, which (together with the wider posteriors there) also dominates the annotated RMSE --- a point-estimate error summary, distinct from the posterior spread the right panel's interval widths display. Right: per-replicate 90% credible intervals against the true value, colored by whether the interval contains it (5 of 50 miss, matching the nominal 90%; where a miss appears ambiguous, the $\times$ marker belongs to a neighboring replicate).](../figures/fig_m0_alpha_recovery.pdf){#fig-alpha-recovery width=100%}
 
 **$\beta$ and $\delta$ recovery.** By contrast $(\beta, \delta)$ show detectably
 wider intervals and intervals that narrow more slowly with sample size, together

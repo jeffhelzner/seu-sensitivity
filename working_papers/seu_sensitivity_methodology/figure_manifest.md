@@ -15,7 +15,7 @@ Appendix E.2).
 | Fig 6.4 | 6.4.1 | α/δ RMSE + CI-width: matched-design A/B/C/D (n=100) — **embedded as Figure 2** (`figures/report14_rerun_matched.png`) | `spikes/report14_rerun_analysis.py` | `configs/m1_matched_recovery_n100_config.json` | design 20260617 / boot 20260617 | computed |
 | Fig (§6.5) | 6.5 | δ ECDF comparison (m_0 and m_1) with 95% KS band — marginal-SBC demarcation — **embedded as Figure 3** (`figures/fig_sbc_delta_ecdf.pdf`) | `analysis/sbc.py` (`reports/foundations/06_sbc_validation.qmd`) | inline (m_0 and m_1 canonical SBC designs; N_sbc=999 thin4 1 chain) | design np 42; 123+i per draw (D.3) | computed |
 | Fig 7.5.2 | 7.5.2 / 7.6.1 | Claude-null MDE / power curve: P(slope<0) vs \|Δα/ΔT\|, MDE ≈ 36 marker — **embedded as Figure 4** (`figures/report16_mde_power_curve.png`) | `spikes/report16_mde_spike.py` | (inline; data `reports/applications/claude_insurance_study/data/alpha_draws_T*.npz`) | 20260618 | computed |
-| Fig 7.5.5 | 7.5.5 | 2×2 forest plot of per-cell global-slope posteriors (median, 90% CI, P(slope<0)); companion to @tbl-2x2 — **embedded as Figure 5** (`figures/report_2x2_forest.png`) | `spikes/report_2x2_forest_spike.py` | canonical cell summaries (claims_ledger C9/C10/C12/C13) | deterministic render (no RNG) | computed |
+| Fig 7.5.5 | 7.5.5 | 2×2 forest plot of per-cell global-slope posteriors (median, 90% CI, P(slope<0)); companion to @tbl-2x2 — **embedded as Figure 5** (`figures/report_2x2_forest.png`) | `spikes/report_2x2_forest_spike.py` | committed per-condition α draws (computes canonical C9/C10/C12/C13 draw-level population-OLS slopes) | deterministic render (no RNG) | computed |
 | Tab 7.5.5 | 7.5.5 | @tbl-2x2: per-cell global-slope posteriors (C9–C13) | `analysis/model_estimation.py` | `applications/*/configs/` | per-cell (see cell data) | computed |
 | Fig 7.6.6 | 7.6.6 | Prior-sensitivity forest: per-cell slope posteriors under baseline + 3 alternative α priors — **embedded as Figure 6** (`figures/report_prior_sensitivity_forest.png`; claims_ledger C17) | `spikes/report_prior_sensitivity_spike.py` (+ `models/m_0_prior_sweep.stan`) | committed per-condition Stan data; refits cached under `reports/applications/*/data/prior_sweep/` | base_seed 20260701 | computed |
 
@@ -36,10 +36,17 @@ Appendix E.2).
 >
 > The §1.8 dependency chain is an **authored** LaTeX `\underbrace` display in the
 > body (not a generated figure, not mermaid). The §7.5.5 forest plot
-> (`report_2x2_forest.png`) renders the canonical report-level per-cell slope
-> summaries (claims_ledger C9/C10/C12/C13), so it agrees with @tbl-2x2 by
-> construction; it is a deterministic render with no RNG. The spike also records
-> a population-OLS cross-check (`b_i = Cov(T,α_i)/Var(T)` over the committed
-> per-condition draws) in its results JSON — diagnostic only, not plotted: it
-> reproduces the Ellsberg cells and gives smaller-magnitude insurance medians at
-> identical `P(slope<0)`, the same convention difference documented in C16.
+> (`report_2x2_forest.png`) **computes** the canonical per-cell slope posteriors
+> (draw-level population-OLS, claims_ledger C9/C10/C12/C13) directly from the
+> committed per-condition α draws and renders them, so the figure, @tbl-2x2, and
+> the ledger share a single estimator by construction. The superseded
+> report-level values (−31 / −3.6 / −18.8) were inflated by exactly 1.25 by a
+> ddof-mismatched estimator; see the E.2 correction note and the spike's results
+> JSON, which records the superseded values and the factor.
+>
+> **Non-figure diagnostic spikes** feeding body numbers: 
+> `spikes/report_design_diagnostics_spike.py` (seed 20260705) — §5.5
+> lottery-spanning ranks, §5.6 β contrast-Jacobian ranks, §7.2 feature-matrix
+> rank, §7.4 η-gap/α-contraction callout (ledger C18). 
+> `spikes/report_refit_sensitivity_spike.py` (seed 42) — §7.4/D.2
+> stricter-sampler refit check (ledger C19).

@@ -1,8 +1,9 @@
 # Appendix B. Identifiability Results {#sec-appendix-b .unnumbered}
 
 > *B.1 and B.3 are proofs under explicit genericity conditions; B.4 records what
-> uncertain choices do and do not pin down about $\beta$, identifying it as an
-> irreducible nuisance; B.2 is not a proposition but a brief empirical note on
+> uncertain choices do and do not pin down about $\beta$ --- all information
+> flows through the per-menu $\eta$-contrasts, so identification turns on a
+> design-specific rank condition; B.2 is not a proposition but a brief empirical note on
 > the Bayesian workflow, recording that uncertain-choice data weakly inform
 > $(\beta,\delta)$ as seen directly in parameter recovery.*
 
@@ -109,7 +110,7 @@ Affine independence of *all* $S$ lotteries is neither required nor possible when
 $S > K$ (here $S = 15$, $K = 3$); what is needed is a spanning affinely
 independent *subset*.
 
-## B.4 Uncertain choices sharpen utilities; $\beta$ remains a nuisance {#sec-b4 .unnumbered}
+## B.4 Uncertain choices sharpen utilities; $\beta$ is constrained only through $\eta$ {#sec-b4 .unnumbered}
 
 ::: {.callout-note appearance="simple"}
 **Proposition B.4.** Suppose $\delta$ (hence $\bm{\upsilon}$) is identified by
@@ -118,11 +119,13 @@ expected utilities $\eta_r = \bm{\psi}_r^\top \bm{\upsilon}$ up to a per-menu
 additive constant, and constrain $\beta$ only through the composite map
 $\beta \mapsto \big(\mathrm{softmax}(\beta w_r)^\top \bm{\upsilon}\big)_r$. For
 $K \geq 3$ a scalar expected utility does not determine the $(K-1)$-dimensional
-belief simplex $\bm{\psi}_r$, so absent an independent rank/Jacobian condition on
-this composite map, $\beta$ is identified at most up to the level sets of
-$\beta \mapsto (\eta_r)_r$ together with the additive row-shift gauge of
-§[2.6](#sec-notation). In the uncertain-choice model $\beta$ is thus an
-irreducible nuisance; the contribution of the risky block (B.3) is to sharpen
+belief simplex $\bm{\psi}_r$, so whether $\beta$ is identified (modulo the
+additive row-shift gauge of §[2.6](#sec-notation)) turns entirely on a
+design-specific rank condition on this composite map: local identification
+requires its gauge-fixed Jacobian to attain rank $(K-1)D$, which is impossible
+whenever $(K-1)D$ exceeds the number of independent $\eta$-contrasts the design
+supplies (at most $R-1$). Where the condition fails, $\beta$ is an irreducible
+nuisance; the contribution of the risky block (B.3) is in either case to sharpen
 $\bm{\upsilon}$, not to recover $\beta$.
 :::
 
@@ -143,12 +146,17 @@ the composite map to be injective modulo the gauge under the design, an
 additional rank condition the scalar expected utilities do not supply.
 $\qquad\blacksquare$
 
-*Remark (what is and is not claimed).* The proposition asserts non-identification
-of $\beta$ *from the uncertain choices under the stated design*, not a structural
-impossibility. A sufficiently rich feature design could in principle make the
-composite map $\beta \mapsto (\eta_r)_r$ injective modulo the gauge, restoring
-point identification. Nor do crude dimension counts settle the matter: a nominal
+*Remark (what is and is not claimed).* The proposition asserts that
+identification of $\beta$ is governed by a design-specific rank condition, not a
+structural impossibility or a structural guarantee. Crude dimension counts do
+not settle the matter: a nominal
 inequality such as $R \geq (K-1)D$ is necessary but not sufficient, since it
-ignores the rank of the induced Jacobian. The narrow claim we rely on is that
-each uncertain choice supplies only the *scalar* $\eta_r$, so absent an explicit
-rank/Jacobian condition $\beta$ is not recovered.
+ignores the rank of the induced Jacobian. §[5.6](#sec-m1-beta) evaluates the
+condition numerically for the paper's two design regimes: at the foundational
+design the gauge-fixed contrast-Jacobian rank equals $(K-1)D = 10$, so $\beta$
+is locally identified modulo the gauge (though weakly informed at finite $n$),
+while at the application designs $(K-1)D = 64$ or $96$ exceeds the maximal
+contrast count $R - 1 = 29$, so $\beta$ is genuinely not identified there. The
+narrow claim we rely on throughout is that each uncertain choice supplies only
+the *scalar* $\eta_r$, so all information about $\beta$ flows through the
+$\eta$-contrasts.

@@ -116,9 +116,9 @@
     }
   },
   "gpt4o_reference": {
-    "slope_fullgrid": -31.0,
+    "slope_fullgrid": -24.6,
     "note": "reference only (plan SS7.5.2a); full, unequal grid; carries the unequal-grid caveat; not computed here",
-    "abs_slope_vs_mde_C95": 0.8618546409201984
+    "abs_slope_vs_mde_C95": 0.683923360214093
   },
   "power_curve": {
     "beta_abs": [

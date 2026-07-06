@@ -55,8 +55,11 @@ chain (**4000 retained draws**), at CmdStan's NUTS defaults --- target acceptanc
 $\mathrm{adapt\_delta} = 0.8$ and maximum tree depth $10$, not overridden. Warmup
 is $500$ iterations per chain in the parameter-recovery driver and $1000$ in the
 §[7](#sec-application) application fits; either way 4000 post-warmup draws are
-retained, the denominator behind the §[7.4](#sec-app-validation) divergence and
-$\hat{R}$-exceedance fractions. (The SBC fits of D.3 use a different,
+retained per fit. The 4000-draw count is the denominator for the
+§[7.4](#sec-app-validation) *divergence* fractions ($\leq 6/4000$ per fit); the
+$\hat{R}$-exceedance summary is denominated differently --- it counts *fits*
+(4/20) and, within a flagged fit, the monitored parameter components that exceed
+$1.01$, not draws. (The SBC fits of D.3 use a different,
 single-chain configuration.) Random seeds are deterministic per iteration: the
 simulation draw uses seed $12345 + i$ and the inference fit uses $54321 + i$ for
 iteration $i$, so every recovery iteration is independently reproducible.
@@ -74,20 +77,41 @@ nuisance latents ($\eta, \psi, \upsilon$) in the hardest $K = 4$ fits ---
 consistent with the §[3.4](#sec-bd-weak) weakly-informed $(\beta,\delta)$ finding
 rather than a defect in the $\alpha$ inference.
 
+**Stricter-sampler refit check.** To verify that the residual divergences are
+step-size artifacts rather than symptoms of posterior bias, all 20 application
+conditions were refit at $\mathrm{adapt\_delta} = 0.99$, maximum tree depth
+$12$, and warmup $2000$ (4 chains, 1000 sampling iterations, seed 42;
+`spikes/report_refit_sensitivity_spike.py`, Appendix [E.2](#sec-e2)). Under the
+stricter settings the total divergence count drops from 34 (spread across 12/20
+fits) to **0**, with no tree-depth saturations; the largest shift in any
+per-condition $\alpha$ posterior median is $0.06$ committed-posterior standard
+deviations; and all four temperature slopes are reproduced to within Monte-Carlo
+noise (GPT-4o $\times$ insurance $-24.6 \to -24.8$ with $P$ $0.991 \to 0.986$;
+Claude $\times$ insurance $-2.9 \to -2.0$, $0.560 \to 0.537$; GPT-4o $\times$
+Ellsberg $-38.4 \to -37.5$, $0.984 \to 0.992$; Claude $\times$ Ellsberg
+$-15.0 \to -14.7$, $0.766 \to 0.767$). The committed draws are retained as the
+paper's basis; the refit is a sensitivity check, not a replacement.
+
 ## D.3 SBC configuration and seed convention {#sec-d3 .unnumbered}
 
 Simulation-based calibration (§[4.4](#sec-m0-sbc), §[6.5](#sec-m1-sbc), claim C5)
-draws $N_{\mathrm{sbc}} = 999$ prior samples from the matched `_sim` program
-(Appendix C.2, C.4), fits the inference model to each synthetic dataset, and
-ranks each true parameter within its thinned posterior draws. Thinning is $4$,
-posteriors are run as a single chain, and the rank histograms use $20$ bins under
-the $L = N_{\mathrm{sbc}}$ convention so that uniform ranks span $\{0, \dots,
-N_{\mathrm{sbc}}\}$. Calibration is read off both the rank histograms and the
+draws $N_{\mathrm{sbc}} = 999$ prior samples from the matched `_sbc` program
+(which embeds the simulator of Appendix C.2/C.4: each replicate draws its true
+parameters and generates its synthetic dataset in `generated quantities` of the
+same program that is then fit, in a single Stan pass), fits the inference model
+to each synthetic dataset, and
+ranks each true parameter within its thinned posterior draws. Each SBC fit runs
+a **single chain** with $1998$ warmup and $3996$ sampling iterations, thinned by
+$4$ to retain $L = 999$ posterior draws --- the Stan User's Guide convention of
+setting $L = N_{\mathrm{sbc}}$, so that the rank statistic takes one of $L + 1 =
+1000$ equally likely values under calibration. The rank histograms use $20$ bins
+(expected count $\approx 50$ per bin).
+Calibration is read off both the rank histograms and the
 ECDF-difference plot with simultaneous KS bands (Modřák et al. 2023), which is
 more sensitive than the rank histogram alone. Each replicate $i$ uses a single
-deterministic seed $123 + i$: the `_sbc` program draws the true parameters and
-simulates its synthetic dataset in the same pass it fits, so one seed governs
-both steps and each of the 999 replicates is reproducible in isolation. (The
+deterministic seed $123 + i$: because the `_sbc` program draws the true
+parameters, simulates, and fits in one pass, one seed governs
+all steps and each of the 999 replicates is reproducible in isolation. (The
 study design itself is generated once under NumPy seed $42$ and held fixed across
 all replicates.)
 
@@ -186,12 +210,14 @@ where $\bar{T}$ and $\bar{\alpha}^{(s)}$ are the across-level means (the draw
 index $s$ is held fixed, pairing the $L$ per-condition draws that share it). This
 yields a posterior distribution $\{b^{(s)}\}_{s=1}^{S}$, summarized by its median,
 its 90% credible interval, and the negativity probability
-$P(\text{slope} < 0) = \tfrac{1}{S}\sum_s \mathbf{1}\{b^{(s)} < 0\}$. This is the
-*draw-level* population-OLS slope; the $2\times2$ table of §[7.5.5](#sec-app-2x2)
-additionally quotes a *report-level* slope --- an OLS through the $L$ per-condition
-posterior *medians* --- and the two conventions are reconciled in Appendix
-[E.2](#sec-e-manifest) (they agree on $P(\text{slope}<0)$ and differ only in the
-insurance-cell slope magnitude).
+$P(\text{slope} < 0) = \tfrac{1}{S}\sum_s \mathbf{1}\{b^{(s)} < 0\}$. This
+*draw-level population-OLS* slope is the single slope convention used throughout
+the paper --- every slope in §[7.5](#sec-app-results), the $2\times2$ table of
+§[7.5.5](#sec-app-2x2), and the claims ledger is this functional. (An earlier
+draft mixed in a second estimator that inflated slope magnitudes by exactly
+$L/(L-1) = 1.25$ through mismatched degrees-of-freedom conventions; the
+correction is recorded in Appendix [E.2](#sec-e-manifest). $P(\text{slope}<0)$
+is invariant to that scale factor and was unaffected.)
 
 **(3) $P(\text{strict monotone decrease})$.** The posterior probability that
 $\alpha$ falls at every step,
@@ -209,8 +235,12 @@ $P(\text{slope} < 0)$ (§[7.5.1](#sec-app-gpt4o-insurance)).
 per-draw slopes $\{b_A^{(s)}\}$ and $\{b_B^{(s)}\}$, we report
 $P(b_A < b_B) = \tfrac{1}{S}\sum_s \mathbf{1}\{b_A^{(s)} < b_B^{(s)}\}$, pairing the
 two posteriors by the exchangeable draw index (the cells are fit separately, so
-the pairing carries no cross-cell dependence and the probability is weaker than
-either within-cell $P(\text{slope}<0)$). Because the providers use unequal
+the pairing carries no cross-cell dependence). This between-cell probability
+answers a different question from the within-cell $P(\text{slope}<0)$ values ---
+it measures the separation of two independent slope posteriors, folding in both
+cells' uncertainty, and is not bounded by either within-cell probability (in the
+insurance comparison it sits between them: $0.82$ against GPT-4o's $0.99$ and
+Claude's $0.56$). Because the providers use unequal
 temperature grids, this comparison is reported both on the full grids and with the
 wider grid restricted to the shared ceiling; see §[7.5.2a](#sec-app-cross-llm) and
 claim C11. The computation is reproduced by
@@ -239,8 +269,11 @@ posteriors and $P(\text{slope} < 0) = \tfrac{1}{S}\sum_s \mathbf{1}\{b^{(s)} < 0
 The *resolving power* of the design is therefore fixed by the per-condition
 posterior dispersions and the temperature weights $w_\ell$. The observed slope
 posterior has standard deviation $\sigma_{\text{slope}} \approx 22.1$ and
-$P(\text{slope} < 0) \approx 0.56$. The MDE is the smallest counterfactual true
-slope magnitude $|\beta|$ for which $P(\text{slope} < 0)$ would reach the
+$P(\text{slope} < 0) \approx 0.56$. Throughout this appendix $\beta$ denotes the
+*signed* counterfactual true slope --- negative for a temperature-driven decline
+in $\alpha$ --- and the formulas below use the signed value; MDEs are quoted as
+magnitudes $|\beta|$. The MDE is the smallest counterfactual decline magnitude
+for which $P(\text{slope} < 0)$ would reach the
 criterion; the primary criterion is the one-sided $P(\text{slope} < 0) \geq 0.95$
 ($z_{0.95} = 1.645$), the secondary $P(\text{slope} < 0) \geq 0.975$
 ($z_{0.975} = 1.960$). The three estimators differ only in how they model the
@@ -248,9 +281,9 @@ criterion; the primary criterion is the one-sided $P(\text{slope} < 0) \geq 0.95
 per-condition spreads that dominate the calculation, which is why they agree.
 
 **(A) Analytic Gaussian.** Treat the slope posterior as approximately normal with
-its observed dispersion held fixed, so a counterfactual mean $\beta$ gives
-$P(\text{slope} < 0) = \Phi(-\beta / \sigma_{\text{slope}})$ for a decline. The
-criterion then fixes
+its observed dispersion held fixed, so a signed counterfactual mean $\beta < 0$
+gives $P(\text{slope} < 0) = \Phi(-\beta / \sigma_{\text{slope}}) =
+\Phi(|\beta| / \sigma_{\text{slope}})$. The criterion then fixes
 $$
 \mathrm{MDE} \;=\; z\,\sigma_{\text{slope}},
 $$
@@ -259,10 +292,11 @@ the simplest estimator and is exact only to the extent the slope posterior is
 Gaussian.
 
 **(B) Empirical-quantile (additive-noise).** Drop the normality assumption but keep
-the additive-shift model: re-center the actual slope draws to a counterfactual
-mean $\beta$, so $\text{slope}^{\text{cf}}_s = (b^{(s)} - \bar{b}) + \beta$ with
+the additive-shift model: re-center the actual slope draws to a signed
+counterfactual mean $\beta < 0$, so $\text{slope}^{\text{cf}}_s = (b^{(s)} - \bar{b}) + \beta$ with
 residuals $\varepsilon_s = b^{(s)} - \bar{b}$ carrying the observed (non-Gaussian)
-shape. For a decline, $P(\text{slope}^{\text{cf}} < 0) = P(\varepsilon < -\beta)$,
+shape. Then $P(\text{slope}^{\text{cf}} < 0) = P(\varepsilon < -\beta) =
+P(\varepsilon < |\beta|)$,
 so the MDE is the empirical criterion-quantile of $\varepsilon$: the 95th
 percentile ($\approx 34.7$) at $P \geq 0.95$, the 97.5th at $P \geq 0.975$. This is
 faithful to the actual slope shape but assumes the per-condition dispersion is
@@ -271,11 +305,11 @@ unchanged by the counterfactual mean shift.
 **(C) Constant-CV Monte-Carlo.** Allow the dispersion to scale with the $\alpha$
 level, which the per-condition posteriors exhibit (their coefficient of variation
 is near-constant, $\mathrm{CV} \approx 0.28$, across the five conditions). Impose a
-counterfactual mean line $\mu_\ell = \alpha_{\text{ref}} + \beta\,(T_\ell - \bar{T})$
+signed counterfactual mean line $\mu_\ell = \alpha_{\text{ref}} + \beta\,(T_\ell - \bar{T})$
 about the grand-mean level $\alpha_{\text{ref}} \approx 67.5$, preserve each
 condition's *relative* residuals $(\alpha_\ell^{(s)} - \bar\alpha_\ell)/\bar\alpha_\ell$,
 resample choices per condition, recompute the slope through the same $\{w_\ell\}$
-functional, and root-find $\beta$ where $P(\text{slope} < 0)$ hits the criterion
+functional, and root-find the $\beta < 0$ where $P(\text{slope} < 0)$ hits the criterion
 ($2 \times 10^{5}$ Monte-Carlo resamples). This yields $\approx 36.0$ at
 $P \geq 0.95$ and $\approx 41$ at $P \geq 0.975$, and is the estimator that
 accounts for dispersion growing with the mean.
@@ -287,6 +321,6 @@ fixed and empirical (B); scaling with the mean at constant CV (C)). Because the
 resolving power is dominated by the shared per-condition dispersions rather than by
 that auxiliary assumption, the estimates cluster tightly --- $34.7$--$36.3$ at
 $P \geq 0.95$ and $41$--$43$ at $P \geq 0.975$ --- and the substantive conclusion
-(the observed $|\text{slope}| \approx 2.9$--$3.6$ sits an order of magnitude below
+(the observed $|\text{slope}| \approx 2.9$ sits an order of magnitude below
 the floor) is insensitive to which one is used. The power curve of
 @fig-mde-power is drawn from estimator (C).

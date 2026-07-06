@@ -50,7 +50,13 @@ in the index $\alpha V$ --- a standard multinomial-logit property
 $\alpha$-likelihood is unimodal and free of spurious local optima. (The concavity is in the index
 $\alpha V$, i.e. the surface in $\alpha$ with $V$ fixed; it is *not* joint
 concavity in $\alpha$ together with the value parameters, because $\alpha V$ is
-bilinear in the two.) These are two distinct virtues, and we keep them apart: the
+bilinear in the two. Nor does concavity guarantee a *finite* maximizer: if the
+observed choices happen to select a value-maximal alternative in every problem
+--- the analogue of complete separation in logistic regression --- the
+likelihood increases in $\alpha$ without bound, and it is the prior on $\alpha$
+that restores a proper posterior. The Bayesian workflow of
+§[4](#sec-m0-implementation) never relies on a maximum-likelihood point
+estimate.) These are two distinct virtues, and we keep them apart: the
 log-odds linearity and single-scalar limit structure above make $\alpha$
 *interpretable*, while the concavity is what makes it *well-behaved to estimate*.
 Probit, by contrast, replaces the Luce ratio with Gaussian latent errors: a
@@ -76,8 +82,14 @@ utility scale is normalized per context ("contextual utility"), and
 risk attitudes non-monotonically. We take both seriously rather than claiming
 immunity: the $\bm{\upsilon}$-endpoint convention of §[2.6](#sec-notation) fixes
 the utility scale (best consequence $= 1$, worst $= 0$) uniformly across
-problems, supplying the scale normalization the contextual-utility critique asks
-for within our fixed-consequence-space designs, and the paper licenses only
+problems. This is a *global* normalization over a fixed consequence space, not
+the per-context renormalization Wilcox's contextual utility prescribes; the two
+coincide here only because every problem in a given design draws its
+consequences from the same $K$-element space, so the within-context utility
+range is the same fixed range in every problem. Within such
+fixed-consequence-space designs the convention supplies the scale comparability
+the critique asks for; across designs with different consequence spaces it does
+not, which is one reason the paper licenses only
 *within-design comparative* readings of $\alpha$ (§[7.6](#sec-app-limits),
 §[8.4](#sec-disc-alpha)), not cross-instrument cardinal ones.
 

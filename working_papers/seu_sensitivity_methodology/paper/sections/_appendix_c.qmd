@@ -128,7 +128,7 @@ data {
   int<lower=1> M; int<lower=2> K; int<lower=1> D; int<lower=2> R;
   array[R] vector[D] w;
   array[M,R] int<lower=0,upper=1> I;
-  real<lower=0> alpha_mean; // mean for log(alpha) (default 0)
+  real alpha_mean;          // mean for log(alpha) (default 0); may be negative
   real<lower=0> alpha_sd;   // sd for log(alpha)   (default 1)
   real<lower=0> beta_sd;    // sd for beta coefficients (default 1)
 }
@@ -271,9 +271,13 @@ generated quantities {
   array[M] int y_pred; array[N] int z_pred;
   for (m in 1:M) y_pred[m] = categorical_rng(chi_uncertain[m]);
   for (n in 1:N) z_pred[n] = categorical_rng(chi_risky[n]);
-  // Block-wise and combined PPC statistics (ppc_ll / ppc_modal / ppc_prob) are
-  // omitted here for brevity; they are built exactly as in m_0.stan (C.1),
-  // separately for the uncertain and risky blocks and for the pooled data.
+  // Elided for space: the PPC indicator statistics. m_1.stan computes, per
+  // posterior draw, replicate-vs-observed indicators ppc_ll_*, ppc_modal_*,
+  // ppc_prob_* (log-likelihood, modal-choice frequency, mean predicted
+  // probability of the chosen alternative) built exactly as in m_0.stan (C.1),
+  // once for the uncertain block, once for the risky block, and combined
+  // (e.g. ppc_ll_combined from the summed block log-likelihoods) -- seven
+  // indicators in all; see models/m_1.stan at the E.0 pin for the verbatim block.
 }
 ```
 
@@ -291,7 +295,7 @@ data {
   array[R] vector[D] w; array[M,R] int<lower=0,upper=1> I;
   int<lower=1> N; int<lower=2> S;
   array[S] simplex[K] x; array[N,S] int<lower=0,upper=1> J;
-  real<lower=0> alpha_mean; real<lower=0> alpha_sd; real<lower=0> beta_sd;
+  real alpha_mean; real<lower=0> alpha_sd; real<lower=0> beta_sd;
 }
 transformed data {
   array[M] int<lower=2> N_uncertain; int total_uncertain_alts = 0;

@@ -26,8 +26,10 @@ claims should not be conflated, and this layering frames everything below:
 1. **Model adequacy** --- the model fits the data adequately
    (validated in §[7.4](#sec-app-validation)).
 2. **Comparative claims under shared design** --- $\alpha$ differs systematically
-   across conditions that share prior, features, and choice model (the
-   §[7.5](#sec-app-results) reading).
+   across conditions that share item pool, prior, choice model, and
+   feature-construction pipeline (the §[7.5](#sec-app-results) reading). "Shared"
+   here means the *construction* is shared; the realized feature matrices are
+   provider-generated and so differ across LLMs (§[7.2](#sec-app-design)).
 3. **Absolute claims about EU rationality** --- an LLM's $\alpha$ value certifies
    a context-free rationality level.
 
@@ -41,7 +43,7 @@ they reach the §[7.5](#sec-app-results) headline.
 $\alpha$ values reported below are parameters of the §[3](#sec-m0-identifiability)
 softmax-over-SEU likelihood, not context-free rationality scores. The
 within-design comparisons of §[7.5](#sec-app-results) --- same model, same prior,
-same feature pipeline --- are supported; an $\alpha$ read in isolation is *not* a
+same feature-construction pipeline --- are supported; an $\alpha$ read in isolation is *not* a
 model-free measure of an agent's rationality. We return to this at
 §[8.4](#sec-disc-alpha).
 :::
@@ -59,7 +61,10 @@ spelled out in Appendix [D.6](#sec-d6):
 3. **$P(\text{strict monotone decrease})$** --- the posterior probability that
    $\alpha$ decreases at every step across all five temperature levels.
 4. **Cross-LLM comparison probability** --- the posterior probability that one
-   LLM's temperature slope is more negative than the other's.
+   LLM's temperature slope is more negative than the other's. Unlike quantities
+   1--3, this is a *pairwise* summary computed once per LLM pair within a task
+   family, not a per-cell quantity; it appears in the cross-LLM comparison
+   (§[7.5.2a](#sec-app-cross-llm)) rather than in each cell's report.
 
 Cross-*task* differences are read descriptively (the
 $2\times2$ pattern of §[7.5.5](#sec-app-2x2)) rather than as a single formal
@@ -111,13 +116,26 @@ addresses a position-bias problem identified in preliminary elicitation runs; un
 responses are recorded as missing rather than coerced to a default, and missing
 rates are negligible across all 20 conditions.
 
+One dimensional fact about this pipeline deserves explicit acknowledgment: with
+$D = 32$ features and only $R = 30$ distinct items, every realized feature matrix
+has full row rank (rank 30, verified for all 20 conditions;
+`spikes/report_design_diagnostics_spike.py`). The linear map $\beta$ can therefore
+assign an arbitrary pattern of belief weights across the 30 items --- the feature
+construction imposes no cross-item restriction of its own, and the discipline on
+$\beta$ comes from its prior rather than from feature-space parsimony. None of the
+comparisons below rest on $\beta$ being identified (§[3.4](#sec-bd-weak)); we state
+the rank fact so the $D = 32$ choice is not misread as a binding structural
+constraint.
+
 ## 7.3 The model fit (`m_01` / `m_02`) {#sec-app-model .unnumbered}
 
 The fitted model is structurally identical to `m_0` of
 §[4](#sec-m0-implementation) but with a $\mathrm{Lognormal}(\mu, \sigma)$ prior on
 $\alpha$ calibrated to each application's design and consequence space: `m_01` for
 the insurance task ($K = 3$) and `m_02` for the Ellsberg task ($K = 4$). The two
-differ only in that $\alpha$ prior.
+programs differ in the consequence count $K$ --- and hence in the dimensions of
+$\upsilon$, $\delta$, and the per-alternative belief objects $\psi$ --- as well as
+in the $\alpha$ prior; the likelihood *form* is identical.
 
 **Prior calibration anchor.** Why does the $K = 4$ Ellsberg task need a different
 $\alpha$ prior than the $K = 3$ insurance task? Not because random choice differs
@@ -176,7 +194,11 @@ iterations per cell).
 **Parameter recovery for $\alpha$.** Anchored on relative metrics, because true
 $\alpha$ lies on a wide multiplicative scale under the calibrated prior: relative
 bias within $\pm 10\%$ of the mean true value, relative RMSE well below 25%, and
-90% CI coverage at nominal. As throughout, $(\beta, \delta)$ recovery remains weak
+90% CI coverage at nominal. With 20 iterations per cell these recovery checks are
+reassurance against *gross* miscalibration rather than precise coverage
+estimates --- the binomial uncertainty on a coverage proportion estimated from 20
+draws is wide (a standard error of roughly 7 percentage points at nominal 90%).
+As throughout, $(\beta, \delta)$ recovery remains weak
 --- the §[3](#sec-m0-identifiability) picture is unchanged --- but the
 cross-condition comparison is a claim about $\alpha$, and $\alpha$ is fit for
 purpose.
@@ -203,8 +225,10 @@ stacked per-item feature vectors $w_r$ of §[7.2](#sec-app-design). Because GPT-
 and Claude generate different assessments, they yield different feature matrices,
 so the insurance inheritance is an approximation across two provider-specific
 designs of the same dimensions $(K, D, R)$, not an identity; the per-cell
-parameter-recovery diagnostics above are what confirm that calibration holds at
-each realized design.
+parameter-recovery diagnostics above provide design-specific reassurance, though
+recovery checks point estimates, interval widths, and empirical coverage rather
+than the full rank-uniformity property SBC certifies, so the inheritance remains
+an approximation rather than a re-established calibration.
 :::
 
 **MCMC diagnostics.** The split-$\hat{R}$ statistic compares between- and
@@ -226,7 +250,17 @@ $\eta$ and $\psi$ in the harder $K = 4$ GPT-4o $\times$ Ellsberg fits (plus one
 Claude $\times$ insurance fit, $\eta$ only). This *corroborates* the §[3.4](#sec-bd-weak)/§[6.4](#sec-m1-recovery)
 weakly-informed $(\beta,\delta)$ finding --- the poorly-mixing parameters are
 exactly the ones recovery flags as weakly informed --- and is not a defect in
-$\alpha$ inference.
+$\alpha$ inference. As a direct check, all 20 conditions were refit under
+stricter sampler settings ($\mathrm{adapt\_delta} = 0.99$, maximum tree depth
+$12$, warmup $2000$; seed 42): the divergences vanish entirely (0 across all 20
+fits, with no tree-depth saturations), the per-condition $\alpha$ posterior
+medians move by at most $0.06$ committed-posterior standard deviations, and the
+four §[7.5](#sec-app-results) temperature slopes are unchanged to within
+Monte-Carlo noise (e.g., GPT-4o $\times$ insurance $-24.6 \to -24.8$,
+$P(\beta_{\text{temp}} < 0)$ $0.99 \to 0.99$; Claude $\times$ Ellsberg
+$-15.0 \to -14.7$, $0.77 \to 0.77$) --- confirming the divergences were benign
+step-size artifacts rather than symptoms of a biased posterior (Appendix
+[D.2](#sec-d2)).
 
 **Posterior predictive checks.** Three complementary summaries (log-likelihood,
 modal-choice frequency, mean predicted probability of the chosen alternative)
@@ -236,13 +270,36 @@ is a *necessary* (not sufficient) condition for the per-condition $\alpha$
 posteriors to be a credible basis for the cross-condition comparison; absent it,
 the comparison should be set aside.
 
+::: {.callout-note appearance="simple"}
+**Design-conditional information diagnostics.** Because $\alpha$ is identified
+only through the products $\alpha(\eta_r - \eta_s)$
+(§[3.3](#sec-alpha-from-eta)), how much the data can say about $\alpha$ depends
+on the spread of utility indices the realized design induces. Three inexpensive
+diagnostics, computed from the committed per-condition draws and design matrices
+(`spikes/report_design_diagnostics_spike.py`), make this design-dependence
+explicit at the application's scale. (i) *Prior $\eta$-gaps:* under the prior,
+the within-menu max--min gap in $\eta$ has pooled median $\approx 0.18$--$0.20$
+in the insurance conditions and $\approx 0.10$--$0.12$ in the Ellsberg
+conditions, versus $\approx 0.52$ for the foundational §[4](#sec-m0-implementation)
+design --- the application designs separate alternatives less, which is exactly
+why their calibrated priors select larger $\alpha$ to reach the same
+prior-predictive SEU-max rate (§[7.3](#sec-app-model)). (ii) *$\alpha$
+contraction:* the posterior sd of $\log \alpha$ is $0.23$--$0.29$ against a
+prior sd of $0.75$ in every one of the 20 conditions --- contraction to roughly
+a third of the prior scale --- so the per-condition $\alpha$ posteriors are
+data-driven rather than prior echoes. (iii) *Feature-matrix rank:* every
+realized feature matrix has full row rank 30 (§[7.2](#sec-app-design)). Together
+these quantify, rather than merely assert, the sense in which the recovered
+$\alpha$ is a design-conditional quantity.
+:::
+
 ## 7.5 Results --- the $2\times2$ cross-LLM $\times$ cross-task picture {#sec-app-results .unnumbered}
 
 ### 7.5.1 GPT-4o $\times$ insurance {#sec-app-gpt4o-insurance .unnumbered}
 
 Posterior medians of $\alpha$ are highest at $T = 0.0$ and lowest at $T = 1.5$,
 intermediate temperatures monotone-ish in between. The global slope
-$\Delta\alpha/\Delta T$ has median $\approx -31$, 90% CI $\approx [-66, -8]$,
+$\Delta\alpha/\Delta T$ has median $\approx -24.6$, 90% CI $\approx [-52.4, -6.7]$,
 $P(\text{slope} < 0) \approx 0.99$. The probability of strict monotonic decrease
 across all five levels is only $\approx 0.12$ (driven by overlap between
 $T = 0.3$ and $T = 0.7$); collapsing those two raises it to $\approx 0.38$. The
@@ -254,7 +311,7 @@ orderings are not.
 The framework **does not detect** a monotonic $\alpha$--temperature pattern
 (note the careful phrasing: *does not detect*, not *establishes the absence of*).
 Posterior medians are $\approx \{71, 53, 73, 71, 55\}$ at $\{0.0, 0.2, 0.5, 0.8,
-1.0\}$. Global slope: median $\approx -3.6$, 90% CI $\approx [-54, 39]$,
+1.0\}$. Global slope: median $\approx -2.9$, 90% CI $\approx [-42.9, 30.8]$,
 $P(\text{slope} < 0) \approx 0.56$; $P(\text{strict monotone decrease}) < 0.01$.
 The oscillation in the medians is consistent with posterior noise around a roughly
 flat function, not a substantive non-monotonic response.
@@ -268,39 +325,39 @@ its magnitude were $|\Delta\alpha/\Delta T| \gtrsim 36$ $\alpha$-units per unit
 temperature (three independent estimators agree: analytic-Gaussian 36.3,
 empirical-quantile 34.7, constant-CV Monte-Carlo 36.0; $\approx 41$--$43$ at the
 stricter $P \geq 0.975$; Appendix [D.7](#sec-d7) defines each estimator and
-explains why they agree). That floor is $\approx 10$--$12\times$ the observed
-$|\text{slope}|$ --- whether taken as the draw-level posterior median that the
-power calculation operates on ($\approx 2.9$) or the report-level headline summary
-($\approx 3.6$); the two differ only by which posterior draw set is summarized, and
-the null sits an order of magnitude below the floor either way --- and
+explains why they agree). That floor is $\approx 12\times$ the observed
+$|\text{slope}|$ ($\approx 2.9$, the draw-level posterior median of
+§[7.5.2](#sec-app-claude-insurance)) and
 $\approx 0.53$ of the grand-mean $\alpha$
 ($\approx 67.5$, the average of the five per-temperature posterior means) --- an
 end-to-end $\alpha$ change of $\approx 36$ over
 $T \in [0, 1]$, roughly halving $\alpha$. So the Claude null is *no effect at the
 achievable resolution*, **not** a measured zero; even a GPT-4o-sized slope
-($\approx 31$, full-grid reference) sits below this floor ($0.86\times$). See the
+($\approx 25$, full-grid reference) sits below this floor ($0.68\times$). See the
 power curve (@fig-mde-power). This calibration prevents the §[7.6.1](#sec-app-limits)
 "declines to support" framing from being read as a positive no-effect claim.
 :::
 
-![Claude $\times$ insurance: power to resolve a temperature-on-$\alpha$ slope. $P(\text{posterior slope} < 0)$ as a function of the counterfactual true slope magnitude $|\Delta\alpha/\Delta T|$. The minimum detectable effect at the $P \geq 0.95$ criterion is $\approx 36$ $\alpha$-units per unit temperature (three estimators agree: analytic-Gaussian, empirical-quantile, constant-CV Monte-Carlo), against an observed $|\text{slope}| \approx 2.9$ and a GPT-4o full-grid reference $\approx 31$ --- both far below the floor.](../figures/report16_mde_power_curve.png){#fig-mde-power width=85%}
+![Claude $\times$ insurance: power to resolve a temperature-on-$\alpha$ slope. $P(\text{posterior slope} < 0)$ as a function of the counterfactual true slope magnitude $|\Delta\alpha/\Delta T|$. The minimum detectable effect at the $P \geq 0.95$ criterion is $\approx 36$ $\alpha$-units per unit temperature (three estimators agree: analytic-Gaussian, empirical-quantile, constant-CV Monte-Carlo), against an observed $|\text{slope}| \approx 2.9$ and a GPT-4o full-grid reference $\approx 25$ --- both far below the floor.](../figures/report16_mde_power_curve.png){#fig-mde-power width=85%}
 
 ### 7.5.2a Cross-LLM comparison --- pattern first, number second {#sec-app-cross-llm .unnumbered}
 
 A formal cross-study comparison gives $P(\text{GPT-4o slope} < \text{Claude
 slope}) = 0.817$ on the full grids; restricting GPT-4o to Claude's $T \leq 1.0$
-ceiling (re-summarizing with $T = 1.5$ dropped) gives $0.824$ --- the directional
+ceiling (re-summarizing with $T = 1.5$ dropped) gives $0.816$ --- the directional
 LLM contrast is **robust to the unequal-grid confound** (GPT-4o spans
 $T \in [0.0, 1.5]$; Claude spans $[0.0, 1.0]$). We report the Claude-grid-restricted
 number alongside the full-grid one and make the *qualitative pattern*
-(monotone-decline vs.\ no-monotone) the headline, not the numeric inequality. Both
-between-LLM probabilities ($\sim 0.82$) are weaker than GPT-4o's own within-cell
-$P(\text{slope} < 0) > 0.98$ because the cells are fitted independently.
+(monotone-decline vs.\ no-monotone) the headline, not the numeric inequality. The
+between-LLM probabilities ($\sim 0.82$) are lower than GPT-4o's own within-cell
+$P(\text{slope} < 0) > 0.98$ because they fold in the independent uncertainty of
+both cells; they answer a different question from either within-cell probability
+(Appendix D.6(4)).
 "Temperature" is not the same instrument across providers (§[7.6.2](#sec-app-limits)(a)).
 
 ### 7.5.3 GPT-4o $\times$ Ellsberg {#sec-app-gpt4o-ellsberg .unnumbered}
 
-The monotonic decline of $\alpha$ with temperature is reproduced on the Ellsberg
+The temperature--$\alpha$ decline is reproduced on the Ellsberg
 task. $\alpha$ medians $\{110.4, 106.9, 99.5, 84.0, 52.2\}$ at $T = \{0.0, 0.3,
 0.7, 1.0, 1.5\}$ (90% CIs $[74.4, 167.2]$ / $[72.6, 163.8]$ / $[65.4, 154.6]$ /
 $[57.1, 126.1]$ / $[35.5, 80.3]$); global slope $\Delta\alpha/\Delta T$ median
@@ -317,7 +374,7 @@ No monotonic $\alpha$--temperature pattern. $\alpha$ medians $\{85.4, 56.1, 82.3
 53.0, 66.4\}$ at $T = \{0.0, 0.2, 0.5, 0.8, 1.0\}$ (90% CIs $[58.9, 127.2]$ /
 $[38.2, 84.1]$ / $[52.3, 135.3]$ / $[36.0, 80.5]$ / $[45.3, 99.8]$) --- the
 medians oscillate rather than decline; global slope $\Delta\alpha/\Delta T$ median
-$-18.8$, 90% CI $[-65.3, 24.5]$, $P(\text{slope} < 0) \, 0.766$;
+$-15.0$, 90% CI $[-52.2, 19.6]$, $P(\text{slope} < 0) \, 0.766$;
 $P(\text{strict monotone} \downarrow) \, 0.0085$. As with Claude $\times$
 insurance, this is *does not detect*, not *establishes absence*. We do not
 transfer the insurance minimum-detectable-effect number here --- the Ellsberg cell
@@ -330,18 +387,20 @@ claim the resolution discipline of §[7.5.2](#sec-app-claude-insurance) licenses
 
 | | **Insurance** | **Ellsberg** |
 | --- | --- | --- |
-| **GPT-4o** | slope $-31$ $[-66, -8]$, $P_{<0}\,0.99$ | slope $-38.4$ $[-72.1, -10.0]$, $P_{<0}\,0.98$ |
-| **Claude 3.5** | slope $-3.6$ $[-54, 39]$, $P_{<0}\,0.56$ | slope $-18.8$ $[-65.3, 24.5]$, $P_{<0}\,0.77$ |
+| **GPT-4o** | slope $-24.6$ $[-52.4, -6.7]$, $P_{<0}\,0.99$ | slope $-38.4$ $[-72.1, -10.0]$, $P_{<0}\,0.98$ |
+| **Claude 3.5** | slope $-2.9$ $[-42.9, 30.8]$, $P_{<0}\,0.56$ | slope $-15.0$ $[-52.2, 19.6]$, $P_{<0}\,0.77$ |
 
 : Per-cell global-slope $\Delta\alpha/\Delta T$ posteriors (median, 90% CI,
 $P(\text{slope}<0)$). GPT-4o shows the temperature--$\alpha$ decline in both task
 families; Claude shows it in neither. {#tbl-2x2}
 
-In this $2\times2$, the LLM $\times$ task factorial points to an **LLM
-effect**: GPT-4o exhibits the temperature--$\alpha$ relationship across both task
-families, Claude exhibits it in neither. *In this $2\times2$,* task family does not
-appear to be the relevant axis; the LLM does. With only two task families and two
-LLMs this is a **pattern statement, not a factorial generalization**
+In this $2\times2$, the descriptive pattern lines up with the LLM axis rather
+than the task axis: GPT-4o exhibits the temperature--$\alpha$ relationship across
+both task families, Claude exhibits it in neither. But two of the four cells are
+inconclusive nulls rather than measured zeros, so the pattern is *suggestive of*
+an LLM-level difference, not an established LLM effect. With only two task
+families and two LLMs this is a **pattern statement, not a factorial
+generalization**
 (§[7.6.2](#sec-app-limits)(d)). @fig-forest presents it as a $2\times2$ forest plot
 of the per-cell global-slope posteriors.
 
@@ -372,17 +431,26 @@ keeps this claim resting on calibrated resolution rather than an unsupported nul
 **(a) That sampling temperature is a portable behavioral instrument.** The Claude
 cells do not reproduce the GPT-4o pattern under the same task and choice model; but
 the minimum-detectable-effect analysis of §[7.5.2](#sec-app-claude-insurance) shows
-that even a GPT-4o-sized slope would sit below this design's resolution floor for
-Claude, so the non-reproduction is *inconclusive*: it does not establish that
+that even a GPT-4o-sized slope would sit below the resolution floor of the Claude
+$\times$ insurance cell --- the one cell for which an MDE was computed; the Claude
+$\times$ Ellsberg cell is read as an inconclusive null on its own diagnostics ---
+so the non-reproduction is *inconclusive*: it does not establish that
 temperature behaves differently across providers, only that any Claude-side effect,
 if present, is below what these data can resolve. **(b) That
 GPT-4o is "more rational" than Claude in any context-free sense.** The supported
 reading of $\alpha$ here is a *within-design comparative* one, not an
 absolute-rationality ranking. **(c) Anything about ambiguity aversion in the
 Ellsberg study.** The SEU+softmax model is, by assumption, of the wrong form to
-distinguish ambiguity-driven choice from EU-driven choice: any departure from
-EU-maximal choice is absorbed into a lower $\alpha$ (more randomness), so genuine
-ambiguity aversion and plain noise are not separable within it. Testing for
+distinguish ambiguity-driven choice from EU-driven choice --- but not because
+ambiguity aversion must show up as a lower $\alpha$. An ambiguity-averse agent
+can be *perfectly* accommodated by the model with a high $\alpha$ and
+pessimistically distorted beliefs: the belief parameters $(\beta, \psi)$ are free
+to place extra weight on bad outcomes of ambiguous gambles, in which case
+ambiguity aversion is absorbed into the *belief* side of the model rather than
+the sensitivity side. A departure that the belief side cannot mimic is instead
+absorbed into a lower $\alpha$ (more randomness). Either way, genuine ambiguity
+attitude, distorted beliefs, and plain noise are not separable within this model
+class. Testing for
 ambiguity aversion requires a model with explicit ambiguity-attitude parameters
 --- for instance maxmin expected utility [@gilboa1989], which adds a parameter
 governing how heavily the agent weights the worst-case prior over an ambiguous
@@ -462,7 +530,7 @@ scope.
 
 ### 7.6.6 The cross-condition findings are robust to the $\alpha$ prior {#sec-app-prior-sensitivity .unnumbered}
 
-Because each cell's headline object is a report-level temperature-slope of a
+Because each cell's headline object is a temperature-slope of a
 parameter carrying an informative, prior-predictive-calibrated prior
 (§[7.3](#sec-app-model)), it is fair to ask whether the slope findings are an
 artifact of that prior. They are not. We re-estimated every condition of all four
@@ -484,7 +552,7 @@ threshold. The prior calibrates the *scale* on which $\alpha$ is read; it does n
 manufacture the cross-condition contrasts. (Sweep code:
 `spikes/report_prior_sensitivity_spike.py`; claims-ledger row C17.)
 
-![Prior sensitivity of the report-level temperature-slope $\Delta\alpha/\Delta T$ for each of the four cells. Each panel shows the slope posterior median and 90% credible interval under the calibrated baseline prior and three alternatives (location shifted by $\pm 0.5$; scale widened to $1.25$), with $P(\text{slope}<0)$ annotated. The two GPT-4o cells remain clearly negative and the two Claude cells remain inconclusive nulls under every prior: the qualitative conclusions do not depend on the $\alpha$ prior.](../figures/report_prior_sensitivity_forest.png){#fig-prior-sensitivity width=100%}
+![Prior sensitivity of the temperature-slope $\Delta\alpha/\Delta T$ for each of the four cells. Each panel shows the slope posterior median and 90% credible interval under the calibrated baseline prior and three alternatives (location shifted by $\pm 0.5$; scale widened to $1.25$), with $P(\text{slope}<0)$ annotated. The two GPT-4o cells remain clearly negative and the two Claude cells remain inconclusive nulls under every prior: the qualitative conclusions do not depend on the $\alpha$ prior.](../figures/report_prior_sensitivity_forest.png){#fig-prior-sensitivity width=100%}
 
 ## 7.7 What the application motivates for follow-up work {#sec-app-followup .unnumbered}
 

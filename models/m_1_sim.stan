@@ -20,7 +20,7 @@ data {
   array[N,S] int<lower=0,upper=1> J; // indicator: J[n,s] = 1 if risky alt s in problem n
   
   // Parameter generation controls
-  real<lower=0> alpha_mean;       // mean for log(alpha) (default=0)
+  real alpha_mean;                // mean for log(alpha) (default=0); may be negative
   real<lower=0> alpha_sd;         // sd for log(alpha) (default=1)
   real<lower=0> beta_sd;          // sd for beta coefficients (default=1)
 }

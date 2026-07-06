@@ -25,9 +25,10 @@ total probability $P(\mathcal{R}^\ast) = \sum_{r \in \mathcal{R}^\ast}
 P(r)$ on the value-maximizing set is strictly increasing in $\alpha$ (if all
 values coincide then $\mathcal{R}^\ast = \mathcal{A}$ and every $P(r)$ is constant
 in $\alpha$);
-*(iii)* each $r \in \mathcal{R}^\ast$ has $P(r)$ strictly increasing in $\alpha$
+*(iii)* provided the values $\{V(j)\}_{j \in \mathcal{A}}$ are not all equal,
+each $r \in \mathcal{R}^\ast$ has $P(r)$ strictly increasing in $\alpha$
 and each value-*minimizing* $r$ (with $V(r) = \min_{j} V(j)$) has $P(r)$ strictly
-decreasing. A non-maximal alternative with $V(r) > \mathbb{E}_\alpha[V]$ has
+decreasing (in the all-tied case every $P(r)$ is constant, as in (ii)). A non-maximal alternative with $V(r) > \mathbb{E}_\alpha[V]$ has
 $\partial_\alpha P(r) > 0$, so individual non-maximal probabilities need not be
 monotone in $\alpha$.
 :::
@@ -43,9 +44,11 @@ $$
   = P(r)\Big[V(r) - \frac{Z'(\alpha)}{Z(\alpha)}\Big]
   = P(r)\big[V(r) - \mathbb{E}_\alpha[V]\big],
 $$
-where $\mathbb{E}_\alpha[V] = \sum_j P(j) V(j)$. For any finite $\alpha$ every
-alternative receives positive probability, so $\min_j V(j) < \mathbb{E}_\alpha[V]
-< V^\ast$ strictly. Hence $\partial P(r)/\partial\alpha > 0$ for
+where $\mathbb{E}_\alpha[V] = \sum_j P(j) V(j)$. With the values not all equal,
+every alternative receives positive probability at any finite $\alpha$, so
+$\min_j V(j) < \mathbb{E}_\alpha[V]
+< V^\ast$ strictly (both inequalities require the nonconstant-values case).
+Hence $\partial P(r)/\partial\alpha > 0$ for
 $r \in \mathcal{R}^\ast$ and $\partial P(r)/\partial\alpha < 0$ for any $r$
 attaining $\min_j V(j)$; for an intermediate $r$ the sign equals that of
 $V(r) - \mathbb{E}_\alpha[V]$, which can be positive.
@@ -124,7 +127,10 @@ $$
 utility are confounded: scaling utilities by $a$ is equivalent to scaling
 sensitivity by $1/a$. Fixing the endpoints $\upsilon_1 = 0$, $\upsilon_K = 1$
 (the $\bm{\upsilon}$-endpoint convention of §[2.6](#sec-notation)) selects a
-representative from the affine equivalence class and renders $\alpha$
-identifiable, with the precise interpretation that $\log[P(r)/P(s)] = \alpha
-(\eta_r - \eta_s)$ on a standardized scale where the full utility range spans one
-unit.
+representative from the affine equivalence class, which removes this particular
+confound and makes $\alpha$ a *well-posed* target on a standardized scale where
+the full utility range spans one unit, with the interpretation
+$\log[P(r)/P(s)] = \alpha(\eta_r - \eta_s)$. It does not by itself *identify*
+$\alpha$: identification additionally requires a positive-probability menu with
+non-constant expected utilities (Proposition 3.1 / Appendix B.1), as §[2.6](#sec-notation)
+notes.

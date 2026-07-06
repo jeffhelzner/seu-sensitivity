@@ -1,44 +1,44 @@
 """
 2x2 forest plot of the per-cell global-slope posteriors (methodological paper,
-section 7.5.5; companion to @tbl-2x2).
+section 7.5.5; companion to @tbl-2x2), plus the canonical slope computation.
 
 The application's LLM x task factorial summarises each cell by the posterior of
-the population-OLS global slope of alpha on sampling temperature, Dalpha/DT. The
-body presents the four cells as a table (@tbl-2x2); section 7.5.5 notes the
-reading "is best presented as a 2x2 forest plot of the per-cell global-slope
-posteriors." This script renders that forest plot.
+the population-OLS global slope of alpha on sampling temperature, Dalpha/DT.
+This script COMPUTES the canonical per-cell slope posteriors directly from the
+committed per-condition alpha draws and renders the section 7.5.5 forest plot,
+so the table (@tbl-2x2), the figure, and the ledger rows C9/C10/C12/C13 agree
+by construction and share a single estimator.
 
-PROVENANCE (single source of truth = claims_ledger.md). The plotted point +
-90% CI + P(slope<0) for each cell are the canonical *report-level* slope
-summaries already cited in the body, NOT a re-derivation:
+CANONICAL ESTIMATOR (single convention, paper-wide). For posterior draw s,
+  b^(s) = Cov(T, alpha^(s)) / Var(T)   (population moments, equivalently the
+          OLS weights w = (T - Tbar) / sum((T - Tbar)^2))
+applied draw-wise to the five per-condition alpha draws, pairing draws by the
+exchangeable draw index. Reported: median, 90% CI (5-95%), P(slope < 0).
+This is the same functional used by the C16 MDE spike (report16_mde_spike.py),
+the cross-LLM spike (report11), and the prior-sensitivity spike.
 
-  cell                 ledger  source report
-  GPT-4o x Insurance   C9      temperature_study/01_initial_study.qmd
-  GPT-4o x Ellsberg    C12     gpt4o_ellsberg_study/data/primary_analysis.json
-  Claude x Insurance   C10     claude_insurance_study/01_claude_insurance_study.qmd
-  Claude x Ellsberg    C13     ellsberg_study/data/primary_analysis.json
-
-These are exactly the numbers in @tbl-2x2, so the figure and the table agree by
-construction.
-
-NOTE ON SLOPE CONVENTIONS (honest-reporting). The report-level slope summaries
-above are the canonical paper numbers. A *separate* draw-wise population-OLS
-functional b_i = Cov(T, alpha_i)/Var(T) applied to the committed per-condition
-alpha draws (the functional used by the C16 MDE spike) reproduces the report
-summaries for the two Ellsberg cells but gives smaller-magnitude medians for the
-two insurance cells (GPT-4o ~ -24.6 vs -31; Claude ~ -2.9 vs -3.6) at an
-identical P(slope<0). The discrepancy is a fixed per-study scale on the insurance
-cells and is already documented in C16 (Claude insurance: population-OLS -2.89 vs
-report-level -3.6). This script PLOTS the canonical report-level values (so it
-matches @tbl-2x2) and, when the draws are present, records the population-OLS
-cross-check in the results JSON for transparency only.
+NOTE ON THE SUPERSEDED ESTIMATOR (honest-reporting; see claims_ledger C16).
+Earlier report-level slope summaries (temperature_study /
+claude_insurance_study / ellsberg_study report qmds and
+scripts/generate_ellsberg_primary_analysis.py) computed the per-draw slope as
+  np.cov(T, alpha)[0, 1] / np.var(T),
+which mixes a ddof=1 covariance with a ddof=0 variance and therefore inflates
+every draw's slope -- hence the posterior median AND the CI endpoints -- by
+exactly n/(n-1) = 5/4 = 1.25 for the five-point temperature grids. P(slope<0)
+is scale-invariant, which is why it always agreed across the two computations.
+The previously reported -31 / -3.6 / -18.8 medians are the inflated values
+(-24.6 x 1.25, -2.89 x 1.25, -15.02 x 1.25); GPT-4o x Ellsberg used the correct
+formula (scripts/generate_primary_analysis.py) and is unchanged at -38.4. This
+script records the superseded values and the exact 1.25 factor in the results
+JSON for the E.2 reconciliation note.
 
 Outputs:
   report_2x2_forest_results.json              (next to this script)
   ../figures/report_2x2_forest.png            (2x2 forest plot)
 
 Run:
-  python working_papers/seu_sensitivity_methodology/spikes/report_2x2_forest_spike.py
+  conda run -n seu-sensitivity python \
+    working_papers/seu_sensitivity_methodology/spikes/report_2x2_forest_spike.py
 """
 from __future__ import annotations
 
@@ -52,59 +52,52 @@ PAPER_DIR = os.path.dirname(THIS_DIR)
 PROJECT_ROOT = os.path.dirname(os.path.dirname(PAPER_DIR))
 
 # ---------------------------------------------------------------------------
-# Canonical per-cell slope summaries (claims_ledger.md rows C9, C10, C12, C13).
-# slope = global OLS Dalpha/DT; negative => alpha declines with temperature.
-# ci is the 90% credible interval; p_neg = P(slope < 0).
+# Cell specifications: committed alpha-draw locations + temperature grids.
+# slope = global population-OLS Dalpha/DT; negative => alpha declines with T.
+# superseded_median = the previously reported (ddof-inflated) headline value.
 # ---------------------------------------------------------------------------
 CELLS = [
     {
         "llm": "GPT-4o", "task": "Insurance", "ledger": "C9",
-        "median": -31.0, "ci_low": -66.0, "ci_high": -8.0, "p_neg": 0.99,
-        "source": "temperature_study/01_initial_study.qmd",
+        "study": "temperature_study",
+        "temps": [0.0, 0.3, 0.7, 1.0, 1.5],
+        "keys": ["T0_0", "T0_3", "T0_7", "T1_0", "T1_5"],
+        "superseded_median": -31.0,
     },
     {
         "llm": "GPT-4o", "task": "Ellsberg", "ledger": "C12",
-        "median": -38.4, "ci_low": -72.1, "ci_high": -10.0, "p_neg": 0.984,
-        "source": "gpt4o_ellsberg_study/data/primary_analysis.json",
+        "study": "gpt4o_ellsberg_study",
+        "temps": [0.0, 0.3, 0.7, 1.0, 1.5],
+        "keys": ["T0_0", "T0_3", "T0_7", "T1_0", "T1_5"],
+        "superseded_median": -38.4,  # correct formula was used; unchanged
     },
     {
         "llm": "Claude 3.5", "task": "Insurance", "ledger": "C10",
-        "median": -3.6, "ci_low": -54.0, "ci_high": 39.0, "p_neg": 0.56,
-        "source": "claude_insurance_study/01_claude_insurance_study.qmd",
+        "study": "claude_insurance_study",
+        "temps": [0.0, 0.2, 0.5, 0.8, 1.0],
+        "keys": ["T0_0", "T0_2", "T0_5", "T0_8", "T1_0"],
+        "superseded_median": -3.6,
     },
     {
         "llm": "Claude 3.5", "task": "Ellsberg", "ledger": "C13",
-        "median": -18.8, "ci_low": -65.3, "ci_high": 24.5, "p_neg": 0.766,
-        "source": "ellsberg_study/data/primary_analysis.json",
+        "study": "ellsberg_study",
+        "temps": [0.0, 0.2, 0.5, 0.8, 1.0],
+        "keys": ["T0_0", "T0_2", "T0_5", "T0_8", "T1_0"],
+        "superseded_median": -18.8,
     },
 ]
-
-# Per-cell committed alpha-draw locations, for the optional population-OLS
-# cross-check only (NOT the plotted values).
-DRAW_SPEC = {
-    "C9": ("temperature_study", [0.0, 0.3, 0.7, 1.0, 1.5],
-           ["T0_0", "T0_3", "T0_7", "T1_0", "T1_5"]),
-    "C12": ("gpt4o_ellsberg_study", [0.0, 0.3, 0.7, 1.0, 1.5],
-            ["T0_0", "T0_3", "T0_7", "T1_0", "T1_5"]),
-    "C10": ("claude_insurance_study", [0.0, 0.2, 0.5, 0.8, 1.0],
-            ["T0_0", "T0_2", "T0_5", "T0_8", "T1_0"]),
-    "C13": ("ellsberg_study", [0.0, 0.2, 0.5, 0.8, 1.0],
-            ["T0_0", "T0_2", "T0_5", "T0_8", "T1_0"]),
-}
 DATA_BASE = os.path.join(PROJECT_ROOT, "reports", "applications")
 
 
-def population_ols_slope(ledger: str):
-    """Draw-wise b_i = Cov(T, alpha_i)/Var(T); cross-check only. None if absent."""
-    study, temps, keys = DRAW_SPEC[ledger]
-    temps = np.asarray(temps, dtype=float)
+def slope_posterior(cell: dict) -> dict:
+    """Draw-wise population-OLS slope b^(s) = Cov(T, alpha^(s))/Var(T)."""
+    temps = np.asarray(cell["temps"], dtype=float)
     tc = temps - temps.mean()
     w = tc / np.sum(tc**2)
     cols = []
-    for k in keys:
-        path = os.path.join(DATA_BASE, study, "data", f"alpha_draws_{k}.npz")
-        if not os.path.exists(path):
-            return None
+    for k in cell["keys"]:
+        path = os.path.join(DATA_BASE, cell["study"], "data",
+                            f"alpha_draws_{k}.npz")
         with np.load(path) as z:
             cols.append(np.asarray(z["alpha"], dtype=float))
     n = min(c.shape[0] for c in cols)
@@ -119,54 +112,54 @@ def population_ols_slope(ledger: str):
 
 
 def main() -> None:
-    crosscheck = {}
+    rows = []
     for c in CELLS:
-        cc = population_ols_slope(c["ledger"])
-        if cc is not None:
-            crosscheck[c["ledger"]] = {
-                "cell": f"{c['llm']} x {c['task']}",
-                "report_level_median": c["median"],
-                "population_ols": cc,
-                "p_neg_agrees": abs(cc["p_neg"] - c["p_neg"]) < 0.02,
-            }
+        post = slope_posterior(c)
+        inflation = (c["superseded_median"] / post["median"]
+                     if post["median"] != 0 else float("nan"))
+        rows.append({
+            "llm": c["llm"], "task": c["task"], "ledger": c["ledger"],
+            "study": c["study"], "temps": c["temps"],
+            **post,
+            "superseded_median": c["superseded_median"],
+            "superseded_over_canonical": round(inflation, 4),
+        })
 
     results = {
         "spec": {
             "section": "7.5.5",
             "companion_table": "@tbl-2x2",
-            "quantity": "global OLS slope Dalpha/DT (alpha-units per unit T)",
-            "plotted_values": "canonical report-level summaries "
-                              "(claims_ledger C9/C10/C12/C13)",
+            "quantity": "global population-OLS slope Dalpha/DT "
+                        "(alpha-units per unit T)",
+            "estimator": "draw-wise b = Cov(T, alpha)/Var(T), population "
+                         "moments; single canonical convention paper-wide",
             "ci_level": 0.90,
         },
-        "cells": CELLS,
-        "population_ols_crosscheck": {
-            "note": "diagnostic only; NOT plotted. Reproduces the report-level "
-                    "summaries for the Ellsberg cells; smaller-magnitude medians "
-                    "for the insurance cells at identical P(slope<0) (see C16).",
-            "by_ledger": crosscheck,
-        },
+        "cells": rows,
+        "superseded_estimator_note": (
+            "Earlier report-level summaries used np.cov(T, a)[0,1]/np.var(T) "
+            "(ddof=1 covariance over ddof=0 variance), inflating each draw's "
+            "slope -- median and CI endpoints alike -- by n/(n-1) = 1.25 for "
+            "the 5-point grids; P(slope<0) is scale-invariant and unaffected. "
+            "GPT-4o x Ellsberg (C12) used the correct formula and is "
+            "unchanged. See claims_ledger C16 and Appendix E.2."
+        ),
     }
     out_path = os.path.join(THIS_DIR, "report_2x2_forest_results.json")
     with open(out_path, "w") as f:
         json.dump(results, f, indent=2)
 
-    print("=== 7.5.5: 2x2 forest plot of per-cell global-slope posteriors ===\n")
-    print(f"{'cell':22s} {'median':>8s}  {'90% CI':>18s}  {'P(<0)':>6s}  ledger")
-    for c in CELLS:
-        ci = f"[{c['ci_low']:.1f}, {c['ci_high']:.1f}]"
-        print(f"{c['llm'] + ' x ' + c['task']:22s} {c['median']:8.1f}  "
-              f"{ci:>18s}  {c['p_neg']:6.3f}  {c['ledger']}")
-    if crosscheck:
-        print("\npopulation-OLS cross-check (diagnostic only, not plotted):")
-        for lid, cc in crosscheck.items():
-            o = cc["population_ols"]
-            print(f"  {cc['cell']:22s} pop-OLS median {o['median']:7.2f} "
-                  f"P(<0) {o['p_neg']:.3f}  (report-level {cc['report_level_median']:.1f}; "
-                  f"P agrees: {cc['p_neg_agrees']})")
+    print("=== 7.5.5: per-cell global-slope posteriors (canonical pop-OLS) ===\n")
+    print(f"{'cell':22s} {'median':>8s}  {'90% CI':>18s}  {'P(<0)':>6s}  "
+          f"{'superseded':>10s}  ledger")
+    for r in rows:
+        ci = f"[{r['ci_low']:.1f}, {r['ci_high']:.1f}]"
+        print(f"{r['llm'] + ' x ' + r['task']:22s} {r['median']:8.1f}  "
+              f"{ci:>18s}  {r['p_neg']:6.3f}  {r['superseded_median']:10.1f}  "
+              f"{r['ledger']}")
     print(f"\nResults written to {out_path}")
 
-    make_figure(CELLS)
+    make_figure(rows)
 
 
 def make_figure(cells) -> None:
@@ -208,7 +201,8 @@ def make_figure(cells) -> None:
     ax.set_xlabel(r"global slope $\Delta\alpha/\Delta T$  "
                   r"($\alpha$-units per unit temperature)")
     ax.set_title(r"Per-cell global-slope posteriors (median, 90% CI)"
-                 "\nGPT-4o declines in both tasks; Claude in neither",
+                 "\nGPT-4o declines detected in both tasks; "
+                 "Claude cells inconclusive",
                  fontsize=11.5)
     ax.grid(True, axis="x", alpha=0.3)
 

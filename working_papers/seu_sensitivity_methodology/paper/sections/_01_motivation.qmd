@@ -112,8 +112,12 @@ probabilities, utilities, and tradeoffs in the way that standard prescribes ---
 without a labeled set of correct choices, and without reference to which outcome
 happened to be realized. Evaluation of this internal-consistency kind replaces a
 claim about outcomes with a claim about conformity to a stated standard. It does
-not require any labeled set of decisions; it requires only that the standard be
-named explicitly. In return it yields an evaluation that is well defined even
+not require any labeled set of decisions; it requires that the standard be
+named explicitly and --- as the rest of the paper makes concrete --- that a
+statistical model operationalizing conformity to it be specified, since any
+graded measure of conformity is read off a fitted model and is therefore
+conditional on that model's assumptions, prior, and design
+(§[8.4](#sec-disc-alpha)). In return it yields an evaluation that is well defined even
 where no key of correct choices and no outcome record exist, and that does not
 depend on which outcome happened to be realized.
 
@@ -151,8 +155,10 @@ softmax construction; but because that value function is a *minimum* over a set
 of priors, it is not smooth, and substituting it into the gradient-based
 (Hamiltonian Monte Carlo) implementation of §§[4](#sec-m0-implementation) and
 [6](#sec-m1-implementation) is not a drop-in replacement --- the kinks of the
-min would require either a smoothing that reintroduces a precision parameter
-confoundable with $\alpha$, or a non-gradient sampler. Smooth ambiguity models
+min would require either a smoothing that introduces a precision parameter
+whose finite-sample estimate would be entangled with $\alpha$ (the two are
+separately defined, but a smoothed-min sharpness and a choice sensitivity press
+on overlapping features of the data), or a non-gradient sampler. Smooth ambiguity models
 [@klibanoff2005] avoid the non-smoothness by construction and would substitute
 more readily. Cumulative prospect theory, by contrast, could not be substituted
 at all without abandoning the normative reading. Second, the template applies
@@ -261,10 +267,13 @@ informed*, as the Bayesian workflow shows directly --- wide, correlated
 $(\beta, \delta)$ posteriors against tight $\alpha$ intervals
 (§[3.4](#sec-bd-weak), §[4.3](#sec-m0-recovery)). The two are one structural
 picture (§[3.5](#sec-m0-link)): given the $\bm{\upsilon}$-endpoint convention
-that fixes the utility scale, $\alpha$ is read off the curvature of choice
-probabilities in $\eta$, while beliefs and utilities enter only *through* $\eta$
+that fixes the utility scale, the within-menu choice-probability contrasts
+inform $\alpha$ through the products $\alpha(\eta_r - \eta_s)$, while beliefs and utilities enter only *through* $\eta$
 and trade off against each other in a way that uncertain-choice data barely
-resolve.
+resolve. Because the data inform $\alpha$ only through those products,
+what "recovered" means is always relative to the
+utility spreads a particular design and prior induce --- a design-conditionality
+the application makes quantitative (§[7.4](#sec-app-validation)).
 *In plain terms:* under a given design and prior, the alignment number $\alpha$
 can be recovered from choice data, but the agent's underlying beliefs and
 utilities often cannot be told apart from one another by that same data.

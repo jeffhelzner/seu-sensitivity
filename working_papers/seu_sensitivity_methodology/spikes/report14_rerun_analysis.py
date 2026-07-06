@@ -317,6 +317,9 @@ def make_figure(seA, seB, seC, dciwB, dciwC, dseB, dseC, ciwB_a, ciwC_a, headlin
     fig, axes = plt.subplots(1, 3, figsize=(14, 4.5))
 
     # Panel 1: alpha CI width B vs C (within-iteration).
+    # Title reports the alpha CI-WIDTH contrast (C1b) -- the quantity the axes
+    # show. Sign convention matches the paper (positive % = improvement =
+    # narrower interval / smaller RMSE under C).
     ax = axes[0]
     lim = max(ciwB_a.max(), ciwC_a.max()) * 1.05
     ax.scatter(ciwB_a, ciwC_a, s=28, alpha=0.6, c="#1f77b4", edgecolor="white")
@@ -324,12 +327,14 @@ def make_figure(seA, seB, seC, dciwB, dciwC, dseB, dseC, ciwB_a, ciwC_a, headlin
     ax.set_xlim(0, lim); ax.set_ylim(0, lim); ax.set_aspect("equal")
     ax.set_xlabel("B (m_0, M=50)  α CI width")
     ax.set_ylabel("C (m_1, M=25+N=25)  α CI width")
-    c1 = headline["C1_alpha_rmse_reduction_BtoC"]
-    ax.set_title(f"α: B→C RMSE −{c1['point_pct']:.0f}% "
-                 f"[{c1['ci90_pct'][0]:.0f},{c1['ci90_pct'][1]:.0f}]")
+    c1b = headline["C1b_alpha_ciw_paired_median_BtoC"]
+    ax.set_title(f"α CI width: B→C {c1b['paired_median_pct']:+.1f}% "
+                 f"[{c1b['ci90_pct'][0]:+.1f}, {c1b['ci90_pct'][1]:+.1f}]\n"
+                 f"(positive = narrower under C; no detected gain)")
     ax.grid(True, alpha=0.3)
 
-    # Panel 2: delta CI width B vs C.
+    # Panel 2: delta CI width B vs C. Title uses the same positive-=-
+    # improvement convention as the text and Table 3 (+0.8% [0.6, 1.2]).
     ax = axes[1]
     lim = max(dciwB.max(), dciwC.max()) * 1.05
     ax.scatter(dciwB, dciwC, s=28, alpha=0.6, c="#2ca02c", edgecolor="white")
@@ -338,8 +343,9 @@ def make_figure(seA, seB, seC, dciwB, dciwC, dseB, dseC, ciwB_a, ciwC_a, headlin
     ax.set_xlabel("B  δ CI width")
     ax.set_ylabel("C  δ CI width")
     c3b = headline["C3b_delta_ciw_paired_median_BtoC"]
-    ax.set_title(f"δ: B→C CI −{c3b['paired_median_pct']:.0f}% "
-                 f"[{c3b['ci90_pct'][0]:.0f},{c3b['ci90_pct'][1]:.0f}]")
+    ax.set_title(f"δ CI width: B→C {c3b['paired_median_pct']:+.1f}% "
+                 f"[{c3b['ci90_pct'][0]:+.1f}, {c3b['ci90_pct'][1]:+.1f}]\n"
+                 f"(positive = narrower under C; real but negligible)")
     ax.grid(True, alpha=0.3)
 
     # Panel 3: RMSE bars A/B/C for alpha and delta (relative to B).

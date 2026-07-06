@@ -127,17 +127,24 @@ log-odds identify the products $\alpha(\eta_r - \eta_s)$; it is the endpoint
 convention that fixes the utility scale, together with the prior and design, that
 turns this into a sharp statement about $\alpha$ itself --- as the
 posterior-contraction, parameter-recovery, and SBC diagnostics of
-§[4](#sec-m0-implementation) confirm.
+§[4](#sec-m0-implementation) confirm. The dependence on the design is not a
+formality: how sharply the data speak about $\alpha$ is governed by the
+within-menu $\eta$-gaps the design induces, and the application reports these
+gaps, alongside the resulting $\alpha$-posterior contraction, as explicit
+per-design diagnostics (§[7.4](#sec-app-validation)).
 
 **Why $\alpha$ recovers cleanly anyway.** Empirically, the two effects do not
 interfere: in parameter recovery (§[4.3](#sec-m0-recovery)) $\alpha$ is recovered
 with low bias and well-calibrated intervals *regardless* of the wide, correlated
-spread in the $(\beta,\delta)$ posterior. Because $\alpha$ is identified from the
-within-menu choice-probability contrasts (Proposition 3.1) and not from $\eta$'s
-internal $(\beta,\delta)$ decomposition, the indeterminacy in how $\eta$ splits
-into beliefs and utilities leaves the $\alpha$ estimate essentially untouched. We
-report this as an observed feature of the recovered posterior rather than derive
-it from a separability argument.
+spread in the $(\beta,\delta)$ posterior. Proposition 3.1 does not by itself
+guarantee this: it identifies $\alpha$ *given* $\eta$, and since $(\beta,\delta)$
+determine the $\eta$-spreads, a shift in that spread can in principle trade off
+against $\alpha$ inside the products $\alpha(\eta_r - \eta_s)$. What the recovery
+study shows is that *under this design and prior* the trade-off is not
+exercised: the indeterminacy in how $\eta$ splits into beliefs and utilities
+leaves the $\alpha$ estimate essentially untouched. We
+report this as an observed, design- and prior-dependent feature of the recovered
+posterior rather than derive it from a separability argument.
 
 This is a *structural* feature of decisions under uncertainty: beliefs and
 utilities enter only through expected utility, and uncertain-choice data alone

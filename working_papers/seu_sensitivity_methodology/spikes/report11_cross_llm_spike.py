@@ -63,10 +63,12 @@ def slope_draws(draws: dict[float, np.ndarray], temps: list[float]) -> np.ndarra
     temp_arr = np.array(temps, dtype=float)
     n = draws[temps[0]].shape[0]
     A = np.column_stack([draws[t] for t in temps])  # (n, len(temps))
-    out = np.empty(n)
-    for i in range(n):
-        out[i] = np.cov(temp_arr, A[i])[0, 1] / np.var(temp_arr)
-    return out
+    # Canonical draw-level population-OLS slope (paper-wide convention, D.6(2)):
+    # b = sum((T - Tbar)(a - abar)) / sum((T - Tbar)^2). NOTE: the previous
+    # np.cov(...)[0,1] / np.var(...) version mixed ddof=1 with ddof=0 and
+    # inflated every slope by exactly 5/4; see claims_ledger C16 / paper E.2.
+    tc = temp_arr - temp_arr.mean()
+    return (A - A.mean(axis=1, keepdims=True)) @ tc / (tc @ tc)
 
 
 def summarize(s: np.ndarray) -> dict:
@@ -93,11 +95,11 @@ def main() -> None:
     p_full = float(np.mean(gpt_slope_full[:n] < claude_slope[:n]))
     p_restr = float(np.mean(gpt_slope_restr[:n] < claude_slope[:n]))
 
-    # cross-checks: the harmonized draw-wise GPT-4o slope (ledger C9 ~ -31,
-    # P(<0) ~ 0.99) and the factorial-synthesis full-grid P ~ 0.80-0.82. NOTE:
-    # temperature_study/primary_analysis.json stores a *superseded* initial-study
-    # slope estimator (-24.6, no draw-wise posterior), which the factorial report
-    # deliberately recomputes draw-wise; we compare to C9, not to that field.
+    # cross-check: the canonical draw-level population-OLS GPT-4o slope (ledger
+    # C9 ~ -24.6, P(<0) ~ 0.99) and the factorial-synthesis full-grid P ~
+    # 0.80-0.82. temperature_study/primary_analysis.json's slope field (-24.6)
+    # uses the same correct estimator (point summary only, no draw-wise
+    # posterior); the old -31 headline was the ddof-inflated value (E.2).
     gpt_primary = json.load(open(os.path.join(GPT_DIR, "primary_analysis.json")))
     gpt_ref_slope = gpt_primary["slope"]
 
@@ -113,12 +115,13 @@ def main() -> None:
         "gpt_slope_restricted_T_le_1": summarize(gpt_slope_restr),
         "claude_slope": summarize(claude_slope),
         "crosscheck": {
-            "ledger_C9_gpt_slope_median": -31.0,
+            "ledger_C9_gpt_slope_median": -24.6,
             "ledger_C9_gpt_p_negative": 0.99,
             "factorial_report_full_grid_P": "0.80-0.82",
-            "superseded_initial_study_slope_field": gpt_ref_slope.get("slope"),
-            "note": "recomputed full-grid GPT-4o slope matches C9; the "
-                    "primary_analysis.json slope field is the old estimator.",
+            "initial_study_slope_field": gpt_ref_slope.get("slope"),
+            "note": "recomputed full-grid GPT-4o slope matches C9 and the "
+                    "primary_analysis.json slope field (same canonical "
+                    "population-OLS estimator).",
         },
         "P_gpt_slope_lt_claude_full": p_full,
         "P_gpt_slope_lt_claude_restricted": p_restr,
@@ -136,12 +139,12 @@ def main() -> None:
         json.dump(results, f, indent=2)
 
     print("=== C11: cross-LLM insurance slope comparison ===\n")
-    print("GPT-4o full-grid slope cross-check (recomputed vs ledger C9 ~ -31):")
+    print("GPT-4o full-grid slope cross-check (recomputed vs ledger C9 ~ -24.6):")
     print(f"  recomputed median {results['gpt_slope_full']['median']:+.2f}, "
           f"P(<0) {results['gpt_slope_full']['p_negative']:.3f}  "
-          f"(C9: ~ -31, ~0.99)")
-    print(f"  [primary_analysis.json stores superseded estimator "
-          f"{results['crosscheck']['superseded_initial_study_slope_field']:+.2f}]\n")
+          f"(C9: ~ -24.6, ~0.99)")
+    print(f"  [primary_analysis.json slope field (same estimator): "
+          f"{results['crosscheck']['initial_study_slope_field']:+.2f}]\n")
     print(f"GPT-4o slope (full [0,1.5]):       median "
           f"{results['gpt_slope_full']['median']:+.1f}, P(<0) "
           f"{results['gpt_slope_full']['p_negative']:.3f}")

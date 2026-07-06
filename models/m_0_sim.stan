@@ -15,7 +15,7 @@ data {
   array[M,R] int<lower=0,upper=1> I; // indicator array: I[m,r] = 1 if alternative r is in problem m
   
   // Parameter generation controls
-  real<lower=0> alpha_mean;       // mean for alpha parameter (default=1)
+  real alpha_mean;                // mean for log(alpha) (default=0); may be negative
   real<lower=0> alpha_sd;         // sd for alpha parameter (default=0.5)
   real<lower=0> beta_sd;          // sd for beta coefficients (default=1)
 }

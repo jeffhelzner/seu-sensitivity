@@ -1,0 +1,693 @@
+{
+  "spec": {
+    "review_item": "overall theme C (HMC pathologies in nuisance blocks)",
+    "sampler": {
+      "chains": 4,
+      "iter_warmup": 2000,
+      "iter_sampling": 1000,
+      "adapt_delta": 0.99,
+      "max_treedepth": 12,
+      "seed": 42
+    },
+    "baseline_sampler": {
+      "chains": 4,
+      "iter_warmup": 1000,
+      "iter_sampling": 1000,
+      "adapt_delta": 0.8,
+      "max_treedepth": 10,
+      "seed": 42
+    }
+  },
+  "fits": [
+    {
+      "study": "temperature_study",
+      "cell": "GPT-4o x Insurance",
+      "condition": "T0_0",
+      "n_divergences": 0,
+      "n_treedepth_hits": 0,
+      "alpha_refit": {
+        "median": 74.716545,
+        "ci_low": 48.2470925,
+        "ci_high": 122.79346049999992,
+        "sd": 23.372431650311658,
+        "sd_log": 0.28396313756599184,
+        "n_draws": 4000
+      },
+      "alpha_committed": {
+        "median": 74.0776505,
+        "ci_low": 47.28959435,
+        "ci_high": 121.08671399999997,
+        "sd": 23.58713619512245,
+        "sd_log": 0.28834213961046734,
+        "n_draws": 4000
+      },
+      "alpha_median_shift_in_committed_sd": 0.0271,
+      "eta_gaps_posterior": {
+        "pooled_gap_median": 0.25730034,
+        "pooled_gap_q05": 0.03811666399999996,
+        "pooled_gap_q95": 0.48849817000000034
+      }
+    },
+    {
+      "study": "temperature_study",
+      "cell": "GPT-4o x Insurance",
+      "condition": "T0_3",
+      "n_divergences": 0,
+      "n_treedepth_hits": 0,
+      "alpha_refit": {
+        "median": 54.618057,
+        "ci_low": 36.0313708,
+        "ci_high": 84.45064664999998,
+        "sd": 15.295632431409071,
+        "sd_log": 0.261688201076718,
+        "n_draws": 4000
+      },
+      "alpha_committed": {
+        "median": 54.862015,
+        "ci_low": 36.1233461,
+        "ci_high": 88.34528755,
+        "sd": 18.68643897652831,
+        "sd_log": 0.2838553595371226,
+        "n_draws": 4000
+      },
+      "alpha_median_shift_in_committed_sd": -0.0131,
+      "eta_gaps_posterior": {
+        "pooled_gap_median": 0.26776520000000004,
+        "pooled_gap_q05": 0.03761741250000008,
+        "pooled_gap_q95": 0.50233921
+      }
+    },
+    {
+      "study": "temperature_study",
+      "cell": "GPT-4o x Insurance",
+      "condition": "T0_7",
+      "n_divergences": 0,
+      "n_treedepth_hits": 0,
+      "alpha_refit": {
+        "median": 56.154349499999995,
+        "ci_low": 38.5168886,
+        "ci_high": 86.80357835,
+        "sd": 15.184915946386813,
+        "sd_log": 0.24874742272139067,
+        "n_draws": 4000
+      },
+      "alpha_committed": {
+        "median": 56.3213925,
+        "ci_low": 38.636707550000004,
+        "ci_high": 84.9159107,
+        "sd": 14.564273439641902,
+        "sd_log": 0.24123909878789665,
+        "n_draws": 4000
+      },
+      "alpha_median_shift_in_committed_sd": -0.0115,
+      "eta_gaps_posterior": {
+        "pooled_gap_median": 0.272248245,
+        "pooled_gap_q05": 0.03500398450000005,
+        "pooled_gap_q95": 0.48463141
+      }
+    },
+    {
+      "study": "temperature_study",
+      "cell": "GPT-4o x Insurance",
+      "condition": "T1_0",
+      "n_divergences": 0,
+      "n_treedepth_hits": 0,
+      "alpha_refit": {
+        "median": 38.688103,
+        "ci_low": 27.60074255,
+        "ci_high": 56.568808899999986,
+        "sd": 9.038267713354923,
+        "sd_log": 0.2204932049085054,
+        "n_draws": 4000
+      },
+      "alpha_committed": {
+        "median": 39.084129,
+        "ci_low": 26.570301,
+        "ci_high": 58.33848904999999,
+        "sd": 9.842278088163184,
+        "sd_log": 0.23546804435670424,
+        "n_draws": 4000
+      },
+      "alpha_median_shift_in_committed_sd": -0.0402,
+      "eta_gaps_posterior": {
+        "pooled_gap_median": 0.25863643999999997,
+        "pooled_gap_q05": 0.01823610749999996,
+        "pooled_gap_q95": 0.46864312499999994
+      }
+    },
+    {
+      "study": "temperature_study",
+      "cell": "GPT-4o x Insurance",
+      "condition": "T1_5",
+      "n_divergences": 0,
+      "n_treedepth_hits": 0,
+      "alpha_refit": {
+        "median": 36.247475,
+        "ci_low": 25.6089753,
+        "ci_high": 51.61158539999999,
+        "sd": 8.177334890108938,
+        "sd_log": 0.2166312417950132,
+        "n_draws": 4000
+      },
+      "alpha_committed": {
+        "median": 36.047354999999996,
+        "ci_low": 25.4607803,
+        "ci_high": 51.768802699999995,
+        "sd": 7.973664651393419,
+        "sd_log": 0.21175556395070755,
+        "n_draws": 4000
+      },
+      "alpha_median_shift_in_committed_sd": 0.0251,
+      "eta_gaps_posterior": {
+        "pooled_gap_median": 0.19135469500000002,
+        "pooled_gap_q05": 0.027982174000000012,
+        "pooled_gap_q95": 0.3980264370000006
+      }
+    },
+    {
+      "study": "claude_insurance_study",
+      "cell": "Claude 3.5 x Insurance",
+      "condition": "T0_0",
+      "n_divergences": 0,
+      "n_treedepth_hits": 0,
+      "alpha_refit": {
+        "median": 70.130884,
+        "ci_low": 44.8800953,
+        "ci_high": 115.399409,
+        "sd": 22.211475700346814,
+        "sd_log": 0.2887965603389882,
+        "n_draws": 4000
+      },
+      "alpha_committed": {
+        "median": 70.5364905,
+        "ci_low": 44.5740697,
+        "ci_high": 113.41896199999994,
+        "sd": 21.61169408384025,
+        "sd_log": 0.28435460988357386,
+        "n_draws": 4000
+      },
+      "alpha_median_shift_in_committed_sd": -0.0188,
+      "eta_gaps_posterior": {
+        "pooled_gap_median": 0.24904675,
+        "pooled_gap_q05": 0.05035997000000003,
+        "pooled_gap_q95": 0.48936899200000017
+      }
+    },
+    {
+      "study": "claude_insurance_study",
+      "cell": "Claude 3.5 x Insurance",
+      "condition": "T0_2",
+      "n_divergences": 0,
+      "n_treedepth_hits": 0,
+      "alpha_refit": {
+        "median": 52.607198999999994,
+        "ci_low": 35.9770951,
+        "ci_high": 81.76495959999997,
+        "sd": 14.38432398247071,
+        "sd_log": 0.2506810392292114,
+        "n_draws": 4000
+      },
+      "alpha_committed": {
+        "median": 52.557104499999994,
+        "ci_low": 35.7547121,
+        "ci_high": 81.40572944999998,
+        "sd": 14.892028029419786,
+        "sd_log": 0.2557584311700347,
+        "n_draws": 4000
+      },
+      "alpha_median_shift_in_committed_sd": 0.0034,
+      "eta_gaps_posterior": {
+        "pooled_gap_median": 0.22944955,
+        "pooled_gap_q05": 0.02735715999999999,
+        "pooled_gap_q95": 0.43465292
+      }
+    },
+    {
+      "study": "claude_insurance_study",
+      "cell": "Claude 3.5 x Insurance",
+      "condition": "T0_5",
+      "n_divergences": 0,
+      "n_treedepth_hits": 0,
+      "alpha_refit": {
+        "median": 73.16090750000001,
+        "ci_low": 46.7273485,
+        "ci_high": 122.6003395,
+        "sd": 24.10931380840234,
+        "sd_log": 0.29352970194498496,
+        "n_draws": 4000
+      },
+      "alpha_committed": {
+        "median": 73.20288,
+        "ci_low": 47.00170765,
+        "ci_high": 121.47713749999997,
+        "sd": 23.14235897569025,
+        "sd_log": 0.2855780167016597,
+        "n_draws": 4000
+      },
+      "alpha_median_shift_in_committed_sd": -0.0018,
+      "eta_gaps_posterior": {
+        "pooled_gap_median": 0.24296721,
+        "pooled_gap_q05": 0.03054231050000003,
+        "pooled_gap_q95": 0.45833483050000007
+      }
+    },
+    {
+      "study": "claude_insurance_study",
+      "cell": "Claude 3.5 x Insurance",
+      "condition": "T0_8",
+      "n_divergences": 0,
+      "n_treedepth_hits": 0,
+      "alpha_refit": {
+        "median": 71.257792,
+        "ci_low": 45.17896295,
+        "ci_high": 118.59107149999998,
+        "sd": 22.881126942294696,
+        "sd_log": 0.29002797735351443,
+        "n_draws": 4000
+      },
+      "alpha_committed": {
+        "median": 70.5583975,
+        "ci_low": 45.106524750000005,
+        "ci_high": 115.31048449999996,
+        "sd": 22.030918408550193,
+        "sd_log": 0.2848270743503178,
+        "n_draws": 4000
+      },
+      "alpha_median_shift_in_committed_sd": 0.0317,
+      "eta_gaps_posterior": {
+        "pooled_gap_median": 0.24088709000000008,
+        "pooled_gap_q05": 0.03800542950000004,
+        "pooled_gap_q95": 0.48954415999999995
+      }
+    },
+    {
+      "study": "claude_insurance_study",
+      "cell": "Claude 3.5 x Insurance",
+      "condition": "T1_0",
+      "n_divergences": 0,
+      "n_treedepth_hits": 0,
+      "alpha_refit": {
+        "median": 55.692862,
+        "ci_low": 38.15643645,
+        "ci_high": 85.03749994999998,
+        "sd": 14.60007743218399,
+        "sd_log": 0.24432519879751174,
+        "n_draws": 4000
+      },
+      "alpha_committed": {
+        "median": 55.492149999999995,
+        "ci_low": 37.001220100000005,
+        "ci_high": 83.74410789999997,
+        "sd": 14.243565334756717,
+        "sd_log": 0.24451099047414032,
+        "n_draws": 4000
+      },
+      "alpha_median_shift_in_committed_sd": 0.0141,
+      "eta_gaps_posterior": {
+        "pooled_gap_median": 0.22909590999999996,
+        "pooled_gap_q05": 0.027518700000000007,
+        "pooled_gap_q95": 0.44901051999999997
+      }
+    },
+    {
+      "study": "gpt4o_ellsberg_study",
+      "cell": "GPT-4o x Ellsberg",
+      "condition": "T0_0",
+      "n_divergences": 0,
+      "n_treedepth_hits": 0,
+      "alpha_refit": {
+        "median": 109.09697,
+        "ci_low": 73.01224,
+        "ci_high": 167.7170625,
+        "sd": 29.59054597573481,
+        "sd_log": 0.25197749107020273,
+        "n_draws": 4000
+      },
+      "alpha_committed": {
+        "median": 110.369925,
+        "ci_low": 74.39008715,
+        "ci_high": 167.15046799999988,
+        "sd": 28.55910346331294,
+        "sd_log": 0.24564496623783788,
+        "n_draws": 4000
+      },
+      "alpha_median_shift_in_committed_sd": -0.0446,
+      "eta_gaps_posterior": {
+        "pooled_gap_median": 0.06821153500000002,
+        "pooled_gap_q05": 0.011721454999999964,
+        "pooled_gap_q95": 0.1543084415
+      }
+    },
+    {
+      "study": "gpt4o_ellsberg_study",
+      "cell": "GPT-4o x Ellsberg",
+      "condition": "T0_3",
+      "n_divergences": 0,
+      "n_treedepth_hits": 0,
+      "alpha_refit": {
+        "median": 107.147665,
+        "ci_low": 72.5558956,
+        "ci_high": 162.5015,
+        "sd": 28.100217475985346,
+        "sd_log": 0.24583079937196942,
+        "n_draws": 4000
+      },
+      "alpha_committed": {
+        "median": 106.899915,
+        "ci_low": 72.63442025,
+        "ci_high": 163.81201149999998,
+        "sd": 28.34066557343421,
+        "sd_log": 0.24669218698532588,
+        "n_draws": 4000
+      },
+      "alpha_median_shift_in_committed_sd": 0.0087,
+      "eta_gaps_posterior": {
+        "pooled_gap_median": 0.06288376500000001,
+        "pooled_gap_q05": 0.011943140000000074,
+        "pooled_gap_q95": 0.15750260999999993
+      }
+    },
+    {
+      "study": "gpt4o_ellsberg_study",
+      "cell": "GPT-4o x Ellsberg",
+      "condition": "T0_7",
+      "n_divergences": 0,
+      "n_treedepth_hits": 0,
+      "alpha_refit": {
+        "median": 98.575301,
+        "ci_low": 65.81739235,
+        "ci_high": 156.67444999999995,
+        "sd": 28.6753833728959,
+        "sd_log": 0.2652204101785973,
+        "n_draws": 4000
+      },
+      "alpha_committed": {
+        "median": 99.45683149999999,
+        "ci_low": 65.42779870000001,
+        "ci_high": 154.63367799999997,
+        "sd": 27.99105989451145,
+        "sd_log": 0.2626719326826971,
+        "n_draws": 4000
+      },
+      "alpha_median_shift_in_committed_sd": -0.0315,
+      "eta_gaps_posterior": {
+        "pooled_gap_median": 0.10413001,
+        "pooled_gap_q05": 0.01655463700000003,
+        "pooled_gap_q95": 0.20759750300000004
+      }
+    },
+    {
+      "study": "gpt4o_ellsberg_study",
+      "cell": "GPT-4o x Ellsberg",
+      "condition": "T1_0",
+      "n_divergences": 0,
+      "n_treedepth_hits": 0,
+      "alpha_refit": {
+        "median": 84.5941365,
+        "ci_low": 57.61656635,
+        "ci_high": 127.187504,
+        "sd": 22.109745527015875,
+        "sd_log": 0.24403636173093637,
+        "n_draws": 4000
+      },
+      "alpha_committed": {
+        "median": 84.046989,
+        "ci_low": 57.0774481,
+        "ci_high": 126.10022899999994,
+        "sd": 22.182660076129384,
+        "sd_log": 0.2470757452450243,
+        "n_draws": 4000
+      },
+      "alpha_median_shift_in_committed_sd": 0.0247,
+      "eta_gaps_posterior": {
+        "pooled_gap_median": 0.08722049499999998,
+        "pooled_gap_q05": 0.00941978550000003,
+        "pooled_gap_q95": 0.19057330500000003
+      }
+    },
+    {
+      "study": "gpt4o_ellsberg_study",
+      "cell": "GPT-4o x Ellsberg",
+      "condition": "T1_5",
+      "n_divergences": 0,
+      "n_treedepth_hits": 0,
+      "alpha_refit": {
+        "median": 51.660335,
+        "ci_low": 35.23314155,
+        "ci_high": 79.13181535,
+        "sd": 13.574662932133657,
+        "sd_log": 0.24556154192263052,
+        "n_draws": 4000
+      },
+      "alpha_committed": {
+        "median": 52.1680245,
+        "ci_low": 35.54437975,
+        "ci_high": 80.3296955,
+        "sd": 14.356923760504289,
+        "sd_log": 0.2505860544488517,
+        "n_draws": 4000
+      },
+      "alpha_median_shift_in_committed_sd": -0.0354,
+      "eta_gaps_posterior": {
+        "pooled_gap_median": 0.1129327,
+        "pooled_gap_q05": 0.01202976,
+        "pooled_gap_q95": 0.28766908
+      }
+    },
+    {
+      "study": "ellsberg_study",
+      "cell": "Claude 3.5 x Ellsberg",
+      "condition": "T0_0",
+      "n_divergences": 0,
+      "n_treedepth_hits": 0,
+      "alpha_refit": {
+        "median": 84.2091225,
+        "ci_low": 57.625340200000004,
+        "ci_high": 125.95470899999998,
+        "sd": 21.434614164604714,
+        "sd_log": 0.23806278678780077,
+        "n_draws": 4000
+      },
+      "alpha_committed": {
+        "median": 85.39877949999999,
+        "ci_low": 58.8527219,
+        "ci_high": 127.221845,
+        "sd": 21.29882829129646,
+        "sd_log": 0.23409404539895728,
+        "n_draws": 4000
+      },
+      "alpha_median_shift_in_committed_sd": -0.0559,
+      "eta_gaps_posterior": {
+        "pooled_gap_median": 0.10446381000000005,
+        "pooled_gap_q05": 0.013563556500000032,
+        "pooled_gap_q95": 0.24990349999999995
+      }
+    },
+    {
+      "study": "ellsberg_study",
+      "cell": "Claude 3.5 x Ellsberg",
+      "condition": "T0_2",
+      "n_divergences": 0,
+      "n_treedepth_hits": 0,
+      "alpha_refit": {
+        "median": 56.291026,
+        "ci_low": 38.4957902,
+        "ci_high": 83.24381024999998,
+        "sd": 14.285122908508905,
+        "sd_log": 0.23864518162116294,
+        "n_draws": 4000
+      },
+      "alpha_committed": {
+        "median": 56.0838855,
+        "ci_low": 38.1698952,
+        "ci_high": 84.13200989999997,
+        "sd": 14.147920531227332,
+        "sd_log": 0.23950247786639442,
+        "n_draws": 4000
+      },
+      "alpha_median_shift_in_committed_sd": 0.0146,
+      "eta_gaps_posterior": {
+        "pooled_gap_median": 0.09800814499999996,
+        "pooled_gap_q05": 0.013274716000000006,
+        "pooled_gap_q95": 0.22243298750000004
+      }
+    },
+    {
+      "study": "ellsberg_study",
+      "cell": "Claude 3.5 x Ellsberg",
+      "condition": "T0_5",
+      "n_divergences": 0,
+      "n_treedepth_hits": 0,
+      "alpha_refit": {
+        "median": 81.5968025,
+        "ci_low": 51.51252100000001,
+        "ci_high": 133.3939745,
+        "sd": 25.75053994060659,
+        "sd_log": 0.29145789663405103,
+        "n_draws": 4000
+      },
+      "alpha_committed": {
+        "median": 82.25922399999999,
+        "ci_low": 52.330475799999995,
+        "ci_high": 135.2547899999999,
+        "sd": 26.37942370534798,
+        "sd_log": 0.290549421520846,
+        "n_draws": 4000
+      },
+      "alpha_median_shift_in_committed_sd": -0.0251,
+      "eta_gaps_posterior": {
+        "pooled_gap_median": 0.09955975,
+        "pooled_gap_q05": 0.013379630000000087,
+        "pooled_gap_q95": 0.22528319000000002
+      }
+    },
+    {
+      "study": "ellsberg_study",
+      "cell": "Claude 3.5 x Ellsberg",
+      "condition": "T0_8",
+      "n_divergences": 0,
+      "n_treedepth_hits": 0,
+      "alpha_refit": {
+        "median": 53.3694,
+        "ci_low": 36.48209385,
+        "ci_high": 78.05673949999998,
+        "sd": 13.081413588561906,
+        "sd_log": 0.23458699285186263,
+        "n_draws": 4000
+      },
+      "alpha_committed": {
+        "median": 53.025301999999996,
+        "ci_low": 35.97429415,
+        "ci_high": 80.48668049999999,
+        "sd": 13.885021726565396,
+        "sd_log": 0.245179095927584,
+        "n_draws": 4000
+      },
+      "alpha_median_shift_in_committed_sd": 0.0248,
+      "eta_gaps_posterior": {
+        "pooled_gap_median": 0.14030288999999999,
+        "pooled_gap_q05": 0.013232830000000084,
+        "pooled_gap_q95": 0.3169934
+      }
+    },
+    {
+      "study": "ellsberg_study",
+      "cell": "Claude 3.5 x Ellsberg",
+      "condition": "T1_0",
+      "n_divergences": 0,
+      "n_treedepth_hits": 0,
+      "alpha_refit": {
+        "median": 66.131872,
+        "ci_low": 44.7446111,
+        "ci_high": 98.37150165,
+        "sd": 16.787352180803445,
+        "sd_log": 0.24072359963734685,
+        "n_draws": 4000
+      },
+      "alpha_committed": {
+        "median": 66.449225,
+        "ci_low": 45.2912888,
+        "ci_high": 99.79928724999999,
+        "sd": 17.204083636292395,
+        "sd_log": 0.2427285319129631,
+        "n_draws": 4000
+      },
+      "alpha_median_shift_in_committed_sd": -0.0184,
+      "eta_gaps_posterior": {
+        "pooled_gap_median": 0.10499927999999997,
+        "pooled_gap_q05": 0.01427345000000002,
+        "pooled_gap_q95": 0.24944196000000002
+      }
+    }
+  ],
+  "slopes": {
+    "temperature_study": {
+      "cell": "GPT-4o x Insurance",
+      "temps": [
+        0.0,
+        0.3,
+        0.7,
+        1.0,
+        1.5
+      ],
+      "refit": {
+        "median": -24.78698684782608,
+        "ci_low": -51.56507094927534,
+        "ci_high": -5.871469778985493,
+        "p_neg": 0.98625
+      },
+      "committed": {
+        "median": -24.62648514492752,
+        "ci_low": -52.42053836956519,
+        "ci_high": -6.677534025362312,
+        "p_neg": 0.9905
+      }
+    },
+    "claude_insurance_study": {
+      "cell": "Claude 3.5 x Insurance",
+      "temps": [
+        0.0,
+        0.2,
+        0.5,
+        0.8,
+        1.0
+      ],
+      "refit": {
+        "median": -1.9730630882352944,
+        "ci_low": -41.458063125,
+        "ci_high": 33.32959041176473,
+        "p_neg": 0.53725
+      },
+      "committed": {
+        "median": -2.8943491176470535,
+        "ci_low": -42.88951141911764,
+        "ci_high": 30.782346470588237,
+        "p_neg": 0.55975
+      }
+    },
+    "gpt4o_ellsberg_study": {
+      "cell": "GPT-4o x Ellsberg",
+      "temps": [
+        0.0,
+        0.3,
+        0.7,
+        1.0,
+        1.5
+      ],
+      "refit": {
+        "median": -37.47997402173911,
+        "ci_low": -72.95726831159418,
+        "ci_high": -10.05038134420293,
+        "p_neg": 0.99175
+      },
+      "committed": {
+        "median": -38.37483873188404,
+        "ci_low": -72.12682073913041,
+        "ci_high": -10.007828608695657,
+        "p_neg": 0.984
+      }
+    },
+    "ellsberg_study": {
+      "cell": "Claude 3.5 x Ellsberg",
+      "temps": [
+        0.0,
+        0.2,
+        0.5,
+        0.8,
+        1.0
+      ],
+      "refit": {
+        "median": -14.72452595588235,
+        "ci_low": -51.75542077205881,
+        "ci_high": 19.76568786764706,
+        "p_neg": 0.767
+      },
+      "committed": {
+        "median": -15.016789411764703,
+        "ci_low": -52.238105360294114,
+        "ci_high": 19.59849042647057,
+        "p_neg": 0.766
+      }
+    }
+  }
+}

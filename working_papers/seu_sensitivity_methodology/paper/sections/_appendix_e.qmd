@@ -10,7 +10,10 @@
 Every key empirical claim cites the supporting repository at a **pinned
 commit or tag** --- and, at the point of archival deposit, a DOI will be minted
 from that tagged commit (a Zenodo release) and substituted for the commit pin in
-the citation --- never a homepage or blog URL. Supporting materials
+the citation --- never a homepage or blog URL. **[The pinned commit hash / tag
+will be inserted here at circulation; until then, references to "the pin" in
+this appendix resolve to the repository state accompanying this draft.]**
+Supporting materials
 (data, analysis scripts, configs, figures) are **referenced at that pin, not
 copied** into the paper folder, so there is a single source of truth and no
 drift: the Stan listings of Appendix C, the design constants of Appendix D, and
@@ -80,7 +83,7 @@ pinned source for these three plots.
 | --- | --- | --- | --- | --- | --- | --- |
 | Fig 6.4 | 6.4.1 | $\alpha$/$\delta$ RMSE + CI-width, matched A/B/C/D ($n=100$) | `spikes/report14_rerun_analysis.py` | `configs/m1_matched_recovery_n100_config.json` | design 20260617 / boot 20260617 | computed |
 | Tab (§7.5.5) | 7.5 | $2\times2$ per-cell global-slope posteriors (C9–C13) | `analysis/model_estimation.py` | `applications/*/configs/` | per-cell (see cell data) | computed |
-| Fig (§7.5.5) | 7.5.5 | $2\times2$ forest plot of the per-cell global-slope posteriors (companion to @tbl-2x2) | `spikes/report_2x2_forest_spike.py` | canonical cell summaries (C9/C10/C12/C13) | deterministic (no RNG) | computed |
+| Fig (§7.5.5) | 7.5.5 | $2\times2$ forest plot of the per-cell global-slope posteriors (companion to @tbl-2x2) | `spikes/report_2x2_forest_spike.py` | committed per-condition $\alpha$ draws (computes C9/C10/C12/C13) | deterministic (no RNG) | computed |
 | Fig 7.5.2 | 7.5.2 / 7.6.1 | Claude-null MDE power curve; MDE $\approx 36$ marker (C16) | `spikes/report16_mde_spike.py` | inline (data `alpha_draws_T*.npz`) | 20260618 | computed |
 | Fig (§7.6.6) | 7.6.6 | Prior-sensitivity forest: per-cell slope posteriors under baseline + 3 alternative $\alpha$ priors (C17) | `spikes/report_prior_sensitivity_spike.py` | committed per-condition Stan data + `models/m_0_prior_sweep.stan` | 20260701 | computed |
 | Fig (§4.3) | 4.3.2 | $\alpha$ true-vs-estimated recovery scatter + per-replicate 90% CIs (`m_0`) | `analysis/parameter_recovery.py` | inline (`m_0`: $M25$ $K3$ $D5$ $R15$; 50 iters, 4 chains $\times$ 1000) | design np $42$; $12345+i$ sim / $54321+i$ fit (D.2) | computed |
@@ -101,18 +104,28 @@ reproduced by `spikes/report_prior_sensitivity_spike.py` (base seed 20260701),
 which refits each cell under the alternative $\alpha$ priors via
 `models/m_0_prior_sweep.stan` on the committed per-condition Stan data and
 caches the refits under `reports/applications/*/data/prior_sweep/`. The
-$2\times2$ forest plot (§7.5.5) is rendered
-by `spikes/report_2x2_forest_spike.py` from the canonical report-level cell
-summaries (C9/C10/C12/C13), so it matches @tbl-2x2 by construction; the same
-script records a population-OLS cross-check over the committed draws in its
-results JSON (diagnostic only). It agrees with the canonical summaries on
-$P(\text{slope}<0)$ and on both Ellsberg cells; it differs only on the
-insurance-cell slope *magnitude*, because the canonical $2\times2$ entry reports
-the **report-level** slope --- an OLS through the five per-condition $\alpha$
-posterior medians ($\approx -3.6$ for the Claude insurance cell, whose grid has
-five temperatures) --- whereas the
-diagnostic pools all posterior draws into a single **population OLS**
-($\approx -2.9$ draw-level median). Claim C16 records this convention
-(report-level $-3.6$ as the canonical headline, draw-level $\approx 2.9$ as the
-quantity the §[7.5.2](#sec-app-claude-insurance) MDE power calculation operates on), so the
-two numbers are the same effect read at two resolutions, not a discrepancy.
+design-conditional information diagnostics (§5.5 lottery-spanning check, §5.6
+contrast-Jacobian ranks, §7.2 feature-matrix rank, and the §7.4 $\eta$-gap and
+$\alpha$-contraction callout) are reproduced by
+`spikes/report_design_diagnostics_spike.py` (seed 20260705), which reads the
+foundational design constants of D.0 and the committed application Stan data.
+The stricter-sampler refit check reported in §7.4 and D.2 is reproduced by
+`spikes/report_refit_sensitivity_spike.py` (seed 42), which refits all 20
+application conditions at $\mathrm{adapt\_delta} = 0.99$ and maximum tree depth
+$12$ on the committed per-condition Stan data.
+
+**Correction note (slope estimator).** Earlier drafts of the $2\times2$ table
+and the application reports quoted per-cell slope medians of $-31$ (GPT-4o
+$\times$ insurance), $-3.6$ (Claude $\times$ insurance), and $-18.8$ (Claude
+$\times$ Ellsberg). Those values came from a per-draw slope computed as
+`np.cov(T, alpha)[0,1] / np.var(T)`, which mixes a ddof-$1$ covariance with a
+ddof-$0$ variance and therefore inflates every draw's slope --- hence the
+posterior median *and* the CI endpoints --- by exactly $L/(L-1) = 5/4 = 1.25$
+for the five-point temperature grids. The canonical draw-level population-OLS
+values (D.6(2)) are $-24.6$, $-2.9$, and $-15.0$ respectively; GPT-4o $\times$
+Ellsberg always used the correct formula and is unchanged at $-38.4$.
+$P(\text{slope} < 0)$ is invariant to a positive scale factor, so no negativity
+probability, monotonicity probability, or qualitative conclusion is affected.
+All slopes in the paper now use the single canonical estimator;
+`spikes/report_2x2_forest_spike.py` records the superseded values and the exact
+$1.25$ factor in its results JSON.

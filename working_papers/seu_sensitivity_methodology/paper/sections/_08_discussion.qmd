@@ -109,10 +109,15 @@ none.
 
 The positive contribution of SBC here --- sampler/implementation validation,
 per-parameter marginal calibration, and the demarcation itself --- is stated in
-full in §[4.4](#sec-m0-sbc). When parameters
-trade off in a correlated joint posterior, a *joint* or *projection-based* rank
-statistic is the appropriate diagnostic --- a concrete next step for the SBC
-literature that this paper's null between `m_0` and `m_1` motivates.
+full in §[4.4](#sec-m0-sbc). Two follow-ups should be kept distinct. A *joint*
+or *projection-based* rank statistic would extend SBC's reach from marginal to
+joint *calibration* --- a concrete next step for the SBC literature. But no rank
+statistic, marginal or joint, measures *informativeness*: whether a posterior
+has contracted enough to be useful is diagnosed by recovery, contraction, and
+interval-width summaries (§[4.3](#sec-m0-recovery),
+§[7.4](#sec-app-validation)), not by calibration checks. The paper's
+$(\beta,\delta)$ finding is of the second kind, which is why no SBC variant ---
+however joint --- would have surfaced it on its own.
 
 ## 8.4 Why $\alpha$ is the primary quantity of interest {#sec-disc-alpha .unnumbered}
 
@@ -138,8 +143,11 @@ recovered in `m_0` and the calibrated-prior variants `m_01`/`m_02`, and the weak
 comparative discipline is also the paper's answer to the cross-context
 comparability critiques of softmax-precision parameters [@wilcox2011;
 @apesteguia2018]: the $\bm{\upsilon}$-endpoint convention (§[2.6](#sec-notation))
-normalizes the utility scale per problem, and the supported claims compare
-$\alpha$ only within a fixed design (§[2.2](#sec-softmax-rule)).
+fixes one global utility scale shared by every problem in a design --- which
+supplies the within-context normalization the contextual-utility critique asks
+for only because all problems draw on the same consequence space
+(§[2.2](#sec-softmax-rule)) --- and the supported claims compare
+$\alpha$ only within a fixed design.
 
 ::: {.callout-note appearance="simple"}
 **Interpretive caveat (model-conditional reading of $\alpha$).** A low recovered
@@ -206,16 +214,21 @@ hierarchical extension `h_m01` to address the design-induced cross-condition
 structure of §[7.7](#sec-app-followup): because the five conditions reuse a single
 fixed pool of alternatives (with the LLM assessments and embeddings regenerated
 independently at each temperature), fitting `m_01` independently per condition
-leaves two things on the table --- partial pooling of information across
-conditions (generalization beyond the realized pool) and an explicit
-pool-by-temperature interaction. Modelling
+leaves two things on the table --- partial pooling of information across the
+five temperature conditions, and any treatment of the item pool as a modeled
+source of variation. The two are distinct and should not be conflated: partial
+pooling stabilizes the per-condition $\alpha$ estimates and yields one
+calibrated slope statement, but pooling across *temperature conditions* that
+all reuse the same pool cannot, by itself, generalize the findings beyond that
+realized pool. Modelling
 $\log \alpha_c = \gamma_0 + \gamma_1 T_c + \varepsilon_c$ with condition-level
 effects $\varepsilon_c$ partially pools the five temperature conditions and turns
 between-condition contrasts into estimated regression effects on $\log \alpha$.
 Because a *single* pool is reused across all conditions, however, `h_m01` still
 cannot separate a pool *main* effect (confounded with the intercept $\gamma_0$)
 or a pool-by-temperature interaction (absorbed into the slope $\gamma_1$); doing
-so requires several distinct pools. That multi-pool generalization is the
+so --- and with it any generalization over item pools --- requires several
+distinct pools. That multi-pool generalization is the
 analysis vehicle of a planned alignment-study companion paper and is out of
 scope here.
 

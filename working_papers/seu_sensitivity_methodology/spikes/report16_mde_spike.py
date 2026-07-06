@@ -75,7 +75,10 @@ Z_975 = 1.959963984540054   # one-sided 0.975 (= two-sided 0.95)
 
 # GPT-4o reference slope (full, unequal temperature grid), reported in plan
 # SS7.5.2a for context only. NOT computed here; carries the unequal-grid caveat.
-GPT4O_SLOPE_FULLGRID_REF = -31.0
+# Canonical draw-level population-OLS median (spikes/report_2x2_forest_results.json,
+# GPT-4o x insurance). The earlier -31 figure was inflated by the ddof
+# covariance/variance mismatch documented in report_2x2_forest_spike.py.
+GPT4O_SLOPE_FULLGRID_REF = -24.6
 
 SEED = 20260618
 N_MC = 200_000  # Monte-Carlo resamples for estimator (C)

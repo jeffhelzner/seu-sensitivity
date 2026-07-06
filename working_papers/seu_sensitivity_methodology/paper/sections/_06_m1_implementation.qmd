@@ -177,7 +177,7 @@ are distinct.
 
 | | $\delta$ in `m_1` | $\alpha$ in `m_1` |
 | --- | --- | --- |
-| Identifiable in `m_0`? | yes, but jointly weakly informed | yes |
+| Identifiable in `m_0`? | not established --- weakly informed by uncertain choices (§[3.4](#sec-bd-weak)); the identifiability result arrives with the risky block (§[5.5](#sec-delta-id)) | yes |
 | What §5 promises | a $\beta$-free identification route that sharpens $\bm{\upsilon}$ | already identified |
 | Matched-count payoff (B$\to$C) | CI-width $+0.8\%$ $[0.6, 1.2]$ (real but negligible); RMSE unchanged | no detected gain: RMSE $-8.1\%$ $[-22.0, +6.8]$ (straddles zero); CI-width unchanged |
 | Where finite-$n$ precision comes from | not realized at design $n$ | data *quantity*, not choice *type* (A$\to$B: $+27.1\%$ RMSE reduction $[+15.0, +38.5]$) |

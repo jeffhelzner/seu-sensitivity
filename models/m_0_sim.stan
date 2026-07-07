@@ -16,7 +16,7 @@ data {
   
   // Parameter generation controls
   real alpha_mean;                // mean for log(alpha) (default=0); may be negative
-  real<lower=0> alpha_sd;         // sd for alpha parameter (default=0.5)
+  real<lower=0> alpha_sd;         // sd for log(alpha) (default 1)
   real<lower=0> beta_sd;          // sd for beta coefficients (default=1)
 }
 

@@ -81,7 +81,7 @@ rather than a defect in the $\alpha$ inference.
 step-size artifacts rather than symptoms of posterior bias, all 20 application
 conditions were refit at $\mathrm{adapt\_delta} = 0.99$, maximum tree depth
 $12$, and warmup $2000$ (4 chains, 1000 sampling iterations, seed 42;
-`spikes/report_refit_sensitivity_spike.py`, Appendix [E.2](#sec-e2)). Under the
+`spikes/report_refit_sensitivity_spike.py`, Appendix [E.2](#sec-e-manifest)). Under the
 stricter settings the total divergence count drops from 34 (spread across 12/20
 fits) to **0**, with no tree-depth saturations; the largest shift in any
 per-condition $\alpha$ posterior median is $0.06$ committed-posterior standard
@@ -308,10 +308,10 @@ is near-constant, $\mathrm{CV} \approx 0.28$, across the five conditions). Impos
 signed counterfactual mean line $\mu_\ell = \alpha_{\text{ref}} + \beta\,(T_\ell - \bar{T})$
 about the grand-mean level $\alpha_{\text{ref}} \approx 67.5$, preserve each
 condition's *relative* residuals $(\alpha_\ell^{(s)} - \bar\alpha_\ell)/\bar\alpha_\ell$,
-resample choices per condition, recompute the slope through the same $\{w_\ell\}$
+resample the per-condition relative residuals, recompute the slope through the same $\{w_\ell\}$
 functional, and root-find the $\beta < 0$ where $P(\text{slope} < 0)$ hits the criterion
 ($2 \times 10^{5}$ Monte-Carlo resamples). This yields $\approx 36.0$ at
-$P \geq 0.95$ and $\approx 41$ at $P \geq 0.975$, and is the estimator that
+$P \geq 0.95$ and $\approx 42$ at $P \geq 0.975$, and is the estimator that
 accounts for dispersion growing with the mean.
 
 **Why they agree.** All three read off the same slope functional and the same

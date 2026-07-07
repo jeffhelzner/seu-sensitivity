@@ -284,7 +284,7 @@ conditions, versus $\approx 0.52$ for the foundational §[4](#sec-m0-implementat
 design --- the application designs separate alternatives less, which is exactly
 why their calibrated priors select larger $\alpha$ to reach the same
 prior-predictive SEU-max rate (§[7.3](#sec-app-model)). (ii) *$\alpha$
-contraction:* the posterior sd of $\log \alpha$ is $0.23$--$0.29$ against a
+contraction:* the posterior sd of $\log \alpha$ is $0.21$--$0.29$ against a
 prior sd of $0.75$ in every one of the 20 conditions --- contraction to roughly
 a third of the prior scale --- so the per-condition $\alpha$ posteriors are
 data-driven rather than prior echoes. (iii) *Feature-matrix rank:* every

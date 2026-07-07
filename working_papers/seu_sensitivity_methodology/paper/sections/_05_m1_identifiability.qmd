@@ -120,8 +120,9 @@ the simplex tangent space, the map $\bm{\upsilon} \mapsto ((\pi_s - \pi_1)^\top
 --- and jointly $\alpha$ --- once the endpoint convention fixes the scale, hence
 $\delta$. $S \geq K$ is only the necessary cardinality condition; the spanning
 condition itself concerns the realized lotteries, so we verify it directly for
-the $K = 3$, $S = 15$ lottery set of Appendix D.0: the $15 \times 3$
-lottery-difference matrix has rank $2 = K - 1$, with nonzero singular values
+the $K = 3$, $S = 15$ lottery set of Appendix D.0: the $14 \times 3$
+lottery-difference matrix (differences of the other 14 lotteries against the
+first) has rank $2 = K - 1$, with nonzero singular values
 $1.08$ and $0.67$ (`spikes/report_design_diagnostics_spike.py`) --- the
 condition holds for the implemented design as a checked fact, not an inference
 from the count. The proof is a linear-algebra inversion.

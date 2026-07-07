@@ -14,6 +14,26 @@ Each archive deposit pins the supporting repository to a specific commit/tag.
 
 ## [Unreleased]
 
+### Fixed
+- **Final pre-arXiv audit corrections (2026-07-07, `final_revisions.md`).** No
+  re-runs; all fixes are string-level and match committed artifacts.
+  - §5.5: lottery-difference matrix shape `15 × 3` → `14 × 3` (differences of
+    the other 14 lotteries against the first); rank/singular values unchanged.
+  - §7.6.2(ii): α-contraction range `0.23–0.29` → `0.21–0.29` (JSON min
+    0.2118); matching `claims_ledger.md` row C18(v) updated.
+  - Appendix D refit-check: dead cross-reference `#sec-e2` → `#sec-e-manifest`.
+  - Appendix D.7 estimator (C): "resample choices per condition" → "resample the
+    per-condition relative residuals" (it resamples posterior-draw residuals, not
+    choices); value at P ≥ 0.975 corrected `≈41` → `≈42` (JSON 42.38). The
+    cross-estimator "≈41–43" range strings are correct and unchanged.
+  - `references_extra.bib` `modrak2023`: corrected to *Bayesian Analysis* 20(2),
+    461–488 (2025), author "Kateřina Faltejsková", added DOI 10.1214/23-BA1404.
+  - `reports/references.bib`: `savage1954`/`luce1959`/`train2009` `@article` →
+    `@book`; `mcfadden1974` `@article` → `@incollection` (Zarembka, ed.,
+    *Frontiers in Econometrics*).
+  - `models/m_0_sim.stan`: corrected stale comment `sd for alpha parameter
+    (default=0.5)` → `sd for log(alpha) (default 1)` (code unchanged).
+
 ### Changed
 - **Author review pass (2026-07-07, `my_comments.md`).** Text-only; no numeric
   changes, `claims_ledger.md` untouched.

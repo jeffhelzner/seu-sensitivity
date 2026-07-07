@@ -1,10 +1,10 @@
 # The Extended Abstract Model with Risky Choices {#sec-m1-identifiability .unnumbered}
 
-## 5.1 Enriching the choice domain --- a two-step structural argument {#sec-m1-twostep .unnumbered}
+## 5.1 Enriching the choice domain --- a two-step justification {#sec-m1-twostep .unnumbered}
 
 The extended model ("`m_1`") augments the uncertain-choice setup with risky
-alternatives whose probabilities are objectively given. The justification has two
-steps; Step 1 alone does *not* identify $\delta$ --- Step 2 closes the argument.
+alternatives whose probabilities are objectively given. Step 1 alone does not
+identify $\delta$; the two steps below together do.
 
 ::: {.callout-note appearance="simple"}
 **Step 1 ($\beta$-free risky expected utility).** A risky alternative $s$ carries
@@ -146,7 +146,27 @@ The pointwise observation that a single scalar $\eta_r$ does not determine the
 $(K-1)$-dimensional simplex $\bm{\psi}_r$ when $K \geq 3$ does *not* settle the
 question for $\beta$, because the belief vectors are linked across alternatives
 by the shared map $\bm{\psi}_r = \mathrm{softmax}(\beta w_r)$; what matters is
-the rank of the composite map, and that is design-specific. The two design
+the rank of the composite map, and that is design-specific.
+
+*Some intuition for the rank condition.* The map
+$\beta \mapsto (\eta\text{-contrasts})$ sends the $(K-1)D$ free coordinates of the
+gauge-fixed weight matrix to the list of expected-utility contrasts the design
+produces. Its *Jacobian* is the matrix of first partial derivatives of those
+output contrasts with respect to the input coordinates --- a local linear picture
+of how the observable contrasts respond to a small change in $\beta$. We call it
+the *contrast-Jacobian* to emphasize that it is assembled from the
+$\eta$-*contrasts* (which are gauge-invariant), not from the raw expected
+utilities $\eta_r$ (which are defined only up to the per-menu additive constant of
+§[2.6](#sec-notation)). By the inverse function theorem, where this Jacobian has
+full column rank $(K-1)D$ the map is locally invertible: two nearby $\beta$ that
+differ modulo the gauge cannot produce identical contrasts, so $\beta$ is
+*locally identified*. Where the rank is deficient, some direction in
+$\beta$-space changes no contrast --- and hence no choice probability --- at all,
+so $\beta$ can move undetected and is not identified. Because the rank can in
+principle vary with $\beta$, we do not read it off at a single point but evaluate
+it numerically at a spread of $\beta$ drawn from the prior.
+
+The two design
 regimes in this paper land on opposite sides of the condition
 (`spikes/report_design_diagnostics_spike.py`). At the foundational design
 ($K = 3$, $D = 5$, $R = 15$) the gauge-fixed $\beta$ has $(K-1)D = 10$ degrees

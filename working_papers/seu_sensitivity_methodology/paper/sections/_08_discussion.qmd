@@ -29,7 +29,8 @@ lapses of performance rather than rejections of the standard. Taking SEU theory
 to specify the agent's normative commitment, $\alpha$ is exactly the agent's
 *tendency to perform in accordance with that commitment*.
 
-Two clarifications keep this borrowing honest. First, Levi was no defender of
+Two points are worth keeping in mind regarding our borrowing of Levi's
+distinction. First, Levi was no defender of
 SEU as the standard of rational choice; on the contrary, he developed an
 influential generalization of it that admits indeterminate (imprecise)
 probabilities and utilities [@levi1986], and his substantive decision theory
@@ -169,15 +170,15 @@ procedural-evaluation instrument and is acknowledged here rather than buried.
 
 **Precise $\delta$ estimation.** The modest finite-sample $\delta$ gain
 (§[6.4.2](#sec-m1-delta-recovery)) is a limitation, not a barrier in principle.
-The available levers --- a $\delta$-information-optimal lottery design (e.g.,
-triangulating contrasts that pit the certain intermediate consequence against a
-$50/50$ mix of the extremes), substantially larger samples, and prior
-regularization on $\delta$ --- are *not independent*: a $\delta$-optimal design
-helps less when $\alpha$ is small (shallow softmax at moderate $\alpha$ is a
-co-dampener), so precise $\delta$ recovery likely requires improvements on
-*multiple* axes at once. Naming the levers separately is a useful taxonomy, not a
-single-lever roadmap. A $\delta$-optimal lottery-design study is named here as
-future work rather than attempted in this paper.
+Three approaches could improve it --- a $\delta$-information-optimal lottery
+design (e.g., triangulating contrasts that pit the certain intermediate
+consequence against a $50/50$ mix of the extremes), substantially larger samples,
+and prior regularization on $\delta$ --- but they are *not independent*: a
+$\delta$-optimal design helps less when $\alpha$ is small (a shallow softmax at
+moderate $\alpha$ dampens the same contrasts), so precise $\delta$ recovery likely
+requires improvements on several of these fronts at once rather than any one of
+them alone. A $\delta$-optimal lottery-design study is named here as future work
+rather than attempted in this paper.
 
 **The single-$\alpha$ assumption.** A single $\alpha$ governing both the
 uncertain and risky blocks (§[5.3](#sec-m1-properties)) is substantive and

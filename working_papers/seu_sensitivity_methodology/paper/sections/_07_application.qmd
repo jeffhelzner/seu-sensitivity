@@ -340,7 +340,7 @@ power curve (@fig-mde-power). This calibration prevents the §[7.6.1](#sec-app-l
 
 ![Claude $\times$ insurance: power to resolve a temperature-on-$\alpha$ slope. $P(\text{posterior slope} < 0)$ as a function of the counterfactual true slope magnitude $|\Delta\alpha/\Delta T|$. The minimum detectable effect at the $P \geq 0.95$ criterion is $\approx 36$ $\alpha$-units per unit temperature (three estimators agree: analytic-Gaussian, empirical-quantile, constant-CV Monte-Carlo), against an observed $|\text{slope}| \approx 2.9$ and a GPT-4o full-grid reference $\approx 25$ --- both far below the floor.](../figures/report16_mde_power_curve.png){#fig-mde-power width=85%}
 
-### 7.5.2a Cross-LLM comparison --- pattern first, number second {#sec-app-cross-llm .unnumbered}
+### 7.5.2a Cross-LLM comparison {#sec-app-cross-llm .unnumbered}
 
 A formal cross-study comparison gives $P(\text{GPT-4o slope} < \text{Claude
 slope}) = 0.817$ on the full grids; restricting GPT-4o to Claude's $T \leq 1.0$

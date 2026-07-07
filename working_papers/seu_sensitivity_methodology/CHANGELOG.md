@@ -14,6 +14,27 @@ Each archive deposit pins the supporting repository to a specific commit/tag.
 
 ## [Unreleased]
 
+### Changed
+- **Author review pass (2026-07-07, `my_comments.md`).** Text-only; no numeric
+  changes, `claims_ledger.md` untouched.
+  - §4.3 `fig-alpha-recovery` caption: reworded the right-panel note explaining
+    the × markers (previously "where a miss appears ambiguous, the × marker
+    belongs to a neighboring replicate") to describe the bar/marker geometry
+    plainly.
+  - §5.1 title "…a two-step structural argument" → "…a two-step justification";
+    simplified the opening sentence to "Step 1 alone does not identify δ".
+  - §5.6: added a plain-language "Some intuition for the rank condition"
+    paragraph defining the Jacobian, the contrast-Jacobian, why full rank
+    (K−1)D gives local identification (inverse function theorem), and what
+    "rank 10 at 20 prior draws" means; Appendix B.4 gained a short
+    "Remark (how the rank is computed)" describing the numerical procedure.
+  - §7.5.2a title "Cross-LLM comparison — pattern first, number second" →
+    "Cross-LLM comparison".
+  - §8.1 "Two clarifications keep this borrowing honest." → "Two points are
+    worth keeping in mind regarding our borrowing of Levi's distinction."
+  - §8.5 "Precise δ estimation": rewrote to remove the "levers"/"single-lever
+    roadmap" metaphor in favor of plain phrasing.
+
 ### Added
 - **Review-response revision round (2026-07-05, feedback-…-2026-07-05.md; 37
   comments + 4 overall themes).**

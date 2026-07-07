@@ -160,3 +160,15 @@ contrast count $R - 1 = 29$, so $\beta$ is genuinely not identified there. The
 narrow claim we rely on throughout is that each uncertain choice supplies only
 the *scalar* $\eta_r$, so all information about $\beta$ flows through the
 $\eta$-contrasts.
+
+*Remark (how the rank is computed).* The gauge-fixed contrast-Jacobian of
+\S[5.6](#sec-m1-beta) is formed as follows. Fixing the row-shift gauge by working
+with mean-centered utilities, collect the design's independent $\eta$-contrasts
+into a single vector-valued function of the $(K-1)D$ free entries of $\beta$, and
+evaluate the matrix of partial derivatives
+$\partial(\eta\text{-contrast})_j / \partial\beta_{k,d}$ at a given $\beta$ by
+automatic differentiation. Its numerical rank --- the number of singular values
+above a small tolerance --- is the quantity reported in \S[5.6](#sec-m1-beta);
+evaluating it at several draws of $\beta$ from the prior, rather than at a single
+point, guards against mistaking a non-generic coincidence for identification
+(`spikes/report_design_diagnostics_spike.py`).

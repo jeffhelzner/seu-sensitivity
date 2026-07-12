@@ -1,5 +1,5 @@
 """
-Data preparation for the alignment study.
+Data preparation for the SEU sensitivity study.
 
 Handles the key new requirement: building stacked Stan data across
 multiple cells with different NA patterns, using a cell membership
@@ -14,7 +14,7 @@ import numpy as np
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from .config import AlignmentStudyConfig, CellSpec
+from .config import SEUSensitivityStudyConfig, CellSpec
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +27,7 @@ class HierarchicalStanDataBuilder:
     produces a single data dictionary matching h_m01.stan's data block.
     """
 
-    def __init__(self, config: AlignmentStudyConfig):
+    def __init__(self, config: SEUSensitivityStudyConfig):
         self.K = config.K
         self.config = config
 

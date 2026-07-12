@@ -1,5 +1,5 @@
 """
-Alignment Study Module
+SEU Sensitivity Study Module
 
 Investigates how LLM model identity and prompt framing affect
 estimated sensitivity (α) to subjective expected utility maximization,
@@ -10,10 +10,10 @@ import logging
 
 logging.getLogger(__name__).addHandler(logging.NullHandler())
 
-from .config import AlignmentStudyConfig, CellSpec, build_cells, MODELS, PROMPT_CONDITIONS
+from .config import SEUSensitivityStudyConfig, CellSpec, build_cells, MODELS, PROMPT_CONDITIONS
 
 __all__ = [
-    "AlignmentStudyConfig",
+    "SEUSensitivityStudyConfig",
     "CellSpec",
     "build_cells",
     "MODELS",

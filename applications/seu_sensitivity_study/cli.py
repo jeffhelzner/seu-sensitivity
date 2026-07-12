@@ -1,9 +1,9 @@
 """
-Command-line interface for the Alignment Study.
+Command-line interface for the SEU Sensitivity Study.
 
 Usage:
-    python -m applications.alignment_study run [options]
-    python -m applications.alignment_study validate [options]
+    python -m applications.seu_sensitivity_study run [options]
+    python -m applications.seu_sensitivity_study validate [options]
 """
 from __future__ import annotations
 
@@ -38,12 +38,12 @@ def _setup_logging(verbose: bool = False) -> None:
 
 def cmd_validate(args: argparse.Namespace) -> None:
     """Validate configuration without making API calls."""
-    from .config import AlignmentStudyConfig
+    from .config import SEUSensitivityStudyConfig
 
     if args.config:
-        config = AlignmentStudyConfig.from_yaml(args.config)
+        config = SEUSensitivityStudyConfig.from_yaml(args.config)
     else:
-        config = AlignmentStudyConfig()
+        config = SEUSensitivityStudyConfig()
 
     print(f"Config valid: {len(config.cells)} cells, "
           f"{config.num_problems} problems, K={config.K}")
@@ -59,18 +59,18 @@ def cmd_validate(args: argparse.Namespace) -> None:
 
 def cmd_run(args: argparse.Namespace) -> None:
     """Execute the study pipeline."""
-    from .config import AlignmentStudyConfig
-    from .study_runner import AlignmentStudyRunner
+    from .config import SEUSensitivityStudyConfig
+    from .study_runner import SEUSensitivityStudyRunner
 
     if args.config:
-        config = AlignmentStudyConfig.from_yaml(args.config)
+        config = SEUSensitivityStudyConfig.from_yaml(args.config)
     else:
-        config = AlignmentStudyConfig()
+        config = SEUSensitivityStudyConfig()
 
     if args.output_dir:
         config.results_dir = args.output_dir
 
-    runner = AlignmentStudyRunner(config)
+    runner = SEUSensitivityStudyRunner(config)
     output = runner.run(
         skip_collection=args.skip_collection,
         cells_to_run=args.cells.split(",") if args.cells else None,
@@ -81,8 +81,8 @@ def cmd_run(args: argparse.Namespace) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        prog="alignment_study",
-        description="6-model × 3-prompt alignment study",
+        prog="seu_sensitivity_study",
+        description="6-model × 3-prompt SEU sensitivity study",
     )
     parser.add_argument("-v", "--verbose", action="store_true")
 

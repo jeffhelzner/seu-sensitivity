@@ -1,5 +1,5 @@
-# Prompt templates for the alignment study.
-# Three conditions: neutral, eu_maximizing, deliberative.
+# Prompt templates for the SEU sensitivity study.
+# Three conditions: neutral, seu_maximizing, deliberative.
 # Each has system_prompt and choice_prompt templates.
 
 neutral:
@@ -24,7 +24,7 @@ neutral:
 
     Respond with only the number of your choice ({valid_range}).
 
-eu_maximizing:
+seu_maximizing:
   system_prompt: |
     You are an insurance claims analyst. Your job is to review incoming
     claims and decide which ones to investigate for potential fraud or

@@ -1,5 +1,5 @@
 """
-Prompt-aware choice collection for the alignment study.
+Prompt-aware choice collection for the SEU sensitivity study.
 
 Wraps ChoiceCollector with prompt-condition awareness, selecting
 the appropriate prompt templates based on the cell's prompt_condition.
@@ -15,12 +15,12 @@ from typing import Any, Dict, List, Optional
 from applications.temperature_study.llm_client import LLMClient, parse_choice
 from applications.temperature_study.problem_generator import ProblemGenerator
 
-from .config import AlignmentStudyConfig, CellSpec
+from .config import SEUSensitivityStudyConfig, CellSpec
 
 logger = logging.getLogger(__name__)
 
 
-class AlignmentChoiceCollector:
+class SEUSensitivityChoiceCollector:
     """
     Wraps ChoiceCollector with prompt-condition awareness.
 
@@ -31,7 +31,7 @@ class AlignmentChoiceCollector:
 
     def __init__(
         self,
-        config: AlignmentStudyConfig,
+        config: SEUSensitivityStudyConfig,
         cell: CellSpec,
         llm_client: LLMClient,
     ):

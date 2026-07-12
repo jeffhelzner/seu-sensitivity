@@ -14,7 +14,7 @@ import time
 from typing import Any, Dict, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from applications.alignment_study.config import CellSpec
+    from applications.seu_sensitivity_study.config import CellSpec
 
 from applications.temperature_study.llm_client import (
     OpenAIClient,
@@ -188,7 +188,7 @@ class AnthropicThinkingClient(AnthropicClient):
 REASONING_MODELS = {"o3-mini", "o1", "o1-mini", "o1-preview", "o3"}
 
 
-def create_alignment_llm_client(
+def create_seu_sensitivity_llm_client(
     cell_spec: "CellSpec",
     **kwargs: Any,
 ) -> LLMClient:

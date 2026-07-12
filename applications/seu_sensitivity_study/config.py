@@ -1,5 +1,5 @@
 """
-Configuration for the 6-model × 3-prompt alignment study.
+Configuration for the 6-model × 3-prompt SEU sensitivity study.
 
 All cells use temperature=0.0, insurance claims triage task (K=3),
 and the same alternative pool (30 claims from temperature_study).
@@ -24,7 +24,7 @@ class CellSpec:
     cell_id: str                # e.g. "gpt4o_neutral"
     model_name: str             # e.g. "gpt-4o"
     provider: str               # "openai" or "anthropic"
-    prompt_condition: str       # "neutral", "eu_maximizing", "deliberative"
+    prompt_condition: str       # "neutral", "seu_maximizing", "deliberative"
     temperature: float = 0.0
     # Provider-specific kwargs (e.g. reasoning budget for o3)
     provider_kwargs: Dict[str, Any] = field(default_factory=dict)
@@ -43,7 +43,7 @@ MODELS = [
      "provider_kwargs": {"extended_thinking": True, "budget_tokens": 4096}},
 ]
 
-PROMPT_CONDITIONS = ["neutral", "eu_maximizing", "deliberative"]
+PROMPT_CONDITIONS = ["neutral", "seu_maximizing", "deliberative"]
 
 
 def build_cells() -> List[CellSpec]:
@@ -65,8 +65,8 @@ def build_cells() -> List[CellSpec]:
 # --- Study-level config ---
 
 @dataclass
-class AlignmentStudyConfig:
-    """Top-level config for the alignment study."""
+class SEUSensitivityStudyConfig:
+    """Top-level config for the SEU sensitivity study."""
     cells: List[CellSpec] = field(default_factory=build_cells)
 
     # Problem parameters (shared across cells)
@@ -111,7 +111,7 @@ class AlignmentStudyConfig:
             self.results_dir = str(Path(__file__).parent / "results")
 
     @classmethod
-    def from_yaml(cls, path: str) -> AlignmentStudyConfig:
+    def from_yaml(cls, path: str) -> SEUSensitivityStudyConfig:
         """Load config from YAML file."""
         import yaml
 

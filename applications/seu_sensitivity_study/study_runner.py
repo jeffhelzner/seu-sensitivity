@@ -1,5 +1,5 @@
 """
-Study runner for the alignment study.
+Study runner for the SEU sensitivity study.
 
 Orchestrates the 4-phase pipeline across all 18 cells:
   Phase 1: Generate problems (shared across cells)
@@ -27,18 +27,18 @@ from applications.temperature_study.data_preparation import (
     save_stan_data,
 )
 
-from .config import AlignmentStudyConfig, CellSpec
+from .config import SEUSensitivityStudyConfig, CellSpec
 from .data_preparation import HierarchicalStanDataBuilder
-from .llm_extensions import create_alignment_llm_client
-from .choice_collection import AlignmentChoiceCollector
+from .llm_extensions import create_seu_sensitivity_llm_client
+from .choice_collection import SEUSensitivityChoiceCollector
 
 logger = logging.getLogger(__name__)
 
 
-class AlignmentStudyRunner:
-    """Orchestrates the full alignment study pipeline."""
+class SEUSensitivityStudyRunner:
+    """Orchestrates the full SEU sensitivity study pipeline."""
 
-    def __init__(self, config: AlignmentStudyConfig):
+    def __init__(self, config: SEUSensitivityStudyConfig):
         self.config = config
         self.results_dir = Path(config.results_dir)
         self.results_dir.mkdir(parents=True, exist_ok=True)
@@ -165,13 +165,13 @@ class AlignmentStudyRunner:
 
         Returns (assessments_dict, raw_embeddings).
         """
-        llm_client = create_alignment_llm_client(
+        llm_client = create_seu_sensitivity_llm_client(
             cell,
             max_retries=self.config.max_retries,
             retry_delay=self.config.retry_delay,
         )
 
-        collector = AlignmentChoiceCollector(
+        collector = SEUSensitivityChoiceCollector(
             config=self.config,
             cell=cell,
             llm_client=llm_client,
@@ -198,13 +198,13 @@ class AlignmentStudyRunner:
         assessments: Dict[str, str],
     ) -> Dict[str, Any]:
         """Collect choices for a single cell."""
-        llm_client = create_alignment_llm_client(
+        llm_client = create_seu_sensitivity_llm_client(
             cell,
             max_retries=self.config.max_retries,
             retry_delay=self.config.retry_delay,
         )
 
-        collector = AlignmentChoiceCollector(
+        collector = SEUSensitivityChoiceCollector(
             config=self.config,
             cell=cell,
             llm_client=llm_client,

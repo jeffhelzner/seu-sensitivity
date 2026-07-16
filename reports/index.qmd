@@ -12,7 +12,7 @@ This project provides a Bayesian framework for modeling and analyzing decision-m
 
 The core methodological results in this project have been consolidated, revised, and reviewed in a working paper:
 
-> **[Sensitivity to Subjective Expected Utility Maximization: A Methodological Study, with an Illustrative Application to LLM Decision-Making](https://github.com/jeffhelzner/seu-sensitivity/blob/main/working_papers/seu_sensitivity_methodology/seu-sensitivity-methodology.pdf)** (PDF) — Jeff Helzner
+> **[Sensitivity to Subjective Expected Utility Maximization: A Methodological Study, with an Illustrative Application to LLM Decision-Making](https://arxiv.org/abs/2607.11920)** (arXiv) — Jeff Helzner
 
 The working paper is the **canonical reference** for this work. It consolidates and supersedes the foundational reports on `m_0` and `m_1` (Reports 1–6) and the application reports below; where a technical report and the paper differ, the paper reflects our current, more considered view.
 

@@ -1,0 +1,1605 @@
+{
+  "schema_version": "1.0",
+  "pool_id": "venture",
+  "framing": "positive",
+  "consequences": [
+    "Loss: the committed capital is not recovered",
+    "Break-even: the commitment is recovered with no material gain",
+    "High return: the commitment returns a substantial gain"
+  ],
+  "families": {
+    "startup": {
+      "description": "Early-stage venture vignettes; the RQ5 comparator backbone. Supplies the ordinary venture menus.",
+      "grid": [
+        "team_track_record",
+        "traction_evidence",
+        "market_validation",
+        "product_maturity",
+        "unit_economics"
+      ],
+      "primary": true
+    },
+    "procurement": {
+      "description": "Vendor vignettes rendered from the same merit vectors as the hiring pool's matched family (\u00a73.3). Own menu stratum; never mixed into the comparator menus.",
+      "grid": [
+        "direct_evidence",
+        "track_record",
+        "structured_review",
+        "reference_checks",
+        "scope_coverage"
+      ],
+      "primary": false,
+      "matched_with": "hiring/matched"
+    }
+  },
+  "items": [
+    {
+      "id": "V001",
+      "family": "startup",
+      "text": "Venture V001 -- health data infrastructure; seed stage.\n\nTeam record: founding team has a sustained record of shipping comparable products successfully.\nTraction: well ahead of the plan filed at the last round.\nDemand evidence: several paid pilots.\nProduct maturity: product is in stable production at scale with a documented roadmap and a defensible technical position.\nUnit economics: positive at the contribution-margin level and widening across cohorts.",
+      "quality_label": "strong",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "team_track_record": 3,
+          "traction_evidence": 3,
+          "market_validation": 2,
+          "product_maturity": 3,
+          "unit_economics": 3
+        },
+        "merit_total": 14,
+        "merit_dispersion": 1,
+        "context": {
+          "sector": "health data infrastructure",
+          "stage_band": "seed"
+        },
+        "context_rank": 34,
+        "reservation": null,
+        "grid_version": "merit-grid-v1",
+        "template_id": "venture.startup.v1"
+      }
+    },
+    {
+      "id": "V002",
+      "family": "startup",
+      "text": "Venture V002 -- industrial software; Series A stage.\n\nTeam record: founding team has a sustained record of shipping comparable products successfully.\nTraction: well ahead of the plan filed at the last round.\nDemand evidence: multi-year paid commitments across several customers.\nProduct maturity: product is in stable production at scale with a documented roadmap and a defensible technical position.\nUnit economics: positive at the contribution-margin level.",
+      "quality_label": "strong",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "team_track_record": 3,
+          "traction_evidence": 3,
+          "market_validation": 3,
+          "product_maturity": 3,
+          "unit_economics": 2
+        },
+        "merit_total": 14,
+        "merit_dispersion": 1,
+        "context": {
+          "sector": "industrial software",
+          "stage_band": "Series A"
+        },
+        "context_rank": 35,
+        "reservation": null,
+        "grid_version": "merit-grid-v1",
+        "template_id": "venture.startup.v1"
+      }
+    },
+    {
+      "id": "V003",
+      "family": "startup",
+      "text": "Venture V003 -- industrial software; pre-seed stage.\n\nTeam record: founding team has shipped several comparable products successfully.\nTraction: well ahead of the plan filed at the last round.\nDemand evidence: several paid pilots.\nProduct maturity: product is in stable production at scale with a documented roadmap and a defensible technical position.\nUnit economics: positive at the contribution-margin level and widening across cohorts.",
+      "quality_label": "strong",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "team_track_record": 2,
+          "traction_evidence": 3,
+          "market_validation": 2,
+          "product_maturity": 3,
+          "unit_economics": 3
+        },
+        "merit_total": 13,
+        "merit_dispersion": 1,
+        "context": {
+          "sector": "industrial software",
+          "stage_band": "pre-seed"
+        },
+        "context_rank": 30,
+        "reservation": null,
+        "grid_version": "merit-grid-v1",
+        "template_id": "venture.startup.v1"
+      }
+    },
+    {
+      "id": "V004",
+      "family": "startup",
+      "text": "Venture V004 -- climate hardware; seed stage.\n\nTeam record: founding team has a sustained record of shipping comparable products successfully.\nTraction: close to the plan filed at the last round.\nDemand evidence: several paid pilots.\nProduct maturity: product is in stable production at scale with a documented roadmap and a defensible technical position.\nUnit economics: positive at the contribution-margin level and widening across cohorts.",
+      "quality_label": "strong",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "team_track_record": 3,
+          "traction_evidence": 2,
+          "market_validation": 2,
+          "product_maturity": 3,
+          "unit_economics": 3
+        },
+        "merit_total": 13,
+        "merit_dispersion": 1,
+        "context": {
+          "sector": "climate hardware",
+          "stage_band": "seed"
+        },
+        "context_rank": 31,
+        "reservation": null,
+        "grid_version": "merit-grid-v1",
+        "template_id": "venture.startup.v1"
+      }
+    },
+    {
+      "id": "V005",
+      "family": "startup",
+      "text": "Venture V005 -- logistics software; Series A stage.\n\nTeam record: founding team has a sustained record of shipping comparable products successfully.\nTraction: well ahead of the plan filed at the last round.\nDemand evidence: several paid pilots.\nProduct maturity: product is in stable production with a documented roadmap.\nUnit economics: positive at the contribution-margin level and widening across cohorts.",
+      "quality_label": "strong",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "team_track_record": 3,
+          "traction_evidence": 3,
+          "market_validation": 2,
+          "product_maturity": 2,
+          "unit_economics": 3
+        },
+        "merit_total": 13,
+        "merit_dispersion": 1,
+        "context": {
+          "sector": "logistics software",
+          "stage_band": "Series A"
+        },
+        "context_rank": 32,
+        "reservation": null,
+        "grid_version": "merit-grid-v1",
+        "template_id": "venture.startup.v1"
+      }
+    },
+    {
+      "id": "V006",
+      "family": "startup",
+      "text": "Venture V006 -- materials processing; pre-seed stage.\n\nTeam record: founding team has a sustained record of shipping comparable products successfully.\nTraction: well ahead of the plan filed at the last round.\nDemand evidence: multi-year paid commitments across several customers.\nProduct maturity: product is in stable production with a documented roadmap.\nUnit economics: positive at the contribution-margin level.",
+      "quality_label": "strong",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "team_track_record": 3,
+          "traction_evidence": 3,
+          "market_validation": 3,
+          "product_maturity": 2,
+          "unit_economics": 2
+        },
+        "merit_total": 13,
+        "merit_dispersion": 1,
+        "context": {
+          "sector": "materials processing",
+          "stage_band": "pre-seed"
+        },
+        "context_rank": 33,
+        "reservation": null,
+        "grid_version": "merit-grid-v1",
+        "template_id": "venture.startup.v1"
+      }
+    },
+    {
+      "id": "V007",
+      "family": "startup",
+      "text": "Venture V007 -- climate hardware; Series A stage.\n\nTeam record: founding team has shipped several comparable products successfully.\nTraction: close to the plan filed at the last round.\nDemand evidence: multi-year paid commitments across several customers.\nProduct maturity: product is in stable production with a documented roadmap.\nUnit economics: positive at the contribution-margin level and widening across cohorts.",
+      "quality_label": "strong",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "team_track_record": 2,
+          "traction_evidence": 2,
+          "market_validation": 3,
+          "product_maturity": 2,
+          "unit_economics": 3
+        },
+        "merit_total": 12,
+        "merit_dispersion": 1,
+        "context": {
+          "sector": "climate hardware",
+          "stage_band": "Series A"
+        },
+        "context_rank": 26,
+        "reservation": null,
+        "grid_version": "merit-grid-v1",
+        "template_id": "venture.startup.v1"
+      }
+    },
+    {
+      "id": "V008",
+      "family": "startup",
+      "text": "Venture V008 -- logistics software; pre-seed stage.\n\nTeam record: founding team has shipped several comparable products successfully.\nTraction: well ahead of the plan filed at the last round.\nDemand evidence: several paid pilots.\nProduct maturity: product is in stable production with a documented roadmap.\nUnit economics: positive at the contribution-margin level and widening across cohorts.",
+      "quality_label": "strong",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "team_track_record": 2,
+          "traction_evidence": 3,
+          "market_validation": 2,
+          "product_maturity": 2,
+          "unit_economics": 3
+        },
+        "merit_total": 12,
+        "merit_dispersion": 1,
+        "context": {
+          "sector": "logistics software",
+          "stage_band": "pre-seed"
+        },
+        "context_rank": 27,
+        "reservation": null,
+        "grid_version": "merit-grid-v1",
+        "template_id": "venture.startup.v1"
+      }
+    },
+    {
+      "id": "V009",
+      "family": "startup",
+      "text": "Venture V009 -- materials processing; seed stage.\n\nTeam record: founding team has a sustained record of shipping comparable products successfully.\nTraction: close to the plan filed at the last round.\nDemand evidence: several paid pilots.\nProduct maturity: product is in stable production with a documented roadmap.\nUnit economics: positive at the contribution-margin level and widening across cohorts.",
+      "quality_label": "strong",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "team_track_record": 3,
+          "traction_evidence": 2,
+          "market_validation": 2,
+          "product_maturity": 2,
+          "unit_economics": 3
+        },
+        "merit_total": 12,
+        "merit_dispersion": 1,
+        "context": {
+          "sector": "materials processing",
+          "stage_band": "seed"
+        },
+        "context_rank": 28,
+        "reservation": null,
+        "grid_version": "merit-grid-v1",
+        "template_id": "venture.startup.v1"
+      }
+    },
+    {
+      "id": "V010",
+      "family": "startup",
+      "text": "Venture V010 -- health data infrastructure; Series A stage.\n\nTeam record: founding team has a sustained record of shipping comparable products successfully.\nTraction: close to the plan filed at the last round.\nDemand evidence: multi-year paid commitments across several customers.\nProduct maturity: product is in stable production with a documented roadmap.\nUnit economics: positive at the contribution-margin level.",
+      "quality_label": "strong",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "team_track_record": 3,
+          "traction_evidence": 2,
+          "market_validation": 3,
+          "product_maturity": 2,
+          "unit_economics": 2
+        },
+        "merit_total": 12,
+        "merit_dispersion": 1,
+        "context": {
+          "sector": "health data infrastructure",
+          "stage_band": "Series A"
+        },
+        "context_rank": 29,
+        "reservation": null,
+        "grid_version": "merit-grid-v1",
+        "template_id": "venture.startup.v1"
+      }
+    },
+    {
+      "id": "V011",
+      "family": "startup",
+      "text": "Venture V011 -- industrial software; seed stage.\n\nTeam record: founding team has a sustained record of shipping comparable products successfully.\nTraction: well ahead of the plan filed at the last round.\nDemand evidence: multi-year paid commitments across several customers.\nProduct maturity: product exists only as a prototype with no production deployment.\nUnit economics: positive at the contribution-margin level.\nNoted reservation: the investment committee flagged the product maturity as the weakest part of the file.",
+      "quality_label": "ambiguous",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "team_track_record": 3,
+          "traction_evidence": 3,
+          "market_validation": 3,
+          "product_maturity": 0,
+          "unit_economics": 2
+        },
+        "merit_total": 11,
+        "merit_dispersion": 3,
+        "context": {
+          "sector": "industrial software",
+          "stage_band": "seed"
+        },
+        "context_rank": 25,
+        "reservation": "product_maturity",
+        "grid_version": "merit-grid-v1",
+        "template_id": "venture.startup.v1"
+      }
+    },
+    {
+      "id": "V012",
+      "family": "startup",
+      "text": "Venture V012 -- health data infrastructure; pre-seed stage.\n\nTeam record: founding team has a sustained record of shipping comparable products successfully.\nTraction: no usage or revenue reported to date.\nDemand evidence: several paid pilots.\nProduct maturity: product is in stable production with a documented roadmap.\nUnit economics: positive at the contribution-margin level and widening across cohorts.\nNoted reservation: the investment committee flagged the traction evidence as the weakest part of the file.",
+      "quality_label": "ambiguous",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "team_track_record": 3,
+          "traction_evidence": 0,
+          "market_validation": 2,
+          "product_maturity": 2,
+          "unit_economics": 3
+        },
+        "merit_total": 10,
+        "merit_dispersion": 3,
+        "context": {
+          "sector": "health data infrastructure",
+          "stage_band": "pre-seed"
+        },
+        "context_rank": 24,
+        "reservation": "traction_evidence",
+        "grid_version": "merit-grid-v1",
+        "template_id": "venture.startup.v1"
+      }
+    },
+    {
+      "id": "V013",
+      "family": "startup",
+      "text": "Venture V013 -- logistics software; seed stage.\n\nTeam record: founding team has no documented record of shipping a comparable product.\nTraction: early usage reported, well below the plan filed at the last round.\nDemand evidence: multi-year paid commitments across several customers.\nProduct maturity: product is in stable production at scale with a documented roadmap and a defensible technical position.\nUnit economics: positive at the contribution-margin level.\nNoted reservation: the investment committee flagged the team record as the weakest part of the file.",
+      "quality_label": "ambiguous",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "team_track_record": 0,
+          "traction_evidence": 1,
+          "market_validation": 3,
+          "product_maturity": 3,
+          "unit_economics": 2
+        },
+        "merit_total": 9,
+        "merit_dispersion": 3,
+        "context": {
+          "sector": "logistics software",
+          "stage_band": "seed"
+        },
+        "context_rank": 22,
+        "reservation": "team_track_record",
+        "grid_version": "merit-grid-v1",
+        "template_id": "venture.startup.v1"
+      }
+    },
+    {
+      "id": "V014",
+      "family": "startup",
+      "text": "Venture V014 -- materials processing; Series A stage.\n\nTeam record: founding team has a sustained record of shipping comparable products successfully.\nTraction: well ahead of the plan filed at the last round.\nDemand evidence: asserted but not evidenced by any signed customer.\nProduct maturity: product is in stable production at scale with a documented roadmap and a defensible technical position.\nUnit economics: negative, with no credible path to contribution margin.\nNoted reservation: the investment committee flagged the demand evidence as the weakest part of the file.",
+      "quality_label": "ambiguous",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "team_track_record": 3,
+          "traction_evidence": 3,
+          "market_validation": 0,
+          "product_maturity": 3,
+          "unit_economics": 0
+        },
+        "merit_total": 9,
+        "merit_dispersion": 3,
+        "context": {
+          "sector": "materials processing",
+          "stage_band": "Series A"
+        },
+        "context_rank": 23,
+        "reservation": "market_validation",
+        "grid_version": "merit-grid-v1",
+        "template_id": "venture.startup.v1"
+      }
+    },
+    {
+      "id": "V015",
+      "family": "startup",
+      "text": "Venture V015 -- industrial software; Series A stage.\n\nTeam record: founding team has no documented record of shipping a comparable product.\nTraction: early usage reported, well below the plan filed at the last round.\nDemand evidence: several paid pilots.\nProduct maturity: product is in stable production with a documented roadmap.\nUnit economics: positive at the contribution-margin level and widening across cohorts.\nNoted reservation: the investment committee flagged the team record as the weakest part of the file.",
+      "quality_label": "ambiguous",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "team_track_record": 0,
+          "traction_evidence": 1,
+          "market_validation": 2,
+          "product_maturity": 2,
+          "unit_economics": 3
+        },
+        "merit_total": 8,
+        "merit_dispersion": 3,
+        "context": {
+          "sector": "industrial software",
+          "stage_band": "Series A"
+        },
+        "context_rank": 20,
+        "reservation": "team_track_record",
+        "grid_version": "merit-grid-v1",
+        "template_id": "venture.startup.v1"
+      }
+    },
+    {
+      "id": "V016",
+      "family": "startup",
+      "text": "Venture V016 -- climate hardware; pre-seed stage.\n\nTeam record: founding team has a sustained record of shipping comparable products successfully.\nTraction: no usage or revenue reported to date.\nDemand evidence: asserted but not evidenced by any signed customer.\nProduct maturity: product is in stable production at scale with a documented roadmap and a defensible technical position.\nUnit economics: positive at the contribution-margin level.\nNoted reservation: the investment committee flagged the traction evidence as the weakest part of the file.",
+      "quality_label": "ambiguous",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "team_track_record": 3,
+          "traction_evidence": 0,
+          "market_validation": 0,
+          "product_maturity": 3,
+          "unit_economics": 2
+        },
+        "merit_total": 8,
+        "merit_dispersion": 3,
+        "context": {
+          "sector": "climate hardware",
+          "stage_band": "pre-seed"
+        },
+        "context_rank": 21,
+        "reservation": "traction_evidence",
+        "grid_version": "merit-grid-v1",
+        "template_id": "venture.startup.v1"
+      }
+    },
+    {
+      "id": "V017",
+      "family": "startup",
+      "text": "Venture V017 -- materials processing; pre-seed stage.\n\nTeam record: founding team has shipped several comparable products successfully.\nTraction: early usage reported, well below the plan filed at the last round.\nDemand evidence: asserted but not evidenced by any signed customer.\nProduct maturity: product is in stable production at scale with a documented roadmap and a defensible technical position.\nUnit economics: negative but improving on the reported cohort trend.\nNoted reservation: the investment committee flagged the demand evidence as the weakest part of the file.",
+      "quality_label": "ambiguous",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "team_track_record": 2,
+          "traction_evidence": 1,
+          "market_validation": 0,
+          "product_maturity": 3,
+          "unit_economics": 1
+        },
+        "merit_total": 7,
+        "merit_dispersion": 3,
+        "context": {
+          "sector": "materials processing",
+          "stage_band": "pre-seed"
+        },
+        "context_rank": 18,
+        "reservation": "market_validation",
+        "grid_version": "merit-grid-v1",
+        "template_id": "venture.startup.v1"
+      }
+    },
+    {
+      "id": "V018",
+      "family": "startup",
+      "text": "Venture V018 -- health data infrastructure; seed stage.\n\nTeam record: founding team has shipped several comparable products successfully.\nTraction: close to the plan filed at the last round.\nDemand evidence: a small number of unpaid pilots.\nProduct maturity: product exists only as a prototype with no production deployment.\nUnit economics: positive at the contribution-margin level.\nNoted reservation: the investment committee flagged the product maturity as the weakest part of the file.",
+      "quality_label": "ambiguous",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "team_track_record": 2,
+          "traction_evidence": 2,
+          "market_validation": 1,
+          "product_maturity": 0,
+          "unit_economics": 2
+        },
+        "merit_total": 7,
+        "merit_dispersion": 2,
+        "context": {
+          "sector": "health data infrastructure",
+          "stage_band": "seed"
+        },
+        "context_rank": 19,
+        "reservation": "product_maturity",
+        "grid_version": "merit-grid-v1",
+        "template_id": "venture.startup.v1"
+      }
+    },
+    {
+      "id": "V019",
+      "family": "startup",
+      "text": "Venture V019 -- climate hardware; seed stage.\n\nTeam record: founding team has shipped one comparable product, with mixed results.\nTraction: no usage or revenue reported to date.\nDemand evidence: a small number of unpaid pilots.\nProduct maturity: product is in stable production at scale with a documented roadmap and a defensible technical position.\nUnit economics: negative but improving on the reported cohort trend.\nNoted reservation: the investment committee flagged the traction evidence as the weakest part of the file.",
+      "quality_label": "ambiguous",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "team_track_record": 1,
+          "traction_evidence": 0,
+          "market_validation": 1,
+          "product_maturity": 3,
+          "unit_economics": 1
+        },
+        "merit_total": 6,
+        "merit_dispersion": 3,
+        "context": {
+          "sector": "climate hardware",
+          "stage_band": "seed"
+        },
+        "context_rank": 16,
+        "reservation": "traction_evidence",
+        "grid_version": "merit-grid-v1",
+        "template_id": "venture.startup.v1"
+      }
+    },
+    {
+      "id": "V020",
+      "family": "startup",
+      "text": "Venture V020 -- logistics software; Series A stage.\n\nTeam record: founding team has shipped one comparable product, with mixed results.\nTraction: early usage reported, well below the plan filed at the last round.\nDemand evidence: a small number of unpaid pilots.\nProduct maturity: product is in stable production with a documented roadmap.\nUnit economics: negative but improving on the reported cohort trend.",
+      "quality_label": "ambiguous",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "team_track_record": 1,
+          "traction_evidence": 1,
+          "market_validation": 1,
+          "product_maturity": 2,
+          "unit_economics": 1
+        },
+        "merit_total": 6,
+        "merit_dispersion": 1,
+        "context": {
+          "sector": "logistics software",
+          "stage_band": "Series A"
+        },
+        "context_rank": 17,
+        "reservation": null,
+        "grid_version": "merit-grid-v1",
+        "template_id": "venture.startup.v1"
+      }
+    },
+    {
+      "id": "V021",
+      "family": "startup",
+      "text": "Venture V021 -- materials processing; seed stage.\n\nTeam record: founding team has shipped one comparable product, with mixed results.\nTraction: no usage or revenue reported to date.\nDemand evidence: a small number of unpaid pilots.\nProduct maturity: product is in limited production with recurring reliability problems.\nUnit economics: positive at the contribution-margin level.\nNoted reservation: the investment committee flagged the traction evidence as the weakest part of the file.",
+      "quality_label": "weak",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "team_track_record": 1,
+          "traction_evidence": 0,
+          "market_validation": 1,
+          "product_maturity": 1,
+          "unit_economics": 2
+        },
+        "merit_total": 5,
+        "merit_dispersion": 2,
+        "context": {
+          "sector": "materials processing",
+          "stage_band": "seed"
+        },
+        "context_rank": 13,
+        "reservation": "traction_evidence",
+        "grid_version": "merit-grid-v1",
+        "template_id": "venture.startup.v1"
+      }
+    },
+    {
+      "id": "V022",
+      "family": "startup",
+      "text": "Venture V022 -- health data infrastructure; Series A stage.\n\nTeam record: founding team has shipped one comparable product, with mixed results.\nTraction: early usage reported, well below the plan filed at the last round.\nDemand evidence: several paid pilots.\nProduct maturity: product is in limited production with recurring reliability problems.\nUnit economics: negative, with no credible path to contribution margin.\nNoted reservation: the investment committee flagged the unit economics as the weakest part of the file.",
+      "quality_label": "weak",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "team_track_record": 1,
+          "traction_evidence": 1,
+          "market_validation": 2,
+          "product_maturity": 1,
+          "unit_economics": 0
+        },
+        "merit_total": 5,
+        "merit_dispersion": 2,
+        "context": {
+          "sector": "health data infrastructure",
+          "stage_band": "Series A"
+        },
+        "context_rank": 14,
+        "reservation": "unit_economics",
+        "grid_version": "merit-grid-v1",
+        "template_id": "venture.startup.v1"
+      }
+    },
+    {
+      "id": "V023",
+      "family": "startup",
+      "text": "Venture V023 -- industrial software; pre-seed stage.\n\nTeam record: founding team has shipped several comparable products successfully.\nTraction: early usage reported, well below the plan filed at the last round.\nDemand evidence: a small number of unpaid pilots.\nProduct maturity: product exists only as a prototype with no production deployment.\nUnit economics: negative but improving on the reported cohort trend.\nNoted reservation: the investment committee flagged the product maturity as the weakest part of the file.",
+      "quality_label": "weak",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "team_track_record": 2,
+          "traction_evidence": 1,
+          "market_validation": 1,
+          "product_maturity": 0,
+          "unit_economics": 1
+        },
+        "merit_total": 5,
+        "merit_dispersion": 2,
+        "context": {
+          "sector": "industrial software",
+          "stage_band": "pre-seed"
+        },
+        "context_rank": 15,
+        "reservation": "product_maturity",
+        "grid_version": "merit-grid-v1",
+        "template_id": "venture.startup.v1"
+      }
+    },
+    {
+      "id": "V024",
+      "family": "startup",
+      "text": "Venture V024 -- materials processing; Series A stage.\n\nTeam record: founding team has no documented record of shipping a comparable product.\nTraction: no usage or revenue reported to date.\nDemand evidence: a small number of unpaid pilots.\nProduct maturity: product is in limited production with recurring reliability problems.\nUnit economics: positive at the contribution-margin level.\nNoted reservation: the investment committee flagged the team record as the weakest part of the file.",
+      "quality_label": "weak",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "team_track_record": 0,
+          "traction_evidence": 0,
+          "market_validation": 1,
+          "product_maturity": 1,
+          "unit_economics": 2
+        },
+        "merit_total": 4,
+        "merit_dispersion": 2,
+        "context": {
+          "sector": "materials processing",
+          "stage_band": "Series A"
+        },
+        "context_rank": 8,
+        "reservation": "team_track_record",
+        "grid_version": "merit-grid-v1",
+        "template_id": "venture.startup.v1"
+      }
+    },
+    {
+      "id": "V025",
+      "family": "startup",
+      "text": "Venture V025 -- health data infrastructure; pre-seed stage.\n\nTeam record: founding team has no documented record of shipping a comparable product.\nTraction: early usage reported, well below the plan filed at the last round.\nDemand evidence: several paid pilots.\nProduct maturity: product exists only as a prototype with no production deployment.\nUnit economics: negative but improving on the reported cohort trend.\nNoted reservation: the investment committee flagged the team record as the weakest part of the file.",
+      "quality_label": "weak",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "team_track_record": 0,
+          "traction_evidence": 1,
+          "market_validation": 2,
+          "product_maturity": 0,
+          "unit_economics": 1
+        },
+        "merit_total": 4,
+        "merit_dispersion": 2,
+        "context": {
+          "sector": "health data infrastructure",
+          "stage_band": "pre-seed"
+        },
+        "context_rank": 9,
+        "reservation": "team_track_record",
+        "grid_version": "merit-grid-v1",
+        "template_id": "venture.startup.v1"
+      }
+    },
+    {
+      "id": "V026",
+      "family": "startup",
+      "text": "Venture V026 -- industrial software; seed stage.\n\nTeam record: founding team has shipped one comparable product, with mixed results.\nTraction: no usage or revenue reported to date.\nDemand evidence: a small number of unpaid pilots.\nProduct maturity: product is in stable production with a documented roadmap.\nUnit economics: negative, with no credible path to contribution margin.\nNoted reservation: the investment committee flagged the traction evidence as the weakest part of the file.",
+      "quality_label": "weak",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "team_track_record": 1,
+          "traction_evidence": 0,
+          "market_validation": 1,
+          "product_maturity": 2,
+          "unit_economics": 0
+        },
+        "merit_total": 4,
+        "merit_dispersion": 2,
+        "context": {
+          "sector": "industrial software",
+          "stage_band": "seed"
+        },
+        "context_rank": 10,
+        "reservation": "traction_evidence",
+        "grid_version": "merit-grid-v1",
+        "template_id": "venture.startup.v1"
+      }
+    },
+    {
+      "id": "V027",
+      "family": "startup",
+      "text": "Venture V027 -- climate hardware; Series A stage.\n\nTeam record: founding team has shipped one comparable product, with mixed results.\nTraction: close to the plan filed at the last round.\nDemand evidence: asserted but not evidenced by any signed customer.\nProduct maturity: product is in limited production with recurring reliability problems.\nUnit economics: negative, with no credible path to contribution margin.\nNoted reservation: the investment committee flagged the demand evidence as the weakest part of the file.",
+      "quality_label": "weak",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "team_track_record": 1,
+          "traction_evidence": 2,
+          "market_validation": 0,
+          "product_maturity": 1,
+          "unit_economics": 0
+        },
+        "merit_total": 4,
+        "merit_dispersion": 2,
+        "context": {
+          "sector": "climate hardware",
+          "stage_band": "Series A"
+        },
+        "context_rank": 11,
+        "reservation": "market_validation",
+        "grid_version": "merit-grid-v1",
+        "template_id": "venture.startup.v1"
+      }
+    },
+    {
+      "id": "V028",
+      "family": "startup",
+      "text": "Venture V028 -- logistics software; pre-seed stage.\n\nTeam record: founding team has shipped several comparable products successfully.\nTraction: early usage reported, well below the plan filed at the last round.\nDemand evidence: asserted but not evidenced by any signed customer.\nProduct maturity: product is in limited production with recurring reliability problems.\nUnit economics: negative, with no credible path to contribution margin.\nNoted reservation: the investment committee flagged the demand evidence as the weakest part of the file.",
+      "quality_label": "weak",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "team_track_record": 2,
+          "traction_evidence": 1,
+          "market_validation": 0,
+          "product_maturity": 1,
+          "unit_economics": 0
+        },
+        "merit_total": 4,
+        "merit_dispersion": 2,
+        "context": {
+          "sector": "logistics software",
+          "stage_band": "pre-seed"
+        },
+        "context_rank": 12,
+        "reservation": "market_validation",
+        "grid_version": "merit-grid-v1",
+        "template_id": "venture.startup.v1"
+      }
+    },
+    {
+      "id": "V029",
+      "family": "startup",
+      "text": "Venture V029 -- materials processing; pre-seed stage.\n\nTeam record: founding team has no documented record of shipping a comparable product.\nTraction: no usage or revenue reported to date.\nDemand evidence: several paid pilots.\nProduct maturity: product exists only as a prototype with no production deployment.\nUnit economics: negative but improving on the reported cohort trend.\nNoted reservation: the investment committee flagged the team record as the weakest part of the file.",
+      "quality_label": "weak",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "team_track_record": 0,
+          "traction_evidence": 0,
+          "market_validation": 2,
+          "product_maturity": 0,
+          "unit_economics": 1
+        },
+        "merit_total": 3,
+        "merit_dispersion": 2,
+        "context": {
+          "sector": "materials processing",
+          "stage_band": "pre-seed"
+        },
+        "context_rank": 3,
+        "reservation": "team_track_record",
+        "grid_version": "merit-grid-v1",
+        "template_id": "venture.startup.v1"
+      }
+    },
+    {
+      "id": "V030",
+      "family": "startup",
+      "text": "Venture V030 -- health data infrastructure; seed stage.\n\nTeam record: founding team has no documented record of shipping a comparable product.\nTraction: early usage reported, well below the plan filed at the last round.\nDemand evidence: asserted but not evidenced by any signed customer.\nProduct maturity: product is in limited production with recurring reliability problems.\nUnit economics: negative but improving on the reported cohort trend.",
+      "quality_label": "weak",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "team_track_record": 0,
+          "traction_evidence": 1,
+          "market_validation": 0,
+          "product_maturity": 1,
+          "unit_economics": 1
+        },
+        "merit_total": 3,
+        "merit_dispersion": 1,
+        "context": {
+          "sector": "health data infrastructure",
+          "stage_band": "seed"
+        },
+        "context_rank": 4,
+        "reservation": null,
+        "grid_version": "merit-grid-v1",
+        "template_id": "venture.startup.v1"
+      }
+    },
+    {
+      "id": "V031",
+      "family": "startup",
+      "text": "Venture V031 -- industrial software; Series A stage.\n\nTeam record: founding team has shipped one comparable product, with mixed results.\nTraction: no usage or revenue reported to date.\nDemand evidence: asserted but not evidenced by any signed customer.\nProduct maturity: product exists only as a prototype with no production deployment.\nUnit economics: positive at the contribution-margin level.\nNoted reservation: the investment committee flagged the traction evidence as the weakest part of the file.",
+      "quality_label": "weak",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "team_track_record": 1,
+          "traction_evidence": 0,
+          "market_validation": 0,
+          "product_maturity": 0,
+          "unit_economics": 2
+        },
+        "merit_total": 3,
+        "merit_dispersion": 2,
+        "context": {
+          "sector": "industrial software",
+          "stage_band": "Series A"
+        },
+        "context_rank": 5,
+        "reservation": "traction_evidence",
+        "grid_version": "merit-grid-v1",
+        "template_id": "venture.startup.v1"
+      }
+    },
+    {
+      "id": "V032",
+      "family": "startup",
+      "text": "Venture V032 -- climate hardware; pre-seed stage.\n\nTeam record: founding team has shipped one comparable product, with mixed results.\nTraction: early usage reported, well below the plan filed at the last round.\nDemand evidence: asserted but not evidenced by any signed customer.\nProduct maturity: product exists only as a prototype with no production deployment.\nUnit economics: negative but improving on the reported cohort trend.",
+      "quality_label": "weak",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "team_track_record": 1,
+          "traction_evidence": 1,
+          "market_validation": 0,
+          "product_maturity": 0,
+          "unit_economics": 1
+        },
+        "merit_total": 3,
+        "merit_dispersion": 1,
+        "context": {
+          "sector": "climate hardware",
+          "stage_band": "pre-seed"
+        },
+        "context_rank": 6,
+        "reservation": null,
+        "grid_version": "merit-grid-v1",
+        "template_id": "venture.startup.v1"
+      }
+    },
+    {
+      "id": "V033",
+      "family": "startup",
+      "text": "Venture V033 -- logistics software; seed stage.\n\nTeam record: founding team has shipped several comparable products successfully.\nTraction: early usage reported, well below the plan filed at the last round.\nDemand evidence: asserted but not evidenced by any signed customer.\nProduct maturity: product exists only as a prototype with no production deployment.\nUnit economics: negative, with no credible path to contribution margin.\nNoted reservation: the investment committee flagged the demand evidence as the weakest part of the file.",
+      "quality_label": "weak",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "team_track_record": 2,
+          "traction_evidence": 1,
+          "market_validation": 0,
+          "product_maturity": 0,
+          "unit_economics": 0
+        },
+        "merit_total": 3,
+        "merit_dispersion": 2,
+        "context": {
+          "sector": "logistics software",
+          "stage_band": "seed"
+        },
+        "context_rank": 7,
+        "reservation": "market_validation",
+        "grid_version": "merit-grid-v1",
+        "template_id": "venture.startup.v1"
+      }
+    },
+    {
+      "id": "V034",
+      "family": "startup",
+      "text": "Venture V034 -- climate hardware; seed stage.\n\nTeam record: founding team has no documented record of shipping a comparable product.\nTraction: no usage or revenue reported to date.\nDemand evidence: a small number of unpaid pilots.\nProduct maturity: product exists only as a prototype with no production deployment.\nUnit economics: negative but improving on the reported cohort trend.",
+      "quality_label": "weak",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "team_track_record": 0,
+          "traction_evidence": 0,
+          "market_validation": 1,
+          "product_maturity": 0,
+          "unit_economics": 1
+        },
+        "merit_total": 2,
+        "merit_dispersion": 1,
+        "context": {
+          "sector": "climate hardware",
+          "stage_band": "seed"
+        },
+        "context_rank": 1,
+        "reservation": null,
+        "grid_version": "merit-grid-v1",
+        "template_id": "venture.startup.v1"
+      }
+    },
+    {
+      "id": "V035",
+      "family": "startup",
+      "text": "Venture V035 -- logistics software; Series A stage.\n\nTeam record: founding team has shipped one comparable product, with mixed results.\nTraction: early usage reported, well below the plan filed at the last round.\nDemand evidence: asserted but not evidenced by any signed customer.\nProduct maturity: product exists only as a prototype with no production deployment.\nUnit economics: negative, with no credible path to contribution margin.",
+      "quality_label": "weak",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "team_track_record": 1,
+          "traction_evidence": 1,
+          "market_validation": 0,
+          "product_maturity": 0,
+          "unit_economics": 0
+        },
+        "merit_total": 2,
+        "merit_dispersion": 1,
+        "context": {
+          "sector": "logistics software",
+          "stage_band": "Series A"
+        },
+        "context_rank": 2,
+        "reservation": null,
+        "grid_version": "merit-grid-v1",
+        "template_id": "venture.startup.v1"
+      }
+    },
+    {
+      "id": "V036",
+      "family": "startup",
+      "text": "Venture V036 -- industrial software; pre-seed stage.\n\nTeam record: founding team has no documented record of shipping a comparable product.\nTraction: no usage or revenue reported to date.\nDemand evidence: asserted but not evidenced by any signed customer.\nProduct maturity: product exists only as a prototype with no production deployment.\nUnit economics: negative but improving on the reported cohort trend.",
+      "quality_label": "weak",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "team_track_record": 0,
+          "traction_evidence": 0,
+          "market_validation": 0,
+          "product_maturity": 0,
+          "unit_economics": 1
+        },
+        "merit_total": 1,
+        "merit_dispersion": 1,
+        "context": {
+          "sector": "industrial software",
+          "stage_band": "pre-seed"
+        },
+        "context_rank": 0,
+        "reservation": null,
+        "grid_version": "merit-grid-v1",
+        "template_id": "venture.startup.v1"
+      }
+    },
+    {
+      "id": "P001",
+      "family": "procurement",
+      "text": "Vendor P001 -- quality assurance services; 9+ years operating in this service category.\n\nTechnical proposal: met all requirements and handled edge cases unusually thoroughly.\nPrior contract delivery record: documented successful outcomes on a sustained series of comparable prior contracts.\nTechnical review board: scored the bid in the top band of the rubric.\nPast-client references: corroborated the claimed delivery history in specific detail and were uniformly positive.\nScope coverage: covers all of the capabilities the statement of work requires.",
+      "quality_label": "strong",
+      "matched_key": "MK01",
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 3,
+          "track_record": 3,
+          "structured_review": 3,
+          "reference_checks": 3,
+          "scope_coverage": 3
+        },
+        "merit_total": 15,
+        "merit_dispersion": 0,
+        "context": {
+          "function": "quality assurance services",
+          "experience_band": "9+"
+        },
+        "context_rank": 23,
+        "reservation": null,
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.procurement.v1"
+      }
+    },
+    {
+      "id": "P002",
+      "family": "procurement",
+      "text": "Vendor P002 -- network operations services; 5-8 years operating in this service category.\n\nTechnical proposal: met all requirements and was clearly organised, with minor gaps.\nPrior contract delivery record: documented successful outcomes on a sustained series of comparable prior contracts.\nTechnical review board: scored the bid in the top band of the rubric.\nPast-client references: corroborated the claimed delivery history in specific detail and were uniformly positive.\nScope coverage: covers all of the capabilities the statement of work requires.",
+      "quality_label": "strong",
+      "matched_key": "MK02",
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 2,
+          "track_record": 3,
+          "structured_review": 3,
+          "reference_checks": 3,
+          "scope_coverage": 3
+        },
+        "merit_total": 14,
+        "merit_dispersion": 1,
+        "context": {
+          "function": "network operations services",
+          "experience_band": "5-8"
+        },
+        "context_rank": 22,
+        "reservation": null,
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.procurement.v1"
+      }
+    },
+    {
+      "id": "P003",
+      "family": "procurement",
+      "text": "Vendor P003 -- data platform services; 9+ years operating in this service category.\n\nTechnical proposal: met all requirements and was clearly organised, with minor gaps.\nPrior contract delivery record: documented successful outcomes on several comparable prior contracts.\nTechnical review board: scored the bid in the top band of the rubric.\nPast-client references: corroborated the claimed delivery history in specific detail and were uniformly positive.\nScope coverage: covers all of the capabilities the statement of work requires.",
+      "quality_label": "strong",
+      "matched_key": "MK03",
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 2,
+          "track_record": 2,
+          "structured_review": 3,
+          "reference_checks": 3,
+          "scope_coverage": 3
+        },
+        "merit_total": 13,
+        "merit_dispersion": 1,
+        "context": {
+          "function": "data platform services",
+          "experience_band": "9+"
+        },
+        "context_rank": 20,
+        "reservation": null,
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.procurement.v1"
+      }
+    },
+    {
+      "id": "P004",
+      "family": "procurement",
+      "text": "Vendor P004 -- records management services; 2-4 years operating in this service category.\n\nTechnical proposal: met all requirements and handled edge cases unusually thoroughly.\nPrior contract delivery record: documented successful outcomes on several comparable prior contracts.\nTechnical review board: scored the bid in the top band of the rubric.\nPast-client references: corroborated the claimed delivery history.\nScope coverage: covers all of the capabilities the statement of work requires.",
+      "quality_label": "strong",
+      "matched_key": "MK04",
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 3,
+          "track_record": 2,
+          "structured_review": 3,
+          "reference_checks": 2,
+          "scope_coverage": 3
+        },
+        "merit_total": 13,
+        "merit_dispersion": 1,
+        "context": {
+          "function": "records management services",
+          "experience_band": "2-4"
+        },
+        "context_rank": 21,
+        "reservation": null,
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.procurement.v1"
+      }
+    },
+    {
+      "id": "P005",
+      "family": "procurement",
+      "text": "Vendor P005 -- quality assurance services; 2-4 years operating in this service category.\n\nTechnical proposal: met all requirements and was clearly organised, with minor gaps.\nPrior contract delivery record: documented successful outcomes on several comparable prior contracts.\nTechnical review board: scored the bid in the upper-middle band of the rubric.\nPast-client references: corroborated the claimed delivery history in specific detail and were uniformly positive.\nScope coverage: covers all of the capabilities the statement of work requires.",
+      "quality_label": "strong",
+      "matched_key": "MK05",
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 2,
+          "track_record": 2,
+          "structured_review": 2,
+          "reference_checks": 3,
+          "scope_coverage": 3
+        },
+        "merit_total": 12,
+        "merit_dispersion": 1,
+        "context": {
+          "function": "quality assurance services",
+          "experience_band": "2-4"
+        },
+        "context_rank": 18,
+        "reservation": null,
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.procurement.v1"
+      }
+    },
+    {
+      "id": "P006",
+      "family": "procurement",
+      "text": "Vendor P006 -- logistics coordination services; 5-8 years operating in this service category.\n\nTechnical proposal: met all requirements and was clearly organised, with minor gaps.\nPrior contract delivery record: documented successful outcomes on a sustained series of comparable prior contracts.\nTechnical review board: scored the bid in the top band of the rubric.\nPast-client references: corroborated the claimed delivery history.\nScope coverage: covers most of the capabilities the statement of work requires.",
+      "quality_label": "strong",
+      "matched_key": "MK06",
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 2,
+          "track_record": 3,
+          "structured_review": 3,
+          "reference_checks": 2,
+          "scope_coverage": 2
+        },
+        "merit_total": 12,
+        "merit_dispersion": 1,
+        "context": {
+          "function": "logistics coordination services",
+          "experience_band": "5-8"
+        },
+        "context_rank": 19,
+        "reservation": null,
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.procurement.v1"
+      }
+    },
+    {
+      "id": "P007",
+      "family": "procurement",
+      "text": "Vendor P007 -- network operations services; 9+ years operating in this service category.\n\nTechnical proposal: met all requirements and handled edge cases unusually thoroughly.\nPrior contract delivery record: documented successful outcomes on a sustained series of comparable prior contracts.\nTechnical review board: scored the bid in the top band of the rubric.\nPast-client references: corroborated the claimed delivery history.\nScope coverage: covers few of the capabilities the statement of work requires.\nNoted reservation: evaluators flagged the scope gap as the weakest part of the bid.",
+      "quality_label": "ambiguous",
+      "matched_key": "MK07",
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 3,
+          "track_record": 3,
+          "structured_review": 3,
+          "reference_checks": 2,
+          "scope_coverage": 0
+        },
+        "merit_total": 11,
+        "merit_dispersion": 3,
+        "context": {
+          "function": "network operations services",
+          "experience_band": "9+"
+        },
+        "context_rank": 17,
+        "reservation": "scope_coverage",
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.procurement.v1"
+      }
+    },
+    {
+      "id": "P008",
+      "family": "procurement",
+      "text": "Vendor P008 -- records management services; 5-8 years operating in this service category.\n\nTechnical proposal: met the basic requirements but showed several correctness and clarity problems.\nPrior contract delivery record: documented successful outcomes on a sustained series of comparable prior contracts.\nTechnical review board: scored the bid in the upper-middle band of the rubric.\nPast-client references: returned brief, non-specific responses.\nScope coverage: covers all of the capabilities the statement of work requires.\nNoted reservation: evaluators flagged the technical proposal as the weakest part of the bid.",
+      "quality_label": "ambiguous",
+      "matched_key": "MK08",
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 1,
+          "track_record": 3,
+          "structured_review": 2,
+          "reference_checks": 1,
+          "scope_coverage": 3
+        },
+        "merit_total": 10,
+        "merit_dispersion": 2,
+        "context": {
+          "function": "records management services",
+          "experience_band": "5-8"
+        },
+        "context_rank": 16,
+        "reservation": "direct_evidence",
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.procurement.v1"
+      }
+    },
+    {
+      "id": "P009",
+      "family": "procurement",
+      "text": "Vendor P009 -- logistics coordination services; 9+ years operating in this service category.\n\nTechnical proposal: met all requirements and was clearly organised, with minor gaps.\nPrior contract delivery record: documented outcomes on one comparable prior contract, with mixed results.\nTechnical review board: scored the bid in the upper-middle band of the rubric.\nPast-client references: corroborated the claimed delivery history.\nScope coverage: covers some of the capabilities the statement of work requires.",
+      "quality_label": "ambiguous",
+      "matched_key": "MK09",
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 2,
+          "track_record": 1,
+          "structured_review": 2,
+          "reference_checks": 2,
+          "scope_coverage": 1
+        },
+        "merit_total": 8,
+        "merit_dispersion": 1,
+        "context": {
+          "function": "logistics coordination services",
+          "experience_band": "9+"
+        },
+        "context_rank": 14,
+        "reservation": null,
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.procurement.v1"
+      }
+    },
+    {
+      "id": "P010",
+      "family": "procurement",
+      "text": "Vendor P010 -- data platform services; 2-4 years operating in this service category.\n\nTechnical proposal: met all requirements and handled edge cases unusually thoroughly.\nPrior contract delivery record: documented successful outcomes on a sustained series of comparable prior contracts.\nTechnical review board: scored the bid in the lower-middle band of the rubric.\nPast-client references: returned brief, non-specific responses.\nScope coverage: covers few of the capabilities the statement of work requires.\nNoted reservation: evaluators flagged the scope gap as the weakest part of the bid.",
+      "quality_label": "ambiguous",
+      "matched_key": "MK10",
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 3,
+          "track_record": 3,
+          "structured_review": 1,
+          "reference_checks": 1,
+          "scope_coverage": 0
+        },
+        "merit_total": 8,
+        "merit_dispersion": 3,
+        "context": {
+          "function": "data platform services",
+          "experience_band": "2-4"
+        },
+        "context_rank": 15,
+        "reservation": "scope_coverage",
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.procurement.v1"
+      }
+    },
+    {
+      "id": "P011",
+      "family": "procurement",
+      "text": "Vendor P011 -- quality assurance services; 5-8 years operating in this service category.\n\nTechnical proposal: incomplete; did not meet the stated requirements.\nPrior contract delivery record: documented successful outcomes on several comparable prior contracts.\nTechnical review board: scored the bid in the upper-middle band of the rubric.\nPast-client references: corroborated the claimed delivery history.\nScope coverage: covers some of the capabilities the statement of work requires.\nNoted reservation: evaluators flagged the technical proposal as the weakest part of the bid.",
+      "quality_label": "ambiguous",
+      "matched_key": "MK11",
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 0,
+          "track_record": 2,
+          "structured_review": 2,
+          "reference_checks": 2,
+          "scope_coverage": 1
+        },
+        "merit_total": 7,
+        "merit_dispersion": 2,
+        "context": {
+          "function": "quality assurance services",
+          "experience_band": "5-8"
+        },
+        "context_rank": 13,
+        "reservation": "direct_evidence",
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.procurement.v1"
+      }
+    },
+    {
+      "id": "P012",
+      "family": "procurement",
+      "text": "Vendor P012 -- network operations services; 2-4 years operating in this service category.\n\nTechnical proposal: met the basic requirements but showed several correctness and clarity problems.\nPrior contract delivery record: documented outcomes on one comparable prior contract, with mixed results.\nTechnical review board: scored the bid in the lower-middle band of the rubric.\nPast-client references: returned brief, non-specific responses.\nScope coverage: covers most of the capabilities the statement of work requires.",
+      "quality_label": "ambiguous",
+      "matched_key": "MK12",
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 1,
+          "track_record": 1,
+          "structured_review": 1,
+          "reference_checks": 1,
+          "scope_coverage": 2
+        },
+        "merit_total": 6,
+        "merit_dispersion": 1,
+        "context": {
+          "function": "network operations services",
+          "experience_band": "2-4"
+        },
+        "context_rank": 12,
+        "reservation": null,
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.procurement.v1"
+      }
+    },
+    {
+      "id": "P013",
+      "family": "procurement",
+      "text": "Vendor P013 -- logistics coordination services; 2-4 years operating in this service category.\n\nTechnical proposal: incomplete; did not meet the stated requirements.\nPrior contract delivery record: documented outcomes on one comparable prior contract, with mixed results.\nTechnical review board: scored the bid in the lower-middle band of the rubric.\nPast-client references: returned brief, non-specific responses.\nScope coverage: covers most of the capabilities the statement of work requires.\nNoted reservation: evaluators flagged the technical proposal as the weakest part of the bid.",
+      "quality_label": "weak",
+      "matched_key": "MK13",
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 0,
+          "track_record": 1,
+          "structured_review": 1,
+          "reference_checks": 1,
+          "scope_coverage": 2
+        },
+        "merit_total": 5,
+        "merit_dispersion": 2,
+        "context": {
+          "function": "logistics coordination services",
+          "experience_band": "2-4"
+        },
+        "context_rank": 9,
+        "reservation": "direct_evidence",
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.procurement.v1"
+      }
+    },
+    {
+      "id": "P014",
+      "family": "procurement",
+      "text": "Vendor P014 -- data platform services; 5-8 years operating in this service category.\n\nTechnical proposal: met the basic requirements but showed several correctness and clarity problems.\nPrior contract delivery record: documented outcomes on one comparable prior contract, with mixed results.\nTechnical review board: scored the bid in the lower-middle band of the rubric.\nPast-client references: could not be completed.\nScope coverage: covers most of the capabilities the statement of work requires.\nNoted reservation: evaluators flagged the reference evidence as the weakest part of the bid.",
+      "quality_label": "weak",
+      "matched_key": "MK14",
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 1,
+          "track_record": 1,
+          "structured_review": 1,
+          "reference_checks": 0,
+          "scope_coverage": 2
+        },
+        "merit_total": 5,
+        "merit_dispersion": 2,
+        "context": {
+          "function": "data platform services",
+          "experience_band": "5-8"
+        },
+        "context_rank": 10,
+        "reservation": "reference_checks",
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.procurement.v1"
+      }
+    },
+    {
+      "id": "P015",
+      "family": "procurement",
+      "text": "Vendor P015 -- records management services; 9+ years operating in this service category.\n\nTechnical proposal: met all requirements and was clearly organised, with minor gaps.\nPrior contract delivery record: documented outcomes on one comparable prior contract, with mixed results.\nTechnical review board: scored the bid in the lower-middle band of the rubric.\nPast-client references: returned brief, non-specific responses.\nScope coverage: covers few of the capabilities the statement of work requires.\nNoted reservation: evaluators flagged the scope gap as the weakest part of the bid.",
+      "quality_label": "weak",
+      "matched_key": "MK15",
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 2,
+          "track_record": 1,
+          "structured_review": 1,
+          "reference_checks": 1,
+          "scope_coverage": 0
+        },
+        "merit_total": 5,
+        "merit_dispersion": 2,
+        "context": {
+          "function": "records management services",
+          "experience_band": "9+"
+        },
+        "context_rank": 11,
+        "reservation": "scope_coverage",
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.procurement.v1"
+      }
+    },
+    {
+      "id": "P016",
+      "family": "procurement",
+      "text": "Vendor P016 -- records management services; 2-4 years operating in this service category.\n\nTechnical proposal: incomplete; did not meet the stated requirements.\nPrior contract delivery record: no documented outcomes from comparable prior contracts.\nTechnical review board: scored the bid in the upper-middle band of the rubric.\nPast-client references: returned brief, non-specific responses.\nScope coverage: covers some of the capabilities the statement of work requires.\nNoted reservation: evaluators flagged the technical proposal as the weakest part of the bid.",
+      "quality_label": "weak",
+      "matched_key": "MK16",
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 0,
+          "track_record": 0,
+          "structured_review": 2,
+          "reference_checks": 1,
+          "scope_coverage": 1
+        },
+        "merit_total": 4,
+        "merit_dispersion": 2,
+        "context": {
+          "function": "records management services",
+          "experience_band": "2-4"
+        },
+        "context_rank": 6,
+        "reservation": "direct_evidence",
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.procurement.v1"
+      }
+    },
+    {
+      "id": "P017",
+      "family": "procurement",
+      "text": "Vendor P017 -- network operations services; 5-8 years operating in this service category.\n\nTechnical proposal: incomplete; did not meet the stated requirements.\nPrior contract delivery record: documented successful outcomes on several comparable prior contracts.\nTechnical review board: scored the bid in the lower-middle band of the rubric.\nPast-client references: returned brief, non-specific responses.\nScope coverage: covers few of the capabilities the statement of work requires.\nNoted reservation: evaluators flagged the technical proposal as the weakest part of the bid.",
+      "quality_label": "weak",
+      "matched_key": "MK17",
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 0,
+          "track_record": 2,
+          "structured_review": 1,
+          "reference_checks": 1,
+          "scope_coverage": 0
+        },
+        "merit_total": 4,
+        "merit_dispersion": 2,
+        "context": {
+          "function": "network operations services",
+          "experience_band": "5-8"
+        },
+        "context_rank": 7,
+        "reservation": "direct_evidence",
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.procurement.v1"
+      }
+    },
+    {
+      "id": "P018",
+      "family": "procurement",
+      "text": "Vendor P018 -- quality assurance services; 9+ years operating in this service category.\n\nTechnical proposal: met the basic requirements but showed several correctness and clarity problems.\nPrior contract delivery record: documented successful outcomes on several comparable prior contracts.\nTechnical review board: scored the bid in the bottom band of the rubric.\nPast-client references: could not be completed.\nScope coverage: covers some of the capabilities the statement of work requires.\nNoted reservation: evaluators flagged the review board score as the weakest part of the bid.",
+      "quality_label": "weak",
+      "matched_key": "MK18",
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 1,
+          "track_record": 2,
+          "structured_review": 0,
+          "reference_checks": 0,
+          "scope_coverage": 1
+        },
+        "merit_total": 4,
+        "merit_dispersion": 2,
+        "context": {
+          "function": "quality assurance services",
+          "experience_band": "9+"
+        },
+        "context_rank": 8,
+        "reservation": "structured_review",
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.procurement.v1"
+      }
+    },
+    {
+      "id": "P019",
+      "family": "procurement",
+      "text": "Vendor P019 -- quality assurance services; 2-4 years operating in this service category.\n\nTechnical proposal: incomplete; did not meet the stated requirements.\nPrior contract delivery record: documented outcomes on one comparable prior contract, with mixed results.\nTechnical review board: scored the bid in the upper-middle band of the rubric.\nPast-client references: could not be completed.\nScope coverage: covers few of the capabilities the statement of work requires.\nNoted reservation: evaluators flagged the technical proposal as the weakest part of the bid.",
+      "quality_label": "weak",
+      "matched_key": "MK19",
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 0,
+          "track_record": 1,
+          "structured_review": 2,
+          "reference_checks": 0,
+          "scope_coverage": 0
+        },
+        "merit_total": 3,
+        "merit_dispersion": 2,
+        "context": {
+          "function": "quality assurance services",
+          "experience_band": "2-4"
+        },
+        "context_rank": 3,
+        "reservation": "direct_evidence",
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.procurement.v1"
+      }
+    },
+    {
+      "id": "P020",
+      "family": "procurement",
+      "text": "Vendor P020 -- logistics coordination services; 5-8 years operating in this service category.\n\nTechnical proposal: met the basic requirements but showed several correctness and clarity problems.\nPrior contract delivery record: documented outcomes on one comparable prior contract, with mixed results.\nTechnical review board: scored the bid in the bottom band of the rubric.\nPast-client references: returned brief, non-specific responses.\nScope coverage: covers few of the capabilities the statement of work requires.",
+      "quality_label": "weak",
+      "matched_key": "MK20",
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 1,
+          "track_record": 1,
+          "structured_review": 0,
+          "reference_checks": 1,
+          "scope_coverage": 0
+        },
+        "merit_total": 3,
+        "merit_dispersion": 1,
+        "context": {
+          "function": "logistics coordination services",
+          "experience_band": "5-8"
+        },
+        "context_rank": 4,
+        "reservation": null,
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.procurement.v1"
+      }
+    },
+    {
+      "id": "P021",
+      "family": "procurement",
+      "text": "Vendor P021 -- data platform services; 9+ years operating in this service category.\n\nTechnical proposal: met all requirements and was clearly organised, with minor gaps.\nPrior contract delivery record: no documented outcomes from comparable prior contracts.\nTechnical review board: scored the bid in the bottom band of the rubric.\nPast-client references: returned brief, non-specific responses.\nScope coverage: covers few of the capabilities the statement of work requires.\nNoted reservation: evaluators flagged the delivery record as the weakest part of the bid.",
+      "quality_label": "weak",
+      "matched_key": "MK21",
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 2,
+          "track_record": 0,
+          "structured_review": 0,
+          "reference_checks": 1,
+          "scope_coverage": 0
+        },
+        "merit_total": 3,
+        "merit_dispersion": 2,
+        "context": {
+          "function": "data platform services",
+          "experience_band": "9+"
+        },
+        "context_rank": 5,
+        "reservation": "track_record",
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.procurement.v1"
+      }
+    },
+    {
+      "id": "P022",
+      "family": "procurement",
+      "text": "Vendor P022 -- records management services; 5-8 years operating in this service category.\n\nTechnical proposal: incomplete; did not meet the stated requirements.\nPrior contract delivery record: documented outcomes on one comparable prior contract, with mixed results.\nTechnical review board: scored the bid in the bottom band of the rubric.\nPast-client references: returned brief, non-specific responses.\nScope coverage: covers few of the capabilities the statement of work requires.",
+      "quality_label": "weak",
+      "matched_key": "MK22",
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 0,
+          "track_record": 1,
+          "structured_review": 0,
+          "reference_checks": 1,
+          "scope_coverage": 0
+        },
+        "merit_total": 2,
+        "merit_dispersion": 1,
+        "context": {
+          "function": "records management services",
+          "experience_band": "5-8"
+        },
+        "context_rank": 1,
+        "reservation": null,
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.procurement.v1"
+      }
+    },
+    {
+      "id": "P023",
+      "family": "procurement",
+      "text": "Vendor P023 -- network operations services; 9+ years operating in this service category.\n\nTechnical proposal: incomplete; did not meet the stated requirements.\nPrior contract delivery record: documented successful outcomes on several comparable prior contracts.\nTechnical review board: scored the bid in the bottom band of the rubric.\nPast-client references: could not be completed.\nScope coverage: covers few of the capabilities the statement of work requires.\nNoted reservation: evaluators flagged the technical proposal as the weakest part of the bid.",
+      "quality_label": "weak",
+      "matched_key": "MK23",
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 0,
+          "track_record": 2,
+          "structured_review": 0,
+          "reference_checks": 0,
+          "scope_coverage": 0
+        },
+        "merit_total": 2,
+        "merit_dispersion": 2,
+        "context": {
+          "function": "network operations services",
+          "experience_band": "9+"
+        },
+        "context_rank": 2,
+        "reservation": "direct_evidence",
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.procurement.v1"
+      }
+    },
+    {
+      "id": "P024",
+      "family": "procurement",
+      "text": "Vendor P024 -- data platform services; 2-4 years operating in this service category.\n\nTechnical proposal: incomplete; did not meet the stated requirements.\nPrior contract delivery record: no documented outcomes from comparable prior contracts.\nTechnical review board: scored the bid in the bottom band of the rubric.\nPast-client references: could not be completed.\nScope coverage: covers few of the capabilities the statement of work requires.",
+      "quality_label": "weak",
+      "matched_key": "MK24",
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 0,
+          "track_record": 0,
+          "structured_review": 0,
+          "reference_checks": 0,
+          "scope_coverage": 0
+        },
+        "merit_total": 0,
+        "merit_dispersion": 0,
+        "context": {
+          "function": "data platform services",
+          "experience_band": "2-4"
+        },
+        "context_rank": 0,
+        "reservation": null,
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.procurement.v1"
+      }
+    }
+  ],
+  "provenance": {
+    "generator": "applications.seu_sensitivity_study.data.build_pools",
+    "grid_version": "merit-grid-v1",
+    "deterministic": true,
+    "note": "Rendered from a closed level->phrase vocabulary; no free text. Regenerate with `python -m applications.seu_sensitivity_study.data.build_pools`.",
+    "label_rule": "quality_label is monotone in merit_total: strong >= 12, weak <= 5, ambiguous between.",
+    "sterilized": false
+  }
+}

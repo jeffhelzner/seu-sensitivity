@@ -193,45 +193,52 @@ def create_seu_sensitivity_llm_client(
     **kwargs: Any,
 ) -> LLMClient:
     """
-    Factory that creates the appropriate LLM client for a cell.
+    Build the provider client for a cell, honouring its pinned request params.
 
     Routes to:
-    - OpenAIReasoningClient for o3-mini, o1, etc.
-    - AnthropicThinkingClient for Claude 3.7 with extended_thinking=True
-    - OpenAIClient for standard OpenAI models
-    - AnthropicClient for standard Anthropic models
+    - OpenAIReasoningClient for o3-mini, o1, etc. (no temperature parameter)
+    - AnthropicThinkingClient when extended_thinking is requested
+    - OpenAIClient / AnthropicClient otherwise
+
+    ``CellSpec.temperature`` is ``None`` for models that accept no temperature
+    (§3.1).  Those route to a client that ignores or overrides it, so the value
+    passed as a default here is never actually sent.
     """
-    provider_kwargs = cell_spec.provider_kwargs or {}
+    request_params = dict(getattr(cell_spec, "request_params", None) or {})
+    max_retries = kwargs.get("max_retries", 3)
+    retry_delay = kwargs.get("retry_delay", 2.0)
+    default_temperature = (
+        cell_spec.temperature if cell_spec.temperature is not None else 0.0
+    )
 
     if cell_spec.provider == "openai":
         if cell_spec.model_name in REASONING_MODELS:
             return OpenAIReasoningClient(
                 model=cell_spec.model_name,
-                reasoning_effort=provider_kwargs.get("reasoning_effort", "medium"),
-                max_retries=kwargs.get("max_retries", 3),
-                retry_delay=kwargs.get("retry_delay", 2.0),
+                reasoning_effort=request_params.get("reasoning_effort", "medium"),
+                max_retries=max_retries,
+                retry_delay=retry_delay,
             )
-        else:
-            return OpenAIClient(
-                model=cell_spec.model_name,
-                default_temperature=cell_spec.temperature,
-                max_retries=kwargs.get("max_retries", 3),
-                retry_delay=kwargs.get("retry_delay", 2.0),
-            )
-    elif cell_spec.provider == "anthropic":
-        if provider_kwargs.get("extended_thinking", False):
+        return OpenAIClient(
+            model=cell_spec.model_name,
+            default_temperature=default_temperature,
+            max_retries=max_retries,
+            retry_delay=retry_delay,
+        )
+
+    if cell_spec.provider == "anthropic":
+        if request_params.get("extended_thinking", False):
             return AnthropicThinkingClient(
                 model=cell_spec.model_name,
-                budget_tokens=provider_kwargs.get("budget_tokens", 4096),
-                max_retries=kwargs.get("max_retries", 3),
-                retry_delay=kwargs.get("retry_delay", 2.0),
+                budget_tokens=request_params.get("budget_tokens", 4096),
+                max_retries=max_retries,
+                retry_delay=retry_delay,
             )
-        else:
-            return AnthropicClient(
-                model=cell_spec.model_name,
-                default_temperature=cell_spec.temperature,
-                max_retries=kwargs.get("max_retries", 3),
-                retry_delay=kwargs.get("retry_delay", 2.0),
-            )
-    else:
-        raise ValueError(f"Unknown provider: {cell_spec.provider}")
+        return AnthropicClient(
+            model=cell_spec.model_name,
+            default_temperature=default_temperature,
+            max_retries=max_retries,
+            retry_delay=retry_delay,
+        )
+
+    raise ValueError(f"Unknown provider: {cell_spec.provider}")

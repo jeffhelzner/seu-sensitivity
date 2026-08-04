@@ -1,203 +1,390 @@
 """
-Configuration for the 6-model × 3-prompt SEU sensitivity study.
+Configuration for the 6-model x 3-prompt x 3-pool SEU sensitivity study.
 
-All cells use temperature=0.0, insurance claims triage task (K=3),
-and the same alternative pool (30 claims from temperature_study).
+The design is a 54-cell factorial (study plan §3), fitted **per pool** under
+Option B (§8.1), so the design matrix this module builds is the 18-cell,
+model-coded matrix of one pool -- five model dummies plus two prompt dummies
+against a reference cell (B1, §2, §4).  Tier and vendor claims are derived
+linear combinations of the fitted model coefficients, never separate columns:
+a tier-coded matrix would pool vendors within a tier and make the within-vendor
+H1 contrasts inestimable.
+
+Decoding is deliberately **not uniform** (§3.1).  o3-mini accepts no
+temperature parameter at all, and extended-thinking Claude constrains it, so
+each model carries its own request parameters -- and for the reasoning tier
+those parameters are part of the treatment, which is why they are pinned here
+and copied into the run manifest (§6.5).
 """
 
 from __future__ import annotations
+
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
-from typing import List, Dict, Optional, Any
+from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 import numpy as np
 
+from . import pools as pools_module
+from . import schemas
+from .schemas import MENU_SIZES, NUM_PRESENTATIONS, PROMPT_CONDITIONS
+
 logger = logging.getLogger(__name__)
 
-
-# --- Cell specification ---
-
-@dataclass
-class CellSpec:
-    """Specification for one factorial cell."""
-    cell_id: str                # e.g. "gpt4o_neutral"
-    model_name: str             # e.g. "gpt-4o"
-    provider: str               # "openai" or "anthropic"
-    prompt_condition: str       # "neutral", "seu_maximizing", "deliberative"
-    temperature: float = 0.0
-    # Provider-specific kwargs (e.g. reasoning budget for o3)
-    provider_kwargs: Dict[str, Any] = field(default_factory=dict)
-
-
-# --- Factory for the 6×3 design ---
-
-MODELS = [
-    {"name": "gpt-4o",                       "provider": "openai"},
-    {"name": "gpt-4o-mini",                  "provider": "openai"},
-    {"name": "o3-mini",                       "provider": "openai",
-     "provider_kwargs": {"reasoning_effort": "medium"}},
-    {"name": "claude-sonnet-4-20250514",      "provider": "anthropic"},
-    {"name": "claude-3-5-haiku-20241022",     "provider": "anthropic"},
-    {"name": "claude-3-7-sonnet-20250219",    "provider": "anthropic",
-     "provider_kwargs": {"extended_thinking": True, "budget_tokens": 4096}},
+__all__ = [
+    "ModelSpec",
+    "CellSpec",
+    "MODELS",
+    "PROMPT_CONDITIONS",
+    "REFERENCE_MODEL",
+    "REFERENCE_PROMPT",
+    "get_model_spec",
+    "build_cells",
+    "assessment_keys",
+    "SEUSensitivityStudyConfig",
 ]
 
-PROMPT_CONDITIONS = ["neutral", "seu_maximizing", "deliberative"]
+
+# --- Models (§3.1) ---
 
 
-def build_cells() -> List[CellSpec]:
-    """Generate all 18 CellSpec instances for the 6×3 factorial."""
-    cells = []
-    for model_info in MODELS:
-        for prompt in PROMPT_CONDITIONS:
-            cell_id = f"{model_info['name'].replace('-', '_').replace('.', '_')}_{prompt}"
-            cells.append(CellSpec(
-                cell_id=cell_id,
-                model_name=model_info["name"],
-                provider=model_info["provider"],
-                prompt_condition=prompt,
-                provider_kwargs=model_info.get("provider_kwargs", {}),
-            ))
+@dataclass(frozen=True)
+class ModelSpec:
+    """One model arm, with its decoding settings pinned."""
+
+    name: str
+    provider: str
+    #: "small" | "flagship" | "reasoning" -- a *reporting* grouping (§2), not a
+    #: fitted factor.
+    tier: str
+    vendor: str
+    #: Provider-specific request parameters.  For the reasoning tier these are
+    #: part of the treatment, not incidental plumbing (§3.1).
+    request_params: Dict[str, Any] = field(default_factory=dict)
+    #: None where the provider accepts no temperature parameter.
+    temperature: Optional[float] = 0.0
+    notes: str = ""
+
+    @property
+    def slug(self) -> str:
+        return self.name.replace("-", "_").replace(".", "_")
+
+
+MODELS: Tuple[ModelSpec, ...] = (
+    ModelSpec(
+        name="gpt-4o",
+        provider="openai",
+        tier="flagship",
+        vendor="openai",
+        temperature=0.0,
+    ),
+    ModelSpec(
+        name="gpt-4o-mini",
+        provider="openai",
+        tier="small",
+        vendor="openai",
+        temperature=0.0,
+    ),
+    ModelSpec(
+        name="o3-mini",
+        provider="openai",
+        tier="reasoning",
+        vendor="openai",
+        temperature=None,
+        request_params={"reasoning_effort": "medium"},
+        notes="Accepts no temperature parameter; reasoning_effort is the treatment.",
+    ),
+    ModelSpec(
+        name="claude-sonnet-4-20250514",
+        provider="anthropic",
+        tier="flagship",
+        vendor="anthropic",
+        temperature=0.0,
+    ),
+    ModelSpec(
+        name="claude-3-5-haiku-20241022",
+        provider="anthropic",
+        tier="small",
+        vendor="anthropic",
+        temperature=0.0,
+    ),
+    ModelSpec(
+        name="claude-3-7-sonnet-20250219",
+        provider="anthropic",
+        tier="reasoning",
+        vendor="anthropic",
+        temperature=None,
+        request_params={"extended_thinking": True, "budget_tokens": 4096},
+        notes=(
+            "Extended thinking forces temperature 1.0. An OLDER base than the "
+            "flagship claude-sonnet-4, so the reasoning-tier comparison confounds "
+            "base-model generation with inference-time compute (§3.1)."
+        ),
+    ),
+)
+
+#: Treatment-coding reference levels.  Changing either re-bases every contrast,
+#: so both are pinned here and recorded in the run manifest.
+REFERENCE_MODEL = MODELS[0].name
+REFERENCE_PROMPT = PROMPT_CONDITIONS[0]
+
+
+def get_model_spec(name: str) -> ModelSpec:
+    for spec in MODELS:
+        if spec.name == name:
+            return spec
+    raise KeyError(f"Unknown model {name!r}; registered: {[m.name for m in MODELS]}")
+
+
+# --- Cells (§3) ---
+
+
+@dataclass(frozen=True)
+class CellSpec:
+    """One model x prompt x pool cell."""
+
+    cell_id: str
+    model_name: str
+    provider: str
+    prompt_condition: str
+    pool_id: str
+    request_params: Dict[str, Any] = field(default_factory=dict)
+    temperature: Optional[float] = 0.0
+
+    @property
+    def assessment_key(self) -> str:
+        """
+        Identifies the shared assessment artefact this cell reads.
+
+        Assessments are collected once per model x pool under the neutral
+        instruction and shared across the three prompt cells (B2, §3.2), so the
+        key deliberately omits the prompt condition.
+        """
+        return f"{get_model_spec(self.model_name).slug}__{self.pool_id}"
+
+
+def build_cells(pool_ids: Optional[Sequence[str]] = None) -> List[CellSpec]:
+    """Build the full factorial: 6 models x 3 prompts x len(pool_ids) pools."""
+    selected = list(pool_ids) if pool_ids is not None else pools_module.available_pools()
+    cells: List[CellSpec] = []
+    for pool_id in selected:
+        for model in MODELS:
+            for prompt in PROMPT_CONDITIONS:
+                cells.append(
+                    CellSpec(
+                        cell_id=f"{model.slug}_{prompt}_{pool_id}",
+                        model_name=model.name,
+                        provider=model.provider,
+                        prompt_condition=prompt,
+                        pool_id=pool_id,
+                        request_params=dict(model.request_params),
+                        temperature=model.temperature,
+                    )
+                )
     return cells
+
+
+def assessment_keys(cells: Sequence[CellSpec]) -> Dict[str, CellSpec]:
+    """
+    Distinct model x pool assessment jobs implied by *cells*.
+
+    Returns one representative cell per key with its prompt condition forced to
+    the neutral reference, so a caller cannot accidentally collect assessments
+    under a treatment prompt (B2).
+    """
+    jobs: Dict[str, CellSpec] = {}
+    for cell in cells:
+        if cell.assessment_key not in jobs:
+            jobs[cell.assessment_key] = replace(
+                cell,
+                prompt_condition=schemas.ASSESSMENT_INSTRUCTION,
+                cell_id=cell.assessment_key,
+            )
+    return jobs
 
 
 # --- Study-level config ---
 
+#: Menus per family, per pool (§6.2, §3.3).  The primary family carries the
+#: pool's estimand; matched families are smaller strata sized for the paired
+#: contrast rather than for the main contrasts.
+DEFAULT_PROBLEMS_PER_FAMILY: Dict[str, Dict[str, int]] = {
+    "insurance": {"claims": 100},
+    "venture": {"startup": 100, "procurement": 40},
+    "hiring": {"candidates": 100, "matched": 40},
+}
+
+
 @dataclass
 class SEUSensitivityStudyConfig:
-    """Top-level config for the SEU sensitivity study."""
-    cells: List[CellSpec] = field(default_factory=build_cells)
+    """Top-level configuration for the collection pipeline."""
 
-    # Problem parameters (shared across cells)
-    num_problems: int = 100
-    min_alternatives: int = 2
-    max_alternatives: int = 4
-    num_presentations: int = 3
+    pool_ids: List[str] = field(
+        default_factory=lambda: list(pools_module.available_pools())
+    )
+    cells: List[CellSpec] = field(default_factory=list)
+
+    # Design (§3.4, §6.2)
+    problems_per_family: Dict[str, Dict[str, int]] = field(
+        default_factory=lambda: {
+            pool: dict(counts) for pool, counts in DEFAULT_PROBLEMS_PER_FAMILY.items()
+        }
+    )
+    menu_sizes: List[int] = field(default_factory=lambda: list(MENU_SIZES))
+    num_presentations: int = NUM_PRESENTATIONS
+    presentation_mode: str = "reverse"
     K: int = 3
+
+    # Embedding (§6.1 step 4)
+    embedding_model: str = "text-embedding-3-small"
     target_dim: int = 32
 
-    # Embedding (always OpenAI, regardless of choice LLM)
-    embedding_model: str = "text-embedding-3-small"
+    # Pre-choice gate (§5 R3, §6.3 R4).  Overrides for
+    # ``configs/gate_thresholds.json``; empty means "use the packaged values",
+    # which are PROVISIONAL until the §13 pre-registration freeze at build
+    # phase E3.  Kept as a plain dict so the config stays JSON/YAML round-trippable
+    # and every gate report can echo exactly what was applied.
+    gate_thresholds: Dict[str, Any] = field(default_factory=dict)
 
-    # Reproducibility
+    # Reproducibility (§6.5)
     seed: int = 42
 
-    # File paths
-    claims_file: Optional[str] = None
-    prompts_file: Optional[str] = None
-
     # API robustness
-    max_retries: int = 3
+    max_retries: int = 5
     retry_delay: float = 2.0
+    max_choice_tokens: int = 64
+    max_assessment_tokens: int = 400
+    cache_dir: Optional[str] = None
 
     # Storage
-    save_raw_embeddings: bool = True
     results_dir: Optional[str] = None
 
-    # Stan model for hierarchical fitting
+    # Fitting
     stan_model: str = "h_m01"
 
-    def __post_init__(self):
-        if self.claims_file is None:
-            self.claims_file = str(
-                Path(__file__).parent.parent / "temperature_study" / "data" / "claims.json"
-            )
-        if self.prompts_file is None:
-            self.prompts_file = str(
-                Path(__file__).parent / "configs" / "prompts.yaml"
-            )
+    def __post_init__(self) -> None:
+        if not self.cells:
+            self.cells = build_cells(self.pool_ids)
         if self.results_dir is None:
             self.results_dir = str(Path(__file__).parent / "results")
+        if self.cache_dir is None:
+            self.cache_dir = str(Path(self.results_dir) / "_cache")
+        if self.num_presentations != NUM_PRESENTATIONS:
+            raise ValueError(
+                f"num_presentations is frozen at {NUM_PRESENTATIONS} (§6.2); got "
+                f"{self.num_presentations}"
+            )
 
-    @classmethod
-    def from_yaml(cls, path: str) -> SEUSensitivityStudyConfig:
-        """Load config from YAML file."""
-        import yaml
+    # -- Views --
 
-        with open(path) as f:
-            raw = yaml.safe_load(f)
+    def cells_for_pool(self, pool_id: str) -> List[CellSpec]:
+        return [cell for cell in self.cells if cell.pool_id == pool_id]
 
-        # Build cells from YAML if specified, otherwise use defaults
-        cells_data = raw.pop("cells", None)
-        if cells_data is not None:
-            cells = []
-            for cd in cells_data:
-                cells.append(CellSpec(**cd))
-        else:
-            cells = build_cells()
+    def assessment_jobs(self) -> Dict[str, CellSpec]:
+        return assessment_keys(self.cells)
 
-        config = cls(cells=cells, **{k: v for k, v in raw.items() if k != "cells"})
-        return config
+    def problems_for(self, pool_id: str) -> Dict[str, int]:
+        return dict(self.problems_per_family.get(pool_id, {}))
 
-    def save_yaml(self, path: str) -> None:
-        """Save config to YAML file."""
-        import yaml
+    def expected_choice_calls(self) -> int:
+        """Total choice API calls implied by the design (§12)."""
+        total = 0
+        for pool_id in self.pool_ids:
+            menus = sum(self.problems_for(pool_id).values())
+            total += menus * self.num_presentations * len(self.cells_for_pool(pool_id))
+        return total
 
-        data = {
-            "num_problems": self.num_problems,
-            "min_alternatives": self.min_alternatives,
-            "max_alternatives": self.max_alternatives,
+    def expected_assessment_calls(self, pool_item_counts: Dict[str, int]) -> int:
+        """
+        Total assessment API calls, given each pool's item count.
+
+        Collected once per model x pool (B2), which is the ~3x saving that makes
+        the §5 predictive-validity gate affordable before choice collection.
+        """
+        return sum(
+            pool_item_counts.get(job.pool_id, 0) for job in self.assessment_jobs().values()
+        )
+
+    # -- Design matrix (B1, §4, §8.2) --
+
+    def design_matrix_for_pool(
+        self, pool_id: str
+    ) -> Tuple[np.ndarray, List[str], List[str]]:
+        """
+        Build one pool's 18 x 7 model-coded design matrix.
+
+        Returns ``(X, column_names, cell_ids)``.  Rows follow the order of
+        :meth:`cells_for_pool`, which is also what the Stan ``cell`` index
+        refers to, so a caller must never re-sort one without the other.
+
+        The matrix carries **no intercept column** -- ``h_m01`` fits ``gamma0``
+        separately -- and no interaction columns: with J = 18 cells the full
+        model x prompt interaction is *exactly* saturated at 18 parameters, so
+        it is a secondary shrinkage-dependent fit, not the primary design
+        (§8.1).
+        """
+        cells = self.cells_for_pool(pool_id)
+        if not cells:
+            raise KeyError(f"No cells configured for pool {pool_id!r}")
+
+        model_levels = [m.name for m in MODELS if m.name != REFERENCE_MODEL]
+        prompt_levels = [p for p in PROMPT_CONDITIONS if p != REFERENCE_PROMPT]
+
+        column_names = [f"model_{get_model_spec(m).slug}" for m in model_levels]
+        column_names += [f"prompt_{p}" for p in prompt_levels]
+
+        X = np.zeros((len(cells), len(column_names)), dtype=float)
+        for row, cell in enumerate(cells):
+            if cell.model_name in model_levels:
+                X[row, model_levels.index(cell.model_name)] = 1.0
+            if cell.prompt_condition in prompt_levels:
+                offset = len(model_levels) + prompt_levels.index(cell.prompt_condition)
+                X[row, offset] = 1.0
+
+        return X, column_names, [cell.cell_id for cell in cells]
+
+    # -- Serialization --
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "pool_ids": list(self.pool_ids),
+            "problems_per_family": {
+                pool: dict(counts) for pool, counts in self.problems_per_family.items()
+            },
+            "menu_sizes": list(self.menu_sizes),
             "num_presentations": self.num_presentations,
+            "presentation_mode": self.presentation_mode,
             "K": self.K,
-            "target_dim": self.target_dim,
             "embedding_model": self.embedding_model,
+            "target_dim": self.target_dim,
+            "gate_thresholds": dict(self.gate_thresholds),
             "seed": self.seed,
             "max_retries": self.max_retries,
             "retry_delay": self.retry_delay,
-            "save_raw_embeddings": self.save_raw_embeddings,
+            "max_choice_tokens": self.max_choice_tokens,
+            "max_assessment_tokens": self.max_assessment_tokens,
             "stan_model": self.stan_model,
+            "reference_model": REFERENCE_MODEL,
+            "reference_prompt": REFERENCE_PROMPT,
         }
 
+    @classmethod
+    def from_yaml(cls, path: str) -> "SEUSensitivityStudyConfig":
+        """Load config from YAML. Reference levels are pinned, not configurable."""
+        import yaml
+
+        with open(path) as handle:
+            raw = yaml.safe_load(handle) or {}
+        raw.pop("reference_model", None)
+        raw.pop("reference_prompt", None)
+        return cls(**raw)
+
+    def save_yaml(self, path: str) -> None:
+        import yaml
+
         Path(path).parent.mkdir(parents=True, exist_ok=True)
-        with open(path, "w") as f:
-            yaml.safe_dump(data, f, default_flow_style=False)
+        with open(path, "w") as handle:
+            yaml.safe_dump(
+                self.to_dict(), handle, default_flow_style=False, sort_keys=False
+            )
 
-    def get_design_matrix(self) -> tuple:
-        """
-        Build the J × P design matrix for the regression.
-
-        Encoding: treatment coding with GPT-4o + neutral as reference.
-        Returns (X, column_names) where X is np.ndarray of shape (J, P).
-
-        Columns (P=7):
-          model_gpt4o_mini, model_o3_mini,
-          model_claude_sonnet, model_claude_haiku, model_claude_thinking,
-          prompt_eu, prompt_deliberative
-        """
-        model_names = [m["name"] for m in MODELS]
-        ref_model = model_names[0]  # gpt-4o as reference
-        ref_prompt = PROMPT_CONDITIONS[0]  # neutral as reference
-
-        # Model dummies (5 columns: all except reference)
-        model_columns = []
-        model_col_names = []
-        for m in model_names[1:]:
-            safe_name = m.replace("-", "_").replace(".", "_")
-            model_col_names.append(f"model_{safe_name}")
-            model_columns.append(m)
-
-        # Prompt dummies (2 columns: all except reference)
-        prompt_columns = []
-        prompt_col_names = []
-        for p in PROMPT_CONDITIONS[1:]:
-            prompt_col_names.append(f"prompt_{p}")
-            prompt_columns.append(p)
-
-        column_names = model_col_names + prompt_col_names
-        P = len(column_names)
-        J = len(self.cells)
-        X = np.zeros((J, P), dtype=float)
-
-        for j, cell in enumerate(self.cells):
-            # Model dummies
-            for col_idx, m_name in enumerate(model_columns):
-                if cell.model_name == m_name:
-                    X[j, col_idx] = 1.0
-
-            # Prompt dummies
-            for col_idx, p_name in enumerate(prompt_columns):
-                if cell.prompt_condition == p_name:
-                    X[j, len(model_columns) + col_idx] = 1.0
-
-        return X, column_names

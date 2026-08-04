@@ -1,0 +1,40 @@
+{
+  "_comment": [
+    "PROVISIONAL gate thresholds for applications.seu_sensitivity_study.item_validation.",
+    "",
+    "Every number here is a placeholder chosen to be defensible, not a settled",
+    "pre-registration value. They are frozen at build phase E3, at which point",
+    "'provisional' becomes false and 'frozen_at' carries the freeze date. Until",
+    "then every gate report echoes these values along with provisional=true, so no",
+    "artefact can be mistaken for one produced under pre-registered thresholds.",
+    "",
+    "Which checks BLOCK choice collection and which only report is a study-plan",
+    "decision, not a tuning choice: §5 states the predictive-validity pass rule per",
+    "pool and calls the per-model x pool matrix a DiD *diagnostic*, so only the",
+    "former blocks.",
+    "",
+    "The eta-gap thresholds are in POOL-STANDARDIZED quality-score units, not",
+    "Cohen's d. The gaps are already divided by the spread of item scores, so a",
+    "second standardization by the within-size spread of gaps would penalise",
+    "exactly the tightly controlled designs §6.3 is asking for."
+  ],
+  "provisional": true,
+  "frozen_at": null,
+
+  "pc1_auc_strong_vs_weak": 0.75,
+  "pc1_spearman_vs_merit": 0.35,
+
+  "r0_pool": 0.3,
+  "r0_model_pool": 0.2,
+
+  "eta_gap_max_cross_pool_diff": 0.25,
+  "eta_gap_max_cross_size_diff": 0.25,
+
+  "max_assessment_parse_failure": 0.05,
+
+  "r3_dim": 8,
+  "r3_ridge_alpha": 1.0,
+  "lda_dim": 8,
+  "lda_shrinkage": 0.001,
+  "min_items_for_check": 12
+}

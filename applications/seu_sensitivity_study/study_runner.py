@@ -1,311 +1,516 @@
 """
-Study runner for the SEU sensitivity study.
+Pipeline orchestration (study plan §6.1; build plan A11).
 
-Orchestrates the 4-phase pipeline across all 18 cells:
-  Phase 1: Generate problems (shared across cells)
-  Phase 2a: Collect assessments per cell
-  Phase 2b: Collect choices per cell
-  Phase 3: Build stacked Stan data
-  Phase 4: Fit hierarchical model (optional)
+Runs the collection pipeline per pool, as a sequence of resumable phases with
+one **blocking gate** between them::
+
+    design -> embed -> validate (GATE) -> assess -> choices -> stan_data
+
+Two ordering facts are load-bearing.
+
+*Assessments precede the gate's expensive half.*  Assessment calls are ~4% of
+the study's API spend because they are collected once per model x pool (B2), so
+the §5 predictive-validity check -- which regresses parsed assessment
+probabilities on item embeddings -- can be run before committing to the ~10.8k
+choice calls.
+
+*The gate genuinely blocks.*  ``choices`` refuses to run unless the pool's gate
+report says it passed.  Until the Phase B item-validation module lands, the
+gate reports ``not_implemented`` and ``choices`` will not start without an
+explicit ``force=True``, which is recorded in the run summary.  A gate that
+could be skipped by forgetting about it is not a gate.
+
+Layout under ``results/``::
+
+    run_manifest.json
+    run_summary.json
+    pools/<pool_id>/
+        pool.json  problems.json  pca_info.json  gate_report.json
+        embeddings_raw.npz  embeddings_reduced.npz
+        assessments/<model_slug>.json
+        choices/<cell_id>.json
+        na_logs/<cell_id>.json
+        diagnostics.json  stan_data.json  stan_data_size.json
+    _cache/  _checkpoints/
 """
 
 from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timezone
+from dataclasses import asdict
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence
 
 import numpy as np
 
-from applications.temperature_study.problem_generator import ProblemGenerator
-from applications.temperature_study.llm_client import EmbeddingClient
-from applications.temperature_study.data_preparation import (
-    EmbeddingReducer,
-    filter_valid_choices,
-    save_stan_data,
-)
-
-from .config import SEUSensitivityStudyConfig, CellSpec
-from .data_preparation import HierarchicalStanDataBuilder
-from .llm_extensions import create_seu_sensitivity_llm_client
-from .choice_collection import SEUSensitivityChoiceCollector
+from . import diagnostics, data_preparation, pools as pools_module, problem_generation
+from . import provenance, prompts as prompts_module, schemas
+from .assessment_collection import AssessmentCollector
+from .choice_collection import ChoiceCollector
+from .client import build_client
+from .config import CellSpec, SEUSensitivityStudyConfig, get_model_spec
 
 logger = logging.getLogger(__name__)
 
+__all__ = ["SEUSensitivityStudyRunner", "PHASES"]
+
+
+#: ``assess`` runs *before* ``validate`` on purpose.  The R3 predictive-validity
+#: check (§5) regresses the parsed belief probabilities on the item embeddings,
+#: so the gate has nothing to evaluate until assessments exist.  "Pre-run" in
+#: the plan means **pre-choice**, and the ordering respects that: assessments
+#: are collected once per model x pool (~900 calls) while choice collection is
+#: ~13,680, so the gate still stands in front of the spend that matters.
+PHASES: tuple[str, ...] = (
+    "design",
+    "embed",
+    "assess",
+    "validate",
+    "choices",
+    "stan_data",
+)
+
 
 class SEUSensitivityStudyRunner:
-    """Orchestrates the full SEU sensitivity study pipeline."""
+    """Orchestrates the collection pipeline."""
 
     def __init__(self, config: SEUSensitivityStudyConfig):
         self.config = config
         self.results_dir = Path(config.results_dir)
-        self.results_dir.mkdir(parents=True, exist_ok=True)
+        self.cache_dir = Path(config.cache_dir)
+        self.checkpoint_dir = self.results_dir / "_checkpoints"
+
+    # -- Entry point --
 
     def run(
         self,
         *,
-        skip_collection: bool = False,
-        cells_to_run: Optional[List[str]] = None,
+        phases: Optional[Sequence[str]] = None,
+        pool_ids: Optional[Sequence[str]] = None,
+        cell_ids: Optional[Sequence[str]] = None,
+        dry_run: bool = False,
+        force: bool = False,
     ) -> Dict[str, Any]:
         """
-        Execute the full pipeline.
+        Execute *phases* for *pool_ids*.
 
         Parameters
         ----------
-        skip_collection : bool
-            If True, load existing assessment/choice data instead of
-            collecting new data via API calls.
-        cells_to_run : list of str, optional
-            If provided, only run these cell IDs.
+        dry_run:
+            Report the planned work -- call counts per phase -- and make no API
+            calls.  Intended to be run before every real run (§12, E1).
+        force:
+            Proceed past a gate that has not passed.  Recorded in the summary
+            so a forced run is never indistinguishable from a clean one.
         """
-        # Filter cells if requested
-        if cells_to_run:
-            active_cells = [c for c in self.config.cells if c.cell_id in cells_to_run]
-        else:
-            active_cells = self.config.cells
+        selected_phases = list(phases) if phases else list(PHASES)
+        unknown = [phase for phase in selected_phases if phase not in PHASES]
+        if unknown:
+            raise ValueError(f"Unknown phase(s) {unknown}; available: {list(PHASES)}")
 
-        output = {"timestamp": datetime.now(timezone.utc).isoformat()}
-
-        # Phase 1: Generate or load shared problems
-        problems, claims = self._run_phase1()
-        output["num_problems"] = len(problems)
-        output["num_claims"] = len(claims)
-
-        if skip_collection:
-            logger.info("Skipping data collection (skip_collection=True)")
-            # Load from saved files
-            per_cell_assessments = {}
-            per_cell_raw_embeddings = {}
-            per_cell_choices = {}
-            for cell in active_cells:
-                cell_dir = self.results_dir / "cells" / cell.cell_id
-                if (cell_dir / "assessments.json").exists():
-                    with open(cell_dir / "assessments.json") as f:
-                        per_cell_assessments[cell.cell_id] = json.load(f)
-                if (cell_dir / "choices.json").exists():
-                    with open(cell_dir / "choices.json") as f:
-                        per_cell_choices[cell.cell_id] = json.load(f)
-        else:
-            # Phase 2: Collect data per cell
-            per_cell_assessments = {}
-            per_cell_raw_embeddings = {}
-            per_cell_choices = {}
-
-            for cell in active_cells:
-                logger.info("Processing cell: %s", cell.cell_id)
-                cell_dir = self.results_dir / "cells" / cell.cell_id
-                cell_dir.mkdir(parents=True, exist_ok=True)
-
-                # Phase 2a: Assessments + embeddings
-                assessments, raw_embeddings = self._run_phase2a_cell(cell, claims)
-                per_cell_assessments[cell.cell_id] = assessments
-                per_cell_raw_embeddings[cell.cell_id] = raw_embeddings
-
-                # Save
-                with open(cell_dir / "assessments.json", "w") as f:
-                    json.dump(assessments, f, indent=2)
-
-                # Phase 2b: Choices
-                choices = self._run_phase2b_cell(cell, problems, assessments)
-                per_cell_choices[cell.cell_id] = choices
-
-                with open(cell_dir / "choices.json", "w") as f:
-                    json.dump(choices, f, indent=2)
-
-        # Phase 3: Build stacked Stan data
-        phase3_output = self._run_phase3(
-            problems, per_cell_assessments, per_cell_raw_embeddings,
-            per_cell_choices, active_cells,
-        )
-        output["phase3"] = phase3_output
-
-        return output
-
-    def _run_phase1(self) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
-        """Generate or load shared problems."""
-        problems_file = self.results_dir / "shared" / "problems.json"
-        claims_file = Path(self.config.claims_file)
-
-        # Load claims
-        with open(claims_file) as f:
-            claims_data = json.load(f)
-        claims = claims_data.get("claims", claims_data)
-
-        if problems_file.exists():
-            logger.info("Loading existing problems from %s", problems_file)
-            with open(problems_file) as f:
-                problems = json.load(f)
-        else:
-            logger.info("Generating new problems")
-            generator = ProblemGenerator(
-                claims_pool=claims,
-                num_problems=self.config.num_problems,
-                min_alternatives=self.config.min_alternatives,
-                max_alternatives=self.config.max_alternatives,
-                num_presentations=self.config.num_presentations,
-                seed=self.config.seed,
-            )
-            problems = generator.generate()
-
-            problems_file.parent.mkdir(parents=True, exist_ok=True)
-            with open(problems_file, "w") as f:
-                json.dump(problems, f, indent=2)
-
-        return problems, claims
-
-    def _run_phase2a_cell(
-        self,
-        cell: CellSpec,
-        claims: List[Dict[str, Any]],
-    ) -> Tuple[Dict[str, str], Dict[str, np.ndarray]]:
-        """
-        Collect assessments for a single cell.
-
-        Returns (assessments_dict, raw_embeddings).
-        """
-        llm_client = create_seu_sensitivity_llm_client(
-            cell,
-            max_retries=self.config.max_retries,
-            retry_delay=self.config.retry_delay,
-        )
-
-        collector = SEUSensitivityChoiceCollector(
-            config=self.config,
-            cell=cell,
-            llm_client=llm_client,
-        )
-
-        assessments = collector.collect_assessments(claims)
-
-        # Embed assessments
-        embedding_client = EmbeddingClient(model=self.config.embedding_model)
-        assessment_texts = list(assessments.values())
-        assessment_keys = list(assessments.keys())
-
-        raw_vectors = embedding_client.embed(assessment_texts)
-        raw_embeddings = {
-            key: np.array(vec) for key, vec in zip(assessment_keys, raw_vectors)
+        selected_pools = list(pool_ids) if pool_ids else list(self.config.pool_ids)
+        summary: Dict[str, Any] = {
+            "phases": selected_phases,
+            "pools": {},
+            "dry_run": dry_run,
+            "forced": force,
         }
 
-        return assessments, raw_embeddings
+        if dry_run:
+            summary["plan"] = self._dry_run_plan(selected_pools, selected_phases)
+            logger.info("Dry run: %s", json.dumps(summary["plan"], indent=2))
+            return summary
 
-    def _run_phase2b_cell(
+        for pool_id in selected_pools:
+            summary["pools"][pool_id] = self._run_pool(
+                pool_id, selected_phases, cell_ids=cell_ids, force=force
+            )
+
+        self._write_json(self.results_dir / "run_summary.json", summary)
+        return summary
+
+    # -- Per-pool driver --
+
+    def _run_pool(
         self,
-        cell: CellSpec,
-        problems: List[Dict[str, Any]],
-        assessments: Dict[str, str],
+        pool_id: str,
+        phases: Sequence[str],
+        *,
+        cell_ids: Optional[Sequence[str]],
+        force: bool,
     ) -> Dict[str, Any]:
-        """Collect choices for a single cell."""
-        llm_client = create_seu_sensitivity_llm_client(
-            cell,
-            max_retries=self.config.max_retries,
-            retry_delay=self.config.retry_delay,
-        )
+        logger.info("=== pool %s ===", pool_id)
+        result: Dict[str, Any] = {}
+        pool_dir = self._pool_dir(pool_id)
+        pool_dir.mkdir(parents=True, exist_ok=True)
 
-        collector = SEUSensitivityChoiceCollector(
-            config=self.config,
-            cell=cell,
-            llm_client=llm_client,
-        )
+        if "design" in phases:
+            result["design"] = self._phase_design(pool_id)
+        if "embed" in phases:
+            result["embed"] = self._phase_embed(pool_id)
+        if "assess" in phases:
+            result["assess"] = self._phase_assess(pool_id)
+        if "validate" in phases:
+            result["validate"] = self._phase_validate(pool_id)
+        if "choices" in phases:
+            self._require_gate(pool_id, force=force)
+            result["choices"] = self._phase_choices(pool_id, cell_ids=cell_ids)
+        if "stan_data" in phases:
+            result["stan_data"] = self._phase_stan_data(pool_id)
+        return result
 
-        return collector.collect_choices(problems, assessments)
+    # -- Phases --
 
-    def _run_phase3(
-        self,
-        problems: List[Dict[str, Any]],
-        per_cell_assessments: Dict[str, Dict[str, Any]],
-        per_cell_raw_embeddings: Dict[str, Dict[str, np.ndarray]],
-        per_cell_choices: Dict[str, Dict[str, Any]],
-        active_cells: List[CellSpec],
-    ) -> Dict[str, Any]:
-        """
-        Build stacked Stan data.
+    def _phase_design(self, pool_id: str) -> Dict[str, Any]:
+        pool = pools_module.load_pool(pool_id)
+        self._write_json(self._pool_dir(pool_id) / "pool.json", pool)
 
-        Steps:
-        1. Pool all raw embeddings across all cells.
-        2. Fit PCA on pooled set.
-        3. Project each cell's embeddings.
-        4. Filter valid choices per cell.
-        5. Build stacked data via HierarchicalStanDataBuilder.
-        6. Save everything.
-        """
-        output_info = {}
-
-        # 1. Pool embeddings
-        pooled_embeddings = {}
-        for cell_id, raw_embs in per_cell_raw_embeddings.items():
-            for claim_id, vec in raw_embs.items():
-                key = f"{claim_id}_{cell_id}"
-                pooled_embeddings[key] = vec
-
-        if not pooled_embeddings:
-            logger.warning("No raw embeddings available; skipping Phase 3 PCA")
-            return output_info
-
-        # 2. Fit PCA
-        reducer = EmbeddingReducer(
-            target_dim=self.config.target_dim,
+        problem_set = problem_generation.generate_problem_set(
+            pool,
+            problems_per_family=self.config.problems_for(pool_id),
             seed=self.config.seed,
+            menu_sizes=self.config.menu_sizes,
+            num_presentations=self.config.num_presentations,
+            presentation_mode=self.config.presentation_mode,
         )
-        reducer.fit(pooled_embeddings)
+        self._write_json(self._pool_dir(pool_id) / "problems.json", problem_set)
+        return {
+            "items": len(pool["items"]),
+            "menus": len(problem_set["problems"]),
+            "observations_per_cell": len(problem_set["problems"])
+            * self.config.num_presentations,
+        }
 
-        # 3. Project per cell — build shared reduced embeddings keyed by claim_id
-        # Use first cell's embeddings as representative (all cells embed same claims)
-        first_cell_embs = next(iter(per_cell_raw_embeddings.values()))
-        reduced_embeddings = {}
-        for claim_id, raw_vec in first_cell_embs.items():
-            reduced = reducer.pca.transform(raw_vec.reshape(1, -1))[0]
-            reduced_embeddings[claim_id] = reduced
+    def _phase_embed(self, pool_id: str) -> Dict[str, Any]:
+        from applications.temperature_study.llm_client import EmbeddingClient
 
-        # 4. Filter valid choices per cell
-        per_cell_valid = {}
-        cell_ids = []
-        for cell in active_cells:
-            cell_id = cell.cell_id
-            choices = per_cell_choices.get(cell_id, {})
-
-            # Build valid choice list
-            valid = []
-            for problem in problems:
-                pid = problem["problem_id"]
-                if pid in choices and choices[pid].get("choice") is not None:
-                    valid.append({
-                        "problem_id": pid,
-                        "alternatives": problem["alternatives"],
-                        "choice": choices[pid]["choice"],
-                    })
-
-            per_cell_valid[cell_id] = valid
-            cell_ids.append(cell_id)
-            output_info[f"valid_choices_{cell_id}"] = len(valid)
-
-        # 5. Build stacked data
-        X, col_names = self.config.get_design_matrix()
-        # Filter X to only active cells
-        all_cell_ids = [c.cell_id for c in self.config.cells]
-        active_indices = [all_cell_ids.index(cid) for cid in cell_ids]
-        X_active = X[active_indices]
-
-        builder = HierarchicalStanDataBuilder(self.config)
-        stan_data = builder.build(
-            per_cell_valid_choices=per_cell_valid,
-            reduced_embeddings=reduced_embeddings,
-            problems=problems,
-            design_matrix=X_active,
-            cell_ids=cell_ids,
+        pool = self._load_pool_artifact(pool_id)
+        raw = data_preparation.embed_pool_items(
+            pool, EmbeddingClient(model=self.config.embedding_model)
+        )
+        reduced, info = data_preparation.reduce_embeddings(
+            raw, target_dim=self.config.target_dim, seed=self.config.seed
         )
 
-        # 6. Save
-        stan_data_file = self.results_dir / "stan_data" / "h_m01_data.json"
-        stan_data_file.parent.mkdir(parents=True, exist_ok=True)
-        with open(stan_data_file, "w") as f:
-            json.dump(stan_data, f, indent=2)
+        pool_dir = self._pool_dir(pool_id)
+        np.savez(pool_dir / "embeddings_raw.npz", **raw)
+        np.savez(pool_dir / "embeddings_reduced.npz", **reduced)
+        self._write_json(pool_dir / "pca_info.json", info)
+        return info
 
-        output_info["stan_data_file"] = str(stan_data_file)
-        output_info["M_total"] = stan_data["M_total"]
-        output_info["J"] = stan_data["J"]
-        output_info["design_columns"] = col_names
+    def _phase_validate(self, pool_id: str) -> Dict[str, Any]:
+        """
+        The pre-choice gate (§5 R3, §6.3 R4).
 
-        return output_info
+        A missing prerequisite produces a gate report saying so rather than a
+        traceback.  The report is the artefact the ``choices`` phase reads, so
+        an unrunnable gate has to leave one behind: otherwise "the gate has not
+        cleared" and "the gate crashed" would be indistinguishable to anyone
+        inspecting the results directory.
+        """
+        from . import item_validation
+
+        try:
+            embeddings = self._load_reduced_embeddings(pool_id)
+        except FileNotFoundError:
+            embeddings = {}
+
+        report = item_validation.run_gate(
+            pool=self._load_pool_artifact(pool_id),
+            problem_set=self._load_problem_set(pool_id),
+            reduced_embeddings=embeddings,
+            assessments=self._load_all_assessments(pool_id),
+            config=self.config,
+        )
+
+        self._write_json(self._pool_dir(pool_id) / "gate_report.json", report)
+        logger.info("Gate for pool %s: %s", pool_id, report.get("status"))
+        return report
+
+    def _phase_assess(self, pool_id: str) -> Dict[str, Any]:
+        pool = self._load_pool_artifact(pool_id)
+        prompt_sets = prompts_module.load_prompt_sets(pool_id)
+        out_dir = self._pool_dir(pool_id) / "assessments"
+        out_dir.mkdir(parents=True, exist_ok=True)
+
+        collected: Dict[str, Any] = {}
+        for key, job in self.config.assessment_jobs().items():
+            if job.pool_id != pool_id:
+                continue
+            slug = get_model_spec(job.model_name).slug
+            target = out_dir / f"{slug}.json"
+            if target.exists():
+                logger.info("Assessments already present for %s/%s", slug, pool_id)
+                collected[slug] = "cached"
+                continue
+
+            client = build_client(
+                job,
+                cache_dir=self.cache_dir,
+                max_retries=self.config.max_retries,
+                retry_delay=self.config.retry_delay,
+            )
+            payload = AssessmentCollector(
+                pool=pool,
+                prompt_sets=prompt_sets,
+                llm_client=client,
+                model_name=job.model_name,
+                max_tokens=self.config.max_assessment_tokens,
+                temperature=job.temperature,
+            ).collect(
+                checkpoint_path=self.checkpoint_dir / pool_id / f"assess_{slug}.json"
+            )
+            self._write_json(target, payload)
+            collected[slug] = {
+                "items": len(payload["assessments"]),
+                "parsed": sum(1 for r in payload["assessments"] if r["parse_ok"]),
+                "usage": client.get_usage_summary(),
+            }
+        return collected
+
+    def _phase_choices(
+        self, pool_id: str, *, cell_ids: Optional[Sequence[str]]
+    ) -> Dict[str, Any]:
+        problem_set = self._load_problem_set(pool_id)
+        prompt_sets = prompts_module.load_prompt_sets(pool_id)
+        out_dir = self._pool_dir(pool_id) / "choices"
+        out_dir.mkdir(parents=True, exist_ok=True)
+
+        cells = self.config.cells_for_pool(pool_id)
+        if cell_ids:
+            wanted = set(cell_ids)
+            cells = [cell for cell in cells if cell.cell_id in wanted]
+
+        collected: Dict[str, Any] = {}
+        for cell in cells:
+            target = out_dir / f"{cell.cell_id}.json"
+            if target.exists():
+                logger.info("Choices already present for cell %s", cell.cell_id)
+                collected[cell.cell_id] = "cached"
+                continue
+
+            assessments = self._load_assessments(pool_id, cell.model_name)
+            client = build_client(
+                cell,
+                cache_dir=self.cache_dir,
+                max_retries=self.config.max_retries,
+                retry_delay=self.config.retry_delay,
+            )
+            payload = ChoiceCollector(
+                cell=cell,
+                problem_set=problem_set,
+                prompt_sets=prompt_sets,
+                assessments=assessments,
+                llm_client=client,
+                max_tokens=self.config.max_choice_tokens,
+            ).collect(
+                checkpoint_path=self.checkpoint_dir / pool_id / f"choices_{cell.cell_id}.json"
+            )
+            self._write_json(target, payload)
+
+            _, na_log = data_preparation.filter_resolved_choices(payload)
+            self._write_json(
+                self._pool_dir(pool_id) / "na_logs" / f"{cell.cell_id}.json", na_log
+            )
+            collected[cell.cell_id] = {
+                "observations": len(payload["choices"]),
+                "na_rate": na_log["na_rate"],
+                "usage": client.get_usage_summary(),
+            }
+        return collected
+
+    def _phase_stan_data(self, pool_id: str) -> Dict[str, Any]:
+        pool = self._load_pool_artifact(pool_id)
+        problem_set = self._load_problem_set(pool_id)
+        reduced = self._load_reduced_embeddings(pool_id)
+        choice_sets = self._load_all_choice_sets(pool_id)
+
+        design_matrix, column_names, cell_ids = self.config.design_matrix_for_pool(pool_id)
+        pool_dir = self._pool_dir(pool_id)
+
+        outputs: Dict[str, Any] = {"design_columns": column_names}
+        for include_size, filename in ((False, "stan_data.json"), (True, "stan_data_size.json")):
+            stan_data, report = data_preparation.build_stan_data(
+                pool=pool,
+                problem_set=problem_set,
+                choice_sets=choice_sets,
+                reduced_embeddings=reduced,
+                design_matrix=design_matrix,
+                cell_ids=cell_ids,
+                K=self.config.K,
+                include_menu_size=include_size,
+            )
+            self._write_json(pool_dir / filename, stan_data)
+            if not include_size:
+                outputs["M_total"] = stan_data["M_total"]
+                outputs["overall_na_rate"] = report["overall_na_rate"]
+
+        subset, retention = diagnostics.size_balanced_stability_subset(
+            choice_sets, seed=self.config.seed
+        )
+        self._write_json(
+            pool_dir / "diagnostics.json",
+            {
+                "na_table": diagnostics.na_table(choice_sets),
+                "position_flips": [
+                    diagnostics.position_flip_summary(cs) for cs in choice_sets.values()
+                ],
+                "stability_subset": {"problem_ids": subset, **retention},
+            },
+        )
+        outputs["stability_retention"] = retention["retention_after_balance"]
+        return outputs
+
+    # -- Gate enforcement --
+
+    def _require_gate(self, pool_id: str, *, force: bool) -> None:
+        path = self._pool_dir(pool_id) / "gate_report.json"
+        report = json.loads(path.read_text()) if path.exists() else None
+
+        if report and report.get("passed"):
+            return
+
+        status = (report or {}).get("status", "missing")
+        message = (
+            f"Pool {pool_id!r} has not cleared the pre-choice validation gate "
+            f"(status: {status}). Choice collection is the study's main API spend "
+            f"(§12) and §5 blocks it on the predictive-validity check."
+        )
+        if not force:
+            raise RuntimeError(message + " Pass force=True to override deliberately.")
+        logger.warning("%s Proceeding because force=True.", message)
+
+    # -- Dry run --
+
+    def _dry_run_plan(
+        self, pool_ids: Sequence[str], phases: Sequence[str]
+    ) -> Dict[str, Any]:
+        plan: Dict[str, Any] = {"pools": {}, "totals": {}}
+        total_choice_calls = 0
+        total_assessment_calls = 0
+
+        for pool_id in pool_ids:
+            try:
+                pool = self._load_pool_artifact(pool_id)
+                n_items = len(pool["items"])
+            except FileNotFoundError:
+                n_items = None
+
+            menus = sum(self.config.problems_for(pool_id).values())
+            n_cells = len(self.config.cells_for_pool(pool_id))
+            choice_calls = menus * self.config.num_presentations * n_cells
+            assessment_calls = (n_items or 0) * len({c.model_name for c in self.config.cells_for_pool(pool_id)})
+
+            plan["pools"][pool_id] = {
+                "items": n_items,
+                "menus": menus,
+                "cells": n_cells,
+                "assessment_calls": assessment_calls,
+                "choice_calls": choice_calls,
+                "observations_per_cell": menus * self.config.num_presentations,
+            }
+            total_choice_calls += choice_calls
+            total_assessment_calls += assessment_calls
+
+        plan["totals"] = {
+            "assessment_calls": total_assessment_calls,
+            "choice_calls": total_choice_calls,
+            "phases": list(phases),
+        }
+        return plan
+
+    # -- Manifest --
+
+    def write_manifest(self, **kwargs: Any) -> Dict[str, Any]:
+        """Build and persist the provenance manifest (§6.5)."""
+        prompt_sets = {
+            pool_id: prompts_module.load_prompt_sets(pool_id)
+            for pool_id in self.config.pool_ids
+        }
+        pca_info = {}
+        for pool_id in self.config.pool_ids:
+            path = self._pool_dir(pool_id) / "pca_info.json"
+            if path.exists():
+                pca_info[pool_id] = json.loads(path.read_text())
+
+        manifest = provenance.build_run_manifest(
+            self.config,
+            prompt_hashes=prompts_module.prompt_hashes(prompt_sets),
+            pca_info=pca_info,
+            **kwargs,
+        )
+        self._write_json(self.results_dir / "run_manifest.json", manifest)
+        return manifest
+
+    # -- Artefact IO --
+
+    def _pool_dir(self, pool_id: str) -> Path:
+        return self.results_dir / "pools" / pool_id
+
+    def _load_pool_artifact(self, pool_id: str) -> Dict[str, Any]:
+        path = self._pool_dir(pool_id) / "pool.json"
+        if not path.exists():
+            raise FileNotFoundError(f"Run the 'design' phase for pool {pool_id!r} first")
+        return json.loads(path.read_text())
+
+    def _load_problem_set(self, pool_id: str) -> Dict[str, Any]:
+        path = self._pool_dir(pool_id) / "problems.json"
+        if not path.exists():
+            raise FileNotFoundError(f"Run the 'design' phase for pool {pool_id!r} first")
+        return json.loads(path.read_text())
+
+    def _load_reduced_embeddings(self, pool_id: str) -> Dict[str, np.ndarray]:
+        path = self._pool_dir(pool_id) / "embeddings_reduced.npz"
+        if not path.exists():
+            raise FileNotFoundError(f"Run the 'embed' phase for pool {pool_id!r} first")
+        with np.load(path) as payload:
+            return {key: payload[key] for key in payload.files}
+
+    def _load_assessments(self, pool_id: str, model_name: str) -> Dict[str, str]:
+        slug = get_model_spec(model_name).slug
+        path = self._pool_dir(pool_id) / "assessments" / f"{slug}.json"
+        if not path.exists():
+            raise FileNotFoundError(
+                f"No assessments for {model_name}/{pool_id}; run the 'assess' phase first"
+            )
+        payload = json.loads(path.read_text())
+        return {record["item_id"]: record["text"] for record in payload["assessments"]}
+
+    def _load_all_assessments(self, pool_id: str) -> Dict[str, Dict[str, Any]]:
+        directory = self._pool_dir(pool_id) / "assessments"
+        if not directory.exists():
+            return {}
+        return {
+            path.stem: json.loads(path.read_text())
+            for path in sorted(directory.glob("*.json"))
+        }
+
+    def _load_all_choice_sets(self, pool_id: str) -> Dict[str, Dict[str, Any]]:
+        directory = self._pool_dir(pool_id) / "choices"
+        if not directory.exists():
+            raise FileNotFoundError(f"Run the 'choices' phase for pool {pool_id!r} first")
+        return {
+            path.stem: json.loads(path.read_text())
+            for path in sorted(directory.glob("*.json"))
+        }
+
+    @staticmethod
+    def _write_json(path: Path, payload: Any) -> None:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        tmp = path.with_suffix(path.suffix + ".tmp")
+        with open(tmp, "w") as handle:
+            json.dump(payload, handle, indent=2, default=_json_default)
+        tmp.replace(path)
+
+
+def _json_default(value: Any) -> Any:
+    if isinstance(value, np.ndarray):
+        return value.tolist()
+    if isinstance(value, (np.integer,)):
+        return int(value)
+    if isinstance(value, (np.floating,)):
+        return float(value)
+    if isinstance(value, Path):
+        return str(value)
+    raise TypeError(f"Object of type {type(value).__name__} is not JSON serializable")

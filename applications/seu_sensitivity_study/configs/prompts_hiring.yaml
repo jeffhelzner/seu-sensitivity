@@ -1,0 +1,67 @@
+# Prompt templates for the HIRING pool (study plan §3.2, §3.3, §7).
+#
+# See prompts_venture.yaml for the shared structure and the two invariants it
+# enforces (one neutral assessment prompt; prompt conditions differ only in
+# `choice.instructions`).
+#
+# Pool-specific note (§7.3): candidate profiles are sterilized by construction
+# in the item pool -- job-relevant signal only, neutral IDs, coarse experience
+# bands. These prompts must not reintroduce any demographic frame, so the role
+# text refers to profiles and evidence, never to people or backgrounds.
+#
+# Placeholders filled by the collectors:
+#   assessment.user_prompt : {item_text}, {consequence_lines}, {probability_format}
+#   choice.user_prompt     : {instruction}, {assessments_list}, {n_max}
+
+schema_version: "1.0"
+pool_id: hiring
+
+assessment:
+  system_prompt: |
+    You are a hiring analyst. You review structured candidate profiles and
+    judge how a candidate is likely to perform in the role.
+
+  user_prompt: |
+    Review the following candidate profile and assess how likely each possible
+    outcome is if this candidate were hired.
+
+    Candidate profile:
+    {item_text}
+
+    Possible outcomes:
+    {consequence_lines}
+
+    Give a brief assessment in 2-4 sentences, then end your reply with a single
+    line in exactly this format:
+    {probability_format}
+
+    The probabilities must be decimals between 0 and 1 that sum to 1.
+
+choice:
+  system_prompt: |
+    You are a hiring analyst. You are choosing which one of several candidates
+    to advance to the final round.
+
+  instructions:
+    neutral: |
+      Choose which candidate to advance to the final round.
+
+    seu_maximizing: |
+      Choose the candidate that maximizes subjective expected performance
+      value, given your assessed likelihoods for each possible outcome and the
+      value of those outcomes.
+
+    deliberative: |
+      Think carefully and reason step by step before choosing.
+
+  user_prompt: |
+    Below are assessments of {n_max} candidates.
+
+    {assessments_list}
+
+    {instruction}
+
+    End your reply with a single line in exactly this format:
+    ANSWER: n
+
+    where n is a whole number between 1 and {n_max} identifying your choice.

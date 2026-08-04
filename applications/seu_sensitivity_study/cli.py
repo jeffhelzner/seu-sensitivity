@@ -37,69 +37,124 @@ def _setup_logging(verbose: bool = False) -> None:
 
 
 def cmd_validate(args: argparse.Namespace) -> None:
-    """Validate configuration without making API calls."""
+    """Validate configuration and prompts without making API calls."""
     from .config import SEUSensitivityStudyConfig
+    from . import prompts as prompts_module
 
-    if args.config:
-        config = SEUSensitivityStudyConfig.from_yaml(args.config)
-    else:
-        config = SEUSensitivityStudyConfig()
+    config = (
+        SEUSensitivityStudyConfig.from_yaml(args.config)
+        if args.config
+        else SEUSensitivityStudyConfig()
+    )
 
-    print(f"Config valid: {len(config.cells)} cells, "
-          f"{config.num_problems} problems, K={config.K}")
+    print(
+        f"Config valid: {len(config.cells)} cells across {len(config.pool_ids)} pool(s); "
+        f"K={config.K}, menu sizes {config.menu_sizes}, "
+        f"{config.num_presentations} presentations"
+    )
+    print(f"Expected choice calls: {config.expected_choice_calls():,}")
 
-    for cell in config.cells:
-        print(f"  {cell.cell_id}: {cell.model_name} ({cell.provider}) "
-              f"[{cell.prompt_condition}]")
+    for pool_id in config.pool_ids:
+        X, columns, cell_ids = config.design_matrix_for_pool(pool_id)
+        print(f"\n[{pool_id}] design matrix {X.shape[0]} x {X.shape[1]}")
+        print(f"  columns: {columns}")
+        print(f"  menus per family: {config.problems_for(pool_id)}")
+        try:
+            resolved = prompts_module.load_prompt_sets(pool_id)
+            print(f"  prompts OK for families: {sorted(resolved)}")
+        except (FileNotFoundError, ValueError) as error:
+            print(f"  prompts FAILED: {error}")
 
-    X, col_names = config.get_design_matrix()
-    print(f"\nDesign matrix: {X.shape[0]} x {X.shape[1]}")
-    print(f"Columns: {col_names}")
+    if args.cells:
+        print("\nCells:")
+        for cell in config.cells:
+            print(
+                f"  {cell.cell_id}: {cell.model_name} ({cell.provider}) "
+                f"[{cell.prompt_condition}] temp={cell.temperature}"
+            )
 
 
 def cmd_run(args: argparse.Namespace) -> None:
-    """Execute the study pipeline."""
+    """Execute the collection pipeline."""
     from .config import SEUSensitivityStudyConfig
     from .study_runner import SEUSensitivityStudyRunner
 
-    if args.config:
-        config = SEUSensitivityStudyConfig.from_yaml(args.config)
-    else:
-        config = SEUSensitivityStudyConfig()
-
+    config = (
+        SEUSensitivityStudyConfig.from_yaml(args.config)
+        if args.config
+        else SEUSensitivityStudyConfig()
+    )
     if args.output_dir:
         config.results_dir = args.output_dir
 
     runner = SEUSensitivityStudyRunner(config)
     output = runner.run(
-        skip_collection=args.skip_collection,
-        cells_to_run=args.cells.split(",") if args.cells else None,
+        phases=args.phases.split(",") if args.phases else None,
+        pool_ids=args.pools.split(",") if args.pools else None,
+        cell_ids=args.cells.split(",") if args.cells else None,
+        dry_run=args.dry_run,
+        force=args.force,
     )
-
     print(json.dumps(output, indent=2, default=str))
 
 
+def cmd_manifest(args: argparse.Namespace) -> None:
+    """Write the provenance manifest (§6.5)."""
+    from .config import SEUSensitivityStudyConfig
+    from .study_runner import SEUSensitivityStudyRunner
+
+    config = (
+        SEUSensitivityStudyConfig.from_yaml(args.config)
+        if args.config
+        else SEUSensitivityStudyConfig()
+    )
+    if args.output_dir:
+        config.results_dir = args.output_dir
+
+    manifest = SEUSensitivityStudyRunner(config).write_manifest()
+    print(json.dumps(manifest, indent=2, default=str))
+
+
 def main() -> None:
+    from .study_runner import PHASES
+
     parser = argparse.ArgumentParser(
         prog="seu_sensitivity_study",
-        description="6-model × 3-prompt SEU sensitivity study",
+        description="6-model x 3-prompt x 3-pool SEU sensitivity study",
     )
     parser.add_argument("-v", "--verbose", action="store_true")
 
     subparsers = parser.add_subparsers(dest="command")
 
-    # validate
-    p_validate = subparsers.add_parser("validate", help="Validate config")
+    p_validate = subparsers.add_parser("validate", help="Validate config and prompts")
     p_validate.add_argument("--config", type=str, default=None)
+    p_validate.add_argument("--cells", action="store_true", help="List every cell")
 
-    # run
-    p_run = subparsers.add_parser("run", help="Run the study")
+    p_run = subparsers.add_parser("run", help="Run the collection pipeline")
     p_run.add_argument("--config", type=str, default=None)
     p_run.add_argument("--output-dir", type=str, default=None)
-    p_run.add_argument("--skip-collection", action="store_true",
-                       help="Skip API calls; load existing data")
-    p_run.add_argument("--cells", type=str, default=None,
-                       help="Comma-separated cell IDs to run")
+    p_run.add_argument(
+        "--phases",
+        type=str,
+        default=None,
+        help=f"Comma-separated subset of: {','.join(PHASES)}",
+    )
+    p_run.add_argument("--pools", type=str, default=None, help="Comma-separated pool ids")
+    p_run.add_argument("--cells", type=str, default=None, help="Comma-separated cell ids")
+    p_run.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Report planned API call counts and exit without calling",
+    )
+    p_run.add_argument(
+        "--force",
+        action="store_true",
+        help="Proceed past an uncleared validation gate (recorded in the summary)",
+    )
+
+    p_manifest = subparsers.add_parser("manifest", help="Write the provenance manifest")
+    p_manifest.add_argument("--config", type=str, default=None)
+    p_manifest.add_argument("--output-dir", type=str, default=None)
 
     args = parser.parse_args()
     _setup_logging(args.verbose)
@@ -108,6 +163,8 @@ def main() -> None:
         cmd_validate(args)
     elif args.command == "run":
         cmd_run(args)
+    elif args.command == "manifest":
+        cmd_manifest(args)
     else:
         parser.print_help()
         sys.exit(1)

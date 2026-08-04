@@ -1,0 +1,138 @@
+# Prompt templates for the VENTURE pool (study plan §3.2, §3.3, §6.1).
+#
+# Structure is identical across pools so the loader stays generic.
+#
+# Two invariants are enforced by this file's shape rather than by convention:
+#
+#   1. There is exactly ONE assessment prompt, and it is neutral.  Assessments
+#      are collected once per model x pool and shared across all three prompt
+#      cells (B2, §3.2), so there is nowhere for a treatment prompt to leak
+#      into the belief-side channel.
+#   2. The three prompt conditions differ ONLY in `choice.instructions`.  The
+#      role, the assessment payload, and the answer format are shared, so the
+#      RQ2 contrast is the instruction and nothing else.
+#
+# Placeholders filled by the collectors:
+#   assessment.user_prompt : {item_text}, {consequence_lines}, {probability_format}
+#   choice.user_prompt     : {instruction}, {assessments_list}, {n_max}
+
+schema_version: "1.0"
+pool_id: venture
+
+assessment:
+  system_prompt: |
+    You are an analyst at an early-stage venture fund. You review prospective
+    investments and judge how they are likely to turn out.
+
+  user_prompt: |
+    Review the following venture and assess how likely each possible outcome is.
+
+    Venture:
+    {item_text}
+
+    Possible outcomes:
+    {consequence_lines}
+
+    Give a brief assessment in 2-4 sentences, then end your reply with a single
+    line in exactly this format:
+    {probability_format}
+
+    The probabilities must be decimals between 0 and 1 that sum to 1.
+
+choice:
+  system_prompt: |
+    You are an analyst at an early-stage venture fund. You are choosing which
+    one of several ventures to fund.
+
+  instructions:
+    # Role description only -- no decision-rule guidance of any kind.
+    neutral: |
+      Choose which venture to fund.
+
+    # Names the SEU rule explicitly, in the pool's own value vocabulary.
+    seu_maximizing: |
+      Choose the venture that maximizes subjective expected return, given your
+      assessed likelihoods for each possible outcome and the value of those
+      outcomes.
+
+    # Pure effort invocation. Deliberately contains NO likelihood, outcome,
+    # consequence, probability, value, or expected-utility vocabulary -- that
+    # wording would partially restate the seu_maximizing arm and contaminate
+    # the RQ2 contrast (§3.2, resolved).
+    deliberative: |
+      Think carefully and reason step by step before choosing.
+
+  user_prompt: |
+    Below are assessments of {n_max} ventures.
+
+    {assessments_list}
+
+    {instruction}
+
+    End your reply with a single line in exactly this format:
+    ANSWER: n
+
+    where n is a whole number between 1 and {n_max} identifying your choice.
+
+# --- Per-family overrides -------------------------------------------------
+#
+# The venture pool hosts the matched PROCUREMENT family (§3.3), which shares
+# this pool's item file and PCA space but carries a different task label. It
+# must therefore be *presented* as procurement, not as venture funding --
+# otherwise the matched pair would vary item content and task label together,
+# which is precisely what the paired contrast is designed to avoid.
+#
+# Anything omitted below inherits the pool-level template above. The three
+# `choice.instructions` keys are overridden together, so the RQ2 contrast has
+# the same shape in both families; only the task noun changes.
+families:
+  procurement:
+    assessment:
+      system_prompt: |
+        You are an analyst at a procurement office. You review prospective
+        vendors and judge how an engagement with them is likely to turn out.
+
+      user_prompt: |
+        Review the following vendor and assess how likely each possible outcome
+        is.
+
+        Vendor:
+        {item_text}
+
+        Possible outcomes:
+        {consequence_lines}
+
+        Give a brief assessment in 2-4 sentences, then end your reply with a
+        single line in exactly this format:
+        {probability_format}
+
+        The probabilities must be decimals between 0 and 1 that sum to 1.
+
+    choice:
+      system_prompt: |
+        You are an analyst at a procurement office. You are choosing which one
+        of several vendors to engage.
+
+      instructions:
+        neutral: |
+          Choose which vendor to engage.
+
+        seu_maximizing: |
+          Choose the vendor that maximizes subjective expected return, given
+          your assessed likelihoods for each possible outcome and the value of
+          those outcomes.
+
+        deliberative: |
+          Think carefully and reason step by step before choosing.
+
+      user_prompt: |
+        Below are assessments of {n_max} vendors.
+
+        {assessments_list}
+
+        {instruction}
+
+        End your reply with a single line in exactly this format:
+        ANSWER: n
+
+        where n is a whole number between 1 and {n_max} identifying your choice.

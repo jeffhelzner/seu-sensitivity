@@ -1,0 +1,1605 @@
+{
+  "schema_version": "1.0",
+  "pool_id": "hiring",
+  "framing": "positive",
+  "consequences": [
+    "Underperforms: falls short of what the role requires",
+    "Meets expectations: performs at the level the role requires",
+    "Exceeds expectations: performs well above the level the role requires"
+  ],
+  "families": {
+    "candidates": {
+      "description": "Sterilized candidate profiles (\u00a77.3); the RQ5 override probe. Supplies the ordinary hiring menus.",
+      "grid": [
+        "direct_evidence",
+        "track_record",
+        "structured_review",
+        "reference_checks",
+        "scope_coverage"
+      ],
+      "primary": true
+    },
+    "matched": {
+      "description": "The designated matched subset (\u00a73.3): the same merit vectors as the venture pool's procurement family, under the hiring label. Own menu stratum.",
+      "grid": [
+        "direct_evidence",
+        "track_record",
+        "structured_review",
+        "reference_checks",
+        "scope_coverage"
+      ],
+      "primary": false,
+      "matched_with": "venture/procurement"
+    }
+  },
+  "items": [
+    {
+      "id": "H001",
+      "family": "candidates",
+      "text": "Candidate H001 -- logistics coordination; 5-8 years of experience in this function.\n\nWork sample: met all requirements and handled edge cases unusually thoroughly.\nPrior delivery record: documented successful outcomes on a sustained series of comparable prior projects.\nStructured interview panel: scored the file in the upper-middle band of the rubric.\nReference checks: corroborated the claimed contributions in specific detail and were uniformly positive.\nScope coverage: covers all of the capabilities the role scope requires.",
+      "quality_label": "strong",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 3,
+          "track_record": 3,
+          "structured_review": 2,
+          "reference_checks": 3,
+          "scope_coverage": 3
+        },
+        "merit_total": 14,
+        "merit_dispersion": 1,
+        "context": {
+          "function": "logistics coordination",
+          "experience_band": "5-8"
+        },
+        "context_rank": 34,
+        "reservation": null,
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H002",
+      "family": "candidates",
+      "text": "Candidate H002 -- data platform engineering; 9+ years of experience in this function.\n\nWork sample: met all requirements and handled edge cases unusually thoroughly.\nPrior delivery record: documented successful outcomes on a sustained series of comparable prior projects.\nStructured interview panel: scored the file in the top band of the rubric.\nReference checks: corroborated the claimed contributions in specific detail and were uniformly positive.\nScope coverage: covers most of the capabilities the role scope requires.",
+      "quality_label": "strong",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 3,
+          "track_record": 3,
+          "structured_review": 3,
+          "reference_checks": 3,
+          "scope_coverage": 2
+        },
+        "merit_total": 14,
+        "merit_dispersion": 1,
+        "context": {
+          "function": "data platform engineering",
+          "experience_band": "9+"
+        },
+        "context_rank": 35,
+        "reservation": null,
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H003",
+      "family": "candidates",
+      "text": "Candidate H003 -- data platform engineering; 2-4 years of experience in this function.\n\nWork sample: met all requirements and was clearly organised, with minor gaps.\nPrior delivery record: documented successful outcomes on a sustained series of comparable prior projects.\nStructured interview panel: scored the file in the upper-middle band of the rubric.\nReference checks: corroborated the claimed contributions in specific detail and were uniformly positive.\nScope coverage: covers all of the capabilities the role scope requires.",
+      "quality_label": "strong",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 2,
+          "track_record": 3,
+          "structured_review": 2,
+          "reference_checks": 3,
+          "scope_coverage": 3
+        },
+        "merit_total": 13,
+        "merit_dispersion": 1,
+        "context": {
+          "function": "data platform engineering",
+          "experience_band": "2-4"
+        },
+        "context_rank": 30,
+        "reservation": null,
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H004",
+      "family": "candidates",
+      "text": "Candidate H004 -- records management; 5-8 years of experience in this function.\n\nWork sample: met all requirements and handled edge cases unusually thoroughly.\nPrior delivery record: documented successful outcomes on several comparable prior projects.\nStructured interview panel: scored the file in the upper-middle band of the rubric.\nReference checks: corroborated the claimed contributions in specific detail and were uniformly positive.\nScope coverage: covers all of the capabilities the role scope requires.",
+      "quality_label": "strong",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 3,
+          "track_record": 2,
+          "structured_review": 2,
+          "reference_checks": 3,
+          "scope_coverage": 3
+        },
+        "merit_total": 13,
+        "merit_dispersion": 1,
+        "context": {
+          "function": "records management",
+          "experience_band": "5-8"
+        },
+        "context_rank": 31,
+        "reservation": null,
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H005",
+      "family": "candidates",
+      "text": "Candidate H005 -- network operations; 9+ years of experience in this function.\n\nWork sample: met all requirements and handled edge cases unusually thoroughly.\nPrior delivery record: documented successful outcomes on a sustained series of comparable prior projects.\nStructured interview panel: scored the file in the upper-middle band of the rubric.\nReference checks: corroborated the claimed contributions.\nScope coverage: covers all of the capabilities the role scope requires.",
+      "quality_label": "strong",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 3,
+          "track_record": 3,
+          "structured_review": 2,
+          "reference_checks": 2,
+          "scope_coverage": 3
+        },
+        "merit_total": 13,
+        "merit_dispersion": 1,
+        "context": {
+          "function": "network operations",
+          "experience_band": "9+"
+        },
+        "context_rank": 32,
+        "reservation": null,
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H006",
+      "family": "candidates",
+      "text": "Candidate H006 -- quality assurance; 2-4 years of experience in this function.\n\nWork sample: met all requirements and handled edge cases unusually thoroughly.\nPrior delivery record: documented successful outcomes on a sustained series of comparable prior projects.\nStructured interview panel: scored the file in the top band of the rubric.\nReference checks: corroborated the claimed contributions.\nScope coverage: covers most of the capabilities the role scope requires.",
+      "quality_label": "strong",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 3,
+          "track_record": 3,
+          "structured_review": 3,
+          "reference_checks": 2,
+          "scope_coverage": 2
+        },
+        "merit_total": 13,
+        "merit_dispersion": 1,
+        "context": {
+          "function": "quality assurance",
+          "experience_band": "2-4"
+        },
+        "context_rank": 33,
+        "reservation": null,
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H007",
+      "family": "candidates",
+      "text": "Candidate H007 -- records management; 9+ years of experience in this function.\n\nWork sample: met all requirements and was clearly organised, with minor gaps.\nPrior delivery record: documented successful outcomes on several comparable prior projects.\nStructured interview panel: scored the file in the top band of the rubric.\nReference checks: corroborated the claimed contributions.\nScope coverage: covers all of the capabilities the role scope requires.",
+      "quality_label": "strong",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 2,
+          "track_record": 2,
+          "structured_review": 3,
+          "reference_checks": 2,
+          "scope_coverage": 3
+        },
+        "merit_total": 12,
+        "merit_dispersion": 1,
+        "context": {
+          "function": "records management",
+          "experience_band": "9+"
+        },
+        "context_rank": 26,
+        "reservation": null,
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H008",
+      "family": "candidates",
+      "text": "Candidate H008 -- network operations; 2-4 years of experience in this function.\n\nWork sample: met all requirements and was clearly organised, with minor gaps.\nPrior delivery record: documented successful outcomes on a sustained series of comparable prior projects.\nStructured interview panel: scored the file in the upper-middle band of the rubric.\nReference checks: corroborated the claimed contributions.\nScope coverage: covers all of the capabilities the role scope requires.",
+      "quality_label": "strong",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 2,
+          "track_record": 3,
+          "structured_review": 2,
+          "reference_checks": 2,
+          "scope_coverage": 3
+        },
+        "merit_total": 12,
+        "merit_dispersion": 1,
+        "context": {
+          "function": "network operations",
+          "experience_band": "2-4"
+        },
+        "context_rank": 27,
+        "reservation": null,
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H009",
+      "family": "candidates",
+      "text": "Candidate H009 -- quality assurance; 5-8 years of experience in this function.\n\nWork sample: met all requirements and handled edge cases unusually thoroughly.\nPrior delivery record: documented successful outcomes on several comparable prior projects.\nStructured interview panel: scored the file in the upper-middle band of the rubric.\nReference checks: corroborated the claimed contributions.\nScope coverage: covers all of the capabilities the role scope requires.",
+      "quality_label": "strong",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 3,
+          "track_record": 2,
+          "structured_review": 2,
+          "reference_checks": 2,
+          "scope_coverage": 3
+        },
+        "merit_total": 12,
+        "merit_dispersion": 1,
+        "context": {
+          "function": "quality assurance",
+          "experience_band": "5-8"
+        },
+        "context_rank": 28,
+        "reservation": null,
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H010",
+      "family": "candidates",
+      "text": "Candidate H010 -- logistics coordination; 9+ years of experience in this function.\n\nWork sample: met all requirements and handled edge cases unusually thoroughly.\nPrior delivery record: documented successful outcomes on several comparable prior projects.\nStructured interview panel: scored the file in the top band of the rubric.\nReference checks: corroborated the claimed contributions.\nScope coverage: covers most of the capabilities the role scope requires.",
+      "quality_label": "strong",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 3,
+          "track_record": 2,
+          "structured_review": 3,
+          "reference_checks": 2,
+          "scope_coverage": 2
+        },
+        "merit_total": 12,
+        "merit_dispersion": 1,
+        "context": {
+          "function": "logistics coordination",
+          "experience_band": "9+"
+        },
+        "context_rank": 29,
+        "reservation": null,
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H011",
+      "family": "candidates",
+      "text": "Candidate H011 -- data platform engineering; 5-8 years of experience in this function.\n\nWork sample: met all requirements and handled edge cases unusually thoroughly.\nPrior delivery record: documented successful outcomes on a sustained series of comparable prior projects.\nStructured interview panel: scored the file in the top band of the rubric.\nReference checks: could not be completed.\nScope coverage: covers most of the capabilities the role scope requires.\nNoted reservation: reviewers flagged the reference evidence as the weakest part of the file.",
+      "quality_label": "ambiguous",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 3,
+          "track_record": 3,
+          "structured_review": 3,
+          "reference_checks": 0,
+          "scope_coverage": 2
+        },
+        "merit_total": 11,
+        "merit_dispersion": 3,
+        "context": {
+          "function": "data platform engineering",
+          "experience_band": "5-8"
+        },
+        "context_rank": 25,
+        "reservation": "reference_checks",
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H012",
+      "family": "candidates",
+      "text": "Candidate H012 -- logistics coordination; 2-4 years of experience in this function.\n\nWork sample: met all requirements and handled edge cases unusually thoroughly.\nPrior delivery record: no documented outcomes from comparable prior work.\nStructured interview panel: scored the file in the upper-middle band of the rubric.\nReference checks: corroborated the claimed contributions.\nScope coverage: covers all of the capabilities the role scope requires.\nNoted reservation: reviewers flagged the delivery record as the weakest part of the file.",
+      "quality_label": "ambiguous",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 3,
+          "track_record": 0,
+          "structured_review": 2,
+          "reference_checks": 2,
+          "scope_coverage": 3
+        },
+        "merit_total": 10,
+        "merit_dispersion": 3,
+        "context": {
+          "function": "logistics coordination",
+          "experience_band": "2-4"
+        },
+        "context_rank": 24,
+        "reservation": "track_record",
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H013",
+      "family": "candidates",
+      "text": "Candidate H013 -- network operations; 5-8 years of experience in this function.\n\nWork sample: incomplete; did not meet the stated requirements.\nPrior delivery record: documented outcomes on one comparable prior project, with mixed results.\nStructured interview panel: scored the file in the top band of the rubric.\nReference checks: corroborated the claimed contributions in specific detail and were uniformly positive.\nScope coverage: covers most of the capabilities the role scope requires.\nNoted reservation: reviewers flagged the work sample as the weakest part of the file.",
+      "quality_label": "ambiguous",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 0,
+          "track_record": 1,
+          "structured_review": 3,
+          "reference_checks": 3,
+          "scope_coverage": 2
+        },
+        "merit_total": 9,
+        "merit_dispersion": 3,
+        "context": {
+          "function": "network operations",
+          "experience_band": "5-8"
+        },
+        "context_rank": 22,
+        "reservation": "direct_evidence",
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H014",
+      "family": "candidates",
+      "text": "Candidate H014 -- quality assurance; 9+ years of experience in this function.\n\nWork sample: met all requirements and handled edge cases unusually thoroughly.\nPrior delivery record: documented successful outcomes on a sustained series of comparable prior projects.\nStructured interview panel: scored the file in the bottom band of the rubric.\nReference checks: corroborated the claimed contributions in specific detail and were uniformly positive.\nScope coverage: covers few of the capabilities the role scope requires.\nNoted reservation: reviewers flagged the panel score as the weakest part of the file.",
+      "quality_label": "ambiguous",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 3,
+          "track_record": 3,
+          "structured_review": 0,
+          "reference_checks": 3,
+          "scope_coverage": 0
+        },
+        "merit_total": 9,
+        "merit_dispersion": 3,
+        "context": {
+          "function": "quality assurance",
+          "experience_band": "9+"
+        },
+        "context_rank": 23,
+        "reservation": "structured_review",
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H015",
+      "family": "candidates",
+      "text": "Candidate H015 -- data platform engineering; 9+ years of experience in this function.\n\nWork sample: incomplete; did not meet the stated requirements.\nPrior delivery record: documented outcomes on one comparable prior project, with mixed results.\nStructured interview panel: scored the file in the upper-middle band of the rubric.\nReference checks: corroborated the claimed contributions.\nScope coverage: covers all of the capabilities the role scope requires.\nNoted reservation: reviewers flagged the work sample as the weakest part of the file.",
+      "quality_label": "ambiguous",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 0,
+          "track_record": 1,
+          "structured_review": 2,
+          "reference_checks": 2,
+          "scope_coverage": 3
+        },
+        "merit_total": 8,
+        "merit_dispersion": 3,
+        "context": {
+          "function": "data platform engineering",
+          "experience_band": "9+"
+        },
+        "context_rank": 20,
+        "reservation": "direct_evidence",
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H016",
+      "family": "candidates",
+      "text": "Candidate H016 -- records management; 2-4 years of experience in this function.\n\nWork sample: met all requirements and handled edge cases unusually thoroughly.\nPrior delivery record: no documented outcomes from comparable prior work.\nStructured interview panel: scored the file in the bottom band of the rubric.\nReference checks: corroborated the claimed contributions in specific detail and were uniformly positive.\nScope coverage: covers most of the capabilities the role scope requires.\nNoted reservation: reviewers flagged the delivery record as the weakest part of the file.",
+      "quality_label": "ambiguous",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 3,
+          "track_record": 0,
+          "structured_review": 0,
+          "reference_checks": 3,
+          "scope_coverage": 2
+        },
+        "merit_total": 8,
+        "merit_dispersion": 3,
+        "context": {
+          "function": "records management",
+          "experience_band": "2-4"
+        },
+        "context_rank": 21,
+        "reservation": "track_record",
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H017",
+      "family": "candidates",
+      "text": "Candidate H017 -- quality assurance; 2-4 years of experience in this function.\n\nWork sample: met all requirements and was clearly organised, with minor gaps.\nPrior delivery record: documented outcomes on one comparable prior project, with mixed results.\nStructured interview panel: scored the file in the bottom band of the rubric.\nReference checks: corroborated the claimed contributions in specific detail and were uniformly positive.\nScope coverage: covers some of the capabilities the role scope requires.\nNoted reservation: reviewers flagged the panel score as the weakest part of the file.",
+      "quality_label": "ambiguous",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 2,
+          "track_record": 1,
+          "structured_review": 0,
+          "reference_checks": 3,
+          "scope_coverage": 1
+        },
+        "merit_total": 7,
+        "merit_dispersion": 3,
+        "context": {
+          "function": "quality assurance",
+          "experience_band": "2-4"
+        },
+        "context_rank": 18,
+        "reservation": "structured_review",
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H018",
+      "family": "candidates",
+      "text": "Candidate H018 -- logistics coordination; 5-8 years of experience in this function.\n\nWork sample: met all requirements and was clearly organised, with minor gaps.\nPrior delivery record: documented successful outcomes on several comparable prior projects.\nStructured interview panel: scored the file in the lower-middle band of the rubric.\nReference checks: could not be completed.\nScope coverage: covers most of the capabilities the role scope requires.\nNoted reservation: reviewers flagged the reference evidence as the weakest part of the file.",
+      "quality_label": "ambiguous",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 2,
+          "track_record": 2,
+          "structured_review": 1,
+          "reference_checks": 0,
+          "scope_coverage": 2
+        },
+        "merit_total": 7,
+        "merit_dispersion": 2,
+        "context": {
+          "function": "logistics coordination",
+          "experience_band": "5-8"
+        },
+        "context_rank": 19,
+        "reservation": "reference_checks",
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H019",
+      "family": "candidates",
+      "text": "Candidate H019 -- records management; 5-8 years of experience in this function.\n\nWork sample: met the basic requirements but showed several correctness and clarity problems.\nPrior delivery record: no documented outcomes from comparable prior work.\nStructured interview panel: scored the file in the lower-middle band of the rubric.\nReference checks: corroborated the claimed contributions in specific detail and were uniformly positive.\nScope coverage: covers some of the capabilities the role scope requires.\nNoted reservation: reviewers flagged the delivery record as the weakest part of the file.",
+      "quality_label": "ambiguous",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 1,
+          "track_record": 0,
+          "structured_review": 1,
+          "reference_checks": 3,
+          "scope_coverage": 1
+        },
+        "merit_total": 6,
+        "merit_dispersion": 3,
+        "context": {
+          "function": "records management",
+          "experience_band": "5-8"
+        },
+        "context_rank": 16,
+        "reservation": "track_record",
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H020",
+      "family": "candidates",
+      "text": "Candidate H020 -- network operations; 9+ years of experience in this function.\n\nWork sample: met the basic requirements but showed several correctness and clarity problems.\nPrior delivery record: documented outcomes on one comparable prior project, with mixed results.\nStructured interview panel: scored the file in the lower-middle band of the rubric.\nReference checks: corroborated the claimed contributions.\nScope coverage: covers some of the capabilities the role scope requires.",
+      "quality_label": "ambiguous",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 1,
+          "track_record": 1,
+          "structured_review": 1,
+          "reference_checks": 2,
+          "scope_coverage": 1
+        },
+        "merit_total": 6,
+        "merit_dispersion": 1,
+        "context": {
+          "function": "network operations",
+          "experience_band": "9+"
+        },
+        "context_rank": 17,
+        "reservation": null,
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H021",
+      "family": "candidates",
+      "text": "Candidate H021 -- quality assurance; 5-8 years of experience in this function.\n\nWork sample: met the basic requirements but showed several correctness and clarity problems.\nPrior delivery record: no documented outcomes from comparable prior work.\nStructured interview panel: scored the file in the lower-middle band of the rubric.\nReference checks: returned brief, non-specific responses.\nScope coverage: covers most of the capabilities the role scope requires.\nNoted reservation: reviewers flagged the delivery record as the weakest part of the file.",
+      "quality_label": "weak",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 1,
+          "track_record": 0,
+          "structured_review": 1,
+          "reference_checks": 1,
+          "scope_coverage": 2
+        },
+        "merit_total": 5,
+        "merit_dispersion": 2,
+        "context": {
+          "function": "quality assurance",
+          "experience_band": "5-8"
+        },
+        "context_rank": 13,
+        "reservation": "track_record",
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H022",
+      "family": "candidates",
+      "text": "Candidate H022 -- logistics coordination; 9+ years of experience in this function.\n\nWork sample: met the basic requirements but showed several correctness and clarity problems.\nPrior delivery record: documented outcomes on one comparable prior project, with mixed results.\nStructured interview panel: scored the file in the upper-middle band of the rubric.\nReference checks: returned brief, non-specific responses.\nScope coverage: covers few of the capabilities the role scope requires.\nNoted reservation: reviewers flagged the scope gap as the weakest part of the file.",
+      "quality_label": "weak",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 1,
+          "track_record": 1,
+          "structured_review": 2,
+          "reference_checks": 1,
+          "scope_coverage": 0
+        },
+        "merit_total": 5,
+        "merit_dispersion": 2,
+        "context": {
+          "function": "logistics coordination",
+          "experience_band": "9+"
+        },
+        "context_rank": 14,
+        "reservation": "scope_coverage",
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H023",
+      "family": "candidates",
+      "text": "Candidate H023 -- data platform engineering; 2-4 years of experience in this function.\n\nWork sample: met all requirements and was clearly organised, with minor gaps.\nPrior delivery record: documented outcomes on one comparable prior project, with mixed results.\nStructured interview panel: scored the file in the lower-middle band of the rubric.\nReference checks: could not be completed.\nScope coverage: covers some of the capabilities the role scope requires.\nNoted reservation: reviewers flagged the reference evidence as the weakest part of the file.",
+      "quality_label": "weak",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 2,
+          "track_record": 1,
+          "structured_review": 1,
+          "reference_checks": 0,
+          "scope_coverage": 1
+        },
+        "merit_total": 5,
+        "merit_dispersion": 2,
+        "context": {
+          "function": "data platform engineering",
+          "experience_band": "2-4"
+        },
+        "context_rank": 15,
+        "reservation": "reference_checks",
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H024",
+      "family": "candidates",
+      "text": "Candidate H024 -- quality assurance; 9+ years of experience in this function.\n\nWork sample: incomplete; did not meet the stated requirements.\nPrior delivery record: no documented outcomes from comparable prior work.\nStructured interview panel: scored the file in the lower-middle band of the rubric.\nReference checks: returned brief, non-specific responses.\nScope coverage: covers most of the capabilities the role scope requires.\nNoted reservation: reviewers flagged the work sample as the weakest part of the file.",
+      "quality_label": "weak",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 0,
+          "track_record": 0,
+          "structured_review": 1,
+          "reference_checks": 1,
+          "scope_coverage": 2
+        },
+        "merit_total": 4,
+        "merit_dispersion": 2,
+        "context": {
+          "function": "quality assurance",
+          "experience_band": "9+"
+        },
+        "context_rank": 8,
+        "reservation": "direct_evidence",
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H025",
+      "family": "candidates",
+      "text": "Candidate H025 -- logistics coordination; 2-4 years of experience in this function.\n\nWork sample: incomplete; did not meet the stated requirements.\nPrior delivery record: documented outcomes on one comparable prior project, with mixed results.\nStructured interview panel: scored the file in the upper-middle band of the rubric.\nReference checks: could not be completed.\nScope coverage: covers some of the capabilities the role scope requires.\nNoted reservation: reviewers flagged the work sample as the weakest part of the file.",
+      "quality_label": "weak",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 0,
+          "track_record": 1,
+          "structured_review": 2,
+          "reference_checks": 0,
+          "scope_coverage": 1
+        },
+        "merit_total": 4,
+        "merit_dispersion": 2,
+        "context": {
+          "function": "logistics coordination",
+          "experience_band": "2-4"
+        },
+        "context_rank": 9,
+        "reservation": "direct_evidence",
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H026",
+      "family": "candidates",
+      "text": "Candidate H026 -- data platform engineering; 5-8 years of experience in this function.\n\nWork sample: met the basic requirements but showed several correctness and clarity problems.\nPrior delivery record: no documented outcomes from comparable prior work.\nStructured interview panel: scored the file in the lower-middle band of the rubric.\nReference checks: corroborated the claimed contributions.\nScope coverage: covers few of the capabilities the role scope requires.\nNoted reservation: reviewers flagged the delivery record as the weakest part of the file.",
+      "quality_label": "weak",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 1,
+          "track_record": 0,
+          "structured_review": 1,
+          "reference_checks": 2,
+          "scope_coverage": 0
+        },
+        "merit_total": 4,
+        "merit_dispersion": 2,
+        "context": {
+          "function": "data platform engineering",
+          "experience_band": "5-8"
+        },
+        "context_rank": 10,
+        "reservation": "track_record",
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H027",
+      "family": "candidates",
+      "text": "Candidate H027 -- records management; 9+ years of experience in this function.\n\nWork sample: met the basic requirements but showed several correctness and clarity problems.\nPrior delivery record: documented successful outcomes on several comparable prior projects.\nStructured interview panel: scored the file in the bottom band of the rubric.\nReference checks: returned brief, non-specific responses.\nScope coverage: covers few of the capabilities the role scope requires.\nNoted reservation: reviewers flagged the panel score as the weakest part of the file.",
+      "quality_label": "weak",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 1,
+          "track_record": 2,
+          "structured_review": 0,
+          "reference_checks": 1,
+          "scope_coverage": 0
+        },
+        "merit_total": 4,
+        "merit_dispersion": 2,
+        "context": {
+          "function": "records management",
+          "experience_band": "9+"
+        },
+        "context_rank": 11,
+        "reservation": "structured_review",
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H028",
+      "family": "candidates",
+      "text": "Candidate H028 -- network operations; 2-4 years of experience in this function.\n\nWork sample: met all requirements and was clearly organised, with minor gaps.\nPrior delivery record: documented outcomes on one comparable prior project, with mixed results.\nStructured interview panel: scored the file in the bottom band of the rubric.\nReference checks: returned brief, non-specific responses.\nScope coverage: covers few of the capabilities the role scope requires.\nNoted reservation: reviewers flagged the panel score as the weakest part of the file.",
+      "quality_label": "weak",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 2,
+          "track_record": 1,
+          "structured_review": 0,
+          "reference_checks": 1,
+          "scope_coverage": 0
+        },
+        "merit_total": 4,
+        "merit_dispersion": 2,
+        "context": {
+          "function": "network operations",
+          "experience_band": "2-4"
+        },
+        "context_rank": 12,
+        "reservation": "structured_review",
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H029",
+      "family": "candidates",
+      "text": "Candidate H029 -- quality assurance; 2-4 years of experience in this function.\n\nWork sample: incomplete; did not meet the stated requirements.\nPrior delivery record: no documented outcomes from comparable prior work.\nStructured interview panel: scored the file in the upper-middle band of the rubric.\nReference checks: could not be completed.\nScope coverage: covers some of the capabilities the role scope requires.\nNoted reservation: reviewers flagged the work sample as the weakest part of the file.",
+      "quality_label": "weak",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 0,
+          "track_record": 0,
+          "structured_review": 2,
+          "reference_checks": 0,
+          "scope_coverage": 1
+        },
+        "merit_total": 3,
+        "merit_dispersion": 2,
+        "context": {
+          "function": "quality assurance",
+          "experience_band": "2-4"
+        },
+        "context_rank": 3,
+        "reservation": "direct_evidence",
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H030",
+      "family": "candidates",
+      "text": "Candidate H030 -- logistics coordination; 5-8 years of experience in this function.\n\nWork sample: incomplete; did not meet the stated requirements.\nPrior delivery record: documented outcomes on one comparable prior project, with mixed results.\nStructured interview panel: scored the file in the bottom band of the rubric.\nReference checks: returned brief, non-specific responses.\nScope coverage: covers some of the capabilities the role scope requires.",
+      "quality_label": "weak",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 0,
+          "track_record": 1,
+          "structured_review": 0,
+          "reference_checks": 1,
+          "scope_coverage": 1
+        },
+        "merit_total": 3,
+        "merit_dispersion": 1,
+        "context": {
+          "function": "logistics coordination",
+          "experience_band": "5-8"
+        },
+        "context_rank": 4,
+        "reservation": null,
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H031",
+      "family": "candidates",
+      "text": "Candidate H031 -- data platform engineering; 9+ years of experience in this function.\n\nWork sample: met the basic requirements but showed several correctness and clarity problems.\nPrior delivery record: no documented outcomes from comparable prior work.\nStructured interview panel: scored the file in the bottom band of the rubric.\nReference checks: could not be completed.\nScope coverage: covers most of the capabilities the role scope requires.\nNoted reservation: reviewers flagged the delivery record as the weakest part of the file.",
+      "quality_label": "weak",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 1,
+          "track_record": 0,
+          "structured_review": 0,
+          "reference_checks": 0,
+          "scope_coverage": 2
+        },
+        "merit_total": 3,
+        "merit_dispersion": 2,
+        "context": {
+          "function": "data platform engineering",
+          "experience_band": "9+"
+        },
+        "context_rank": 5,
+        "reservation": "track_record",
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H032",
+      "family": "candidates",
+      "text": "Candidate H032 -- records management; 2-4 years of experience in this function.\n\nWork sample: met the basic requirements but showed several correctness and clarity problems.\nPrior delivery record: documented outcomes on one comparable prior project, with mixed results.\nStructured interview panel: scored the file in the bottom band of the rubric.\nReference checks: could not be completed.\nScope coverage: covers some of the capabilities the role scope requires.",
+      "quality_label": "weak",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 1,
+          "track_record": 1,
+          "structured_review": 0,
+          "reference_checks": 0,
+          "scope_coverage": 1
+        },
+        "merit_total": 3,
+        "merit_dispersion": 1,
+        "context": {
+          "function": "records management",
+          "experience_band": "2-4"
+        },
+        "context_rank": 6,
+        "reservation": null,
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H033",
+      "family": "candidates",
+      "text": "Candidate H033 -- network operations; 5-8 years of experience in this function.\n\nWork sample: met all requirements and was clearly organised, with minor gaps.\nPrior delivery record: documented outcomes on one comparable prior project, with mixed results.\nStructured interview panel: scored the file in the bottom band of the rubric.\nReference checks: could not be completed.\nScope coverage: covers few of the capabilities the role scope requires.\nNoted reservation: reviewers flagged the panel score as the weakest part of the file.",
+      "quality_label": "weak",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 2,
+          "track_record": 1,
+          "structured_review": 0,
+          "reference_checks": 0,
+          "scope_coverage": 0
+        },
+        "merit_total": 3,
+        "merit_dispersion": 2,
+        "context": {
+          "function": "network operations",
+          "experience_band": "5-8"
+        },
+        "context_rank": 7,
+        "reservation": "structured_review",
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H034",
+      "family": "candidates",
+      "text": "Candidate H034 -- records management; 5-8 years of experience in this function.\n\nWork sample: incomplete; did not meet the stated requirements.\nPrior delivery record: no documented outcomes from comparable prior work.\nStructured interview panel: scored the file in the lower-middle band of the rubric.\nReference checks: could not be completed.\nScope coverage: covers some of the capabilities the role scope requires.",
+      "quality_label": "weak",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 0,
+          "track_record": 0,
+          "structured_review": 1,
+          "reference_checks": 0,
+          "scope_coverage": 1
+        },
+        "merit_total": 2,
+        "merit_dispersion": 1,
+        "context": {
+          "function": "records management",
+          "experience_band": "5-8"
+        },
+        "context_rank": 1,
+        "reservation": null,
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H035",
+      "family": "candidates",
+      "text": "Candidate H035 -- network operations; 9+ years of experience in this function.\n\nWork sample: met the basic requirements but showed several correctness and clarity problems.\nPrior delivery record: documented outcomes on one comparable prior project, with mixed results.\nStructured interview panel: scored the file in the bottom band of the rubric.\nReference checks: could not be completed.\nScope coverage: covers few of the capabilities the role scope requires.",
+      "quality_label": "weak",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 1,
+          "track_record": 1,
+          "structured_review": 0,
+          "reference_checks": 0,
+          "scope_coverage": 0
+        },
+        "merit_total": 2,
+        "merit_dispersion": 1,
+        "context": {
+          "function": "network operations",
+          "experience_band": "9+"
+        },
+        "context_rank": 2,
+        "reservation": null,
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H036",
+      "family": "candidates",
+      "text": "Candidate H036 -- data platform engineering; 2-4 years of experience in this function.\n\nWork sample: incomplete; did not meet the stated requirements.\nPrior delivery record: no documented outcomes from comparable prior work.\nStructured interview panel: scored the file in the bottom band of the rubric.\nReference checks: could not be completed.\nScope coverage: covers some of the capabilities the role scope requires.",
+      "quality_label": "weak",
+      "matched_key": null,
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 0,
+          "track_record": 0,
+          "structured_review": 0,
+          "reference_checks": 0,
+          "scope_coverage": 1
+        },
+        "merit_total": 1,
+        "merit_dispersion": 1,
+        "context": {
+          "function": "data platform engineering",
+          "experience_band": "2-4"
+        },
+        "context_rank": 0,
+        "reservation": null,
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H101",
+      "family": "matched",
+      "text": "Candidate H101 -- quality assurance; 9+ years of experience in this function.\n\nWork sample: met all requirements and handled edge cases unusually thoroughly.\nPrior delivery record: documented successful outcomes on a sustained series of comparable prior projects.\nStructured interview panel: scored the file in the top band of the rubric.\nReference checks: corroborated the claimed contributions in specific detail and were uniformly positive.\nScope coverage: covers all of the capabilities the role scope requires.",
+      "quality_label": "strong",
+      "matched_key": "MK01",
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 3,
+          "track_record": 3,
+          "structured_review": 3,
+          "reference_checks": 3,
+          "scope_coverage": 3
+        },
+        "merit_total": 15,
+        "merit_dispersion": 0,
+        "context": {
+          "function": "quality assurance",
+          "experience_band": "9+"
+        },
+        "context_rank": 23,
+        "reservation": null,
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H102",
+      "family": "matched",
+      "text": "Candidate H102 -- network operations; 5-8 years of experience in this function.\n\nWork sample: met all requirements and was clearly organised, with minor gaps.\nPrior delivery record: documented successful outcomes on a sustained series of comparable prior projects.\nStructured interview panel: scored the file in the top band of the rubric.\nReference checks: corroborated the claimed contributions in specific detail and were uniformly positive.\nScope coverage: covers all of the capabilities the role scope requires.",
+      "quality_label": "strong",
+      "matched_key": "MK02",
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 2,
+          "track_record": 3,
+          "structured_review": 3,
+          "reference_checks": 3,
+          "scope_coverage": 3
+        },
+        "merit_total": 14,
+        "merit_dispersion": 1,
+        "context": {
+          "function": "network operations",
+          "experience_band": "5-8"
+        },
+        "context_rank": 22,
+        "reservation": null,
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H103",
+      "family": "matched",
+      "text": "Candidate H103 -- data platform engineering; 9+ years of experience in this function.\n\nWork sample: met all requirements and was clearly organised, with minor gaps.\nPrior delivery record: documented successful outcomes on several comparable prior projects.\nStructured interview panel: scored the file in the top band of the rubric.\nReference checks: corroborated the claimed contributions in specific detail and were uniformly positive.\nScope coverage: covers all of the capabilities the role scope requires.",
+      "quality_label": "strong",
+      "matched_key": "MK03",
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 2,
+          "track_record": 2,
+          "structured_review": 3,
+          "reference_checks": 3,
+          "scope_coverage": 3
+        },
+        "merit_total": 13,
+        "merit_dispersion": 1,
+        "context": {
+          "function": "data platform engineering",
+          "experience_band": "9+"
+        },
+        "context_rank": 20,
+        "reservation": null,
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H104",
+      "family": "matched",
+      "text": "Candidate H104 -- records management; 2-4 years of experience in this function.\n\nWork sample: met all requirements and handled edge cases unusually thoroughly.\nPrior delivery record: documented successful outcomes on several comparable prior projects.\nStructured interview panel: scored the file in the top band of the rubric.\nReference checks: corroborated the claimed contributions.\nScope coverage: covers all of the capabilities the role scope requires.",
+      "quality_label": "strong",
+      "matched_key": "MK04",
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 3,
+          "track_record": 2,
+          "structured_review": 3,
+          "reference_checks": 2,
+          "scope_coverage": 3
+        },
+        "merit_total": 13,
+        "merit_dispersion": 1,
+        "context": {
+          "function": "records management",
+          "experience_band": "2-4"
+        },
+        "context_rank": 21,
+        "reservation": null,
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H105",
+      "family": "matched",
+      "text": "Candidate H105 -- quality assurance; 2-4 years of experience in this function.\n\nWork sample: met all requirements and was clearly organised, with minor gaps.\nPrior delivery record: documented successful outcomes on several comparable prior projects.\nStructured interview panel: scored the file in the upper-middle band of the rubric.\nReference checks: corroborated the claimed contributions in specific detail and were uniformly positive.\nScope coverage: covers all of the capabilities the role scope requires.",
+      "quality_label": "strong",
+      "matched_key": "MK05",
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 2,
+          "track_record": 2,
+          "structured_review": 2,
+          "reference_checks": 3,
+          "scope_coverage": 3
+        },
+        "merit_total": 12,
+        "merit_dispersion": 1,
+        "context": {
+          "function": "quality assurance",
+          "experience_band": "2-4"
+        },
+        "context_rank": 18,
+        "reservation": null,
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H106",
+      "family": "matched",
+      "text": "Candidate H106 -- logistics coordination; 5-8 years of experience in this function.\n\nWork sample: met all requirements and was clearly organised, with minor gaps.\nPrior delivery record: documented successful outcomes on a sustained series of comparable prior projects.\nStructured interview panel: scored the file in the top band of the rubric.\nReference checks: corroborated the claimed contributions.\nScope coverage: covers most of the capabilities the role scope requires.",
+      "quality_label": "strong",
+      "matched_key": "MK06",
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 2,
+          "track_record": 3,
+          "structured_review": 3,
+          "reference_checks": 2,
+          "scope_coverage": 2
+        },
+        "merit_total": 12,
+        "merit_dispersion": 1,
+        "context": {
+          "function": "logistics coordination",
+          "experience_band": "5-8"
+        },
+        "context_rank": 19,
+        "reservation": null,
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H107",
+      "family": "matched",
+      "text": "Candidate H107 -- network operations; 9+ years of experience in this function.\n\nWork sample: met all requirements and handled edge cases unusually thoroughly.\nPrior delivery record: documented successful outcomes on a sustained series of comparable prior projects.\nStructured interview panel: scored the file in the top band of the rubric.\nReference checks: corroborated the claimed contributions.\nScope coverage: covers few of the capabilities the role scope requires.\nNoted reservation: reviewers flagged the scope gap as the weakest part of the file.",
+      "quality_label": "ambiguous",
+      "matched_key": "MK07",
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 3,
+          "track_record": 3,
+          "structured_review": 3,
+          "reference_checks": 2,
+          "scope_coverage": 0
+        },
+        "merit_total": 11,
+        "merit_dispersion": 3,
+        "context": {
+          "function": "network operations",
+          "experience_band": "9+"
+        },
+        "context_rank": 17,
+        "reservation": "scope_coverage",
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H108",
+      "family": "matched",
+      "text": "Candidate H108 -- records management; 5-8 years of experience in this function.\n\nWork sample: met the basic requirements but showed several correctness and clarity problems.\nPrior delivery record: documented successful outcomes on a sustained series of comparable prior projects.\nStructured interview panel: scored the file in the upper-middle band of the rubric.\nReference checks: returned brief, non-specific responses.\nScope coverage: covers all of the capabilities the role scope requires.\nNoted reservation: reviewers flagged the work sample as the weakest part of the file.",
+      "quality_label": "ambiguous",
+      "matched_key": "MK08",
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 1,
+          "track_record": 3,
+          "structured_review": 2,
+          "reference_checks": 1,
+          "scope_coverage": 3
+        },
+        "merit_total": 10,
+        "merit_dispersion": 2,
+        "context": {
+          "function": "records management",
+          "experience_band": "5-8"
+        },
+        "context_rank": 16,
+        "reservation": "direct_evidence",
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H109",
+      "family": "matched",
+      "text": "Candidate H109 -- logistics coordination; 9+ years of experience in this function.\n\nWork sample: met all requirements and was clearly organised, with minor gaps.\nPrior delivery record: documented outcomes on one comparable prior project, with mixed results.\nStructured interview panel: scored the file in the upper-middle band of the rubric.\nReference checks: corroborated the claimed contributions.\nScope coverage: covers some of the capabilities the role scope requires.",
+      "quality_label": "ambiguous",
+      "matched_key": "MK09",
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 2,
+          "track_record": 1,
+          "structured_review": 2,
+          "reference_checks": 2,
+          "scope_coverage": 1
+        },
+        "merit_total": 8,
+        "merit_dispersion": 1,
+        "context": {
+          "function": "logistics coordination",
+          "experience_band": "9+"
+        },
+        "context_rank": 14,
+        "reservation": null,
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H110",
+      "family": "matched",
+      "text": "Candidate H110 -- data platform engineering; 2-4 years of experience in this function.\n\nWork sample: met all requirements and handled edge cases unusually thoroughly.\nPrior delivery record: documented successful outcomes on a sustained series of comparable prior projects.\nStructured interview panel: scored the file in the lower-middle band of the rubric.\nReference checks: returned brief, non-specific responses.\nScope coverage: covers few of the capabilities the role scope requires.\nNoted reservation: reviewers flagged the scope gap as the weakest part of the file.",
+      "quality_label": "ambiguous",
+      "matched_key": "MK10",
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 3,
+          "track_record": 3,
+          "structured_review": 1,
+          "reference_checks": 1,
+          "scope_coverage": 0
+        },
+        "merit_total": 8,
+        "merit_dispersion": 3,
+        "context": {
+          "function": "data platform engineering",
+          "experience_band": "2-4"
+        },
+        "context_rank": 15,
+        "reservation": "scope_coverage",
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H111",
+      "family": "matched",
+      "text": "Candidate H111 -- quality assurance; 5-8 years of experience in this function.\n\nWork sample: incomplete; did not meet the stated requirements.\nPrior delivery record: documented successful outcomes on several comparable prior projects.\nStructured interview panel: scored the file in the upper-middle band of the rubric.\nReference checks: corroborated the claimed contributions.\nScope coverage: covers some of the capabilities the role scope requires.\nNoted reservation: reviewers flagged the work sample as the weakest part of the file.",
+      "quality_label": "ambiguous",
+      "matched_key": "MK11",
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 0,
+          "track_record": 2,
+          "structured_review": 2,
+          "reference_checks": 2,
+          "scope_coverage": 1
+        },
+        "merit_total": 7,
+        "merit_dispersion": 2,
+        "context": {
+          "function": "quality assurance",
+          "experience_band": "5-8"
+        },
+        "context_rank": 13,
+        "reservation": "direct_evidence",
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H112",
+      "family": "matched",
+      "text": "Candidate H112 -- network operations; 2-4 years of experience in this function.\n\nWork sample: met the basic requirements but showed several correctness and clarity problems.\nPrior delivery record: documented outcomes on one comparable prior project, with mixed results.\nStructured interview panel: scored the file in the lower-middle band of the rubric.\nReference checks: returned brief, non-specific responses.\nScope coverage: covers most of the capabilities the role scope requires.",
+      "quality_label": "ambiguous",
+      "matched_key": "MK12",
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 1,
+          "track_record": 1,
+          "structured_review": 1,
+          "reference_checks": 1,
+          "scope_coverage": 2
+        },
+        "merit_total": 6,
+        "merit_dispersion": 1,
+        "context": {
+          "function": "network operations",
+          "experience_band": "2-4"
+        },
+        "context_rank": 12,
+        "reservation": null,
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H113",
+      "family": "matched",
+      "text": "Candidate H113 -- logistics coordination; 2-4 years of experience in this function.\n\nWork sample: incomplete; did not meet the stated requirements.\nPrior delivery record: documented outcomes on one comparable prior project, with mixed results.\nStructured interview panel: scored the file in the lower-middle band of the rubric.\nReference checks: returned brief, non-specific responses.\nScope coverage: covers most of the capabilities the role scope requires.\nNoted reservation: reviewers flagged the work sample as the weakest part of the file.",
+      "quality_label": "weak",
+      "matched_key": "MK13",
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 0,
+          "track_record": 1,
+          "structured_review": 1,
+          "reference_checks": 1,
+          "scope_coverage": 2
+        },
+        "merit_total": 5,
+        "merit_dispersion": 2,
+        "context": {
+          "function": "logistics coordination",
+          "experience_band": "2-4"
+        },
+        "context_rank": 9,
+        "reservation": "direct_evidence",
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H114",
+      "family": "matched",
+      "text": "Candidate H114 -- data platform engineering; 5-8 years of experience in this function.\n\nWork sample: met the basic requirements but showed several correctness and clarity problems.\nPrior delivery record: documented outcomes on one comparable prior project, with mixed results.\nStructured interview panel: scored the file in the lower-middle band of the rubric.\nReference checks: could not be completed.\nScope coverage: covers most of the capabilities the role scope requires.\nNoted reservation: reviewers flagged the reference evidence as the weakest part of the file.",
+      "quality_label": "weak",
+      "matched_key": "MK14",
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 1,
+          "track_record": 1,
+          "structured_review": 1,
+          "reference_checks": 0,
+          "scope_coverage": 2
+        },
+        "merit_total": 5,
+        "merit_dispersion": 2,
+        "context": {
+          "function": "data platform engineering",
+          "experience_band": "5-8"
+        },
+        "context_rank": 10,
+        "reservation": "reference_checks",
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H115",
+      "family": "matched",
+      "text": "Candidate H115 -- records management; 9+ years of experience in this function.\n\nWork sample: met all requirements and was clearly organised, with minor gaps.\nPrior delivery record: documented outcomes on one comparable prior project, with mixed results.\nStructured interview panel: scored the file in the lower-middle band of the rubric.\nReference checks: returned brief, non-specific responses.\nScope coverage: covers few of the capabilities the role scope requires.\nNoted reservation: reviewers flagged the scope gap as the weakest part of the file.",
+      "quality_label": "weak",
+      "matched_key": "MK15",
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 2,
+          "track_record": 1,
+          "structured_review": 1,
+          "reference_checks": 1,
+          "scope_coverage": 0
+        },
+        "merit_total": 5,
+        "merit_dispersion": 2,
+        "context": {
+          "function": "records management",
+          "experience_band": "9+"
+        },
+        "context_rank": 11,
+        "reservation": "scope_coverage",
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H116",
+      "family": "matched",
+      "text": "Candidate H116 -- records management; 2-4 years of experience in this function.\n\nWork sample: incomplete; did not meet the stated requirements.\nPrior delivery record: no documented outcomes from comparable prior work.\nStructured interview panel: scored the file in the upper-middle band of the rubric.\nReference checks: returned brief, non-specific responses.\nScope coverage: covers some of the capabilities the role scope requires.\nNoted reservation: reviewers flagged the work sample as the weakest part of the file.",
+      "quality_label": "weak",
+      "matched_key": "MK16",
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 0,
+          "track_record": 0,
+          "structured_review": 2,
+          "reference_checks": 1,
+          "scope_coverage": 1
+        },
+        "merit_total": 4,
+        "merit_dispersion": 2,
+        "context": {
+          "function": "records management",
+          "experience_band": "2-4"
+        },
+        "context_rank": 6,
+        "reservation": "direct_evidence",
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H117",
+      "family": "matched",
+      "text": "Candidate H117 -- network operations; 5-8 years of experience in this function.\n\nWork sample: incomplete; did not meet the stated requirements.\nPrior delivery record: documented successful outcomes on several comparable prior projects.\nStructured interview panel: scored the file in the lower-middle band of the rubric.\nReference checks: returned brief, non-specific responses.\nScope coverage: covers few of the capabilities the role scope requires.\nNoted reservation: reviewers flagged the work sample as the weakest part of the file.",
+      "quality_label": "weak",
+      "matched_key": "MK17",
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 0,
+          "track_record": 2,
+          "structured_review": 1,
+          "reference_checks": 1,
+          "scope_coverage": 0
+        },
+        "merit_total": 4,
+        "merit_dispersion": 2,
+        "context": {
+          "function": "network operations",
+          "experience_band": "5-8"
+        },
+        "context_rank": 7,
+        "reservation": "direct_evidence",
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H118",
+      "family": "matched",
+      "text": "Candidate H118 -- quality assurance; 9+ years of experience in this function.\n\nWork sample: met the basic requirements but showed several correctness and clarity problems.\nPrior delivery record: documented successful outcomes on several comparable prior projects.\nStructured interview panel: scored the file in the bottom band of the rubric.\nReference checks: could not be completed.\nScope coverage: covers some of the capabilities the role scope requires.\nNoted reservation: reviewers flagged the panel score as the weakest part of the file.",
+      "quality_label": "weak",
+      "matched_key": "MK18",
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 1,
+          "track_record": 2,
+          "structured_review": 0,
+          "reference_checks": 0,
+          "scope_coverage": 1
+        },
+        "merit_total": 4,
+        "merit_dispersion": 2,
+        "context": {
+          "function": "quality assurance",
+          "experience_band": "9+"
+        },
+        "context_rank": 8,
+        "reservation": "structured_review",
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H119",
+      "family": "matched",
+      "text": "Candidate H119 -- quality assurance; 2-4 years of experience in this function.\n\nWork sample: incomplete; did not meet the stated requirements.\nPrior delivery record: documented outcomes on one comparable prior project, with mixed results.\nStructured interview panel: scored the file in the upper-middle band of the rubric.\nReference checks: could not be completed.\nScope coverage: covers few of the capabilities the role scope requires.\nNoted reservation: reviewers flagged the work sample as the weakest part of the file.",
+      "quality_label": "weak",
+      "matched_key": "MK19",
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 0,
+          "track_record": 1,
+          "structured_review": 2,
+          "reference_checks": 0,
+          "scope_coverage": 0
+        },
+        "merit_total": 3,
+        "merit_dispersion": 2,
+        "context": {
+          "function": "quality assurance",
+          "experience_band": "2-4"
+        },
+        "context_rank": 3,
+        "reservation": "direct_evidence",
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H120",
+      "family": "matched",
+      "text": "Candidate H120 -- logistics coordination; 5-8 years of experience in this function.\n\nWork sample: met the basic requirements but showed several correctness and clarity problems.\nPrior delivery record: documented outcomes on one comparable prior project, with mixed results.\nStructured interview panel: scored the file in the bottom band of the rubric.\nReference checks: returned brief, non-specific responses.\nScope coverage: covers few of the capabilities the role scope requires.",
+      "quality_label": "weak",
+      "matched_key": "MK20",
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 1,
+          "track_record": 1,
+          "structured_review": 0,
+          "reference_checks": 1,
+          "scope_coverage": 0
+        },
+        "merit_total": 3,
+        "merit_dispersion": 1,
+        "context": {
+          "function": "logistics coordination",
+          "experience_band": "5-8"
+        },
+        "context_rank": 4,
+        "reservation": null,
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H121",
+      "family": "matched",
+      "text": "Candidate H121 -- data platform engineering; 9+ years of experience in this function.\n\nWork sample: met all requirements and was clearly organised, with minor gaps.\nPrior delivery record: no documented outcomes from comparable prior work.\nStructured interview panel: scored the file in the bottom band of the rubric.\nReference checks: returned brief, non-specific responses.\nScope coverage: covers few of the capabilities the role scope requires.\nNoted reservation: reviewers flagged the delivery record as the weakest part of the file.",
+      "quality_label": "weak",
+      "matched_key": "MK21",
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 2,
+          "track_record": 0,
+          "structured_review": 0,
+          "reference_checks": 1,
+          "scope_coverage": 0
+        },
+        "merit_total": 3,
+        "merit_dispersion": 2,
+        "context": {
+          "function": "data platform engineering",
+          "experience_band": "9+"
+        },
+        "context_rank": 5,
+        "reservation": "track_record",
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H122",
+      "family": "matched",
+      "text": "Candidate H122 -- records management; 5-8 years of experience in this function.\n\nWork sample: incomplete; did not meet the stated requirements.\nPrior delivery record: documented outcomes on one comparable prior project, with mixed results.\nStructured interview panel: scored the file in the bottom band of the rubric.\nReference checks: returned brief, non-specific responses.\nScope coverage: covers few of the capabilities the role scope requires.",
+      "quality_label": "weak",
+      "matched_key": "MK22",
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 0,
+          "track_record": 1,
+          "structured_review": 0,
+          "reference_checks": 1,
+          "scope_coverage": 0
+        },
+        "merit_total": 2,
+        "merit_dispersion": 1,
+        "context": {
+          "function": "records management",
+          "experience_band": "5-8"
+        },
+        "context_rank": 1,
+        "reservation": null,
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H123",
+      "family": "matched",
+      "text": "Candidate H123 -- network operations; 9+ years of experience in this function.\n\nWork sample: incomplete; did not meet the stated requirements.\nPrior delivery record: documented successful outcomes on several comparable prior projects.\nStructured interview panel: scored the file in the bottom band of the rubric.\nReference checks: could not be completed.\nScope coverage: covers few of the capabilities the role scope requires.\nNoted reservation: reviewers flagged the work sample as the weakest part of the file.",
+      "quality_label": "weak",
+      "matched_key": "MK23",
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 0,
+          "track_record": 2,
+          "structured_review": 0,
+          "reference_checks": 0,
+          "scope_coverage": 0
+        },
+        "merit_total": 2,
+        "merit_dispersion": 2,
+        "context": {
+          "function": "network operations",
+          "experience_band": "9+"
+        },
+        "context_rank": 2,
+        "reservation": "direct_evidence",
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    },
+    {
+      "id": "H124",
+      "family": "matched",
+      "text": "Candidate H124 -- data platform engineering; 2-4 years of experience in this function.\n\nWork sample: incomplete; did not meet the stated requirements.\nPrior delivery record: no documented outcomes from comparable prior work.\nStructured interview panel: scored the file in the bottom band of the rubric.\nReference checks: could not be completed.\nScope coverage: covers few of the capabilities the role scope requires.",
+      "quality_label": "weak",
+      "matched_key": "MK24",
+      "attributes": {
+        "merit_vector": {
+          "direct_evidence": 0,
+          "track_record": 0,
+          "structured_review": 0,
+          "reference_checks": 0,
+          "scope_coverage": 0
+        },
+        "merit_total": 0,
+        "merit_dispersion": 0,
+        "context": {
+          "function": "data platform engineering",
+          "experience_band": "2-4"
+        },
+        "context_rank": 0,
+        "reservation": null,
+        "grid_version": "merit-grid-v1",
+        "template_id": "matched.hiring.v1"
+      }
+    }
+  ],
+  "provenance": {
+    "generator": "applications.seu_sensitivity_study.data.build_pools",
+    "grid_version": "merit-grid-v1",
+    "deterministic": true,
+    "note": "Rendered from a closed level->phrase vocabulary; no free text. Regenerate with `python -m applications.seu_sensitivity_study.data.build_pools`.",
+    "label_rule": "quality_label is monotone in merit_total: strong >= 12, weak <= 5, ambiguous between.",
+    "sterilized": true
+  }
+}

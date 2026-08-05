@@ -61,6 +61,7 @@ def _build_study_design(design_config: dict) -> HierarchicalStudyDesign:
             ),
             min_alts_per_problem=design_config.get("min_alts_per_problem", 2),
             max_alts_per_problem=design_config.get("max_alts_per_problem", 4),
+            menu_sizes=design_config.get("menu_sizes"),
             feature_dist=design_config.get("feature_dist", "normal"),
             feature_params=design_config.get(
                 "feature_params", {"loc": 0, "scale": 1}
@@ -84,6 +85,7 @@ def _build_study_design(design_config: dict) -> HierarchicalStudyDesign:
         X=X,
         min_alts_per_problem=design_config.get("min_alts_per_problem", 2),
         max_alts_per_problem=design_config.get("max_alts_per_problem", 4),
+        menu_sizes=design_config.get("menu_sizes"),
         feature_dist=design_config.get("feature_dist", "normal"),
         feature_params=design_config.get(
             "feature_params", {"loc": 0, "scale": 1}
@@ -126,6 +128,14 @@ def run_from_config(config_path: str) -> HierarchicalSBC:
         n_mcmc_samples=n_mcmc_samples,
         n_mcmc_chains=n_mcmc_chains,
         thin=thin,
+        # Variant hooks; the defaults reproduce the h_m01 behaviour exactly.
+        # extra_params_after_gamma MUST mirror the pars_/ranks_ order in the
+        # .stan file, or every rank histogram is silently mislabelled.
+        alpha_var=config.get("alpha_var", "alpha"),
+        extra_params_after_gamma=tuple(config.get("extra_params_after_gamma", ())),
+        iter_warmup=config.get("iter_warmup"),
+        adapt_delta=config.get("adapt_delta"),
+        max_treedepth=config.get("max_treedepth"),
     )
 
     ranks, true_params = sbc.run()

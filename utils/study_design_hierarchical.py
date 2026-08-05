@@ -36,6 +36,19 @@ class HierarchicalStudyDesign:
         Minimum alternatives per choice problem.
     max_alts_per_problem : int
         Maximum alternatives per choice problem.
+    menu_sizes : List[int], optional
+        Explicit set of menu sizes to draw from, balanced **within each cell**
+        and shuffled. When given it overrides ``min_alts_per_problem`` /
+        ``max_alts_per_problem``, and ``get_data_dict`` additionally emits the
+        centered covariate ``s`` required by ``h_m01_size`` (RQ6, plan §4).
+
+        Balance is per cell rather than global on purpose: ``gamma_size`` is
+        identified from the spread of sizes *within* a cell, so a design whose
+        cells each saw mostly one size would confound the size slope with the
+        cell effect while still looking balanced overall.
+
+        Leaving this ``None`` reproduces the original uniform-in-range
+        behaviour exactly, so existing designs are unaffected.
     feature_dist : str
         Distribution for generating feature vectors ("normal" or "uniform").
     feature_params : dict
@@ -55,6 +68,7 @@ class HierarchicalStudyDesign:
         X: Optional[np.ndarray] = None,
         min_alts_per_problem: int = 2,
         max_alts_per_problem: int = 4,
+        menu_sizes: Optional[List[int]] = None,
         feature_dist: str = "normal",
         feature_params: Optional[dict] = None,
         design_name: str = "hierarchical_default",
@@ -66,9 +80,22 @@ class HierarchicalStudyDesign:
         self.P = P
         self.min_alts = min_alts_per_problem
         self.max_alts = max_alts_per_problem
+        self.menu_sizes = list(menu_sizes) if menu_sizes else None
         self.feature_dist = feature_dist
         self.feature_params = feature_params or {"loc": 0, "scale": 1}
         self.design_name = design_name
+
+        if self.menu_sizes is not None:
+            if min(self.menu_sizes) < 2:
+                raise ValueError(
+                    f"menu_sizes must all be >= 2 (a choice needs two options); "
+                    f"got {self.menu_sizes}"
+                )
+            if max(self.menu_sizes) > R:
+                raise ValueError(
+                    f"menu_sizes max ({max(self.menu_sizes)}) exceeds the shared "
+                    f"alternative pool R={R}; menus are drawn without replacement"
+                )
 
         # Handle M_per_cell
         if isinstance(M_per_cell, int):
@@ -221,6 +248,7 @@ class HierarchicalStudyDesign:
         include_interactions: bool = False,
         min_alts_per_problem: int = 2,
         max_alts_per_problem: int = 4,
+        menu_sizes: Optional[List[int]] = None,
         feature_dist: str = "normal",
         feature_params: Optional[dict] = None,
         design_name: str = "factorial",
@@ -250,6 +278,7 @@ class HierarchicalStudyDesign:
             X=X,
             min_alts_per_problem=min_alts_per_problem,
             max_alts_per_problem=max_alts_per_problem,
+            menu_sizes=menu_sizes,
             feature_dist=feature_dist,
             feature_params=feature_params,
             design_name=design_name,
@@ -319,9 +348,18 @@ class HierarchicalStudyDesign:
 
         row = 0
         for j in range(self.J):
-            for _ in range(self._M_per_cell[j]):
-                # Random number of alternatives for this problem
-                n_alts = np.random.randint(self.min_alts, self.max_alts + 1)
+            n_in_cell = self._M_per_cell[j]
+            planned = (
+                self._allocate_menu_sizes(n_in_cell)
+                if self.menu_sizes is not None
+                else None
+            )
+            for position in range(n_in_cell):
+                if planned is not None:
+                    n_alts = planned[position]
+                else:
+                    # Random number of alternatives for this problem
+                    n_alts = np.random.randint(self.min_alts, self.max_alts + 1)
                 n_alts = min(n_alts, self.R)  # Can't exceed pool size
 
                 # Select which alternatives appear
@@ -333,6 +371,15 @@ class HierarchicalStudyDesign:
                 row += 1
 
         return I, cell
+
+    def _allocate_menu_sizes(self, count: int) -> List[int]:
+        """Spread ``self.menu_sizes`` as evenly as possible over *count* menus."""
+        sizes: List[int] = []
+        base, remainder = divmod(count, len(self.menu_sizes))
+        for index, size in enumerate(self.menu_sizes):
+            sizes.extend([size] * (base + (1 if index < remainder else 0)))
+        np.random.shuffle(sizes)
+        return sizes
 
     def get_data_dict(self) -> dict:
         """Return Stan-compatible data dictionary."""
@@ -361,6 +408,21 @@ class HierarchicalStudyDesign:
             "sigma_cell_sd": 0.3,
             "beta_sd": 1.0,
         }
+
+        if self.menu_sizes is not None:
+            # h_m01_size takes the menu size CENTERED on its realised mean, so
+            # that gamma0 (and hence alpha_cell) keeps its h_m01 reading as
+            # alpha at the average menu size rather than at size zero.
+            realised = self.I.sum(axis=1).astype(float)
+            data["s"] = (realised - realised.mean()).tolist()
+            data["menu_size"] = realised.astype(int).tolist()
+            data["mean_menu_size"] = float(realised.mean())
+            # Sim hyperparameters for h_m01_size_sim. gamma_size_sd = 0 pins the
+            # slope at gamma_size_mean, which is how the null-calibration check
+            # of §8.5(e) is requested.
+            data["gamma_size_mean"] = 0.0
+            data["gamma_size_sd"] = 0.5
+
         return data
 
     def save(self, filepath: str) -> Path:
@@ -377,6 +439,8 @@ class HierarchicalStudyDesign:
             "feature_dist": self.feature_dist,
             "feature_params": self.feature_params,
         }
+        if self.menu_sizes is not None:
+            meta["menu_sizes"] = list(self.menu_sizes)
         # Persist factorial metadata if present
         if hasattr(self, "factors"):
             meta["factors"] = list(self.factors)
@@ -409,6 +473,7 @@ class HierarchicalStudyDesign:
             X=np.array(data["X"]),
             min_alts_per_problem=metadata.get("min_alts_per_problem", 2),
             max_alts_per_problem=metadata.get("max_alts_per_problem", 4),
+            menu_sizes=metadata.get("menu_sizes"),
             feature_dist=metadata.get("feature_dist", "normal"),
             feature_params=metadata.get("feature_params", {"loc": 0, "scale": 1}),
             design_name=metadata.get("design_name", "loaded"),

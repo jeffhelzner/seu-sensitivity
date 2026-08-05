@@ -41,6 +41,10 @@ class HierarchicalParameterRecovery:
         n_mcmc_samples: int = 2000,
         n_mcmc_chains: int = 4,
         n_iterations: int = 20,
+        alpha_var: str = "alpha",
+        extra_scalar_params: tuple = (),
+        sim_only_keys: tuple = (),
+        sim_overrides: dict = None,
     ):
         project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -55,6 +59,17 @@ class HierarchicalParameterRecovery:
         self.n_mcmc_samples = n_mcmc_samples
         self.n_mcmc_chains = n_mcmc_chains
         self.n_iterations = n_iterations
+        # h_m01_size renames alpha -> alpha_cell (alpha is observation-varying
+        # there) and adds gamma_size. Keeping these as parameters lets one
+        # recovery implementation drive both models rather than forking it.
+        self.alpha_var = alpha_var
+        self.extra_scalar_params = tuple(extra_scalar_params)
+        self.sim_only_keys = tuple(sim_only_keys)
+        # Overrides applied to the simulation hyperparameters. This is what
+        # turns a recovery run into the §8.5(e) NULL-CALIBRATION check:
+        # {"gamma_size_sd": 0} pins the true slope at zero, so the reported
+        # bias and coverage for gamma_size become exactly the null statistics.
+        self.sim_overrides = dict(sim_overrides or {})
 
         if output_dir is None:
             timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -100,6 +115,7 @@ class HierarchicalParameterRecovery:
 
         # Get data dictionary for simulation
         sim_data = self.study_design.get_data_dict()
+        sim_data.update(self.sim_overrides)
 
         J = self.study_design.J
         K = self.study_design.K
@@ -117,6 +133,7 @@ class HierarchicalParameterRecovery:
                     "n_iterations": self.n_iterations,
                     "n_mcmc_samples": self.n_mcmc_samples,
                     "n_mcmc_chains": self.n_mcmc_chains,
+                    "sim_overrides": self.sim_overrides,
                     "J": J, "K": K, "D": D, "P": P, "M_total": M_total,
                 },
                 f,
@@ -154,7 +171,9 @@ class HierarchicalParameterRecovery:
             inference_data = {
                 k: v
                 for k, v in sim_data.items()
-                if k not in ("gamma0_mean", "gamma0_sd", "gamma_sd", "sigma_cell_sd", "beta_sd")
+                if k not in (
+                    "gamma0_mean", "gamma0_sd", "gamma_sd", "sigma_cell_sd", "beta_sd",
+                ) + self.sim_only_keys
             }
             inference_data["y"] = y
 
@@ -210,14 +229,20 @@ class HierarchicalParameterRecovery:
 
     def _extract_true_params(self, sim_samples, J, K, D, P) -> dict:
         """Extract true parameter values from simulation output."""
-        return {
+        params = {
             "gamma0": float(sim_samples["gamma0"]),
             "gamma": [float(sim_samples[f"gamma[{p+1}]"]) for p in range(P)],
             "sigma_cell": float(sim_samples["sigma_cell"]),
-            "alpha": [float(sim_samples[f"alpha[{j+1}]"]) for j in range(J)],
+            # Stored under the generic key "alpha" whatever the model calls it,
+            # so the downstream analysis stays model-agnostic.
+            "alpha": [float(sim_samples[f"{self.alpha_var}[{j+1}]"]) for j in range(J)],
             "delta": [float(sim_samples[f"delta[{k+1}]"]) for k in range(K - 1)],
             "upsilon": [float(sim_samples[f"upsilon[{k+1}]"]) for k in range(K)],
         }
+        params["extras"] = {
+            name: float(sim_samples[name]) for name in self.extra_scalar_params
+        }
+        return params
 
     def _analyze_recovery(self, all_true_params, all_posterior_summaries):
         """Compute bias, RMSE, coverage, CI width for each parameter."""
@@ -233,6 +258,8 @@ class HierarchicalParameterRecovery:
         regression_params = [("gamma0", "gamma0")]
         for p in range(P):
             regression_params.append((f"gamma[{p+1}]", f"gamma_{p+1}"))
+        for name in self.extra_scalar_params:
+            regression_params.append((name, name))
         regression_params.append(("sigma_cell", "sigma_cell"))
 
         fig, axes = plt.subplots(1, len(regression_params), figsize=(5 * len(regression_params), 5))
@@ -244,6 +271,8 @@ class HierarchicalParameterRecovery:
                 true_vals = [p["gamma0"] for p in all_true_params]
             elif stan_name == "sigma_cell":
                 true_vals = [p["sigma_cell"] for p in all_true_params]
+            elif stan_name in self.extra_scalar_params:
+                true_vals = [p["extras"][stan_name] for p in all_true_params]
             else:
                 p_idx = int(stan_name.split("[")[1].rstrip("]")) - 1
                 true_vals = [p["gamma"][p_idx] for p in all_true_params]
@@ -273,7 +302,7 @@ class HierarchicalParameterRecovery:
         fig, axes = plt.subplots(nrows, ncols, figsize=(5 * ncols, 5 * nrows), squeeze=False)
 
         for j in range(J):
-            stan_name = f"alpha[{j+1}]"
+            stan_name = f"{self.alpha_var}[{j+1}]"
             true_vals = [p["alpha"][j] for p in all_true_params]
             mean_vals = [s.loc[stan_name, "Mean"] for s in all_posterior_summaries]
             lower_vals = [s.loc[stan_name, "5%"] for s in all_posterior_summaries]
@@ -286,9 +315,9 @@ class HierarchicalParameterRecovery:
             ax.scatter(true_vals, mean_vals, alpha=0.7)
             lims = [min(min(true_vals), min(mean_vals)), max(max(true_vals), max(mean_vals))]
             ax.plot(lims, lims, "r--")
-            ax.set_xlabel(f"True alpha[{j+1}]")
-            ax.set_ylabel(f"Estimated alpha[{j+1}]")
-            ax.set_title(f"alpha[{j+1}]\nRMSE={stats['rmse']:.3f} Cov={stats['coverage']:.0%}")
+            ax.set_xlabel(f"True {self.alpha_var}[{j+1}]")
+            ax.set_ylabel(f"Estimated {self.alpha_var}[{j+1}]")
+            ax.set_title(f"{self.alpha_var}[{j+1}]\nRMSE={stats['rmse']:.3f} Cov={stats['coverage']:.0%}")
 
         # Hide unused axes
         for idx in range(J, nrows * ncols):

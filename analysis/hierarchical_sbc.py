@@ -41,6 +41,11 @@ class HierarchicalSBC:
         n_mcmc_samples: int = 1000,
         n_mcmc_chains: int = 1,
         thin: int = 3,
+        alpha_var: str = "alpha",
+        extra_params_after_gamma: tuple = (),
+        iter_warmup: int = None,
+        adapt_delta: float = None,
+        max_treedepth: int = None,
     ):
         project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -53,6 +58,22 @@ class HierarchicalSBC:
         self.n_mcmc_samples = n_mcmc_samples
         self.n_mcmc_chains = n_mcmc_chains
         self.thin = thin
+        # h_m01_size_sbc tracks gamma_size between gamma and sigma_cell, and
+        # names the cell-level scale alpha_cell. These must mirror the pars_ /
+        # ranks_ ORDER in the .stan file exactly or every histogram is mislabelled.
+        self.alpha_var = alpha_var
+        self.extra_params_after_gamma = tuple(extra_params_after_gamma)
+        # Sampler settings. Defaults (None) preserve the original behaviour:
+        # warmup = n_mcmc_samples // (2 * chains) and CmdStan's own adapt_delta.
+        #
+        # They are configurable because SBC is unusually exposed to poor
+        # adaptation: an under-converged posterior distorts the ranks directly,
+        # and SBC runs a SINGLE chain, so R_hat cannot be computed to detect
+        # it. h_m01_size needs >= 1000 warmup at adapt_delta >= 0.9 (a 500 /
+        # default pass gave R_hat 1.10 with divergences).
+        self.iter_warmup = iter_warmup
+        self.adapt_delta = adapt_delta
+        self.max_treedepth = max_treedepth
 
         if output_dir is None:
             timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -95,7 +116,10 @@ class HierarchicalSBC:
         # Get data (SBC model doesn't need sim hyperparams or y)
         data = self.study_design.get_data_dict()
         # Remove sim hyperparams (SBC model draws its own)
-        for key in ("gamma0_mean", "gamma0_sd", "gamma_sd", "sigma_cell_sd", "beta_sd"):
+        for key in (
+            "gamma0_mean", "gamma0_sd", "gamma_sd", "sigma_cell_sd", "beta_sd",
+            "gamma_size_mean", "gamma_size_sd", "menu_size", "mean_menu_size",
+        ):
             data.pop(key, None)
 
         J = self.study_design.J
@@ -120,6 +144,9 @@ class HierarchicalSBC:
                     "n_mcmc_chains": self.n_mcmc_chains,
                     "thin": self.thin,
                     "effective_sample_size": self.n_mcmc_samples // self.thin,
+                    "iter_warmup": self.iter_warmup,
+                    "adapt_delta": self.adapt_delta,
+                    "max_treedepth": self.max_treedepth,
                     "J": J, "K": K, "P": P,
                     "param_names": param_names,
                 },
@@ -130,12 +157,23 @@ class HierarchicalSBC:
         print(f"Running {self.n_sbc_sims} SBC simulations with thinning factor {self.thin}...")
 
         for i in tqdm(range(self.n_sbc_sims)):
+            sample_kwargs = {}
+            if self.adapt_delta is not None:
+                sample_kwargs["adapt_delta"] = self.adapt_delta
+            if self.max_treedepth is not None:
+                sample_kwargs["max_treedepth"] = self.max_treedepth
+
             sbc_fit = self.sbc_model.sample(
                 data=data,
                 seed=123 + i,
                 iter_sampling=self.n_mcmc_samples // self.n_mcmc_chains,
-                iter_warmup=self.n_mcmc_samples // (2 * self.n_mcmc_chains),
+                iter_warmup=(
+                    self.iter_warmup
+                    if self.iter_warmup is not None
+                    else self.n_mcmc_samples // (2 * self.n_mcmc_chains)
+                ),
                 chains=self.n_mcmc_chains,
+                **sample_kwargs,
             )
 
             # Extract true parameters
@@ -171,16 +209,19 @@ class HierarchicalSBC:
 
     def _get_param_names(self, J, K, P) -> list:
         """
-        Return ordered list of parameter names matching pars_/ranks_ in h_m01_sbc.stan.
+        Return ordered list of parameter names matching pars_/ranks_ in the SBC model.
 
-        Order: gamma0, gamma[1..P], sigma_cell, alpha[1..J], delta[1..K-1]
+        Order: gamma0, gamma[1..P], <extras>, sigma_cell, <alpha_var>[1..J],
+        delta[1..K-1]. The extras slot is empty for h_m01_sbc and holds
+        gamma_size for h_m01_size_sbc.
         """
         names = ["gamma0"]
         for p in range(1, P + 1):
             names.append(f"gamma[{p}]")
+        names.extend(self.extra_params_after_gamma)
         names.append("sigma_cell")
         for j in range(1, J + 1):
-            names.append(f"alpha[{j}]")
+            names.append(f"{self.alpha_var}[{j}]")
         for k in range(1, K):
             names.append(f"delta[{k}]")
         return names
@@ -202,9 +243,16 @@ class HierarchicalSBC:
         K = self.study_design.K
         P = self.study_design.P
 
-        # Identify parameter groups
-        regression_names = ["gamma0"] + [f"gamma[{p}]" for p in range(1, P + 1)] + ["sigma_cell"]
-        alpha_names = [f"alpha[{j}]" for j in range(1, J + 1)]
+        # Identify parameter groups. These must be drawn from the same
+        # configuration as _get_param_names, or a variant model's extra
+        # parameters silently vanish from the plots (or raise on lookup).
+        regression_names = (
+            ["gamma0"]
+            + [f"gamma[{p}]" for p in range(1, P + 1)]
+            + list(self.extra_params_after_gamma)
+            + ["sigma_cell"]
+        )
+        alpha_names = [f"{self.alpha_var}[{j}]" for j in range(1, J + 1)]
         delta_names = [f"delta[{k}]" for k in range(1, K)]
 
         chi2_results = {}

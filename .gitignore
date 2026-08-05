@@ -107,6 +107,14 @@ models/m_31
 models/m_31_sbc
 models/m_0_prior_sweep
 
+# Compiled h_m01_size executables (RQ6 menu-size variant). Regenerable from the
+# .stan sources and platform-specific, so they are ignored like the m_* family
+# above. Note the older h_m01/h_m01_sim/h_m01_sbc binaries are tracked; that is
+# pre-existing and left alone rather than churned here.
+models/h_m01_size
+models/h_m01_size_sim
+models/h_m01_size_sbc
+
 .env
 
 README_files

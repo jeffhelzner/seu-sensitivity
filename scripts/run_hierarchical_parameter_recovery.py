@@ -62,6 +62,7 @@ def _build_study_design(design_config: dict) -> HierarchicalStudyDesign:
             ),
             min_alts_per_problem=design_config.get("min_alts_per_problem", 2),
             max_alts_per_problem=design_config.get("max_alts_per_problem", 4),
+            menu_sizes=design_config.get("menu_sizes"),
             feature_dist=design_config.get("feature_dist", "normal"),
             feature_params=design_config.get(
                 "feature_params", {"loc": 0, "scale": 1}
@@ -85,6 +86,7 @@ def _build_study_design(design_config: dict) -> HierarchicalStudyDesign:
         X=X,
         min_alts_per_problem=design_config.get("min_alts_per_problem", 2),
         max_alts_per_problem=design_config.get("max_alts_per_problem", 4),
+        menu_sizes=design_config.get("menu_sizes"),
         feature_dist=design_config.get("feature_dist", "normal"),
         feature_params=design_config.get(
             "feature_params", {"loc": 0, "scale": 1}
@@ -127,6 +129,11 @@ def run_from_config(config_path: str) -> HierarchicalParameterRecovery:
         n_mcmc_samples=n_mcmc_samples,
         n_mcmc_chains=n_mcmc_chains,
         n_iterations=n_iterations,
+        # Variant hooks; the defaults reproduce the h_m01 behaviour exactly.
+        alpha_var=config.get("alpha_var", "alpha"),
+        extra_scalar_params=tuple(config.get("extra_scalar_params", ())),
+        sim_only_keys=tuple(config.get("sim_only_keys", ())),
+        sim_overrides=config.get("sim_overrides"),
     )
 
     true_params, posterior_summaries = recovery.run()

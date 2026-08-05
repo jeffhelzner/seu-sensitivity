@@ -1,0 +1,39 @@
+{
+  "_comment": [
+    "Parameter recovery for the h_m01_size menu-size variant (RQ6; plan 8.5(e), 8.6).",
+    "",
+    "menu_sizes are balanced WITHIN each cell by the design generator, because",
+    "gamma_size is identified from the size spread inside a cell.",
+    "",
+    "alpha_var is alpha_cell, not alpha: in h_m01_size alpha varies by observation,",
+    "and alpha_cell[j] is alpha at the pool's MEAN menu size (s is centered), which",
+    "is what keeps it commensurable with h_m01's alpha[j].",
+    "",
+    "Sampler settings are not the h_m01 defaults. A 500/500 pass at default",
+    "adapt_delta gave max R_hat 1.10 with divergences; 1000+ warmup at",
+    "adapt_delta 0.9 gave R_hat <= 1.008 and zero divergences across 6 fits."
+  ],
+  "inference_model_path": "models/h_m01_size.stan",
+  "sim_model_path": "models/h_m01_size_sim.stan",
+  "study_design_path": null,
+  "output_dir": "results/parameter_recovery/h_m01_size_recovery",
+  "n_mcmc_samples": 2000,
+  "n_mcmc_chains": 4,
+  "n_iterations": 20,
+  "alpha_var": "alpha_cell",
+  "extra_scalar_params": ["gamma_size"],
+  "sim_only_keys": ["gamma_size_mean", "gamma_size_sd", "menu_size", "mean_menu_size"],
+  "study_design_config": {
+    "factors": [3, 2],
+    "reference_indices": [0, 0],
+    "include_interactions": false,
+    "K": 3,
+    "D": 2,
+    "R": 12,
+    "M_per_cell": 60,
+    "menu_sizes": [2, 4, 6, 8],
+    "feature_dist": "normal",
+    "feature_params": {"loc": 0, "scale": 1},
+    "design_name": "h_m01_size_3x2_main_effects"
+  }
+}

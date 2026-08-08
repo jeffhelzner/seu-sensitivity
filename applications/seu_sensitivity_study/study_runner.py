@@ -49,7 +49,7 @@ from . import provenance, prompts as prompts_module, schemas
 from .assessment_collection import AssessmentCollector
 from .choice_collection import ChoiceCollector
 from .client import build_client
-from .config import CellSpec, SEUSensitivityStudyConfig, get_model_spec
+from .config import MODELS, CellSpec, SEUSensitivityStudyConfig, get_model_spec
 
 logger = logging.getLogger(__name__)
 
@@ -89,6 +89,7 @@ class SEUSensitivityStudyRunner:
         phases: Optional[Sequence[str]] = None,
         pool_ids: Optional[Sequence[str]] = None,
         cell_ids: Optional[Sequence[str]] = None,
+        model_names: Optional[Sequence[str]] = None,
         dry_run: bool = False,
         force: bool = False,
     ) -> Dict[str, Any]:
@@ -100,6 +101,12 @@ class SEUSensitivityStudyRunner:
         dry_run:
             Report the planned work -- call counts per phase -- and make no API
             calls.  Intended to be run before every real run (§12, E1).
+        model_names:
+            Restrict the ``assess`` phase to these models.  Assessments are keyed
+            on model alone (the prompt is omitted -- that is B2 in code), so this
+            is the only phase the filter applies to; ``cell_ids`` filters
+            ``choices``.  Used to price a small probe before committing to the
+            full model set.
         force:
             Proceed past a gate that has not passed.  Recorded in the summary
             so a forced run is never indistinguishable from a clean one.
@@ -110,12 +117,22 @@ class SEUSensitivityStudyRunner:
             raise ValueError(f"Unknown phase(s) {unknown}; available: {list(PHASES)}")
 
         selected_pools = list(pool_ids) if pool_ids else list(self.config.pool_ids)
+        selected_models = list(model_names) if model_names else None
+        if selected_models:
+            known = {spec.name for spec in MODELS}
+            unknown_models = [m for m in selected_models if m not in known]
+            if unknown_models:
+                raise ValueError(
+                    f"Unknown model(s) {unknown_models}; available: {sorted(known)}"
+                )
         summary: Dict[str, Any] = {
             "phases": selected_phases,
             "pools": {},
             "dry_run": dry_run,
             "forced": force,
         }
+        if selected_models:
+            summary["models"] = selected_models
 
         if dry_run:
             summary["plan"] = self._dry_run_plan(selected_pools, selected_phases)
@@ -124,7 +141,11 @@ class SEUSensitivityStudyRunner:
 
         for pool_id in selected_pools:
             summary["pools"][pool_id] = self._run_pool(
-                pool_id, selected_phases, cell_ids=cell_ids, force=force
+                pool_id,
+                selected_phases,
+                cell_ids=cell_ids,
+                model_names=selected_models,
+                force=force,
             )
 
         self._write_json(self.results_dir / "run_summary.json", summary)
@@ -138,6 +159,7 @@ class SEUSensitivityStudyRunner:
         phases: Sequence[str],
         *,
         cell_ids: Optional[Sequence[str]],
+        model_names: Optional[Sequence[str]] = None,
         force: bool,
     ) -> Dict[str, Any]:
         logger.info("=== pool %s ===", pool_id)
@@ -150,7 +172,7 @@ class SEUSensitivityStudyRunner:
         if "embed" in phases:
             result["embed"] = self._phase_embed(pool_id)
         if "assess" in phases:
-            result["assess"] = self._phase_assess(pool_id)
+            result["assess"] = self._phase_assess(pool_id, model_names=model_names)
         if "validate" in phases:
             result["validate"] = self._phase_validate(pool_id)
         if "choices" in phases:
@@ -228,15 +250,29 @@ class SEUSensitivityStudyRunner:
         logger.info("Gate for pool %s: %s", pool_id, report.get("status"))
         return report
 
-    def _phase_assess(self, pool_id: str) -> Dict[str, Any]:
+    def _phase_assess(
+        self, pool_id: str, *, model_names: Optional[Sequence[str]] = None
+    ) -> Dict[str, Any]:
         pool = self._load_pool_artifact(pool_id)
         prompt_sets = prompts_module.load_prompt_sets(pool_id)
         out_dir = self._pool_dir(pool_id) / "assessments"
         out_dir.mkdir(parents=True, exist_ok=True)
 
+        wanted = set(model_names) if model_names else None
+        if wanted is not None:
+            logger.warning(
+                "Assess phase RESTRICTED to models %s for pool %s -- the resulting "
+                "assessment set is PARTIAL, so any gate run against it is a probe, "
+                "not a pass",
+                sorted(wanted),
+                pool_id,
+            )
+
         collected: Dict[str, Any] = {}
         for key, job in self.config.assessment_jobs().items():
             if job.pool_id != pool_id:
+                continue
+            if wanted is not None and job.model_name not in wanted:
                 continue
             slug = get_model_spec(job.model_name).slug
             target = out_dir / f"{slug}.json"

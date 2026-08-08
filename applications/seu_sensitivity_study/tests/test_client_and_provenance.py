@@ -41,6 +41,109 @@ class FatalError(Exception):
     status_code = 400
 
 
+class _FakeUsage:
+    prompt_tokens = 100
+    completion_tokens = 500
+    input_tokens = 100
+    output_tokens = 500
+
+
+class _RecordingOpenAI:
+    """Captures the kwargs the reasoning client sends to the chat endpoint."""
+
+    def __init__(self, content="ANSWER: 1"):
+        self.captured = {}
+        self._content = content
+
+        outer = self
+
+        class _Completions:
+            def create(self, **kwargs):
+                outer.captured = kwargs
+                message = type("M", (), {"content": outer._content})()
+                choice = type("C", (), {"message": message})()
+                return type(
+                    "R", (), {"choices": [choice], "usage": _FakeUsage()}
+                )()
+
+        self.chat = type("Chat", (), {"completions": _Completions()})()
+
+
+class TestReasoningTokenReserve:
+    """
+    Reasoning tokens are billed as output AND consume the completion budget, so
+    passing the caller's *visible* budget straight through truncates the answer
+    to ''.  Measured: o3-mini spends 384-640 reasoning tokens on one assessment
+    and returns '' at the configured 400-token budget.
+    """
+
+    def _client(self, content="ANSWER: 1", reserve=2048):
+        from applications.seu_sensitivity_study.llm_extensions import (
+            OpenAIReasoningClient,
+        )
+
+        client = OpenAIReasoningClient.__new__(OpenAIReasoningClient)
+        client.model = "o3-mini"
+        client.reasoning_effort = "medium"
+        client.token_reserve = reserve
+        client.max_retries = 1
+        client.retry_delay = 0.0
+        client.total_input_tokens = 0
+        client.total_output_tokens = 0
+        client._client = _RecordingOpenAI(content)
+        return client
+
+    def test_reserve_is_added_to_the_completion_budget(self):
+        client = self._client(reserve=2048)
+        client.generate("prompt", max_tokens=400)
+        assert client._client.captured["max_completion_tokens"] == 2448
+
+    def test_temperature_is_never_sent(self):
+        client = self._client()
+        client.generate("prompt", temperature=0.0, max_tokens=400)
+        assert "temperature" not in client._client.captured
+        assert client._client.captured["reasoning_effort"] == "medium"
+
+    def test_empty_visible_output_is_logged_not_silent(self, caplog):
+        client = self._client(content="")
+        with caplog.at_level("WARNING"):
+            assert client.generate("prompt", max_tokens=400) == ""
+        assert "no visible text" in caplog.text
+
+    def test_config_pins_a_reserve_for_the_reasoning_arm(self):
+        from applications.seu_sensitivity_study.config import get_model_spec
+
+        assert get_model_spec("o3-mini").reasoning_token_reserve >= 1000
+
+
+class TestPricingCoverage:
+    """
+    A missing price used to cost out at exactly $0.00 with no signal, which was
+    observed live on the substituted Anthropic flagship (6,646 in / 3,573 out
+    reported as ``estimated_cost_usd: 0.0``).  Phase D exists to set the API
+    budget, so an unpriced arm silently contributing nothing is a budget bug.
+    """
+
+    def test_every_configured_arm_has_pricing(self):
+        from applications.seu_sensitivity_study.config import MODELS
+        from applications.seu_sensitivity_study.llm_extensions import pricing_for
+
+        unpriced = []
+        for spec in MODELS:
+            pricing = pricing_for(spec.endpoint, spec.provider)
+            if pricing["input"] <= 0 or pricing["output"] <= 0:
+                unpriced.append((spec.name, spec.endpoint))
+        assert unpriced == [], f"arms without pricing: {unpriced}"
+
+    def test_unknown_model_warns_rather_than_costing_zero_silently(self, caplog):
+        from applications.seu_sensitivity_study.llm_extensions import pricing_for
+
+        with caplog.at_level("WARNING"):
+            pricing = pricing_for("definitely-not-a-model", "anthropic")
+        assert pricing == {"input": 0.0, "output": 0.0}
+        assert "No pricing" in caplog.text
+
+
 class TestRetryClassification:
     @pytest.mark.parametrize(
         "error",
@@ -197,7 +300,53 @@ class TestProvenance:
         assert len(manifest["models"]) == 6
         by_name = {entry["model_name"]: entry for entry in manifest["models"]}
         assert by_name["o3-mini"]["request_params"]["reasoning_effort"] == "medium"
-        assert by_name["claude-3-7-sonnet-20250219"]["request_params"]["budget_tokens"] == 4096
+        assert (
+            by_name["claude-sonnet-4-5-thinking"]["request_params"]["budget_tokens"]
+            == 4096
+        )
+
+    def test_deprecation_substitutions_are_recorded(self):
+        """
+        The §3.1 fallback rule requires the substitution to be *in the
+        provenance log*, not just in a code comment.
+        """
+        config = SEUSensitivityStudyConfig(pool_ids=["venture"])
+        manifest = provenance.build_run_manifest(config)
+        by_name = {entry["model_name"]: entry for entry in manifest["models"]}
+
+        assert by_name["claude-sonnet-4-5"]["substituted_for"] == (
+            "claude-sonnet-4-20250514"
+        )
+        assert by_name["claude-haiku-4-5"]["substituted_for"] == (
+            "claude-3-5-haiku-20241022"
+        )
+        assert by_name["claude-sonnet-4-5-thinking"]["substituted_for"] == (
+            "claude-3-7-sonnet-20250219"
+        )
+        for name in ("claude-sonnet-4-5", "claude-haiku-4-5"):
+            assert "nearest available same-tier" in (
+                by_name[name]["substitution_reason"]
+            )
+
+    def test_shared_endpoint_arms_stay_distinct(self):
+        """
+        The flagship and reasoning Anthropic arms now call the SAME endpoint and
+        differ only in request_params.  Their study-facing identities must stay
+        separate or their cells, caches and design-matrix dummies would collide.
+        """
+        config = SEUSensitivityStudyConfig(pool_ids=["venture"])
+        manifest = provenance.build_run_manifest(config)
+        by_name = {entry["model_name"]: entry for entry in manifest["models"]}
+
+        flagship = by_name["claude-sonnet-4-5"]
+        reasoning = by_name["claude-sonnet-4-5-thinking"]
+        assert flagship["endpoint_id"] == reasoning["endpoint_id"]
+        assert flagship["model_name"] != reasoning["model_name"]
+        assert not flagship["request_params"].get("extended_thinking")
+        assert reasoning["request_params"]["extended_thinking"] is True
+
+        cell_ids = {cell.cell_id for cell in config.cells}
+        assert len(cell_ids) == len(config.cells)
 
     def test_temperature_none_is_recorded_explicitly(self):
         """An absent key would read as an oversight rather than a fact."""

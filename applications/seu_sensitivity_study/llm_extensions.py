@@ -27,17 +27,61 @@ from applications.temperature_study.llm_client import (
 logger = logging.getLogger(__name__)
 
 
-# Extended pricing tables for models not in the base module
+# Extended pricing tables for models not in the base module.
+#
+# Anthropic rates confirmed against the published price list on 2026-08-06
+# (platform.claude.com/docs/en/docs/about-claude/pricing).  Extended-thinking
+# tokens are billed as ordinary OUTPUT tokens, so the reasoning arm needs no
+# separate rate -- only a larger expected output volume.
 EXTENDED_OPENAI_PRICING: Dict[str, Dict[str, float]] = {
     "o3-mini": {"input": 1.10, "output": 4.40},
     "gpt-4o-mini": {"input": 0.15, "output": 0.60},
 }
 
 EXTENDED_ANTHROPIC_PRICING: Dict[str, Dict[str, float]] = {
+    # Current arms (see §3.1 deprecation substitutions).
+    "claude-sonnet-4-5-20250929": {"input": 3.00, "output": 15.00},
+    "claude-haiku-4-5-20251001": {"input": 1.00, "output": 5.00},
+    # Retired -- retained so historical artefacts still cost out.
     "claude-3-5-haiku-20241022": {"input": 0.80, "output": 4.00},
     "claude-3-7-sonnet-20250219": {"input": 3.00, "output": 15.00},
     "claude-sonnet-4-20250514": {"input": 3.00, "output": 15.00},
 }
+
+#: Endpoints whose per-1M-token pricing has NOT been confirmed against the
+#: provider's published price list.  Kept as a live mechanism rather than
+#: deleted: the next deprecation substitution will need it again.
+UNVERIFIED_PRICING: set = set()
+
+
+def pricing_for(model: str, provider: str) -> Dict[str, float]:
+    """
+    Resolve per-1M-token pricing, refusing to fail silently.
+
+    The previous behaviour -- ``.get(model, {"input": 0, "output": 0})`` -- made
+    an unpriced model cost exactly $0.00 with no signal.  That was observed live:
+    the substituted Anthropic flagship reported ``estimated_cost_usd: 0.0`` on
+    real usage of 6,646 input / 3,573 output tokens.  A budget built on that
+    would understate spend by the whole cost of the arm.
+    """
+    if provider == "openai":
+        table = {**OPENAI_PRICING, **EXTENDED_OPENAI_PRICING}
+    else:
+        table = {**ANTHROPIC_PRICING, **EXTENDED_ANTHROPIC_PRICING}
+
+    if model not in table:
+        logger.warning(
+            "No pricing for %r (%s); cost estimates for this model will be 0.0 "
+            "and MUST NOT be used in a budget forecast.",
+            model,
+            provider,
+        )
+        return {"input": 0.0, "output": 0.0}
+    if model in UNVERIFIED_PRICING:
+        logger.warning(
+            "Pricing for %r is UNVERIFIED against the provider price list.", model
+        )
+    return table[model]
 
 
 class OpenAIReasoningClient(OpenAIClient):
@@ -47,19 +91,30 @@ class OpenAIReasoningClient(OpenAIClient):
     These models:
     - Do NOT accept a temperature parameter
     - Accept reasoning_effort ("low", "medium", "high") instead
-    - May produce longer responses due to internal chain-of-thought
+    - Emit hidden reasoning tokens that are billed as output AND consume the
+      completion budget
+
+    That last point is why ``token_reserve`` exists.  ``max_completion_tokens``
+    caps reasoning + visible output together, so passing the caller's visible
+    budget straight through silently truncates the answer to the empty string.
+    Measured on a real assessment prompt: at a 400-token budget o3-mini spent
+    all 400 on reasoning and returned ``''``; it needed ~1000 before any text
+    appeared, with reasoning ranging 384-640 tokens across runs.  The Anthropic
+    thinking client already does the equivalent by adding ``budget_tokens``.
     """
 
     def __init__(
         self,
         model: str = "o3-mini",
         reasoning_effort: str = "medium",
+        token_reserve: int = 2048,
         **kwargs: Any,
     ):
         # Remove temperature from kwargs if present
         kwargs.pop("default_temperature", None)
         super().__init__(model=model, default_temperature=0.0, **kwargs)
         self.reasoning_effort = reasoning_effort
+        self.token_reserve = token_reserve
 
     def generate(
         self,
@@ -81,13 +136,25 @@ class OpenAIReasoningClient(OpenAIClient):
                 resp = self._client.chat.completions.create(
                     model=self.model,
                     messages=messages,
-                    max_completion_tokens=max_tokens,
+                    max_completion_tokens=max_tokens + self.token_reserve,
                     reasoning_effort=self.reasoning_effort,
                 )
                 if resp.usage:
                     self.total_input_tokens += resp.usage.prompt_tokens
                     self.total_output_tokens += resp.usage.completion_tokens
-                return resp.choices[0].message.content.strip()
+                content = resp.choices[0].message.content
+                if not content:
+                    # Reasoning consumed the whole budget.  Say so loudly: a
+                    # silent '' becomes an unparseable assessment much later.
+                    logger.warning(
+                        "%s returned no visible text (completion_tokens=%s, "
+                        "budget=%s). Raise reasoning_token_reserve.",
+                        self.model,
+                        getattr(resp.usage, "completion_tokens", "?"),
+                        max_tokens + self.token_reserve,
+                    )
+                    return ""
+                return content.strip()
             except Exception as e:
                 last_error = e
                 logger.warning("API call failed (attempt %d): %s", attempt + 1, e)
@@ -99,9 +166,7 @@ class OpenAIReasoningClient(OpenAIClient):
         )
 
     def get_estimated_cost(self) -> float:
-        pricing = EXTENDED_OPENAI_PRICING.get(
-            self.model, OPENAI_PRICING.get(self.model, {"input": 0, "output": 0})
-        )
+        pricing = pricing_for(self.model, "openai")
         return (
             (self.total_input_tokens / 1_000_000) * pricing["input"]
             + (self.total_output_tokens / 1_000_000) * pricing["output"]
@@ -175,9 +240,7 @@ class AnthropicThinkingClient(AnthropicClient):
         )
 
     def get_estimated_cost(self) -> float:
-        pricing = EXTENDED_ANTHROPIC_PRICING.get(
-            self.model, ANTHROPIC_PRICING.get(self.model, {"input": 0, "output": 0})
-        )
+        pricing = pricing_for(self.model, "anthropic")
         return (
             (self.total_input_tokens / 1_000_000) * pricing["input"]
             + (self.total_output_tokens / 1_000_000) * pricing["output"]
@@ -210,17 +273,22 @@ def create_seu_sensitivity_llm_client(
     default_temperature = (
         cell_spec.temperature if cell_spec.temperature is not None else 0.0
     )
+    # The provider-facing id, which may differ from the arm's study-facing name:
+    # two arms can share one endpoint and differ only in request_params.
+    endpoint = getattr(cell_spec, "endpoint", None) or cell_spec.model_name
+    token_reserve = getattr(cell_spec, "reasoning_token_reserve", 0)
 
     if cell_spec.provider == "openai":
-        if cell_spec.model_name in REASONING_MODELS:
+        if endpoint in REASONING_MODELS:
             return OpenAIReasoningClient(
-                model=cell_spec.model_name,
+                model=endpoint,
                 reasoning_effort=request_params.get("reasoning_effort", "medium"),
+                token_reserve=token_reserve or 2048,
                 max_retries=max_retries,
                 retry_delay=retry_delay,
             )
         return OpenAIClient(
-            model=cell_spec.model_name,
+            model=endpoint,
             default_temperature=default_temperature,
             max_retries=max_retries,
             retry_delay=retry_delay,
@@ -229,13 +297,13 @@ def create_seu_sensitivity_llm_client(
     if cell_spec.provider == "anthropic":
         if request_params.get("extended_thinking", False):
             return AnthropicThinkingClient(
-                model=cell_spec.model_name,
+                model=endpoint,
                 budget_tokens=request_params.get("budget_tokens", 4096),
                 max_retries=max_retries,
                 retry_delay=retry_delay,
             )
         return AnthropicClient(
-            model=cell_spec.model_name,
+            model=endpoint,
             default_temperature=default_temperature,
             max_retries=max_retries,
             retry_delay=retry_delay,

@@ -22,7 +22,12 @@ from datetime import date, datetime, timezone
 from typing import Any, Dict, List, Mapping, Optional, Sequence
 
 from . import schemas
-from .config import REFERENCE_MODEL, REFERENCE_PROMPT, SEUSensitivityStudyConfig
+from .config import (
+    REFERENCE_MODEL,
+    REFERENCE_PROMPT,
+    SEUSensitivityStudyConfig,
+    get_model_spec,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -65,7 +70,16 @@ def build_run_manifest(
             continue
         seen.add(cell.model_name)
 
-        endpoint = endpoint_ids.get(cell.model_name)
+        # Prefer an explicitly supplied endpoint id, then the one pinned on the
+        # ModelSpec.  The spec's is authoritative for deprecation substitutions,
+        # which must be a recorded fact rather than a code comment (§3.1, §6.5).
+        try:
+            spec = get_model_spec(cell.model_name)
+        except KeyError:
+            spec = None
+        endpoint = endpoint_ids.get(cell.model_name) or (
+            spec.endpoint_id if spec else None
+        )
         entry: Dict[str, Any] = {
             "model_name": cell.model_name,
             "endpoint_id": endpoint or cell.model_name,
@@ -74,10 +88,15 @@ def build_run_manifest(
             "accessed_at": accessed_on,
             "request_params": _request_params(cell),
         }
+        if spec is not None and spec.tier:
+            entry["tier"] = spec.tier
         substitution = substitutions.get(cell.model_name)
         if substitution:
             entry["substituted_for"] = substitution.get("substituted_for")
             entry["substitution_reason"] = substitution.get("reason")
+        elif spec is not None and spec.substituted_for:
+            entry["substituted_for"] = spec.substituted_for
+            entry["substitution_reason"] = spec.substitution_reason
         models.append(entry)
 
     manifest: Dict[str, Any] = {

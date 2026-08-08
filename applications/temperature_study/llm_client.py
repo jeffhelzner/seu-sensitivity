@@ -30,6 +30,10 @@ OPENAI_PRICING: Dict[str, Dict[str, float]] = {
 }
 
 ANTHROPIC_PRICING: Dict[str, Dict[str, float]] = {
+    # Current (confirmed against the published price list 2026-08-06).
+    "claude-sonnet-4-5-20250929": {"input": 3.0, "output": 15.0},
+    "claude-haiku-4-5-20251001": {"input": 1.0, "output": 5.0},
+    # Retired -- retained so historical artefacts still cost out.
     "claude-3-opus-20240229": {"input": 15.0, "output": 75.0},
     "claude-3-sonnet-20240229": {"input": 3.0, "output": 15.0},
     "claude-3-haiku-20240307": {"input": 0.25, "output": 1.25},

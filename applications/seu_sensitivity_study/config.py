@@ -52,6 +52,11 @@ __all__ = [
 class ModelSpec:
     """One model arm, with its decoding settings pinned."""
 
+    #: Unique ARM label.  This is the study's identity for the arm -- it drives
+    #: :attr:`slug`, and through it the cell ids, the assessment artefact
+    #: filenames, the cache paths and the design-matrix dummy names.  It is NOT
+    #: necessarily the string sent to the provider: two arms may share one
+    #: endpoint and differ only in ``request_params`` (see the reasoning tier).
     name: str
     provider: str
     #: "small" | "flagship" | "reasoning" -- a *reporting* grouping (§2), not a
@@ -63,11 +68,38 @@ class ModelSpec:
     request_params: Dict[str, Any] = field(default_factory=dict)
     #: None where the provider accepts no temperature parameter.
     temperature: Optional[float] = 0.0
+    #: The dated endpoint actually called, when it differs from :attr:`name`.
+    #: Recorded as ``endpoint_id`` in the run manifest (§6.5).
+    endpoint_id: Optional[str] = None
+    #: Completion-token headroom reserved for tokens the model emits but does
+    #: not show.  OpenAI reasoning tokens are billed as output AND consume the
+    #: completion budget, so without a reserve the visible answer is truncated
+    #: to nothing (measured: o3-mini spends 384-640 reasoning tokens on one
+    #: assessment, and returns '' at a 400-token budget).  Anthropic thinking
+    #: is handled separately, by adding ``budget_tokens`` inside the client.
+    reasoning_token_reserve: int = 0
+    #: Set when this arm replaces a deprecated model under the §3.1 rule.
+    #: Surfaced in the run manifest so the substitution is a recorded fact
+    #: rather than a code comment.
+    substituted_for: Optional[str] = None
+    substitution_reason: str = ""
     notes: str = ""
 
     @property
     def slug(self) -> str:
         return self.name.replace("-", "_").replace(".", "_")
+
+    @property
+    def endpoint(self) -> str:
+        """The provider-facing model id for this arm."""
+        return self.endpoint_id or self.name
+
+
+#: Reason recorded in the run manifest for every §3.1 deprecation substitution.
+_SUBSTITUTION_REASON = (
+    "Original endpoint retired (HTTP 404 on 2026-08-06). Replaced under the "
+    "§3.1 pre-declared rule: nearest available same-tier, same-vendor successor."
+)
 
 
 MODELS: Tuple[ModelSpec, ...] = (
@@ -92,33 +124,66 @@ MODELS: Tuple[ModelSpec, ...] = (
         vendor="openai",
         temperature=None,
         request_params={"reasoning_effort": "medium"},
+        reasoning_token_reserve=2048,
         notes="Accepts no temperature parameter; reasoning_effort is the treatment.",
     ),
     ModelSpec(
-        name="claude-sonnet-4-20250514",
+        name="claude-sonnet-4-5",
         provider="anthropic",
         tier="flagship",
         vendor="anthropic",
         temperature=0.0,
+        endpoint_id="claude-sonnet-4-5-20250929",
+        substituted_for="claude-sonnet-4-20250514",
+        substitution_reason=_SUBSTITUTION_REASON,
+        notes=(
+            "Substituted for the retired claude-sonnet-4-20250514 under the §3.1 "
+            "pre-declared rule (nearest available same-tier, same-vendor "
+            "successor)."
+        ),
     ),
     ModelSpec(
-        name="claude-3-5-haiku-20241022",
+        name="claude-haiku-4-5",
         provider="anthropic",
         tier="small",
         vendor="anthropic",
         temperature=0.0,
+        endpoint_id="claude-haiku-4-5-20251001",
+        substituted_for="claude-3-5-haiku-20241022",
+        substitution_reason=_SUBSTITUTION_REASON,
+        notes=(
+            "Substituted for the retired claude-3-5-haiku-20241022 under the "
+            "§3.1 pre-declared rule."
+        ),
     ),
     ModelSpec(
-        name="claude-3-7-sonnet-20250219",
+        name="claude-sonnet-4-5-thinking",
         provider="anthropic",
         tier="reasoning",
         vendor="anthropic",
         temperature=None,
+        endpoint_id="claude-sonnet-4-5-20250929",
         request_params={"extended_thinking": True, "budget_tokens": 4096},
+        substituted_for="claude-3-7-sonnet-20250219",
+        substitution_reason=(
+            _SUBSTITUTION_REASON
+            + " NOTE: the successor shares a base with the flagship arm, which "
+            "REMOVES the base-generation confound §3.1 warned about for this "
+            "vendor; the Anthropic reasoning contrast is now exactly "
+            "'flagship + extended thinking'."
+        ),
         notes=(
-            "Extended thinking forces temperature 1.0. An OLDER base than the "
-            "flagship claude-sonnet-4, so the reasoning-tier comparison confounds "
-            "base-model generation with inference-time compute (§3.1)."
+            "Substituted for the retired claude-3-7-sonnet-20250219 under the "
+            "§3.1 pre-declared rule. Extended thinking forces temperature 1.0. "
+            "*** THIS CHANGES THE READING OF THE ANTHROPIC REASONING CONTRAST. "
+            "The retired pair had an OLDER base for reasoning than for flagship, "
+            "so §3.1 warned the contrast confounded base generation with "
+            "inference-time compute. The nearest-successor rule maps BOTH arms "
+            "onto claude-sonnet-4-5-20250929, so the confound is REMOVED and the "
+            "contrast now is exactly 'flagship + thinking'. §3.1's warning no "
+            "longer applies to this vendor and must be restated at E3. Note the "
+            "arm NAME differs from the flagship's so that cells, caches and "
+            "design-matrix dummies stay distinct. ***"
         ),
     ),
 )
@@ -150,6 +215,14 @@ class CellSpec:
     pool_id: str
     request_params: Dict[str, Any] = field(default_factory=dict)
     temperature: Optional[float] = 0.0
+    #: Provider-facing model id; falls back to :attr:`model_name`.
+    endpoint_id: Optional[str] = None
+    #: See :attr:`ModelSpec.reasoning_token_reserve`.
+    reasoning_token_reserve: int = 0
+
+    @property
+    def endpoint(self) -> str:
+        return self.endpoint_id or self.model_name
 
     @property
     def assessment_key(self) -> str:
@@ -179,6 +252,8 @@ def build_cells(pool_ids: Optional[Sequence[str]] = None) -> List[CellSpec]:
                         pool_id=pool_id,
                         request_params=dict(model.request_params),
                         temperature=model.temperature,
+                        endpoint_id=model.endpoint_id,
+                        reasoning_token_reserve=model.reasoning_token_reserve,
                     )
                 )
     return cells

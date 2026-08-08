@@ -92,6 +92,7 @@ def cmd_run(args: argparse.Namespace) -> None:
         phases=args.phases.split(",") if args.phases else None,
         pool_ids=args.pools.split(",") if args.pools else None,
         cell_ids=args.cells.split(",") if args.cells else None,
+        model_names=args.models.split(",") if args.models else None,
         dry_run=args.dry_run,
         force=args.force,
     )
@@ -141,6 +142,15 @@ def main() -> None:
     )
     p_run.add_argument("--pools", type=str, default=None, help="Comma-separated pool ids")
     p_run.add_argument("--cells", type=str, default=None, help="Comma-separated cell ids")
+    p_run.add_argument(
+        "--models",
+        type=str,
+        default=None,
+        help=(
+            "Comma-separated model names; restricts the 'assess' phase only. "
+            "Produces a PARTIAL assessment set -- use for costed probes."
+        ),
+    )
     p_run.add_argument(
         "--dry-run",
         action="store_true",

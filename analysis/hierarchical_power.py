@@ -175,6 +175,16 @@ class HierarchicalPowerAnalysis:
             agreement_rate = float(draw.get("agreement_rate", float("nan")))
             y = [int(draw[f"y[{m + 1}]"]) for m in range(sim_data["M_total"])]
 
+            # The full gamma vector, not just gamma_size.  RQ4's ordering
+            # statistic is a function of the gamma_model contrasts, so the
+            # SAMPLING spread of gamma-hat across simulated studies is the one
+            # input regime (f) cannot get without real fits.  Capturing it here
+            # means the expensive J=18 run serves both purposes at once.
+            n_predictors = int(sim_data["P"])
+            true_gamma = [
+                float(draw[f"gamma[{p + 1}]"]) for p in range(n_predictors)
+            ]
+
             inference_data = {
                 k: v
                 for k, v in sim_data.items()
@@ -208,10 +218,16 @@ class HierarchicalPowerAnalysis:
             record = self._score(
                 posterior, true_gamma_size, lower_q, upper_q
             )
+            draws = fit.draws_pd()
+            gamma_mean = [
+                float(draws[f"gamma[{p + 1}]"].mean()) for p in range(n_predictors)
+            ]
             record.update(
                 {
                     "iteration": iteration + 1,
                     "true_gamma_size": true_gamma_size,
+                    "true_gamma": true_gamma,
+                    "posterior_mean_gamma": gamma_mean,
                     "agreement_rate": agreement_rate,
                     "seconds": time.time() - started,
                 }
@@ -277,6 +293,22 @@ class HierarchicalPowerAnalysis:
         )
         seconds = np.array([r["seconds"] for r in records], dtype=float)
 
+        # Sampling spread of gamma-hat around truth, per predictor.  This is the
+        # TRUE sampling SE (it includes any inflation from pseudo-replication),
+        # not the posterior SD -- which is exactly the distinction that matters,
+        # since the whole point of regime (a) is that the posterior SD is too
+        # small when presentations are correlated.
+        gamma_se: Optional[List[float]] = None
+        if len(records) >= 2 and records[0].get("true_gamma") is not None:
+            errors_gamma = np.array(
+                [
+                    np.asarray(r["posterior_mean_gamma"], dtype=float)
+                    - np.asarray(r["true_gamma"], dtype=float)
+                    for r in records
+                ]
+            )
+            gamma_se = [float(v) for v in errors_gamma.std(axis=0, ddof=1)]
+
         return {
             "n_iterations": len(records),
             "regime": "a_pseudo_replication",
@@ -298,6 +330,8 @@ class HierarchicalPowerAnalysis:
             "mean_agreement_rate": float(
                 np.nanmean([r["agreement_rate"] for r in records])
             ),
+            "gamma_sampling_se": gamma_se,
+            "P": sim_data.get("P"),
             "seconds_per_iteration": float(seconds.mean()),
             "total_seconds": float(seconds.sum()),
             "sampler": {

@@ -149,6 +149,12 @@ class GateThresholds:
     #: instead of a number, rather than blocking on noise.
     min_items_for_check: int = 12
 
+    #: Which quality proxy the §6.3 eta-gap check is computed on.
+    #: "embedding" is the pre-registered choice and remains the default; the
+    #: belief axis is always REPORTED as a diagnostic either way, so E3 can
+    #: decide between them on evidence rather than on argument.
+    eta_gap_axis: str = "embedding"
+
     #: False only once E3 freezes the pre-registration.
     provisional: bool = True
     frozen_at: Optional[str] = None
@@ -754,6 +760,105 @@ def _check_assessment_parse(
 # ---------------------------------------------------------------------------
 
 
+def _belief_axis_scores(
+    pool: Mapping[str, Any],
+    assessments: Mapping[str, Mapping[str, Any]],
+    thresholds: GateThresholds,
+) -> Tuple[Dict[str, Any], Optional[Dict[str, float]]]:
+    """
+    Quality proxy built from the models' own elicited beliefs, not the embedding.
+
+    Motivation (Phase D0, 2026-08-06).  R4 asks whether PC1 of the item embedding
+    separates the authored quality labels.  Measured on real embeddings, that
+    question turns out to be the wrong one in both directions:
+
+      * For the lattice pools it is near-tautological -- a bag-of-words model
+        alone recovers the labels perfectly (LOO AUC 1.000), because the
+        merit-lattice renderer writes merit into the vocabulary.
+      * For the insurance anchor it is impossible -- the construct is relational
+        (do the file's facts CONTRADICT or CORROBORATE the claim?), which
+        embeddings do not encode.  Observed lexical LOO AUC sat exactly on its
+        own permutation null.
+
+    But the eta gap is a design control on how hard a menu is *for the decider*,
+    and the deciders can see what the embedding cannot: on insurance the
+    across-model belief axis scored AUC 0.981 against the same labels.
+
+    The score is the expected position on the pool's ordered consequence scale,
+    averaged across models.  Higher = further up the scale, which is the
+    direction the authored labels run in.
+
+    *** THIS IS A DIAGNOSTIC.  It does not decide the gate unless
+    ``eta_gap_axis`` is explicitly set to "belief"; the default remains the
+    pre-registered embedding axis.  Switching the axis is an E3 decision, not an
+    implementation detail. ***
+    """
+    if not assessments:
+        return (
+            {
+                "status": "awaiting_assessments",
+                "note": "the belief axis needs the assess phase to have run",
+            },
+            None,
+        )
+
+    by_id = {item["id"]: item for item in pool["items"]}
+    per_item: Dict[str, List[float]] = {}
+    n_models = 0
+    for _slug, assessment_set in sorted(assessments.items()):
+        used = False
+        for record in assessment_set.get("assessments", []):
+            if not record.get("parse_ok") or not record.get("probabilities"):
+                continue
+            if record["item_id"] not in by_id:
+                continue
+            probabilities = np.asarray(record["probabilities"], dtype=float)
+            expected = float(
+                (np.arange(probabilities.size) * probabilities).sum()
+            )
+            per_item.setdefault(record["item_id"], []).append(expected)
+            used = True
+        n_models += int(used)
+
+    if len(per_item) < thresholds.min_items_for_check:
+        return (
+            {
+                "status": "insufficient_data",
+                "n_items": len(per_item),
+                "n_models": n_models,
+            },
+            None,
+        )
+
+    item_ids = sorted(per_item)
+    scores = np.array([float(np.mean(per_item[i])) for i in item_ids])
+    labels = [by_id[i]["quality_label"] for i in item_ids]
+    strong = np.array([l == "strong" for l in labels])
+    weak = np.array([l == "weak" for l in labels])
+    ordinal = np.array([_LABEL_ORDINAL[l] for l in labels])
+
+    auc = _auc(scores[strong], scores[weak]) if strong.any() and weak.any() else float("nan")
+    rho = _spearman(scores, ordinal)
+    passes = (not np.isnan(auc)) and auc >= thresholds.pc1_auc_strong_vs_weak
+
+    report = {
+        "status": "ok",
+        "axis": "belief",
+        "n_items": len(item_ids),
+        "n_models": n_models,
+        "auc_strong_vs_weak": round(float(auc), 4) if not np.isnan(auc) else None,
+        "spearman_vs_label_ordinal": round(float(rho), 4),
+        "meets_threshold": bool(passes),
+        "mean_by_label": {
+            label: round(float(scores[[l == label for l in labels]].mean()), 4)
+            for label in schemas.QUALITY_LABELS
+            if any(l == label for l in labels)
+        },
+        "note": "diagnostic; does not decide the gate unless eta_gap_axis='belief'",
+    }
+    return report, dict(zip(item_ids, scores.tolist()))
+
+
 def run_gate(
     pool: Mapping[str, Any],
     problem_set: Mapping[str, Any],
@@ -797,7 +902,22 @@ def run_gate(
     report["checks"]["quality_axis"] = axis_report
     report["quality_axis"] = axis_report.get("axis")
 
-    if quality is None:
+    # The belief axis is computed whenever assessments exist, and reported
+    # under `diagnostics` rather than `checks` so it CANNOT change pass/fail.
+    belief_report, belief_quality = _belief_axis_scores(pool, assessments, thresholds)
+    report.setdefault("diagnostics", {})["belief_quality_axis"] = belief_report
+
+    use_belief = getattr(thresholds, "eta_gap_axis", "embedding") == "belief"
+    if use_belief and belief_quality is None:
+        raise ValueError(
+            "eta_gap_axis='belief' was requested but no usable belief axis is "
+            "available; refusing to fall back to the embedding axis silently, "
+            "which would report a gate run on a different quantity than asked for"
+        )
+    eta_quality = belief_quality if use_belief else quality
+    report["eta_gap_axis"] = "belief" if use_belief else "embedding"
+
+    if eta_quality is None:
         report["checks"]["eta_gap"] = {
             "status": "skipped",
             "passed": False,
@@ -806,8 +926,22 @@ def run_gate(
         }
     else:
         report["checks"]["eta_gap"] = _check_eta_gap(
-            problem_set, quality, thresholds, config
+            problem_set, eta_quality, thresholds, config
         )
+
+    # Shadow the eta gap on the OTHER axis too, so the two are directly
+    # comparable in one artefact.  Diagnostic only.
+    shadow_quality = quality if use_belief else belief_quality
+    if shadow_quality is not None:
+        shadow = _check_eta_gap(problem_set, shadow_quality, thresholds, config)
+        report["diagnostics"]["eta_gap_alternative_axis"] = {
+            "axis": "embedding" if use_belief else "belief",
+            "overall": shadow.get("overall"),
+            "by_size": shadow.get("by_size"),
+            "worst_cross_size_diff": shadow.get("worst_cross_size_diff"),
+            "would_pass": shadow.get("passed"),
+            "note": "diagnostic; not part of the pass/fail decision",
+        }
 
     report["checks"]["predictive_validity"] = _check_predictive_validity(
         problem_set, reduced_embeddings, assessments, thresholds

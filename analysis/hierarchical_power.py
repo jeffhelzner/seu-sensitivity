@@ -100,6 +100,60 @@ def build_pseudorep_design(
     return out
 
 
+def agreement_by_size(
+    y: Sequence[int], menu_id: Sequence[int], menu_size: Sequence[int]
+) -> Dict[str, Any]:
+    """
+    Share of menus whose presentations all chose the same item, BY MENU SIZE.
+
+    This is the input to §8.5(e)(iii): the position-stability subset is defined
+    WITHIN size stratum and then downsampled to the smallest stable count, so
+    the retention of the whole subset is set by the WORST size -- which is the
+    largest, since agreement falls as choice mass spreads over more near-tied
+    alternatives (1 - sum p_i^2 rises with n).
+
+    An absolute zero-flip rule would therefore be dominated by size-2 menus and
+    near-empty at size 8, destroying the very predictor variance that identifies
+    gamma_size. Reporting retention per size is what makes that visible.
+    """
+    by_menu: Dict[int, List[int]] = {}
+    size_of: Dict[int, int] = {}
+    for choice, menu, size in zip(y, menu_id, menu_size):
+        by_menu.setdefault(int(menu), []).append(int(choice))
+        size_of[int(menu)] = int(size)
+
+    stable_by_size: Dict[int, List[bool]] = {}
+    for menu, choices in by_menu.items():
+        stable_by_size.setdefault(size_of[menu], []).append(
+            len(set(choices)) == 1
+        )
+
+    per_size = {
+        str(size): {
+            "n_menus": len(flags),
+            "stable_share": float(np.mean(flags)),
+        }
+        for size, flags in sorted(stable_by_size.items())
+    }
+    shares = [v["stable_share"] for v in per_size.values()]
+    counts = [
+        v["n_menus"] * v["stable_share"] for v in per_size.values()
+    ]
+    # A size-stratified subset can keep at most the smallest stable count from
+    # every size, so the balanced subset size is that minimum times the number
+    # of sizes.
+    balanced_total = min(counts) * len(counts) if counts else 0.0
+    total_menus = sum(v["n_menus"] for v in per_size.values())
+    return {
+        "per_size": per_size,
+        "worst_size_stable_share": float(min(shares)) if shares else None,
+        "balanced_subset_menus": float(balanced_total),
+        "balanced_subset_retention": (
+            float(balanced_total / total_menus) if total_menus else None
+        ),
+    }
+
+
 class HierarchicalPowerAnalysis:
     """Simulate under a stress regime, fit the independence model, score it."""
 
@@ -229,6 +283,9 @@ class HierarchicalPowerAnalysis:
                     "true_gamma": true_gamma,
                     "posterior_mean_gamma": gamma_mean,
                     "agreement_rate": agreement_rate,
+                    "retention": agreement_by_size(
+                        y, sim_data["menu_id"], sim_data["menu_size"]
+                    ),
                     "seconds": time.time() - started,
                 }
             )
@@ -332,6 +389,8 @@ class HierarchicalPowerAnalysis:
             ),
             "gamma_sampling_se": gamma_se,
             "P": sim_data.get("P"),
+            "menu_sizes": sorted(set(int(v) for v in sim_data["menu_size"])),
+            "retention": self._mean_retention(records),
             "seconds_per_iteration": float(seconds.mean()),
             "total_seconds": float(seconds.sum()),
             "sampler": {
@@ -342,6 +401,28 @@ class HierarchicalPowerAnalysis:
             },
             "provisional": True,
             "frozen_at": None,
+        }
+
+    @staticmethod
+    def _mean_retention(records: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+        """Average the per-size stability shares across iterations."""
+        entries = [r["retention"] for r in records if r.get("retention")]
+        if not entries:
+            return None
+        sizes = sorted(entries[0]["per_size"], key=int)
+        return {
+            "per_size_stable_share": {
+                size: float(
+                    np.mean([e["per_size"][size]["stable_share"] for e in entries])
+                )
+                for size in sizes
+            },
+            "worst_size_stable_share": float(
+                np.mean([e["worst_size_stable_share"] for e in entries])
+            ),
+            "balanced_subset_retention": float(
+                np.mean([e["balanced_subset_retention"] for e in entries])
+            ),
         }
 
     def _write(

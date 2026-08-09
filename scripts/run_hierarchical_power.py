@@ -60,6 +60,14 @@ def main(argv=None) -> int:
     )
     parser.add_argument("--iter-warmup", type=int, default=None)
     parser.add_argument("--chains", type=int, default=None)
+    parser.add_argument(
+        "--menu-sizes",
+        type=str,
+        default=None,
+        help="Comma-separated menu sizes for the §8.5(e) range sweep. REPEATING "
+        "a size weights it: '2,2,4,6,8,8' gives shares 1/3,1/6,1/6,1/3, which "
+        "is the extreme-weighted allocation.",
+    )
     args = parser.parse_args(argv)
 
     with open(args.config) as fh:
@@ -68,6 +76,10 @@ def main(argv=None) -> int:
     design_cfg = dict(config["study_design_config"])
     if args.menus_per_cell is not None:
         design_cfg["M_per_cell"] = args.menus_per_cell
+    if args.menu_sizes is not None:
+        design_cfg["menu_sizes"] = [
+            int(v) for v in args.menu_sizes.split(",") if v.strip()
+        ]
 
     design = HierarchicalStudyDesign.from_factorial(**design_cfg)
     design.generate()

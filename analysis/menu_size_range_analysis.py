@@ -1,20 +1,34 @@
 """
 Regime (e), analytic component: the menu-size range decision (§8.5(e)).
 
-Most of this question does not need simulation.  gamma_size is identified from
-the spread of the centered menu-size covariate ``s``, and for a linear predictor
-the sampling variance of its coefficient scales as
+gamma_size is identified from the spread of the centered menu-size covariate
+``s``, and for a LINEAR predictor the sampling variance of its coefficient scales
+as
 
     Var(gamma_size_hat)  ~  1 / (M * Var(s))
 
-so the candidate size sets can be ranked exactly, before any sampling.  The
-simulation is then only needed for what the closed form cannot give: whether the
-ranking survives the model's nonlinearity, and how the position-stability subset
-(§8.5(e)(iii)) retains menus by size.
+*** THIS CLOSED FORM IS NOT RELIABLE HERE, AND THE SIMULATION PROVED IT. ***
+Measured against the sweep (2026-08-10), it is accurate for a REALLOCATION of the
+same sizes (extreme-weighted: predicted 0.889, observed 0.905) but badly
+overstates the penalty for a REDUCED RANGE:
+
+    fallback {2,3,4,6}   predicted 1.512x SE, observed 1.031x
+    narrow   {2,3,4}     predicted 2.739x SE, observed 1.694x
+
+The reason is that ``h_m01_size`` is a softmax choice model, not a linear one:
+per-observation INFORMATION also depends on menu size, because with fewer
+alternatives the choice probability is better determined and each observation
+says more about alpha.  Shrinking the range loses predictor variance but gains
+information density, and the two partly cancel.  The formula below is therefore
+kept as a DIAGNOSTIC and an upper bound on the penalty -- not as a ranking that
+can retire a candidate without simulating it.
+
+What the closed form still gives correctly is the ordering of Var(s), the mean
+menu size (which drives assessment payload, §12), and the odd-size accounting.
 
 Phase C already delivered (e)(ii), the null calibration: with gamma_size pinned
 at 0 the fit returns 0, so a detected slope is behavioural rather than
-choice-set geometry.  What remains is the RANGE sweep and the retention question.
+choice-set geometry.
 
 *** Also flags the odd-size problem, which is easy to miss. Presentations are
 REVERSALS (§3.4), and reversal leaves the MIDDLE item of an odd-sized menu in
@@ -76,6 +90,65 @@ def odd_size_share(sizes: Sequence[int], weights: Sequence[float] | None) -> flo
     return float(sum(pi for pi, s in zip(p, sizes) if s % 2 == 1))
 
 
+def _report_sweep(sweep_root: Path, rows: List[Dict]) -> None:
+    """
+    Merge the simulated results with the analytic ranking.
+
+    The two halves answer different halves of §8.5(e): the closed form gives
+    gamma_size PRECISION exactly, and only simulation gives (e)(iii) RETENTION,
+    which moves the opposite way -- a smaller maximum menu size raises the
+    stable-menu share while widening the slope.  Printed together so the trade
+    is visible in one place rather than inferred across two artefacts.
+    """
+    analytic = {r["candidate"]: r for r in rows}
+    found = []
+    for name in analytic:
+        path = sweep_root / name / "summary.json"
+        if path.exists():
+            found.append((name, json.loads(path.read_text())))
+
+    if not found:
+        return
+
+    print("\n" + "=" * 84)
+    print(f"SIMULATED ({len(found)}/{len(analytic)} candidates complete)")
+    print("=" * 84)
+    print(
+        f"  {'candidate':<24}{'CI width':>10}{'pred SE':>9}{'cover':>7}"
+        f"{'retain':>8}{'worst sz':>10}{'s/iter':>9}{'ratio':>7}"
+    )
+    for name, s in found:
+        ret = s.get("retention") or {}
+        print(
+            f"  {name:<24}{s['mean_ci_width']:>10.4f}"
+            f"{analytic[name]['se_ratio_vs_reference']:>9.3f}"
+            f"{s['coverage']:>7.2f}"
+            f"{ret.get('balanced_subset_retention', float('nan')):>8.3f}"
+            f"{ret.get('worst_size_stable_share', float('nan')):>10.3f}"
+            f"{s['seconds_per_iteration']:>9.0f}"
+            f"{s.get('prediction_error_ratio', float('nan')):>7.2f}"
+        )
+
+    reference = next((s for n, s in found if n == REFERENCE), None)
+    if reference is not None:
+        print("\n  Observed CI width vs the analytic prediction "
+              "(both relative to the reference):")
+        for name, s in found:
+            observed = s["mean_ci_width"] / reference["mean_ci_width"]
+            predicted = analytic[name]["se_ratio_vs_reference"]
+            print(f"    {name:<24}observed {observed:>6.3f}   "
+                  f"predicted {predicted:>6.3f}")
+
+    print("\n  retain = size-stratified stability subset as a share of all menus")
+    print("  worst sz = stable share at the LARGEST size, which caps the subset")
+
+    print("\n  per-size stable share:")
+    for name, s in found:
+        ret = (s.get("retention") or {}).get("per_size_stable_share") or {}
+        detail = "  ".join(f"{k}:{v:.3f}" for k, v in sorted(ret.items(), key=lambda kv: int(kv[0])))
+        print(f"    {name:<24}{detail}")
+
+
 def main() -> int:
     ref_var = predictor_variance(**CANDIDATES[REFERENCE])
 
@@ -119,6 +192,9 @@ def main() -> int:
 
     print("\n" + "-" * 84)
     print("  Menus needed to match the reference's gamma_size precision:")
+    print("  *** UPPER BOUND ONLY -- the closed form overstates the penalty for")
+    print("  *** reduced-range sets. Measured: fallback 1.06x (not 2.29x),")
+    print("  *** narrow 2.87x (not 7.50x). See the SIMULATED section below.")
     for row in rows:
         factor = row["se_ratio_vs_reference"] ** 2
         print(f"    {row['candidate']:<24}{factor:>7.2f}x the menus"
@@ -146,8 +222,11 @@ def main() -> int:
             {
                 "reference": REFERENCE,
                 "rows": rows,
-                "note": "Analytic ranking only. Simulation still needed for the "
-                        "model's nonlinearity and for (e)(iii) retention by size.",
+                "note": "Var(s), mean size and odd-size accounting are exact. "
+                        "The SE ratio is an UPPER BOUND on the penalty: the "
+                        "linear-model formula overstates it for reduced-range "
+                        "sets because a softmax's per-observation information "
+                        "also rises as menus shrink. See menu_size_sweep.",
                 "provisional": True,
                 "frozen_at": None,
             },
@@ -155,6 +234,8 @@ def main() -> int:
         )
     )
     print(f"\n  wrote {out}")
+
+    _report_sweep(Path("results/power/menu_size_sweep"), rows)
     return 0
 
 

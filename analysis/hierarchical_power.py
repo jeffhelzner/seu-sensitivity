@@ -154,6 +154,74 @@ def agreement_by_size(
     }
 
 
+def selective_refusal_mask(
+    eta_gap: np.ndarray,
+    refusal_rate: float,
+    concentration: float,
+    rng: np.random.Generator,
+) -> np.ndarray:
+    """
+    Which observations survive selective refusal (§6.4, regime (c)).
+
+    Refusals are NOT missing at random.  A model that declines to choose does so
+    disproportionately on menus where the alternatives are close -- which are
+    exactly the menus that carry the most information about alpha.  Dropping
+    them leaves an easier-looking choice set, so the fitted alpha should be
+    biased UPWARD; sizing that bias is the point of the regime.
+
+    ``concentration`` interpolates the targeting: 0 is missing-at-random (the
+    null case, which should produce no bias, only lost precision), and larger
+    values concentrate refusals on the smallest gaps.  The rate is held exactly
+    so that MAR and targeted variants drop the same COUNT and differ only in
+    WHICH observations go -- otherwise a bias comparison would confound
+    targeting with sample size.
+    """
+    n = eta_gap.size
+    n_drop = int(round(refusal_rate * n))
+    if n_drop <= 0:
+        return np.ones(n, dtype=bool)
+
+    if concentration <= 0:
+        drop_idx = rng.choice(n, size=n_drop, replace=False)
+    else:
+        # Smaller gap => larger weight. Ranks are used rather than raw gaps so
+        # the targeting strength does not depend on the arbitrary scale of eta.
+        ranks = eta_gap.argsort().argsort().astype(float)
+        weights = np.exp(-concentration * ranks / max(n - 1, 1))
+        weights = weights / weights.sum()
+        drop_idx = rng.choice(n, size=n_drop, replace=False, p=weights)
+
+    mask = np.ones(n, dtype=bool)
+    mask[drop_idx] = False
+    return mask
+
+
+def subset_stan_data(data: Dict[str, Any], mask: np.ndarray) -> Dict[str, Any]:
+    """
+    Restrict a Stan data dict to the observations selected by *mask*.
+
+    ``s`` is RE-CENTERED on the surviving observations, because the sim and the
+    inference model both require a centered covariate and dropping a
+    gap-correlated subset shifts its mean.  Leaving it centered on the full
+    sample would be a silent specification error.
+    """
+    out = dict(data)
+    I = np.asarray(data["I"], dtype=int)[mask]
+    cell = np.asarray(data["cell"], dtype=int)[mask]
+    sizes = I.sum(axis=1).astype(float)
+
+    out["I"] = I.tolist()
+    out["cell"] = cell.tolist()
+    out["M_total"] = int(I.shape[0])
+    out["M_per_cell"] = [
+        int(np.sum(cell == j + 1)) for j in range(int(data["J"]))
+    ]
+    out["s"] = (sizes - sizes.mean()).tolist()
+    out["menu_size"] = sizes.astype(int).tolist()
+    out["mean_menu_size"] = float(sizes.mean())
+    return out
+
+
 class HierarchicalPowerAnalysis:
     """Simulate under a stress regime, fit the independence model, score it."""
 
@@ -171,6 +239,8 @@ class HierarchicalPowerAnalysis:
         adapt_delta: float = 0.95,
         num_presentations: int = 2,
         rho_copy: float = 0.0,
+        refusal_rates: Sequence[float] = (),
+        refusal_concentration: float = 4.0,
         sim_overrides: Optional[Dict[str, Any]] = None,
         sim_only_keys: Sequence[str] = (),
         rope_log: float = DEFAULT_ROPE_LOG,
@@ -188,6 +258,8 @@ class HierarchicalPowerAnalysis:
         self.adapt_delta = adapt_delta
         self.num_presentations = num_presentations
         self.rho_copy = rho_copy
+        self.refusal_rates = tuple(refusal_rates)
+        self.refusal_concentration = refusal_concentration
         self.sim_overrides = dict(sim_overrides or {})
         self.sim_only_keys = tuple(sim_only_keys)
         self.rope_log = rope_log
@@ -210,6 +282,7 @@ class HierarchicalPowerAnalysis:
 
         records: List[Dict[str, Any]] = []
         durations: List[float] = []
+        rng = np.random.default_rng(self.seed)
 
         for iteration in tqdm(range(self.n_iterations), desc="power"):
             started = time.time()
@@ -289,6 +362,62 @@ class HierarchicalPowerAnalysis:
                     "seconds": time.time() - started,
                 }
             )
+
+            # -- Regime (c): selective-refusal missingness (§6.4) -------------
+            # Refit the SAME simulated data with a gap-targeted subset removed.
+            # Pairing complete and filtered on one dataset removes the
+            # between-simulation variance, which otherwise swamps a bias this
+            # size at n=6.
+            if self.refusal_rates:
+                eta_gap = np.array(
+                    [float(draw[f"eta_gap[{m + 1}]"])
+                     for m in range(sim_data["M_total"])]
+                )
+                true_gamma0 = float(draw["gamma0"])
+                complete_gamma0 = float(draws["gamma0"].mean())
+                record["true_gamma0"] = true_gamma0
+                record["gamma0_complete"] = complete_gamma0
+                record["refusal"] = {}
+                for rate in self.refusal_rates:
+                    for label, concentration in (
+                        ("mar", 0.0),
+                        ("targeted", self.refusal_concentration),
+                    ):
+                        mask = selective_refusal_mask(
+                            eta_gap, rate, concentration, rng
+                        )
+                        sub = subset_stan_data(inference_data, mask)
+                        sub["y"] = [
+                            v for v, keep in zip(inference_data["y"], mask) if keep
+                        ]
+                        sub_fit = self.inference_model.sample(
+                            data=sub,
+                            seed=self.seed + 2000 + iteration,
+                            iter_sampling=self.n_mcmc_samples,
+                            iter_warmup=self.n_mcmc_warmup,
+                            chains=self.n_mcmc_chains,
+                            adapt_delta=self.adapt_delta,
+                            show_progress=False,
+                        )
+                        sub_draws = sub_fit.draws_pd()
+                        record["refusal"][f"{label}_{rate}"] = {
+                            "rate": rate,
+                            "concentration": concentration,
+                            "n_kept": int(mask.sum()),
+                            "mean_eta_gap_kept": float(eta_gap[mask].mean()),
+                            "mean_eta_gap_dropped": (
+                                float(eta_gap[~mask].mean())
+                                if (~mask).any() else None
+                            ),
+                            "gamma0_mean": float(sub_draws["gamma0"].mean()),
+                            "gamma0_shift_vs_complete": float(
+                                sub_draws["gamma0"].mean() - complete_gamma0
+                            ),
+                            "gamma_size_mean": float(
+                                sub_draws["gamma_size"].mean()
+                            ),
+                        }
+                record["seconds"] = time.time() - started
             try:
                 diag = fit.diagnose()
                 record["divergences"] = "no problems" not in (diag or "").lower()
@@ -391,6 +520,7 @@ class HierarchicalPowerAnalysis:
             "P": sim_data.get("P"),
             "menu_sizes": sorted(set(int(v) for v in sim_data["menu_size"])),
             "retention": self._mean_retention(records),
+            "refusal": self._mean_refusal(records),
             "seconds_per_iteration": float(seconds.mean()),
             "total_seconds": float(seconds.sum()),
             "sampler": {
@@ -423,6 +553,47 @@ class HierarchicalPowerAnalysis:
             "balanced_subset_retention": float(
                 np.mean([e["balanced_subset_retention"] for e in entries])
             ),
+        }
+
+    @staticmethod
+    def _mean_refusal(records: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+        """
+        Average the paired refusal shifts across iterations.
+
+        The headline is ``gamma0_shift_vs_complete``: the change in the shared
+        log-alpha level caused by removing a gap-targeted subset of the SAME
+        data. §6.4 predicts it is positive -- dropping close-call menus leaves an
+        easier-looking choice set, so the model reads the decider as more
+        deterministic than it is. The MAR arm at the same rate is the control:
+        it drops the same COUNT, so any difference between the two is the cost
+        of TARGETING rather than of lost sample size.
+        """
+        entries = [r["refusal"] for r in records if r.get("refusal")]
+        if not entries:
+            return None
+        keys = sorted(entries[0])
+        return {
+            key: {
+                "rate": entries[0][key]["rate"],
+                "concentration": entries[0][key]["concentration"],
+                "mean_gamma0_shift": float(
+                    np.mean([e[key]["gamma0_shift_vs_complete"] for e in entries])
+                ),
+                "mean_gamma_size": float(
+                    np.mean([e[key]["gamma_size_mean"] for e in entries])
+                ),
+                "mean_eta_gap_kept": float(
+                    np.mean([e[key]["mean_eta_gap_kept"] for e in entries])
+                ),
+                "mean_eta_gap_dropped": float(
+                    np.mean([
+                        e[key]["mean_eta_gap_dropped"] for e in entries
+                        if e[key]["mean_eta_gap_dropped"] is not None
+                    ])
+                ),
+                "n_kept": int(np.mean([e[key]["n_kept"] for e in entries])),
+            }
+            for key in keys
         }
 
     def _write(

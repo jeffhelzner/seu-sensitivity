@@ -180,6 +180,12 @@ generated quantities {
   int<lower=0,upper=M_total> total_seu_max_selected;
   array[J] int seu_max_by_cell;
   array[M_total] int<lower=2> menu_size_out;
+  // Top-two SEU gap per observation: the menu's DISCRIMINABILITY. Regime (c)
+  // (§6.4) needs it because selective refusal is not random -- refusals
+  // concentrate on menus where the alternatives are close, i.e. exactly the
+  // menus that carry the most information about alpha. Emitting it here lets
+  // the filtering happen in Python without re-deriving eta.
+  vector[M_total] eta_gap;
   // Share of repeat presentations that reproduced their menu's first
   // presentation.  Comparable to the observed position-stability rate (§8.8),
   // so a real smoke run can calibrate rho_copy instead of guessing it.
@@ -221,6 +227,11 @@ generated quantities {
       }
 
       menu_size_out[m] = N_obs[m];
+
+      {
+        vector[N_obs[m]] eta_sorted = sort_desc(problem_eta);
+        eta_gap[m] = eta_sorted[1] - eta_sorted[2];
+      }
 
       real max_eta = max(problem_eta);
       if (abs(problem_eta[y[m]] - max_eta) < 1e-10) {

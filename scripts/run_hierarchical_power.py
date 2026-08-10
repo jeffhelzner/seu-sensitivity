@@ -68,6 +68,15 @@ def main(argv=None) -> int:
         "a size weights it: '2,2,4,6,8,8' gives shares 1/3,1/6,1/6,1/3, which "
         "is the extreme-weighted allocation.",
     )
+    parser.add_argument(
+        "--refusal-rates",
+        type=str,
+        default=None,
+        help="Comma-separated refusal rates for regime (c) (§6.4), e.g. "
+        "'0.10,0.25'. Each is fitted twice per iteration -- targeted at low "
+        "eta-gap menus, and missing-at-random as the control.",
+    )
+    parser.add_argument("--refusal-concentration", type=float, default=4.0)
     args = parser.parse_args(argv)
 
     with open(args.config) as fh:
@@ -125,6 +134,12 @@ def main(argv=None) -> int:
         adapt_delta=config.get("adapt_delta", 0.95),
         num_presentations=config.get("num_presentations", 2),
         rho_copy=rho_copy,
+        refusal_rates=(
+            [float(v) for v in args.refusal_rates.split(",")]
+            if args.refusal_rates
+            else config.get("refusal_rates", [])
+        ),
+        refusal_concentration=args.refusal_concentration,
         sim_overrides=config.get("sim_overrides"),
         sim_only_keys=config.get("sim_only_keys", []),
     )

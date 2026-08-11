@@ -497,7 +497,15 @@ class HierarchicalPowerAnalysis:
 
         return {
             "n_iterations": len(records),
-            "regime": "a_pseudo_replication",
+            # Derived, not hard-coded: every regime shares this runner, so a
+            # literal label silently mis-stamps every artefact that is not
+            # regime (a) -- which is how the regime (c) summary came out
+            # claiming to be a pseudo-replication run.
+            "regime": (
+                "c_selective_refusal"
+                if self.refusal_rates
+                else "a_pseudo_replication"
+            ),
             "rho_copy": self.rho_copy,
             "num_presentations": self.num_presentations,
             "n_menus": sim_data["n_menus"],

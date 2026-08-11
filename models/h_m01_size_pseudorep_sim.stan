@@ -68,6 +68,21 @@ data {
   array[M_total] int<lower=1> menu_id;    // which menu each observation presents
   real<lower=0,upper=1> rho_copy;         // P(a repeat presentation is a copy)
 
+  // --- Sparse-interaction structure (§8.5(b), regime (b)) ---
+  //
+  // An additive per-cell shift on log alpha, supplied as DATA rather than
+  // drawn.  The exchangeable `sigma_cell * z_j` term can only produce a DENSE
+  // interaction: all J cells deviate, independently and Gaussianly.  Regime
+  // (b) asks what happens when the truth is SPARSE -- one model reacts to one
+  // prompt and the rest do not -- which is not in the support of any single
+  // draw of that term.  Supplying the shift as data lets the SHAPE of the
+  // interaction be controlled exactly and lets a sparse arm and a matched
+  // dense arm share one RNG stream, so they differ in shape and nothing else.
+  //
+  // Zeros (the default the harness supplies) reproduce the previous model
+  // exactly, so regimes (a), (c) and (e) are unaffected.
+  vector[J] cell_offset;
+
   // --- Hyperparameter controls ---
   real gamma0_mean;
   real<lower=0> gamma0_sd;
@@ -148,13 +163,20 @@ generated quantities {
                     ? normal_rng(gamma_size_mean, gamma_size_sd)
                     : gamma_size_mean;
 
-  real<lower=0> sigma_cell = abs(normal_rng(0, sigma_cell_sd));
+  // sigma_cell_sd = 0 is a legitimate setting, not a degenerate one: regime
+  // (b) turns the exchangeable Gaussian term OFF so the whole cell-level
+  // structure is the supplied `cell_offset`. normal_rng rejects a zero scale,
+  // hence the guard (same pattern as gamma_size above).
+  real<lower=0> sigma_cell = (sigma_cell_sd > 0)
+                             ? abs(normal_rng(0, sigma_cell_sd))
+                             : 0;
 
   vector[J] log_alpha_cell;
   vector[J] alpha_cell;
   for (j in 1:J) {
     real z_j = normal_rng(0, 1);
-    log_alpha_cell[j] = gamma0 + X[j] * gamma + sigma_cell * z_j;
+    log_alpha_cell[j] = gamma0 + X[j] * gamma + sigma_cell * z_j
+                        + cell_offset[j];
     alpha_cell[j] = exp(log_alpha_cell[j]);
   }
 

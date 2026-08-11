@@ -97,7 +97,139 @@ def build_pseudorep_design(
     out["n_menus"] = int(n_menus)
     out["menu_id"] = menu_id.tolist()
     out["num_presentations"] = int(num_presentations)
+    # Regime (b) supplies a real vector here; zeros reproduce the plain model.
+    out["cell_offset"] = [0.0] * int(data["J"])
     return out
+
+
+def interaction_component(offsets: np.ndarray, X: np.ndarray) -> np.ndarray:
+    """
+    The part of a per-cell shift that the design matrix CANNOT absorb.
+
+    ``h_m01_size`` writes ``log_alpha_cell[j] = gamma0 + X[j] * gamma +
+    sigma_cell * z[j]``.  Anything lying in the column space of ``[1 X]`` is
+    therefore soaked up by the main effects and is not an interaction at all;
+    only the residual is.  With 6 models x 3 prompts the residual space is
+    exactly the 10-dimensional model x prompt interaction space -- the two are
+    the SAME subspace, verified by rank -- so this projection is what turns a
+    stated cell shift into the quantity ``sigma_cell * z`` has to represent.
+
+    It matters for scoring as well as for construction: a spike on ONE cell is
+    NOT orthogonal to the main effects, so part of it is legitimately absorbed
+    by ``gamma`` and the posterior residual must be compared against the
+    projected truth, not against the raw spike.
+    """
+    A = np.column_stack([np.ones(len(offsets)), np.asarray(X, dtype=float)])
+    coef, *_ = np.linalg.lstsq(A, np.asarray(offsets, dtype=float), rcond=None)
+    return np.asarray(offsets, dtype=float) - A @ coef
+
+
+def sparse_interaction_offsets(
+    n_cells: int, spike_cell: int, magnitude: float
+) -> np.ndarray:
+    """
+    The regime (b) SPARSE truth: one cell shifted, every other cell exactly 0.
+
+    This is the substantive form of RQ3's question.  "Do prompts move some
+    models more than others" is a claim about CONCENTRATION, and its sharpest
+    version is that a single (model, prompt) combination reacts while the rest
+    are null.  A Gaussian ``sigma_cell`` cannot represent that: it assumes the
+    interaction dimensions are exchangeable, so it must either shrink the one
+    real deviation or inflate all of them.  Whether it nonetheless LOCALIZES
+    the spike is the whole question, and it is answerable with the existing
+    model -- only a failure here would justify building a horseshoe variant.
+
+    The vector is centered so the spike does not masquerade as a shift in the
+    grand level, which ``gamma0`` would absorb anyway.
+    """
+    offsets = np.zeros(int(n_cells), dtype=float)
+    offsets[int(spike_cell)] = float(magnitude)
+    return offsets - offsets.mean()
+
+
+def matched_dense_offsets(
+    sparse_offsets: np.ndarray, X: np.ndarray, rng: np.random.Generator
+) -> np.ndarray:
+    """
+    The control arm: a DENSE Gaussian interaction of the SAME magnitude.
+
+    Matching is on the INTERACTION COMPONENT, not on the raw vector, and it is
+    matched exactly rather than in expectation.  Both arms therefore put the
+    identical amount of energy into the subspace ``sigma_cell * z`` models, and
+    differ only in whether that energy sits in one cell or is spread over all
+    of them.  Without this control, "the spiked cell was flagged" could not be
+    separated from "some cell is always flagged when sigma_cell is large" --
+    the same confound the MAR arm removes in regime (c).
+
+    The returned vector lies entirely in the interaction subspace, so the dense
+    arm has no main-effect leakage; the sparse arm does, and reports it.
+    """
+    target = interaction_component(sparse_offsets, X)
+    draw = rng.normal(size=len(sparse_offsets))
+    resid = interaction_component(draw, X)
+    norm = np.linalg.norm(resid)
+    if norm == 0:  # pragma: no cover - measure-zero
+        return np.zeros_like(target)
+    return resid * (np.linalg.norm(target) / norm)
+
+
+def localization_scores(
+    residual_draws: np.ndarray,
+    true_residual: np.ndarray,
+    spike_cell: int,
+    lower_q: float,
+    upper_q: float,
+) -> Dict[str, Any]:
+    """
+    Can a Gaussian ``sigma_cell`` point at the cell that actually moved?
+
+    ``residual_draws`` is (draws, J) of ``sigma_cell * z_alpha[j]`` -- the
+    posterior of the cell-level deviation that is not explained by the main
+    effects.  ``spike_cell`` is the cell the answer is scored against: the
+    spiked one in the sparse arm, and the LARGEST TRUE deviation in the dense
+    control, which is the honest analogue of the same question.  Two things are
+    reported, and they answer different halves of it:
+
+    * ``spike_rank`` / ``spike_is_max`` -- IDENTIFICATION.  Is the cell that
+      moved most the largest posterior deviation?  Chance is 1/J.
+    * ``spike_flagged`` and ``other_flagged_rate`` -- CALIBRATION.  Does that
+      cell's interval exclude zero more often than an unspiked one?  A
+      procedure that flags the right cell but also flags half the others has
+      not localized anything.
+
+    ``recovered_fraction`` measures the SMEARING the exchangeable prior causes:
+    a Gaussian random effect pulls a lone large deviation toward the others, so
+    a value well below 1 is the attenuation a sparsity prior would avoid.
+    """
+    means = residual_draws.mean(axis=0)
+    lower = np.quantile(residual_draws, lower_q, axis=0)
+    upper = np.quantile(residual_draws, upper_q, axis=0)
+    flagged = (lower > 0) | (upper < 0)
+
+    spike = int(spike_cell)
+    truth = np.asarray(true_residual, dtype=float)
+    order = np.argsort(-np.abs(means))
+    others = np.delete(np.abs(means), spike)
+    return {
+        "posterior_mean_residual": [float(v) for v in means],
+        "true_residual": [float(v) for v in truth],
+        "flagged": [bool(v) for v in flagged],
+        "n_flagged": int(flagged.sum()),
+        "residual_sd_across_cells": float(means.std(ddof=1)),
+        "spike_cell": spike,
+        "spike_rank": int(np.where(order == spike)[0][0]) + 1,
+        "spike_is_max": bool(order[0] == spike),
+        "spike_flagged": bool(flagged[spike]),
+        "other_flagged_rate": float(
+            (flagged.sum() - int(flagged[spike])) / (len(means) - 1)
+        ),
+        "spike_z": float(
+            (abs(means[spike]) - others.mean()) / others.std(ddof=1)
+        ),
+        "recovered_fraction": (
+            float(means[spike] / truth[spike]) if truth[spike] != 0 else None
+        ),
+    }
 
 
 def agreement_by_size(
@@ -241,6 +373,7 @@ class HierarchicalPowerAnalysis:
         rho_copy: float = 0.0,
         refusal_rates: Sequence[float] = (),
         refusal_concentration: float = 4.0,
+        sparse_interaction: Optional[Dict[str, Any]] = None,
         sim_overrides: Optional[Dict[str, Any]] = None,
         sim_only_keys: Sequence[str] = (),
         rope_log: float = DEFAULT_ROPE_LOG,
@@ -260,6 +393,7 @@ class HierarchicalPowerAnalysis:
         self.rho_copy = rho_copy
         self.refusal_rates = tuple(refusal_rates)
         self.refusal_concentration = refusal_concentration
+        self.sparse_interaction = dict(sparse_interaction or {})
         self.sim_overrides = dict(sim_overrides or {})
         self.sim_only_keys = tuple(sim_only_keys)
         self.rope_log = rope_log
@@ -280,12 +414,33 @@ class HierarchicalPowerAnalysis:
         lower_q = (1.0 - self.interval_prob) / 2.0
         upper_q = 1.0 - lower_q
 
+        # -- Regime (b): install the SPARSE truth (§8.5(b)) --------------------
+        # The exchangeable Gaussian term is switched OFF so the entire
+        # cell-level structure is the supplied spike; otherwise a random
+        # sigma_cell would add a second, dense interaction on top of the sparse
+        # one and the two arms would no longer differ only in shape.
+        spike_offsets = None
+        design_X = None
+        if self.sparse_interaction:
+            J = int(sim_data["J"])
+            design_X = np.asarray(sim_data["X"], dtype=float)
+            spike_cell = self.sparse_interaction.get("spike_cell")
+            spike_cell = J - 1 if spike_cell is None else int(spike_cell)
+            spike_offsets = sparse_interaction_offsets(
+                J, spike_cell, float(self.sparse_interaction.get("magnitude", 1.0))
+            )
+            sim_data["sigma_cell_sd"] = 0.0
+            self.sparse_interaction["spike_cell"] = spike_cell
+
         records: List[Dict[str, Any]] = []
         durations: List[float] = []
         rng = np.random.default_rng(self.seed)
 
         for iteration in tqdm(range(self.n_iterations), desc="power"):
             started = time.time()
+
+            if spike_offsets is not None:
+                sim_data["cell_offset"] = spike_offsets.tolist()
 
             sim_fit = self.sim_model.sample(
                 data=sim_data,
@@ -326,6 +481,7 @@ class HierarchicalPowerAnalysis:
                     "n_menus",
                     "menu_id",
                     "num_presentations",
+                    "cell_offset",
                 )
                 + self.sim_only_keys
             }
@@ -418,6 +574,89 @@ class HierarchicalPowerAnalysis:
                             ),
                         }
                 record["seconds"] = time.time() - started
+
+            # -- Regime (b): sparse vs matched dense interaction (§8.5(b)) ----
+            # The base fit above IS the sparse arm.  The control re-simulates
+            # with a dense interaction of the same interaction-subspace
+            # magnitude, under the SAME sim seed, so the two arms share gamma,
+            # beta, delta and the copy pattern and differ only in the SHAPE of
+            # the cell-level structure.  Fitting is not paired on one dataset
+            # here (unlike regime (c)) because the arms ARE different truths;
+            # sharing the RNG stream is the strongest pairing available.
+            if spike_offsets is not None:
+                record["sparse"] = {}
+                J = len(spike_offsets)
+                true_sparse_resid = interaction_component(
+                    spike_offsets, design_X
+                )
+                residual_draws = np.column_stack(
+                    [
+                        draws["sigma_cell"].to_numpy()
+                        * draws[f"z_alpha[{j + 1}]"].to_numpy()
+                        for j in range(J)
+                    ]
+                )
+                record["sparse"]["sparse"] = localization_scores(
+                    residual_draws,
+                    true_sparse_resid,
+                    int(self.sparse_interaction["spike_cell"]),
+                    lower_q,
+                    upper_q,
+                )
+                record["sparse"]["sparse"]["main_effect_leak"] = float(
+                    np.linalg.norm(spike_offsets - true_sparse_resid)
+                    / np.linalg.norm(spike_offsets)
+                )
+
+                dense_offsets = matched_dense_offsets(
+                    spike_offsets, design_X, rng
+                )
+                dense_sim_data = dict(sim_data)
+                dense_sim_data["cell_offset"] = dense_offsets.tolist()
+                dense_sim_fit = self.sim_model.sample(
+                    data=dense_sim_data,
+                    seed=self.seed + iteration,
+                    iter_sampling=1,
+                    iter_warmup=0,
+                    chains=1,
+                    fixed_param=True,
+                    adapt_engaged=False,
+                )
+                dense_draw = dense_sim_fit.draws_pd().iloc[0]
+                dense_data = dict(inference_data)
+                dense_data["y"] = [
+                    int(dense_draw[f"y[{m + 1}]"])
+                    for m in range(sim_data["M_total"])
+                ]
+                dense_fit = self.inference_model.sample(
+                    data=dense_data,
+                    seed=self.seed + 3000 + iteration,
+                    iter_sampling=self.n_mcmc_samples,
+                    iter_warmup=self.n_mcmc_warmup,
+                    chains=self.n_mcmc_chains,
+                    adapt_delta=self.adapt_delta,
+                    show_progress=False,
+                )
+                dense_draws = dense_fit.draws_pd()
+                dense_resid_draws = np.column_stack(
+                    [
+                        dense_draws["sigma_cell"].to_numpy()
+                        * dense_draws[f"z_alpha[{j + 1}]"].to_numpy()
+                        for j in range(J)
+                    ]
+                )
+                true_dense_resid = interaction_component(
+                    dense_offsets, design_X
+                )
+                record["sparse"]["dense"] = localization_scores(
+                    dense_resid_draws,
+                    true_dense_resid,
+                    int(np.argmax(np.abs(true_dense_resid))),
+                    lower_q,
+                    upper_q,
+                )
+                record["seconds"] = time.time() - started
+
             try:
                 diag = fit.diagnose()
                 record["divergences"] = "no problems" not in (diag or "").lower()
@@ -497,12 +736,10 @@ class HierarchicalPowerAnalysis:
 
         return {
             "n_iterations": len(records),
-            # Derived, not hard-coded: every regime shares this runner, so a
-            # literal label silently mis-stamps every artefact that is not
-            # regime (a) -- which is how the regime (c) summary came out
-            # claiming to be a pseudo-replication run.
             "regime": (
-                "c_selective_refusal"
+                "b_sparse_interaction"
+                if self.sparse_interaction
+                else "c_selective_refusal"
                 if self.refusal_rates
                 else "a_pseudo_replication"
             ),
@@ -529,6 +766,7 @@ class HierarchicalPowerAnalysis:
             "menu_sizes": sorted(set(int(v) for v in sim_data["menu_size"])),
             "retention": self._mean_retention(records),
             "refusal": self._mean_refusal(records),
+            "sparse_interaction": self._mean_sparse(records),
             "seconds_per_iteration": float(seconds.mean()),
             "total_seconds": float(seconds.sum()),
             "sampler": {
@@ -602,6 +840,63 @@ class HierarchicalPowerAnalysis:
                 "n_kept": int(np.mean([e[key]["n_kept"] for e in entries])),
             }
             for key in keys
+        }
+
+    @staticmethod
+    def _mean_sparse(records: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+        """
+        Average the regime (b) localization scores across iterations.
+
+        Read the two arms side by side. ``spike_is_max_rate`` in the SPARSE arm
+        against 1/J is whether a Gaussian ``sigma_cell`` identifies the cell
+        that moved; ``spike_flagged_rate`` against ``other_flagged_rate`` is
+        whether it does so with a usable error rate. The DENSE arm is scored on
+        its own largest true deviation, so it says what the same procedure
+        achieves when the interaction is exchangeable -- the shape the model
+        actually assumes. If sparse is no worse than dense, the existing model
+        answers RQ3 and no horseshoe variant is needed.
+
+        ``mean_recovered_fraction`` is the attenuation: how much of the true
+        deviation survives the exchangeable prior's shrinkage.
+        """
+        entries = [r["sparse"] for r in records if r.get("sparse")]
+        if not entries:
+            return None
+        n_cells = len(entries[0]["sparse"]["posterior_mean_residual"])
+        return {
+            "n_cells": n_cells,
+            "chance_is_max_rate": 1.0 / n_cells,
+            "arms": {
+                arm: {
+                    "spike_is_max_rate": float(
+                        np.mean([e[arm]["spike_is_max"] for e in entries])
+                    ),
+                    "mean_spike_rank": float(
+                        np.mean([e[arm]["spike_rank"] for e in entries])
+                    ),
+                    "spike_flagged_rate": float(
+                        np.mean([e[arm]["spike_flagged"] for e in entries])
+                    ),
+                    "other_flagged_rate": float(
+                        np.mean([e[arm]["other_flagged_rate"] for e in entries])
+                    ),
+                    "mean_spike_z": float(
+                        np.mean([e[arm]["spike_z"] for e in entries])
+                    ),
+                    "mean_recovered_fraction": float(
+                        np.mean([e[arm]["recovered_fraction"] for e in entries])
+                    ),
+                    "mean_residual_sd_across_cells": float(
+                        np.mean(
+                            [e[arm]["residual_sd_across_cells"] for e in entries]
+                        )
+                    ),
+                }
+                for arm in ("sparse", "dense")
+            },
+            "main_effect_leak": float(
+                np.mean([e["sparse"]["main_effect_leak"] for e in entries])
+            ),
         }
 
     def _write(

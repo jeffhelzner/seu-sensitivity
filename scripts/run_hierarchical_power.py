@@ -32,6 +32,16 @@ def _compile(path: str):
     return CmdStanModel(stan_file=path)
 
 
+def _sparse_config(config: dict, args) -> dict:
+    """Merge the regime (b) settings from the config with any CLI overrides."""
+    sparse = dict(config.get("sparse_interaction") or {})
+    if args.spike_magnitude is not None:
+        sparse["magnitude"] = args.spike_magnitude
+    if args.spike_cell is not None:
+        sparse["spike_cell"] = args.spike_cell
+    return sparse
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", required=True)
@@ -77,6 +87,21 @@ def main(argv=None) -> int:
         "eta-gap menus, and missing-at-random as the control.",
     )
     parser.add_argument("--refusal-concentration", type=float, default=4.0)
+    parser.add_argument(
+        "--spike-magnitude",
+        type=float,
+        default=None,
+        help="Regime (b) (§8.5(b)): shift ONE cell's log-alpha by this much and "
+        "ask whether the Gaussian sigma_cell localizes it. Adds a matched "
+        "DENSE control arm, so each iteration costs two fits.",
+    )
+    parser.add_argument(
+        "--spike-cell",
+        type=int,
+        default=None,
+        help="0-based cell to spike. Defaults to the last cell; in a balanced "
+        "design every cell has the same leverage, so the choice is cosmetic.",
+    )
     args = parser.parse_args(argv)
 
     with open(args.config) as fh:
@@ -140,6 +165,7 @@ def main(argv=None) -> int:
             else config.get("refusal_rates", [])
         ),
         refusal_concentration=args.refusal_concentration,
+        sparse_interaction=_sparse_config(config, args),
         sim_overrides=config.get("sim_overrides"),
         sim_only_keys=config.get("sim_only_keys", []),
     )
@@ -164,6 +190,23 @@ def main(argv=None) -> int:
         value = summary.get(key)
         print(f"  {key:<26}{value if value is None else round(value, 4)}")
     print(f"\n  nominal coverage {summary['nominal_coverage']}")
+    sparse = summary.get("sparse_interaction")
+    if sparse:
+        print(f"\n  regime (b) localization  (chance is_max = "
+              f"{sparse['chance_is_max_rate']:.3f})")
+        print(f"  {'arm':<8}{'is_max':>9}{'rank':>8}{'spike_flag':>12}"
+              f"{'other_flag':>12}{'z':>8}{'recovered':>11}")
+        for arm, vals in sparse["arms"].items():
+            print(
+                f"  {arm:<8}{vals['spike_is_max_rate']:>9.3f}"
+                f"{vals['mean_spike_rank']:>8.2f}"
+                f"{vals['spike_flagged_rate']:>12.3f}"
+                f"{vals['other_flagged_rate']:>12.3f}"
+                f"{vals['mean_spike_z']:>8.2f}"
+                f"{vals['mean_recovered_fraction']:>11.3f}"
+            )
+        print(f"  main-effect leak of the spike: "
+              f"{sparse['main_effect_leak']:.3f}")
     print(f"  wrote {output_dir}/summary.json  and  timing.json")
     return 0
 

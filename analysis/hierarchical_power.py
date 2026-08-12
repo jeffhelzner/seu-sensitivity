@@ -369,6 +369,7 @@ class HierarchicalPowerAnalysis:
         n_mcmc_warmup: Optional[int] = None,
         n_mcmc_chains: int = 4,
         adapt_delta: float = 0.95,
+        max_treedepth: int = 12,
         num_presentations: int = 2,
         rho_copy: float = 0.0,
         refusal_rates: Sequence[float] = (),
@@ -389,6 +390,7 @@ class HierarchicalPowerAnalysis:
         self.n_mcmc_warmup = n_mcmc_warmup or n_mcmc_samples // 2
         self.n_mcmc_chains = n_mcmc_chains
         self.adapt_delta = adapt_delta
+        self.max_treedepth = max_treedepth
         self.num_presentations = num_presentations
         self.rho_copy = rho_copy
         self.refusal_rates = tuple(refusal_rates)
@@ -494,6 +496,7 @@ class HierarchicalPowerAnalysis:
                 iter_warmup=self.n_mcmc_warmup,
                 chains=self.n_mcmc_chains,
                 adapt_delta=self.adapt_delta,
+                max_treedepth=self.max_treedepth,
                 show_progress=False,
             )
 
@@ -553,6 +556,7 @@ class HierarchicalPowerAnalysis:
                             iter_warmup=self.n_mcmc_warmup,
                             chains=self.n_mcmc_chains,
                             adapt_delta=self.adapt_delta,
+                            max_treedepth=self.max_treedepth,
                             show_progress=False,
                         )
                         sub_draws = sub_fit.draws_pd()
@@ -635,6 +639,7 @@ class HierarchicalPowerAnalysis:
                     iter_warmup=self.n_mcmc_warmup,
                     chains=self.n_mcmc_chains,
                     adapt_delta=self.adapt_delta,
+                    max_treedepth=self.max_treedepth,
                     show_progress=False,
                 )
                 dense_draws = dense_fit.draws_pd()
@@ -774,6 +779,12 @@ class HierarchicalPowerAnalysis:
                 "iter_sampling": self.n_mcmc_samples,
                 "chains": self.n_mcmc_chains,
                 "adapt_delta": self.adapt_delta,
+                # Recorded because it is a COST driver and a validity
+                # condition, and because leaving it unrecorded is how this
+                # harness silently ran at the CmdStan default of 10 while
+                # hierarchical_parameter_recovery ran at 12 -- so Phase D
+                # timings were not comparable to Phase C's.
+                "max_treedepth": self.max_treedepth,
             },
             "provisional": True,
             "frozen_at": None,

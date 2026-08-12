@@ -71,6 +71,16 @@ def main(argv=None) -> int:
     parser.add_argument("--iter-warmup", type=int, default=None)
     parser.add_argument("--chains", type=int, default=None)
     parser.add_argument(
+        "--max-treedepth",
+        type=int,
+        default=None,
+        help="Sampler treedepth limit. Defaults to 12, matching "
+        "hierarchical_parameter_recovery. This harness previously left it "
+        "unset, i.e. at the CmdStan default of 10, so every Phase D power fit "
+        "ran under a TRUNCATED sampler while Phase C did not -- which made the "
+        "two sets of timings incomparable.",
+    )
+    parser.add_argument(
         "--menu-sizes",
         type=str,
         default=None,
@@ -157,6 +167,11 @@ def main(argv=None) -> int:
         n_mcmc_warmup=n_warmup,
         n_mcmc_chains=n_chains,
         adapt_delta=config.get("adapt_delta", 0.95),
+        max_treedepth=(
+            args.max_treedepth
+            if args.max_treedepth is not None
+            else config.get("max_treedepth", 12)
+        ),
         num_presentations=config.get("num_presentations", 2),
         rho_copy=rho_copy,
         refusal_rates=(

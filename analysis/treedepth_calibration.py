@@ -27,6 +27,9 @@ verdict as the load-bearing result.
 
 import json
 import sys
+import argparse
+import json
+import sys
 import time
 from pathlib import Path
 
@@ -37,29 +40,78 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from analysis.hierarchical_power import (
     build_pseudorep_design,
+    interaction_component,
     sparse_interaction_offsets,
 )
 from utils.study_design_hierarchical import HierarchicalStudyDesign
 
-TREEDEPTHS = [10, 12]
-OUT = Path("results/power/treedepth_calibration")
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument("--factors", default="3,2")
+parser.add_argument("--menus-per-cell", type=int, default=30)
+parser.add_argument("--treedepths", default="10,12")
+parser.add_argument("--iter-warmup", type=int, default=1000)
+parser.add_argument("--iter-sampling", type=int, default=2000)
+parser.add_argument("--rho-copy", type=float, default=0.9)
+parser.add_argument(
+    "--spike-magnitude",
+    type=float,
+    default=None,
+    help="Install a SPARSE cell offset of this size (regime (b) geometry).",
+)
+parser.add_argument(
+    "--dense-sd",
+    type=float,
+    default=None,
+    help="Install a DENSE cell offset with this across-cell SD, i.e. pin the "
+    "true sigma_cell. Small values are the STRESS case: the non-centred "
+    "funnel tightens as sigma_cell approaches 0, so a small pinned value is "
+    "the worst realistic geometry rather than a typical one.",
+)
+parser.add_argument("--label", default="treedepth_calibration")
+args = parser.parse_args()
+
+TREEDEPTHS = [int(v) for v in args.treedepths.split(",")]
+OUT = Path("results/power") / args.label
 OUT.mkdir(parents=True, exist_ok=True)
 
+if args.iter_sampling < 2000:
+    print("NOTE: sampling draws are reduced. This run is a SATURATION verdict "
+          "only -- its wall clock is NOT a valid basis for sizing anything.",
+          flush=True)
+
 design = HierarchicalStudyDesign.from_factorial(
-    factors=[3, 2], reference_indices=[0, 0], include_interactions=False,
-    K=3, D=2, R=12, M_per_cell=30, menu_sizes=[2, 4, 6, 8],
+    factors=[int(v) for v in args.factors.split(",")],
+    reference_indices=[0, 0], include_interactions=False,
+    K=3, D=2, R=12, M_per_cell=args.menus_per_cell, menu_sizes=[2, 4, 6, 8],
     feature_dist="normal", feature_params={"loc": 0, "scale": 1},
-    design_name="treedepth_calibration",
+    design_name=args.label,
 )
 design.generate()
 data = build_pseudorep_design(design, num_presentations=2)
-data["rho_copy"] = 0.9
-data["sigma_cell_sd"] = 0.0
+data["rho_copy"] = args.rho_copy
 J = int(data["J"])
-data["cell_offset"] = list(sparse_interaction_offsets(J, J - 1, 1.0))
+X = np.asarray(data["X"], dtype=float)
 
-print(f"J={J}  M_total={data['M_total']}  obs/cell={data['M_total'] // J}",
-      flush=True)
+if args.spike_magnitude is not None:
+    data["sigma_cell_sd"] = 0.0
+    data["cell_offset"] = list(
+        sparse_interaction_offsets(J, J - 1, args.spike_magnitude)
+    )
+    truth = f"sparse spike {args.spike_magnitude}"
+elif args.dense_sd is not None:
+    data["sigma_cell_sd"] = 0.0
+    rng = np.random.default_rng(999)
+    offsets = interaction_component(rng.normal(size=J), X)
+    offsets = offsets * (args.dense_sd / offsets.std(ddof=1))
+    data["cell_offset"] = list(offsets)
+    truth = f"dense sigma_cell pinned at {args.dense_sd}"
+else:
+    truth = f"sigma_cell ~ half-normal({data['sigma_cell_sd']})"
+
+print(f"J={J}  M_total={data['M_total']}  obs/cell={data['M_total'] // J}  "
+      f"truth: {truth}", flush=True)
+print(f"warmup {args.iter_warmup}  sampling {args.iter_sampling}  "
+      f"treedepths {TREEDEPTHS}", flush=True)
 
 sim = CmdStanModel(stan_file="models/h_m01_size_pseudorep_sim.stan")
 inf = CmdStanModel(stan_file="models/h_m01_size.stan")
@@ -94,8 +146,8 @@ for treedepth in TREEDEPTHS:
     fit = inf.sample(
         data=inference_data,
         seed=54321,
-        iter_sampling=2000,
-        iter_warmup=1000,
+        iter_sampling=args.iter_sampling,
+        iter_warmup=args.iter_warmup,
         chains=4,
         adapt_delta=0.95,
         max_treedepth=treedepth,
@@ -121,10 +173,19 @@ for treedepth in TREEDEPTHS:
         "seconds": elapsed,
         "treedepth_saturated_share": saturated,
         "mean_treedepth": float(td.mean()),
+        "max_treedepth_reached": int(td.max()),
+        # The whole histogram, because it makes ONE run answer the
+        # counterfactual: the share of draws at depth >= L is exactly what a
+        # limit of L would have truncated. So a clean run at 12 also tells us
+        # whether 10 would have bound, with no second fit.
+        "would_saturate_at": {
+            str(limit): float((td >= limit).mean()) for limit in range(6, 13)
+        },
         "divergences": int(div.sum()),
         "ess_bulk": bulk,
         "ess_tail": tail,
         "rhat": rhat,
+        "max_rhat": max(rhat.values()) if rhat else None,
         "min_ess_bulk": min(bulk.values()) if bulk else None,
         "posterior_mean": {
             k: float(fit.draws_pd()[k].mean()) for k in present if k != "lp__"
@@ -136,7 +197,24 @@ for treedepth in TREEDEPTHS:
         print(f"  min ESS_bulk {min(bulk.values()):.0f}", flush=True)
 
 with open(OUT / "calibration.json", "w") as fh:
-    json.dump(results, fh, indent=2)
+    json.dump({"settings": vars(args), "results": results}, fh, indent=2)
+
+for treedepth in TREEDEPTHS:
+    r = results[treedepth]
+    print(f"\n=== treedepth {treedepth}: what a LOWER limit would have cost ===")
+    print(f"  max depth actually reached: {r['max_treedepth_reached']}")
+    print(f"  {'limit':>7}{'share of draws truncated':>28}")
+    for limit, share in sorted(r["would_saturate_at"].items(), key=lambda kv: int(kv[0])):
+        print(f"  {limit:>7}{share:>28.3f}")
+    if r["max_rhat"] is not None:
+        print(f"  max R-hat {r['max_rhat']:.4f}   min ESS_bulk "
+              f"{r['min_ess_bulk']:.0f}   divergences {r['divergences']}")
+
+if len(TREEDEPTHS) < 2:
+    print("\nSingle treedepth run: no ratio to report. The table above is the "
+          "verdict -- the share truncated at each lower limit is what that "
+          "limit would have done to this posterior.")
+    raise SystemExit(0)
 
 a, b = TREEDEPTHS[0], TREEDEPTHS[-1]
 ra, rb = results[a], results[b]

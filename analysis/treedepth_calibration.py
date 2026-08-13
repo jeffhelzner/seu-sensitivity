@@ -29,6 +29,7 @@ import json
 import sys
 import argparse
 import json
+import os
 import sys
 import time
 from pathlib import Path
@@ -49,6 +50,14 @@ parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("--factors", default="3,2")
 parser.add_argument("--menus-per-cell", type=int, default=30)
 parser.add_argument("--treedepths", default="10,12")
+parser.add_argument(
+    "--models",
+    default="models/h_m01_size.stan",
+    help="Comma-separated inference models to compare ON THE SAME simulated "
+    "data. Reparameterisations must agree on the POSTERIOR and differ only in "
+    "sampling efficiency, so fitting them to one dataset is what makes the "
+    "agreement check meaningful.",
+)
 parser.add_argument("--iter-warmup", type=int, default=1000)
 parser.add_argument("--iter-sampling", type=int, default=2000)
 parser.add_argument("--rho-copy", type=float, default=0.9)
@@ -114,7 +123,7 @@ print(f"warmup {args.iter_warmup}  sampling {args.iter_sampling}  "
       f"treedepths {TREEDEPTHS}", flush=True)
 
 sim = CmdStanModel(stan_file="models/h_m01_size_pseudorep_sim.stan")
-inf = CmdStanModel(stan_file="models/h_m01_size.stan")
+MODEL_PATHS = [p for p in args.models.split(",") if p.strip()]
 
 sim_fit = sim.sample(data=data, seed=12345, iter_sampling=1, iter_warmup=0,
                      chains=1, fixed_param=True, adapt_engaged=False)
@@ -128,9 +137,26 @@ inference_data = {k: v for k, v in data.items() if k not in SIM_ONLY}
 inference_data["y"] = [int(draw[f"y[{m + 1}]"])
                        for m in range(data["M_total"])]
 
-KEY = ["lp__", "gamma0", "gamma_size", "sigma_cell"] + [
-    f"z_alpha[{j + 1}]" for j in range(J)
-]
+# Which parameters to compute convergence diagnostics over.
+#
+# This started as an explicit list -- lp__, gamma0, gamma_size, sigma_cell and
+# z_alpha -- and that list HID THE ACTUAL PROBLEM. At J=18 the worst mixing was
+# in beta (ESS 8, R-hat 1.48 for cells 6 and 7) and in the shared delta
+# (ESS 24), neither of which was being monitored; the only symptom that showed
+# through was lp__ at ESS 45. A hand-picked list of "interesting" parameters
+# silently excuses the ones you did not think to suspect, so monitor EVERYTHING
+# except the per-observation arrays, which are large and derived.
+DIAGNOSTIC_EXCLUDE_PREFIXES = (
+    "log_lik", "y_pred", "eta", "alpha_obs", "log_alpha_obs",
+    "T_obs", "T_rep", "ppc_",
+)
+
+
+def diagnostic_params(summary):
+    return [
+        name for name in summary.index
+        if not name.startswith(DIAGNOSTIC_EXCLUDE_PREFIXES)
+    ]
 
 
 def ess_columns(summary):
@@ -140,109 +166,130 @@ def ess_columns(summary):
 
 
 results = {}
-for treedepth in TREEDEPTHS:
-    print(f"\n=== max_treedepth = {treedepth} ===", flush=True)
-    started = time.time()
-    fit = inf.sample(
-        data=inference_data,
-        seed=54321,
-        iter_sampling=args.iter_sampling,
-        iter_warmup=args.iter_warmup,
-        chains=4,
-        adapt_delta=0.95,
-        max_treedepth=treedepth,
-        show_progress=False,
-    )
-    elapsed = time.time() - started
+for model_path in MODEL_PATHS:
+    model_name = os.path.basename(model_path).replace(".stan", "")
+    inf = CmdStanModel(stan_file=model_path)
+    for treedepth in TREEDEPTHS:
+        key = f"{model_name}@td{treedepth}"
+        print(f"\n=== {key} ===", flush=True)
+        started = time.time()
+        fit = inf.sample(
+            data=inference_data,
+            seed=54321,
+            iter_sampling=args.iter_sampling,
+            iter_warmup=args.iter_warmup,
+            chains=4,
+            adapt_delta=0.95,
+            max_treedepth=treedepth,
+            show_progress=False,
+        )
+        elapsed = time.time() - started
 
-    mv = fit.method_variables()
-    td = np.asarray(mv["treedepth__"])
-    div = np.asarray(mv["divergent__"])
-    saturated = float((td >= treedepth).mean())
+        mv = fit.method_variables()
+        td = np.asarray(mv["treedepth__"])
+        div = np.asarray(mv["divergent__"])
+        saturated = float((td >= treedepth).mean())
 
-    summary = fit.summary()
-    bulk_col, tail_col = ess_columns(summary)
-    present = [k for k in KEY if k in summary.index]
-    bulk = {k: float(summary.loc[k, bulk_col]) for k in present} if bulk_col else {}
-    tail = {k: float(summary.loc[k, tail_col]) for k in present} if tail_col else {}
-    rhat_col = [c for c in summary.columns if "hat" in c.lower()]
-    rhat = ({k: float(summary.loc[k, rhat_col[0]]) for k in present}
-            if rhat_col else {})
+        summary = fit.summary()
+        bulk_col, tail_col = ess_columns(summary)
+        present = diagnostic_params(summary)
+        bulk = ({k: float(summary.loc[k, bulk_col]) for k in present}
+                if bulk_col else {})
+        bulk = {k: v for k, v in bulk.items() if v == v}  # drop NaN (constants)
+        tail = ({k: float(summary.loc[k, tail_col]) for k in present}
+                if tail_col else {})
+        rhat_col = [c for c in summary.columns if "hat" in c.lower()]
+        rhat = ({k: float(summary.loc[k, rhat_col[0]]) for k in present}
+                if rhat_col else {})
+        rhat = {k: v for k, v in rhat.items() if v == v}
 
-    results[treedepth] = {
-        "seconds": elapsed,
-        "treedepth_saturated_share": saturated,
-        "mean_treedepth": float(td.mean()),
-        "max_treedepth_reached": int(td.max()),
-        # The whole histogram, because it makes ONE run answer the
-        # counterfactual: the share of draws at depth >= L is exactly what a
-        # limit of L would have truncated. So a clean run at 12 also tells us
-        # whether 10 would have bound, with no second fit.
-        "would_saturate_at": {
-            str(limit): float((td >= limit).mean()) for limit in range(6, 13)
-        },
-        "divergences": int(div.sum()),
-        "ess_bulk": bulk,
-        "ess_tail": tail,
-        "rhat": rhat,
-        "max_rhat": max(rhat.values()) if rhat else None,
-        "min_ess_bulk": min(bulk.values()) if bulk else None,
-        "posterior_mean": {
-            k: float(fit.draws_pd()[k].mean()) for k in present if k != "lp__"
-        },
-    }
-    print(f"  seconds {elapsed:.0f}  saturated {saturated:.3f}  "
-          f"mean td {td.mean():.2f}  divergences {int(div.sum())}", flush=True)
-    if bulk:
-        print(f"  min ESS_bulk {min(bulk.values()):.0f}", flush=True)
+        results[key] = {
+            "model": model_path,
+            "max_treedepth": treedepth,
+            "seconds": elapsed,
+            "treedepth_saturated_share": saturated,
+            "mean_treedepth": float(td.mean()),
+            "max_treedepth_reached": int(td.max()),
+            # The whole histogram, because it makes ONE run answer the
+            # counterfactual: the share of draws at depth >= L is exactly what
+            # a limit of L would have truncated. So a clean run at 12 also
+            # tells us whether 10 would have bound, with no second fit.
+            "would_saturate_at": {
+                str(limit): float((td >= limit).mean())
+                for limit in range(6, 13)
+            },
+            "divergences": int(div.sum()),
+            "ess_bulk": bulk,
+            "ess_tail": tail,
+            "rhat": rhat,
+            "max_rhat": max(rhat.values()) if rhat else None,
+            "min_ess_bulk": min(bulk.values()) if bulk else None,
+            "worst_ess": sorted(bulk.items(), key=lambda kv: kv[1])[:12],
+            "worst_rhat": sorted(rhat.items(), key=lambda kv: -kv[1])[:12],
+            "posterior_mean": {
+                k: float(fit.draws_pd()[k].mean())
+                for k in present if k != "lp__" and k in bulk
+            },
+        }
+        print(f"  seconds {elapsed:.0f}  saturated {saturated:.3f}  "
+              f"mean td {td.mean():.2f}  divergences {int(div.sum())}",
+              flush=True)
+        if bulk:
+            print(f"  min ESS_bulk {min(bulk.values()):.0f}  "
+                  f"ESS/1000s {min(bulk.values()) / (elapsed / 1000):.1f}  "
+                  f"max R-hat {max(rhat.values()):.4f}", flush=True)
+            print("  worst mixing: " + ", ".join(
+                f"{n}={v:.0f}" for n, v in
+                sorted(bulk.items(), key=lambda kv: kv[1])[:5]), flush=True)
 
 with open(OUT / "calibration.json", "w") as fh:
     json.dump({"settings": vars(args), "results": results}, fh, indent=2)
 
-for treedepth in TREEDEPTHS:
-    r = results[treedepth]
-    print(f"\n=== treedepth {treedepth}: what a LOWER limit would have cost ===")
-    print(f"  max depth actually reached: {r['max_treedepth_reached']}")
+keys = list(results)
+print("\n" + "=" * 78)
+print(f"{'config':<34}{'secs':>7}{'meantd':>8}{'max':>5}{'>=10':>7}"
+      f"{'minESS':>8}{'ESS/1ks':>9}{'div':>5}")
+print("=" * 78)
+for key in keys:
+    r = results[key]
+    print(f"{key:<34}{r['seconds']:>7.0f}{r['mean_treedepth']:>8.2f}"
+          f"{r['max_treedepth_reached']:>5}"
+          f"{r['would_saturate_at']['10']:>7.3f}"
+          f"{(r['min_ess_bulk'] or 0):>8.0f}"
+          f"{((r['min_ess_bulk'] or 0) / (r['seconds'] / 1000)):>9.1f}"
+          f"{r['divergences']:>5}")
+
+for key in keys:
+    r = results[key]
+    print(f"\n{key}: what a LOWER limit would have cost "
+          f"(max depth reached {r['max_treedepth_reached']})")
     print(f"  {'limit':>7}{'share of draws truncated':>28}")
-    for limit, share in sorted(r["would_saturate_at"].items(), key=lambda kv: int(kv[0])):
+    for limit, share in sorted(r["would_saturate_at"].items(),
+                               key=lambda kv: int(kv[0])):
         print(f"  {limit:>7}{share:>28.3f}")
     if r["max_rhat"] is not None:
-        print(f"  max R-hat {r['max_rhat']:.4f}   min ESS_bulk "
-              f"{r['min_ess_bulk']:.0f}   divergences {r['divergences']}")
+        print(f"  max R-hat {r['max_rhat']:.4f}")
 
-if len(TREEDEPTHS) < 2:
-    print("\nSingle treedepth run: no ratio to report. The table above is the "
-          "verdict -- the share truncated at each lower limit is what that "
-          "limit would have done to this posterior.")
+if len(keys) < 2:
+    print("\nSingle config: nothing to compare. The table above is the verdict.")
     raise SystemExit(0)
 
-a, b = TREEDEPTHS[0], TREEDEPTHS[-1]
-ra, rb = results[a], results[b]
-print("\n" + "=" * 66)
-print(f"{'metric':<28}{'td ' + str(a):>13}{'td ' + str(b):>13}{'ratio':>11}")
-print("=" * 66)
-
-
-def row(name, va, vb, fmt="{:.0f}"):
-    ratio = (vb / va) if (va not in (None, 0) and vb is not None) else float("nan")
-    print(f"{name:<28}{fmt.format(va):>13}{fmt.format(vb):>13}{ratio:>11.2f}")
-
-
-row("wall clock (s)", ra["seconds"], rb["seconds"])
-row("saturated share", ra["treedepth_saturated_share"],
-    rb["treedepth_saturated_share"], "{:.3f}")
-row("mean treedepth", ra["mean_treedepth"], rb["mean_treedepth"], "{:.2f}")
-if ra["min_ess_bulk"]:
-    row("min ESS_bulk", ra["min_ess_bulk"], rb["min_ess_bulk"])
-    row("min ESS_bulk per 1000 s",
-        ra["min_ess_bulk"] / (ra["seconds"] / 1000),
-        rb["min_ess_bulk"] / (rb["seconds"] / 1000), "{:.1f}")
-print(f"{'divergences':<28}{ra['divergences']:>13}{rb['divergences']:>13}")
-
-print("\nposterior means (do the two agree? disagreement means treedepth 10 was")
-print("not merely slow but WRONG):")
-print(f"  {'param':<16}{'td ' + str(a):>12}{'td ' + str(b):>12}{'diff':>12}")
-for k in sorted(ra["posterior_mean"]):
-    va, vb = ra["posterior_mean"][k], rb["posterior_mean"][k]
-    print(f"  {k:<16}{va:>12.4f}{vb:>12.4f}{vb - va:>12.4f}")
+# Posterior agreement. For a REPARAMETERISATION this is the correctness check,
+# not a nicety: the two forms describe the same posterior, so a disagreement
+# larger than Monte Carlo error means one of them is not sampling it.
+first = keys[0]
+print("\n" + "=" * 78)
+print(f"posterior agreement vs {first}")
+print("=" * 78)
+print(f"  {'param':<16}" + "".join(f"{k.split('@')[0][-14:]:>16}" for k in keys)
+      + f"{'max |diff|':>13}")
+for param in sorted(results[first]["posterior_mean"]):
+    vals = [results[k]["posterior_mean"].get(param) for k in keys]
+    if any(v is None for v in vals):
+        continue
+    worst = max(abs(v - vals[0]) for v in vals)
+    print(f"  {param:<16}" + "".join(f"{v:>16.4f}" for v in vals)
+          + f"{worst:>13.4f}")
+print("\nA reparameterisation that disagrees on the posterior has not been made "
+      "faster -- it has been made wrong. Read this table before the timings.")
 print(f"\nwrote {OUT / 'calibration.json'}")

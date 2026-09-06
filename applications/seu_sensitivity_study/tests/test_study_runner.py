@@ -170,6 +170,38 @@ class TestPhases:
 
 
 class TestGate:
+    def test_multi_pool_validation_refreshes_before_later_phases(
+        self, tmp_path, monkeypatch
+    ):
+        config = SEUSensitivityStudyConfig(
+            pool_ids=["venture", "hiring"], results_dir=str(tmp_path / "results")
+        )
+        runner = SEUSensitivityStudyRunner(config)
+        calls = []
+
+        def fake_run_pool(pool_id, phases, **kwargs):
+            calls.append(("run", pool_id, tuple(phases)))
+            return {phase: {} for phase in phases}
+
+        def fake_validate(pool_id):
+            calls.append(("refresh", pool_id))
+            return {"status": "passed", "passed": True}
+
+        monkeypatch.setattr(runner, "_run_pool", fake_run_pool)
+        monkeypatch.setattr(runner, "_phase_validate", fake_validate)
+
+        summary = runner.run(phases=["design", "validate", "choices"])
+
+        assert calls == [
+            ("run", "venture", ("design", "validate")),
+            ("run", "hiring", ("design", "validate")),
+            ("refresh", "venture"),
+            ("refresh", "hiring"),
+            ("run", "venture", ("choices",)),
+            ("run", "hiring", ("choices",)),
+        ]
+        assert summary["pools"]["venture"]["validate"]["passed"] is True
+
     def test_choices_are_blocked_before_the_gate(self, runner):
         runner.run(phases=["design", "embed", "assess"])
         with pytest.raises(RuntimeError, match="validation gate"):

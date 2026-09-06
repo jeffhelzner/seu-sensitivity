@@ -139,14 +139,45 @@ class SEUSensitivityStudyRunner:
             logger.info("Dry run: %s", json.dumps(summary["plan"], indent=2))
             return summary
 
-        for pool_id in selected_pools:
-            summary["pools"][pool_id] = self._run_pool(
-                pool_id,
-                selected_phases,
-                cell_ids=cell_ids,
-                model_names=selected_models,
-                force=force,
-            )
+        if "validate" in selected_phases and len(selected_pools) > 1:
+            validate_index = selected_phases.index("validate")
+            through_validate = selected_phases[: validate_index + 1]
+            after_validate = selected_phases[validate_index + 1 :]
+
+            for pool_id in selected_pools:
+                summary["pools"][pool_id] = self._run_pool(
+                    pool_id,
+                    through_validate,
+                    cell_ids=cell_ids,
+                    model_names=selected_models,
+                    force=force,
+                )
+
+            # The first pool cannot compare against current sibling reports
+            # until every pool has completed its initial validation pass.
+            for pool_id in selected_pools:
+                summary["pools"][pool_id]["validate"] = self._phase_validate(pool_id)
+
+            for pool_id in selected_pools:
+                if after_validate:
+                    summary["pools"][pool_id].update(
+                        self._run_pool(
+                            pool_id,
+                            after_validate,
+                            cell_ids=cell_ids,
+                            model_names=selected_models,
+                            force=force,
+                        )
+                    )
+        else:
+            for pool_id in selected_pools:
+                summary["pools"][pool_id] = self._run_pool(
+                    pool_id,
+                    selected_phases,
+                    cell_ids=cell_ids,
+                    model_names=selected_models,
+                    force=force,
+                )
 
         self._write_json(self.results_dir / "run_summary.json", summary)
         return summary

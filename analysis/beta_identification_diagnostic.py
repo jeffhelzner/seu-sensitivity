@@ -83,8 +83,11 @@ def load_from_csv(directory):
 
     from cmdstanpy import from_csv
 
-    paths = sorted(glob.glob(os.path.join(directory, "*.csv"))
-                   + glob.glob(os.path.join(directory, "*.csv.gz")))
+    compressed = sorted(glob.glob(os.path.join(directory, "*.csv.gz")))
+    compressed_sources = {path[:-3] for path in compressed}
+    plain_only = [path for path in glob.glob(os.path.join(directory, "*.csv"))
+                  if path not in compressed_sources]
+    paths = sorted(plain_only + compressed)
     if not paths:
         raise SystemExit(f"no chain CSVs under {directory}")
     scratch = tempfile.mkdtemp(prefix="beta_diag_")
@@ -176,6 +179,8 @@ def grab(pattern_fn, shape):
 
 beta = grab(lambda i: f"beta[{i[0]+1},{i[1]+1},{i[2]+1}]", (J, K, D))
 alpha_cell = grab(lambda i: f"alpha_cell[{i[0]+1}]", (J,))
+sigma_cell = arr[:, :, idx["sigma_cell"]]
+delta = grab(lambda i: f"delta[{i[0]+1}]", (K - 1,))
 
 # The invariance split. beta is (draws, chains, J, K, D), so the mean over
 # CONSEQUENCES k is axis 3 -- averaging over the wrong axis here would silently
@@ -202,6 +207,8 @@ dis_beta = between_chain_disagreement(beta)             # (J,K,D)
 dis_m = between_chain_disagreement(m)                   # (J,D)
 dis_c = between_chain_disagreement(centered)            # (J,K,D)
 dis_alpha = between_chain_disagreement(alpha_cell)      # (J,)
+dis_sigma = between_chain_disagreement(sigma_cell)
+dis_delta = between_chain_disagreement(delta)
 
 eta_names = [n for n in names if n.startswith("eta[")]
 step = max(1, len(eta_names) // 300)
@@ -229,6 +236,11 @@ line("  non-identified part m", dis_m, dis_m)
 line("  IDENTIFIED part (k-centered)", dis_c, dis_c)
 line("eta (what the likelihood sees)", dis_eta)
 line("alpha_cell (what we report)", dis_alpha, dis_alpha)
+line("sigma_cell", np.asarray([dis_sigma]))
+if np.isnan(dis_delta).all():
+    print(f"  {'delta':<34}{'fixed':>20}")
+else:
+    line("delta", dis_delta)
 
 prior_sd = 1.0 / np.sqrt(K)
 post_sd_m = m.reshape(-1, J, D).std(axis=0)
@@ -255,6 +267,12 @@ summary = {
                 "max": float(np.nanmax(dis_eta))},
         "alpha_cell": {"mean": float(np.nanmean(dis_alpha)),
                        "max": float(np.nanmax(dis_alpha))},
+        "sigma_cell": {"mean": float(dis_sigma),
+                       "max": float(dis_sigma)},
+        "delta": ({"status": "fixed"} if np.isnan(dis_delta).all() else {
+            "mean": float(np.nanmean(dis_delta)),
+            "max": float(np.nanmax(dis_delta)),
+        }),
     },
     "non_identified_prior_sd": float(prior_sd),
     "non_identified_posterior_sd_mean": float(post_sd_m.mean()),

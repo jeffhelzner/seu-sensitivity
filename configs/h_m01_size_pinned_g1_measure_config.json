@@ -1,0 +1,34 @@
+{
+  "_comment": [
+    "Phase G1 measured-cost probe for pinned utility-scale recovery at J=18.",
+    "One iteration only; do not infer coverage or gamma sampling SE from n=1.",
+    "The 800-draw F4 run at the same J, M_total, model, warmup, and treedepth",
+    "took 11,386 seconds. Applying the project's worst 3.6x estimate miss gives",
+    "40,990 seconds (11 h 23 m), inside the 12-hour per-launch cap."
+  ],
+  "inference_model_path": "models/h_m01_size_pinned.stan",
+  "sim_model_path": "models/h_m01_size_pseudorep_sim.stan",
+  "output_dir": "results/power/h_m01_size_pinned_g1_measure",
+  "n_iterations": 1,
+  "n_mcmc_samples": 800,
+  "n_mcmc_warmup": 1000,
+  "n_mcmc_chains": 4,
+  "adapt_delta": 0.95,
+  "max_treedepth": 12,
+  "num_presentations": 2,
+  "rho_copy": 0.9,
+  "sim_only_keys": ["gamma_size_mean", "gamma_size_sd", "menu_size", "mean_menu_size"],
+  "study_design_config": {
+    "factors": [6, 3],
+    "reference_indices": [0, 0],
+    "include_interactions": false,
+    "K": 3,
+    "D": 2,
+    "R": 12,
+    "M_per_cell": 30,
+    "menu_sizes": [2, 4, 6, 8],
+    "feature_dist": "normal",
+    "feature_params": {"loc": 0, "scale": 1},
+    "design_name": "h_m01_size_pinned_g1_measure"
+  }
+}

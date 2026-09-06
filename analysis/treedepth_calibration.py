@@ -44,6 +44,7 @@ from analysis.hierarchical_power import (
     interaction_component,
     sparse_interaction_offsets,
 )
+from utils.cmdstan_artifacts import gzip_csv_files
 from utils.study_design_hierarchical import HierarchicalStudyDesign
 
 parser = argparse.ArgumentParser(description=__doc__)
@@ -61,6 +62,13 @@ parser.add_argument(
 parser.add_argument("--iter-warmup", type=int, default=1000)
 parser.add_argument("--iter-sampling", type=int, default=2000)
 parser.add_argument("--rho-copy", type=float, default=0.9)
+parser.add_argument("--design-seed", type=int, default=24680)
+parser.add_argument(
+    "--from-data-json",
+    default=None,
+    help="Reuse an inference_data.json written by an earlier run. This permits "
+    "cost-bounded model fits in separate launches on exactly the same dataset.",
+)
 parser.add_argument(
     "--spike-magnitude",
     type=float,
@@ -88,54 +96,66 @@ if args.iter_sampling < 2000:
           "only -- its wall clock is NOT a valid basis for sizing anything.",
           flush=True)
 
-design = HierarchicalStudyDesign.from_factorial(
-    factors=[int(v) for v in args.factors.split(",")],
-    reference_indices=[0, 0], include_interactions=False,
-    K=3, D=2, R=12, M_per_cell=args.menus_per_cell, menu_sizes=[2, 4, 6, 8],
-    feature_dist="normal", feature_params={"loc": 0, "scale": 1},
-    design_name=args.label,
-)
-design.generate()
-data = build_pseudorep_design(design, num_presentations=2)
-data["rho_copy"] = args.rho_copy
-J = int(data["J"])
-X = np.asarray(data["X"], dtype=float)
-
-if args.spike_magnitude is not None:
-    data["sigma_cell_sd"] = 0.0
-    data["cell_offset"] = list(
-        sparse_interaction_offsets(J, J - 1, args.spike_magnitude)
-    )
-    truth = f"sparse spike {args.spike_magnitude}"
-elif args.dense_sd is not None:
-    data["sigma_cell_sd"] = 0.0
-    rng = np.random.default_rng(999)
-    offsets = interaction_component(rng.normal(size=J), X)
-    offsets = offsets * (args.dense_sd / offsets.std(ddof=1))
-    data["cell_offset"] = list(offsets)
-    truth = f"dense sigma_cell pinned at {args.dense_sd}"
+if args.from_data_json:
+    with open(args.from_data_json) as fh:
+        inference_data = json.load(fh)
+    J = int(inference_data["J"])
+    truth = f"loaded from {args.from_data_json}"
 else:
-    truth = f"sigma_cell ~ half-normal({data['sigma_cell_sd']})"
+    np.random.seed(args.design_seed)
+    design = HierarchicalStudyDesign.from_factorial(
+        factors=[int(v) for v in args.factors.split(",")],
+        reference_indices=[0, 0], include_interactions=False,
+        K=3, D=2, R=12, M_per_cell=args.menus_per_cell,
+        menu_sizes=[2, 4, 6, 8],
+        feature_dist="normal", feature_params={"loc": 0, "scale": 1},
+        design_name=args.label,
+    )
+    design.generate()
+    data = build_pseudorep_design(design, num_presentations=2)
+    data["rho_copy"] = args.rho_copy
+    J = int(data["J"])
+    X = np.asarray(data["X"], dtype=float)
 
-print(f"J={J}  M_total={data['M_total']}  obs/cell={data['M_total'] // J}  "
+    if args.spike_magnitude is not None:
+        data["sigma_cell_sd"] = 0.0
+        data["cell_offset"] = list(
+            sparse_interaction_offsets(J, J - 1, args.spike_magnitude)
+        )
+        truth = f"sparse spike {args.spike_magnitude}"
+    elif args.dense_sd is not None:
+        data["sigma_cell_sd"] = 0.0
+        rng = np.random.default_rng(999)
+        offsets = interaction_component(rng.normal(size=J), X)
+        offsets = offsets * (args.dense_sd / offsets.std(ddof=1))
+        data["cell_offset"] = list(offsets)
+        truth = f"dense sigma_cell pinned at {args.dense_sd}"
+    else:
+        truth = f"sigma_cell ~ half-normal({data['sigma_cell_sd']})"
+
+    sim = CmdStanModel(stan_file="models/h_m01_size_pseudorep_sim.stan")
+    sim_fit = sim.sample(data=data, seed=12345, iter_sampling=1, iter_warmup=0,
+                         chains=1, fixed_param=True, adapt_engaged=False)
+    draw = sim_fit.draws_pd().iloc[0]
+
+    SIM_ONLY = ("gamma0_mean", "gamma0_sd", "gamma_sd", "sigma_cell_sd", "beta_sd",
+                "rho_copy", "n_menus", "menu_id", "num_presentations",
+                "cell_offset", "gamma_size_mean", "gamma_size_sd", "menu_size",
+                "mean_menu_size")
+    inference_data = {k: v for k, v in data.items() if k not in SIM_ONLY}
+    inference_data["y"] = [int(draw[f"y[{m + 1}]"])
+                           for m in range(data["M_total"])]
+
+with open(OUT / "inference_data.json", "w") as fh:
+    json.dump(inference_data, fh)
+
+print(f"J={J}  M_total={inference_data['M_total']}  "
+      f"obs/cell={inference_data['M_total'] // J}  "
       f"truth: {truth}", flush=True)
 print(f"warmup {args.iter_warmup}  sampling {args.iter_sampling}  "
       f"treedepths {TREEDEPTHS}", flush=True)
 
-sim = CmdStanModel(stan_file="models/h_m01_size_pseudorep_sim.stan")
 MODEL_PATHS = [p for p in args.models.split(",") if p.strip()]
-
-sim_fit = sim.sample(data=data, seed=12345, iter_sampling=1, iter_warmup=0,
-                     chains=1, fixed_param=True, adapt_engaged=False)
-draw = sim_fit.draws_pd().iloc[0]
-
-SIM_ONLY = ("gamma0_mean", "gamma0_sd", "gamma_sd", "sigma_cell_sd", "beta_sd",
-            "rho_copy", "n_menus", "menu_id", "num_presentations",
-            "cell_offset", "gamma_size_mean", "gamma_size_sd", "menu_size",
-            "mean_menu_size")
-inference_data = {k: v for k, v in data.items() if k not in SIM_ONLY}
-inference_data["y"] = [int(draw[f"y[{m + 1}]"])
-                       for m in range(data["M_total"])]
 
 # Which parameters to compute convergence diagnostics over.
 #
@@ -171,6 +191,8 @@ for model_path in MODEL_PATHS:
     inf = CmdStanModel(stan_file=model_path)
     for treedepth in TREEDEPTHS:
         key = f"{model_name}@td{treedepth}"
+        chain_dir = OUT / "chains" / key
+        chain_dir.mkdir(parents=True, exist_ok=True)
         print(f"\n=== {key} ===", flush=True)
         started = time.time()
         fit = inf.sample(
@@ -182,8 +204,15 @@ for model_path in MODEL_PATHS:
             adapt_delta=0.95,
             max_treedepth=treedepth,
             show_progress=False,
+            output_dir=str(chain_dir),
         )
         elapsed = time.time() - started
+
+        # Preserve before diagnostics: if any summary code fails, the expensive
+        # draws still survive. Writing directly to chain_dir also retains raw
+        # completed CSVs if the process is interrupted during sampling.
+        chain_files = gzip_csv_files(fit.runset.csv_files)
+        print(f"  preserved {len(chain_files)} chains under {chain_dir}", flush=True)
 
         mv = fit.method_variables()
         td = np.asarray(mv["treedepth__"])
@@ -205,6 +234,7 @@ for model_path in MODEL_PATHS:
 
         results[key] = {
             "model": model_path,
+            "chain_files": [str(path) for path in chain_files],
             "max_treedepth": treedepth,
             "seconds": elapsed,
             "treedepth_saturated_share": saturated,
@@ -279,7 +309,7 @@ if len(keys) < 2:
 # larger than Monte Carlo error means one of them is not sampling it.
 first = keys[0]
 print("\n" + "=" * 78)
-print(f"posterior agreement vs {first}")
+print(f"posterior mean comparison vs {first}")
 print("=" * 78)
 print(f"  {'param':<16}" + "".join(f"{k.split('@')[0][-14:]:>16}" for k in keys)
       + f"{'max |diff|':>13}")
@@ -290,6 +320,7 @@ for param in sorted(results[first]["posterior_mean"]):
     worst = max(abs(v - vals[0]) for v in vals)
     print(f"  {param:<16}" + "".join(f"{v:>16.4f}" for v in vals)
           + f"{worst:>13.4f}")
-print("\nA reparameterisation that disagrees on the posterior has not been made "
-      "faster -- it has been made wrong. Read this table before the timings.")
+print("\nFor reparameterisations, differences beyond Monte Carlo error indicate a "
+    "problem. Substantive variants such as a pinned utility scale change the "
+    "posterior by design; use this table to quantify that change.")
 print(f"\nwrote {OUT / 'calibration.json'}")

@@ -116,6 +116,7 @@ models/h_m01_size_sim
 models/h_m01_size_sbc
 models/h_m01_size_pseudorep_sim
 models/h_m01_size_centered
+models/h_m01_size_pinned
 
 .env
 

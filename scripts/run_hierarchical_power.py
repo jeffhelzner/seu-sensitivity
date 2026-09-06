@@ -183,6 +183,7 @@ def main(argv=None) -> int:
         sparse_interaction=_sparse_config(config, args),
         sim_overrides=config.get("sim_overrides"),
         sim_only_keys=config.get("sim_only_keys", []),
+        seed=config.get("seed", 12345),
     )
 
     summary = analysis.run()

@@ -38,9 +38,12 @@ from __future__ import annotations
 import json
 import os
 import time
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence
 
 import numpy as np
+
+from utils.cmdstan_artifacts import gzip_csv_files
 
 try:  # pragma: no cover - progress bar is cosmetic
     from tqdm import tqdm
@@ -51,6 +54,57 @@ except ImportError:  # pragma: no cover
 
 #: §8.3 default region of practical equivalence on the log-alpha scale.
 DEFAULT_ROPE_LOG = float(np.log(1.25))
+
+DIAGNOSTIC_EXCLUDE_PREFIXES = (
+    "log_lik", "y_pred", "eta", "alpha_obs", "log_alpha_obs",
+    "T_obs", "T_rep", "ppc_",
+)
+
+
+def fit_diagnostics(fit: Any, *, seconds: float, max_treedepth: int) -> Dict[str, Any]:
+    """Return all-parameter mixing diagnostics, excluding per-observation arrays."""
+    summary = fit.summary()
+    parameters = [
+        name for name in summary.index
+        if not name.startswith(DIAGNOSTIC_EXCLUDE_PREFIXES)
+    ]
+    bulk_columns = [
+        column for column in summary.columns
+        if "ESS_bulk" in column or column == "N_Eff"
+    ]
+    rhat_columns = [column for column in summary.columns if "hat" in column.lower()]
+    bulk = (
+        {name: float(summary.loc[name, bulk_columns[0]]) for name in parameters}
+        if bulk_columns else {}
+    )
+    rhat = (
+        {name: float(summary.loc[name, rhat_columns[0]]) for name in parameters}
+        if rhat_columns else {}
+    )
+    bulk = {name: value for name, value in bulk.items() if np.isfinite(value)}
+    rhat = {name: value for name, value in rhat.items() if np.isfinite(value)}
+
+    method_variables = fit.method_variables()
+    treedepth = np.asarray(method_variables["treedepth__"])
+    divergent = np.asarray(method_variables["divergent__"])
+    minimum_bulk = min(bulk.values()) if bulk else None
+    return {
+        "seconds": seconds,
+        "mean_treedepth": float(treedepth.mean()),
+        "max_treedepth_reached": int(treedepth.max()),
+        "treedepth_saturated_share": float((treedepth >= max_treedepth).mean()),
+        "divergences": int(divergent.sum()),
+        "ess_bulk": bulk,
+        "rhat": rhat,
+        "min_ess_bulk": minimum_bulk,
+        "max_rhat": max(rhat.values()) if rhat else None,
+        "ess_bulk_per_1000_seconds": (
+            minimum_bulk / (seconds / 1000.0)
+            if minimum_bulk is not None and seconds > 0 else None
+        ),
+        "worst_ess": sorted(bulk.items(), key=lambda item: item[1])[:12],
+        "worst_rhat": sorted(rhat.items(), key=lambda item: -item[1])[:12],
+    }
 
 
 def build_pseudorep_design(
@@ -489,6 +543,9 @@ class HierarchicalPowerAnalysis:
             }
             inference_data["y"] = y
 
+            chain_dir = Path(self.output_dir) / f"iteration_{iteration + 1:03d}" / "chains" / "main"
+            chain_dir.mkdir(parents=True, exist_ok=True)
+            fit_started = time.time()
             fit = self.inference_model.sample(
                 data=inference_data,
                 seed=self.seed + 1000 + iteration,
@@ -498,6 +555,12 @@ class HierarchicalPowerAnalysis:
                 adapt_delta=self.adapt_delta,
                 max_treedepth=self.max_treedepth,
                 show_progress=False,
+                output_dir=str(chain_dir),
+            )
+            fit_seconds = time.time() - fit_started
+            chain_files = gzip_csv_files(fit.runset.csv_files)
+            diagnostics = fit_diagnostics(
+                fit, seconds=fit_seconds, max_treedepth=self.max_treedepth
             )
 
             posterior = fit.draws_pd()["gamma_size"].to_numpy()
@@ -518,6 +581,8 @@ class HierarchicalPowerAnalysis:
                     "retention": agreement_by_size(
                         y, sim_data["menu_id"], sim_data["menu_size"]
                     ),
+                    "chain_files": [str(path) for path in chain_files],
+                    "diagnostics": diagnostics,
                     "seconds": time.time() - started,
                 }
             )

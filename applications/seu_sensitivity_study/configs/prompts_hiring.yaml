@@ -61,7 +61,8 @@ choice:
 
     {instruction}
 
-    End your reply with a single line in exactly this format:
+    Begin your reply with a single line in exactly this format:
     ANSWER: n
 
     where n is a whole number between 1 and {n_max} identifying your choice.
+    You may explain your reasoning after that line.

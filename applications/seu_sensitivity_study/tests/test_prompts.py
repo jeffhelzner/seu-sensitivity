@@ -63,6 +63,8 @@ class TestRealPromptFiles:
     def test_choice_prompt_requests_the_answer_token(self, pool_id):
         for prompt_set in prompts.load_prompt_sets(pool_id).values():
             assert "ANSWER:" in prompt_set.choice_user
+            assert "Begin your reply" in prompt_set.choice_user
+            assert "End your reply" not in prompt_set.choice_user
 
     @pytest.mark.parametrize("pool_id", ["insurance", "venture", "hiring"])
     def test_assessment_prompt_requests_the_structured_line(self, pool_id):

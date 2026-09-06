@@ -108,10 +108,10 @@ def problem_set(pool):
 
 
 class TestThresholds:
-    def test_packaged_defaults_are_flagged_provisional(self):
+    def test_packaged_defaults_carry_freeze_metadata(self):
         thresholds = item_validation.load_gate_thresholds()
-        assert thresholds.provisional is True
-        assert thresholds.frozen_at is None
+        assert thresholds.provisional is False
+        assert thresholds.frozen_at == "2026-09-06"
 
     def test_overrides_apply(self):
         thresholds = item_validation.load_gate_thresholds({"r0_pool": 0.9})
@@ -130,7 +130,7 @@ class TestThresholds:
             assessments=make_assessments(pool),
             config=Config(),
         )
-        assert report["provisional_thresholds"] is True
+        assert report["provisional_thresholds"] is False
         assert report["thresholds"]["r0_pool"] == GateThresholds().r0_pool
 
 

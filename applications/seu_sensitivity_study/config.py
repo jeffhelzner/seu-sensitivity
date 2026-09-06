@@ -289,13 +289,15 @@ DEFAULT_PROBLEMS_PER_FAMILY: Dict[str, Dict[str, int]] = {
     "hiring": {"candidates": 100, "matched": 40},
 }
 
+DEFAULT_ESTIMATION_POOLS: Tuple[str, ...] = ("venture", "hiring")
+
 
 @dataclass
 class SEUSensitivityStudyConfig:
     """Top-level configuration for the collection pipeline."""
 
     pool_ids: List[str] = field(
-        default_factory=lambda: list(pools_module.available_pools())
+        default_factory=lambda: list(DEFAULT_ESTIMATION_POOLS)
     )
     cells: List[CellSpec] = field(default_factory=list)
 
@@ -316,9 +318,9 @@ class SEUSensitivityStudyConfig:
 
     # Pre-choice gate (§5 R3, §6.3 R4).  Overrides for
     # ``configs/gate_thresholds.json``; empty means "use the packaged values",
-    # which are PROVISIONAL until the §13 pre-registration freeze at build
-    # phase E3.  Kept as a plain dict so the config stays JSON/YAML round-trippable
-    # and every gate report can echo exactly what was applied.
+    # frozen at the phase E3 pre-registration. Kept as a plain dict so the
+    # config stays JSON/YAML round-trippable and every gate report can echo
+    # exactly what was applied.
     gate_thresholds: Dict[str, Any] = field(default_factory=dict)
 
     # Reproducibility (§6.5)

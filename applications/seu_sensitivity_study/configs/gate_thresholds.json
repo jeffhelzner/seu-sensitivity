@@ -1,12 +1,9 @@
 {
   "_comment": [
-    "PROVISIONAL gate thresholds for applications.seu_sensitivity_study.item_validation.",
+    "FROZEN gate thresholds for applications.seu_sensitivity_study.item_validation.",
     "",
-    "Every number here is a placeholder chosen to be defensible, not a settled",
-    "pre-registration value. They are frozen at build phase E3, at which point",
-    "'provisional' becomes false and 'frozen_at' carries the freeze date. Until",
-    "then every gate report echoes these values along with provisional=true, so no",
-    "artefact can be mistaken for one produced under pre-registered thresholds.",
+    "These embedding-axis thresholds were frozen at build phase E3 on 2026-09-06.",
+    "Every gate report echoes these values and the freeze metadata.",
     "",
     "Which checks BLOCK choice collection and which only report is a study-plan",
     "decision, not a tuning choice: §5 states the predictive-validity pass rule per",
@@ -18,8 +15,8 @@
     "second standardization by the within-size spread of gaps would penalise",
     "exactly the tightly controlled designs §6.3 is asking for."
   ],
-  "provisional": true,
-  "frozen_at": null,
+  "provisional": false,
+  "frozen_at": "2026-09-06",
 
   "pc1_auc_strong_vs_weak": 0.75,
   "pc1_spearman_vs_merit": 0.35,

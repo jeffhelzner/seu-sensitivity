@@ -81,16 +81,18 @@ class StratumRecipe:
         return list(self.contenders) + filler
 
 
-#: Default composition recipes.  The three strata differ in the top-two gap:
-#: wide (one clear winner over filler), near-tied (two equally strong
-#: contenders), and medium (a middling winner over filler).  Ambiguous menus
-#: are where alpha is identified; all-easy menus are uninformative (§6.3).
+#: Frozen variant-D composition recipes. Two contenders in every stratum keep
+#: the top-two comparison stable as menu size changes (§6.3).
 DEFAULT_RECIPES: Tuple[StratumRecipe, ...] = (
-    StratumRecipe(stratum="strong", contenders=("strong",), filler_label="weak"),
+    StratumRecipe(
+        stratum="strong", contenders=("strong", "ambiguous"), filler_label="weak"
+    ),
     StratumRecipe(
         stratum="ambiguous", contenders=("strong", "strong"), filler_label="weak"
     ),
-    StratumRecipe(stratum="weak", contenders=("ambiguous",), filler_label="weak"),
+    StratumRecipe(
+        stratum="weak", contenders=("ambiguous", "ambiguous"), filler_label="weak"
+    ),
 )
 
 

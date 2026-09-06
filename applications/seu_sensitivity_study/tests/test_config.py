@@ -64,7 +64,8 @@ class TestCells:
 class TestStudyConfig:
     def test_defaults_build_the_full_design(self):
         config = cfg.SEUSensitivityStudyConfig()
-        assert len(config.cells) == 54
+        assert config.pool_ids == ["venture", "hiring"]
+        assert len(config.cells) == 36
         assert config.menu_sizes == list(schemas.MENU_SIZES)
         assert config.num_presentations == schemas.NUM_PRESENTATIONS
 
@@ -73,17 +74,16 @@ class TestStudyConfig:
             cfg.SEUSensitivityStudyConfig(num_presentations=3)
 
     def test_expected_choice_calls_matches_the_plan(self):
-        """54 cells x (100 + matched strata) menus x 2 presentations (§12)."""
+        """Two pools x 18 cells x 140 menus x two presentations."""
         config = cfg.SEUSensitivityStudyConfig()
-        # insurance 100, venture 140, hiring 140 menus; 18 cells each; 2 presentations
-        expected = (100 + 140 + 140) * 18 * 2
+        expected = (140 + 140) * 18 * 2
         assert config.expected_choice_calls() == expected
 
     def test_expected_assessment_calls_is_per_model_pool(self):
         config = cfg.SEUSensitivityStudyConfig()
         counts = {"insurance": 30, "venture": 40, "hiring": 40}
         # 6 models x each pool's item count
-        assert config.expected_assessment_calls(counts) == 6 * (30 + 40 + 40)
+        assert config.expected_assessment_calls(counts) == 6 * (40 + 40)
 
     def test_roundtrip_yaml(self, tmp_path):
         config = cfg.SEUSensitivityStudyConfig(pool_ids=["venture"])

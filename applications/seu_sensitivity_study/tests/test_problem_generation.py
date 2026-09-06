@@ -76,6 +76,9 @@ class TestRecipes:
 
 
 class TestGeneration:
+    def test_default_recipes_use_two_contenders(self):
+        assert all(len(recipe.contenders) == 2 for recipe in pg.DEFAULT_RECIPES)
+
     def test_generated_design_validates(self, single_family_pool):
         design = pg.generate_problem_set(
             single_family_pool, problems_per_family=48, seed=42

@@ -378,6 +378,31 @@ class TestPredictiveValidity:
         y = rng.normal(size=60)
         assert item_validation._ridge_loo_r2(X, y, 1.0) < 0.2
 
+    def test_ridge_loo_matches_explicit_unpenalized_intercept_refits(self):
+        rng = np.random.default_rng(9)
+        X = rng.normal(size=(20, 4))
+        y = rng.normal(size=20)
+        alpha = 1.7
+
+        Xc = X - X.mean(axis=0)
+        scale = Xc.std(axis=0)
+        scale[scale == 0] = 1.0
+        design = np.column_stack([np.ones(len(X)), Xc / scale])
+        penalty = np.diag([0.0] + [alpha] * X.shape[1])
+        predictions = []
+        for held_out in range(len(X)):
+            keep = np.arange(len(X)) != held_out
+            coefficients = np.linalg.solve(
+                design[keep].T @ design[keep] + penalty,
+                design[keep].T @ y[keep],
+            )
+            predictions.append(float(design[held_out] @ coefficients))
+
+        expected = 1.0 - np.square(y - predictions).sum() / np.square(
+            y - y.mean()
+        ).sum()
+        assert item_validation._ridge_loo_r2(X, y, alpha) == pytest.approx(expected)
+
 
 class TestAssessmentParse:
     def test_parse_failures_block(self, pool, problem_set):

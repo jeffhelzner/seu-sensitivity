@@ -1,0 +1,45 @@
+{
+  "_comment": [
+    "Cheap end-to-end recovery smoke test for the assessment-anchored model.",
+    "Cells in each adjacent pair represent prompt siblings and share eta rows.",
+    "This validates the fixed-eta recovery path; it does not calibrate priors to live assessments."
+  ],
+  "inference_model_path": "models/h_m01_size_assessment_anchored.stan",
+  "sim_model_path": "models/h_m01_size_assessment_anchored_sim.stan",
+  "study_design_path": null,
+  "output_dir": "results/parameter_recovery/h_m01_size_assessment_anchored_smoke",
+  "n_mcmc_samples": 200,
+  "n_mcmc_chains": 2,
+  "n_iterations": 1,
+  "alpha_var": "alpha_cell",
+  "extra_scalar_params": ["gamma_size"],
+  "sim_only_keys": [
+    "D",
+    "w",
+    "gamma_size_mean",
+    "gamma_size_sd",
+    "menu_size",
+    "mean_menu_size"
+  ],
+  "fixed_eta_config": {
+    "distribution": "beta",
+    "shape1": 2.0,
+    "shape2": 2.0,
+    "seed": 20260907,
+    "row_groups": [0, 0, 1, 1, 2, 2],
+    "utility_values": [0.0, 0.5, 1.0]
+  },
+  "study_design_config": {
+    "factors": [3, 2],
+    "reference_indices": [0, 0],
+    "include_interactions": false,
+    "K": 3,
+    "D": 2,
+    "R": 12,
+    "M_per_cell": 60,
+    "menu_sizes": [2, 4, 6, 8],
+    "feature_dist": "normal",
+    "feature_params": {"loc": 0, "scale": 1},
+    "design_name": "h_m01_size_assessment_anchored_smoke"
+  }
+}

@@ -163,6 +163,11 @@ def _request_params(cell: Any) -> Dict[str, Any]:
     # Recorded explicitly, including the None that means "this provider accepts
     # no temperature parameter" -- an absent key would read as an oversight.
     params["temperature"] = cell.temperature
+    params["reasoning_token_reserve"] = cell.reasoning_token_reserve
+    if params.get("extended_thinking"):
+        params["effective_temperature"] = 1.0
+    else:
+        params["effective_temperature"] = cell.temperature
     return params
 
 

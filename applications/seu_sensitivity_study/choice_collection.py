@@ -139,27 +139,18 @@ class ChoiceCollector:
     ) -> Optional[Dict[str, Any]]:
         """Submit or resume one asynchronous provider batch for this cell."""
         self._check_assessments_complete()
-        done = _load_checkpoint(checkpoint_path) if checkpoint_path else {}
-        jobs = [
-            (problem, presentation)
-            for problem in self.problem_set["problems"]
-            for presentation in problem["presentations"]
+        jobs, all_requests = self._batch_jobs_and_requests()
+        request_hash = batch_client.request_hash(all_requests)
+        done = (
+            _load_checkpoint(checkpoint_path, expected_request_hash=request_hash)
+            if checkpoint_path
+            else {}
+        )
+        requests = [
+            request
+            for request, (problem, presentation) in zip(all_requests, jobs)
+            if (problem["id"], presentation["presentation_id"]) not in done
         ]
-        requests = []
-        for index, (problem, presentation) in enumerate(jobs):
-            key = (problem["id"], presentation["presentation_id"])
-            if key in done:
-                continue
-            prompt, system_prompt = self._render_request(problem, presentation)
-            requests.append(
-                BatchPrompt(
-                    custom_id=f"request-{index:05d}",
-                    prompt=prompt,
-                    system_prompt=system_prompt,
-                    temperature=self.cell.temperature,
-                    max_tokens=self.max_tokens,
-                )
-            )
 
         if requests:
             outcome = batch_client.process(requests, state_path=state_path)
@@ -181,6 +172,7 @@ class ChoiceCollector:
             records.append(self._record_response(problem, presentation, responses[custom_id]))
 
         payload = self._payload(records)
+        payload["request_hash"] = request_hash
         if validate:
             schemas.check(
                 schemas.validate_choice_set(payload, problem_set=dict(self.problem_set)),
@@ -188,8 +180,33 @@ class ChoiceCollector:
             )
         self._log_summary(records)
         if checkpoint_path is not None:
-            _write_checkpoint(checkpoint_path, records)
+            _write_checkpoint(checkpoint_path, records, request_hash=request_hash)
         return payload
+
+    def batch_request_hash(self, batch_client: ProviderBatchClient) -> str:
+        """Return the effective request identity for the complete cell."""
+        _, requests = self._batch_jobs_and_requests()
+        return batch_client.request_hash(requests)
+
+    def _batch_jobs_and_requests(self):
+        jobs = [
+            (problem, presentation)
+            for problem in self.problem_set["problems"]
+            for presentation in problem["presentations"]
+        ]
+        requests = []
+        for index, (problem, presentation) in enumerate(jobs):
+            prompt, system_prompt = self._render_request(problem, presentation)
+            requests.append(
+                BatchPrompt(
+                    custom_id=f"request-{index:05d}",
+                    prompt=prompt,
+                    system_prompt=system_prompt,
+                    temperature=self.cell.temperature,
+                    max_tokens=self.max_tokens,
+                )
+            )
+        return jobs, requests
 
     def _collect_one(
         self, problem: Mapping[str, Any], presentation: Mapping[str, Any]
@@ -301,7 +318,9 @@ class ChoiceCollector:
 # ---------------------------------------------------------------------------
 
 
-def _load_checkpoint(path: Path) -> Dict[tuple, Dict[str, Any]]:
+def _load_checkpoint(
+    path: Path, *, expected_request_hash: Optional[str] = None
+) -> Dict[tuple, Dict[str, Any]]:
     if not path.exists():
         return {}
     try:
@@ -310,15 +329,30 @@ def _load_checkpoint(path: Path) -> Dict[tuple, Dict[str, Any]]:
     except (OSError, json.JSONDecodeError) as error:
         logger.warning("Ignoring unreadable choice checkpoint %s: %s", path, error)
         return {}
+    if expected_request_hash is not None:
+        recorded_hash = payload.get("request_hash")
+        if recorded_hash != expected_request_hash:
+            raise RuntimeError(
+                f"Choice checkpoint request identity does not match {path}; "
+                "refusing to reuse prior responses"
+            )
     return {
         (record["problem_id"], record["presentation_id"]): record
         for record in payload.get("choices", [])
     }
 
 
-def _write_checkpoint(path: Path, records: List[Dict[str, Any]]) -> None:
+def _write_checkpoint(
+    path: Path,
+    records: List[Dict[str, Any]],
+    *,
+    request_hash: Optional[str] = None,
+) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_suffix(path.suffix + ".tmp")
     with open(tmp, "w") as handle:
-        json.dump({"choices": records}, handle, indent=2)
+        payload: Dict[str, Any] = {"choices": records}
+        if request_hash is not None:
+            payload["request_hash"] = request_hash
+        json.dump(payload, handle, indent=2)
     tmp.replace(path)

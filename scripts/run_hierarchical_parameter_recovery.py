@@ -134,6 +134,7 @@ def run_from_config(config_path: str) -> HierarchicalParameterRecovery:
         extra_scalar_params=tuple(config.get("extra_scalar_params", ())),
         sim_only_keys=tuple(config.get("sim_only_keys", ())),
         sim_overrides=config.get("sim_overrides"),
+        fixed_eta_config=config.get("fixed_eta_config"),
     )
 
     true_params, posterior_summaries = recovery.run()

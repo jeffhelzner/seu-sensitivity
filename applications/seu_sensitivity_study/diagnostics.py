@@ -203,7 +203,9 @@ def size_balanced_stability_subset(
 
     stable = sorted(set(per_menu) - flipped_anywhere - untested)
 
-    by_size_before: Dict[int, List[str]] = {}
+    by_size_before: Dict[int, List[str]] = {
+        size: [] for size in sorted({entry["menu_size"] for entry in per_menu.values()})
+    }
     for problem_id in stable:
         by_size_before.setdefault(per_menu[problem_id]["menu_size"], []).append(problem_id)
 
@@ -218,7 +220,7 @@ def size_balanced_stability_subset(
             selected.extend(sorted(ids[:smallest]))
         selected.sort()
 
-    by_size_after: Dict[int, int] = {}
+    by_size_after: Dict[int, int] = {size: 0 for size in by_size_before}
     for problem_id in selected:
         size = per_menu[problem_id]["menu_size"]
         by_size_after[size] = by_size_after.get(size, 0) + 1

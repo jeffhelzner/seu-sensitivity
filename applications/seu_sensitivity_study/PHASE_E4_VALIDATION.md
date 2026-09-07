@@ -1,6 +1,14 @@
-# Phase E4: Go/No-Go Validation
+# Phase E4: Go/No-Go Validation (Superseded)
 
 Date: 2026-09-06
+
+Status amended 2026-09-07: **NOT READY.** The original technical GO below is
+retained as a historical record of the checks completed at that time. An
+independent review subsequently found a production-dimensional alpha
+identification failure, an RQ4 estimand mismatch, and unresolved Batch
+integrity and budget-control failures. The preregistration now specifies an
+assessment-anchored primary estimand. E4 is reopened and must be rerun against
+that amended model and a hardened collection pipeline before production.
 
 ## Frozen-design checks
 
@@ -26,6 +34,30 @@ runs later phases. A regression test locks this ordering. With that fix, both
 reports independently contain the same 0.0601 cross-pool difference and pass.
 
 The full application test suite passes with 460 tests.
+
+## Reopened-gate progress (2026-09-07)
+
+The assessment-anchored inference and simulation models now compile. A seeded
+fixed-eta smoke recovery completed end to end with zero divergences and
+satisfactory treedepth and E-BFMI. This establishes plumbing only: it does not
+replace production-dimensional recovery, prior calibration against the observed
+assessment spread, prior predictive checks, or the pending SBC decision.
+
+The preregistered utility sensitivity grid is executable: the runner emits the
+primary `u=0.50` Stan data and separate `u=0.35` and `u=0.65` inputs. Batch
+request identity now covers provider-ready bodies and binds state, checkpoints,
+and final choice artifacts. Duplicate IDs and changed completed artifacts are
+rejected, and partial terminal evidence is persisted before an integrity error.
+
+All maintained application tests pass (474 tests). Repository-wide pytest also
+passes 475 tests but reports three unrelated collection errors from the legacy
+executable `scripts/test_m1_model.py`, whose helper functions are named
+`test_*` but require command-line arguments rather than pytest fixtures.
+
+The detailed status of every independent-review finding is tracked in
+`REVIEW_DISPOSITION.md`. Open Batch reconciliation, all-attempt budget control,
+production-root preflight, confirmatory analysis rules, and scientific
+calibration continue to block a GO.
 
 ## Batch and usage-persistence gate
 
@@ -79,13 +111,18 @@ probe ceiling.
 
 ## Verdict
 
-**GO at the Phase E4 technical gate.** The scientific design, frozen gates,
-offline call count, Batch implementation, immutable usage persistence,
-application tests, and live provider-specific Batch probe all pass.
+**SUPERSEDED: the 2026-09-06 technical gate returned GO.** At that time, the
+frozen gates, offline call count, application tests, and limited live
+provider-specific Batch probe passed. Subsequent review showed that those
+checks did not establish scientific identification or cover critical Batch
+failure modes.
 
-This verdict does not itself authorize production spending. Production choice
-collection remains stopped until the user explicitly authorizes the frozen
-10,080-call Batch run under the $31 ceiling.
+**Current verdict: NOT READY.** Production choice collection is stopped. A new
+GO requires validation of the assessment-anchored model, completion of the
+confirmatory analysis contract, correction of the Batch integrity and
+all-attempt accounting failures, and an exact-root production preflight.
+Passing those gates will still not authorize production spending: a new
+explicit authorization will be required for the 10,080-call Batch run.
 
 The synchronous path is technically validated, but using it would invoke the
 $61 fallback and also requires separate approval. No production calls have

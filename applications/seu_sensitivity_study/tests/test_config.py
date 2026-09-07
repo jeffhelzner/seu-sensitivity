@@ -73,6 +73,14 @@ class TestStudyConfig:
         with pytest.raises(ValueError, match="frozen"):
             cfg.SEUSensitivityStudyConfig(num_presentations=3)
 
+    def test_primary_utility_middle_must_be_in_valid_sensitivity_grid(self):
+        with pytest.raises(ValueError, match="must be in utility_middle_values"):
+            cfg.SEUSensitivityStudyConfig(
+                primary_utility_middle=0.5, utility_middle_values=[0.35, 0.65]
+            )
+        with pytest.raises(ValueError, match="strictly between"):
+            cfg.SEUSensitivityStudyConfig(utility_middle_values=[0.0, 0.5, 0.65])
+
     def test_expected_choice_calls_matches_the_plan(self):
         """Two pools x 18 cells x 140 menus x two presentations."""
         config = cfg.SEUSensitivityStudyConfig()
@@ -92,6 +100,7 @@ class TestStudyConfig:
         restored = cfg.SEUSensitivityStudyConfig.from_yaml(str(path))
         assert restored.pool_ids == ["venture"]
         assert restored.menu_sizes == config.menu_sizes
+        assert restored.utility_middle_values == [0.35, 0.5, 0.65]
 
 
 class TestDesignMatrix:

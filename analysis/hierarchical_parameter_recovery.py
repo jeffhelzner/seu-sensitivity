@@ -45,6 +45,7 @@ class HierarchicalParameterRecovery:
         extra_scalar_params: tuple = (),
         sim_only_keys: tuple = (),
         sim_overrides: dict = None,
+        fixed_eta_config: dict = None,
     ):
         project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -70,6 +71,7 @@ class HierarchicalParameterRecovery:
         # {"gamma_size_sd": 0} pins the true slope at zero, so the reported
         # bias and coverage for gamma_size become exactly the null statistics.
         self.sim_overrides = dict(sim_overrides or {})
+        self.fixed_eta_config = dict(fixed_eta_config or {})
 
         if output_dir is None:
             timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -116,6 +118,15 @@ class HierarchicalParameterRecovery:
         # Get data dictionary for simulation
         sim_data = self.study_design.get_data_dict()
         sim_data.update(self.sim_overrides)
+        if self.fixed_eta_config:
+            sim_data.update(
+                _generate_fixed_eta(
+                    self.fixed_eta_config,
+                    J=self.study_design.J,
+                    K=self.study_design.K,
+                    R=self.study_design.R,
+                )
+            )
 
         J = self.study_design.J
         K = self.study_design.K
@@ -134,6 +145,7 @@ class HierarchicalParameterRecovery:
                     "n_mcmc_samples": self.n_mcmc_samples,
                     "n_mcmc_chains": self.n_mcmc_chains,
                     "sim_overrides": self.sim_overrides,
+                    "fixed_eta_config": self.fixed_eta_config,
                     "J": J, "K": K, "D": D, "P": P, "M_total": M_total,
                 },
                 f,
@@ -374,3 +386,31 @@ class HierarchicalParameterRecovery:
         ci_width = float(np.mean(upper_arr - lower_arr))
 
         return {"bias": bias, "rmse": rmse, "coverage": coverage, "ci_width": ci_width}
+
+
+def _generate_fixed_eta(config: dict, *, J: int, K: int, R: int) -> dict:
+    """Generate reproducible expected utilities, optionally shared across cells."""
+    row_groups = list(config.get("row_groups", range(J)))
+    if len(row_groups) != J:
+        raise ValueError(f"fixed_eta row_groups must have length J={J}")
+    group_order = list(dict.fromkeys(row_groups))
+    group_index = {group: index for index, group in enumerate(group_order)}
+
+    distribution = config.get("distribution", "beta")
+    rng = np.random.default_rng(config.get("seed", 20260907))
+    if distribution == "beta":
+        shape1 = float(config.get("shape1", 2.0))
+        shape2 = float(config.get("shape2", 2.0))
+        if shape1 <= 0 or shape2 <= 0:
+            raise ValueError("fixed_eta beta shape parameters must be positive")
+        group_eta = rng.beta(shape1, shape2, size=(len(group_order), R))
+    elif distribution == "uniform":
+        group_eta = rng.uniform(0.0, 1.0, size=(len(group_order), R))
+    else:
+        raise ValueError(f"Unsupported fixed_eta distribution {distribution!r}")
+
+    utility_values = list(config.get("utility_values", np.linspace(0, 1, K)))
+    if len(utility_values) != K:
+        raise ValueError(f"fixed_eta utility_values must have length K={K}")
+    eta = np.asarray([group_eta[group_index[group]] for group in row_groups])
+    return {"eta": eta.tolist(), "utility_values": utility_values}

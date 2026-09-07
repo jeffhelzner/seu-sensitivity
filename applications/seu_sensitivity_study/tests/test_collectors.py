@@ -210,6 +210,9 @@ class TestChoiceCollector:
         self, cell, design, prompt_set, assessments, mock_client_factory, tmp_path
     ):
         class BatchClient:
+            def request_hash(self, requests):
+                return "effective-request-hash"
+
             def process(self, requests, *, state_path):
                 return BatchOutcome(
                     responses={request.custom_id: "ANSWER: 1" for request in reversed(requests)},
@@ -228,10 +231,43 @@ class TestChoiceCollector:
             for pres in p["presentations"]
         }
         assert payload is not None
+        assert payload["request_hash"] == "effective-request-hash"
         for record in payload["choices"]:
             assert record["chosen_item_id"] == orders[
                 (record["problem_id"], record["presentation_id"])
             ][0]
+
+    def test_completed_batch_checkpoint_rejects_changed_request_identity(
+        self, cell, design, prompt_set, assessments, mock_client_factory, tmp_path
+    ):
+        class BatchClient:
+            def __init__(self, request_hash):
+                self.identity = request_hash
+
+            def request_hash(self, requests):
+                return self.identity
+
+            def process(self, requests, *, state_path):
+                return BatchOutcome(
+                    responses={request.custom_id: "ANSWER: 1" for request in requests},
+                    usage={},
+                )
+
+        collector = self._collector(
+            cell, design, prompt_set, assessments, mock_client_factory(default="unused")
+        )
+        checkpoint = tmp_path / "choices.partial.json"
+        collector.collect_batch(
+            batch_client=BatchClient("first"),
+            state_path=tmp_path / "batch.json",
+            checkpoint_path=checkpoint,
+        )
+        with pytest.raises(RuntimeError, match="request identity does not match"):
+            collector.collect_batch(
+                batch_client=BatchClient("changed"),
+                state_path=tmp_path / "batch.json",
+                checkpoint_path=checkpoint,
+            )
 
     def test_assessments_are_inserted_in_presentation_order(
         self, cell, design, prompt_set, assessments, mock_client_factory

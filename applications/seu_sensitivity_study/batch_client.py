@@ -5,6 +5,8 @@ from __future__ import annotations
 import hashlib
 import io
 import json
+import os
+from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, Mapping, Optional, Sequence
@@ -26,6 +28,9 @@ class BatchPrompt:
 class BatchOutcome:
     responses: Dict[str, str]
     usage: Dict[str, Any]
+    failed_custom_ids: tuple[str, ...] = ()
+    duplicate_custom_ids: tuple[str, ...] = ()
+    result_records: tuple[Dict[str, Any], ...] = ()
 
 
 class BatchPending(RuntimeError):
@@ -51,45 +56,87 @@ class ProviderBatchClient:
     def process(
         self, requests: Sequence[BatchPrompt], *, state_path: Path
     ) -> Optional[BatchOutcome]:
-        request_hash = _request_hash(self.cell, requests)
-        if not state_path.exists():
-            batch_id = self._submit(requests, state_path)
-            _write_json(
-                state_path,
-                {
-                    "schema_version": 1,
+        with _single_writer(state_path):
+            request_hash = self.request_hash(requests)
+            if not state_path.exists():
+                state = {
+                    "schema_version": 2,
                     "provider": self.provider,
                     "model": self.model,
-                    "batch_id": batch_id,
                     "request_hash": request_hash,
                     "request_count": len(requests),
-                    "status": "submitted",
-                },
-            )
-            return None
+                    "status": "submitting",
+                }
+                _write_json(state_path, state)
+                try:
+                    batch_id = self._submit(requests, state_path)
+                except Exception as error:
+                    state["status"] = "submission_ambiguous"
+                    state["submission_error"] = f"{type(error).__name__}: {error}"
+                    _write_json(state_path, state)
+                    raise
+                state.update(batch_id=batch_id, status="submitted")
+                _write_json(state_path, state)
+                return None
 
-        state = json.loads(state_path.read_text())
-        if state.get("request_hash") != request_hash:
-            raise BatchResultError(
-                f"Batch request changed after submission for {state_path}; "
-                "refusing to attach existing results"
-            )
-        outcome, status = self._retrieve(state["batch_id"])
-        state["status"] = status
-        if outcome is not None:
-            expected = {request.custom_id for request in requests}
-            received = set(outcome.responses)
-            if received != expected:
-                missing = sorted(expected - received)
-                unexpected = sorted(received - expected)
+            state = json.loads(state_path.read_text())
+            if state.get("request_hash") != request_hash:
                 raise BatchResultError(
-                    f"Batch {state['batch_id']} result IDs do not match requests; "
-                    f"missing={missing}, unexpected={unexpected}"
+                    f"Batch request changed after submission for {state_path}; "
+                    "refusing to attach existing results"
                 )
-            self.last_usage = outcome.usage
-            state["usage"] = outcome.usage
-        _write_json(state_path, state)
-        return outcome
+            if not state.get("batch_id"):
+                raise BatchResultError(
+                    f"Batch submission state for {state_path} is ambiguous; reconcile "
+                    "with the provider before retrying"
+                )
+
+            outcome, status = self._retrieve(state["batch_id"])
+            state["status"] = status
+            if outcome is not None:
+                self.last_usage = outcome.usage
+                state["usage"] = outcome.usage
+                state["responses"] = outcome.responses
+                state["failed_custom_ids"] = list(outcome.failed_custom_ids)
+                state["duplicate_custom_ids"] = list(outcome.duplicate_custom_ids)
+                state["result_records"] = list(outcome.result_records)
+                _write_json(state_path, state)
+
+                if outcome.duplicate_custom_ids:
+                    raise BatchResultError(
+                        f"Batch {state['batch_id']} has duplicate result ID(s): "
+                        f"{list(outcome.duplicate_custom_ids)}"
+                    )
+                if outcome.failed_custom_ids:
+                    raise BatchResultError(
+                        f"Batch {state['batch_id']} has failed request(s): "
+                        f"{list(outcome.failed_custom_ids)}"
+                    )
+                expected = {request.custom_id for request in requests}
+                received = set(outcome.responses)
+                if received != expected:
+                    missing = sorted(expected - received)
+                    unexpected = sorted(received - expected)
+                    raise BatchResultError(
+                        f"Batch {state['batch_id']} result IDs do not match requests; "
+                        f"missing={missing}, unexpected={unexpected}"
+                    )
+            else:
+                _write_json(state_path, state)
+            return outcome
+
+    def request_hash(self, requests: Sequence[BatchPrompt]) -> str:
+        """Hash the exact provider request bodies that would be transmitted."""
+        effective_requests = [
+            self._openai_request(request)
+            if self.provider == "openai"
+            else self._anthropic_request(request)
+            for request in requests
+        ]
+        encoded = json.dumps(
+            effective_requests, sort_keys=True, separators=(",", ":")
+        )
+        return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
 
     def recover_usage(self, state_path: Path) -> Dict[str, Any]:
         """Recover usage after results were checkpointed but not yet ledgered."""
@@ -151,20 +198,29 @@ class ProviderBatchClient:
         responses: Dict[str, str] = {}
         usages = []
         failures = []
+        duplicates = []
+        records = []
         for line in content.splitlines():
             result = json.loads(line)
+            records.append(result)
+            custom_id = result["custom_id"]
+            if custom_id in responses or custom_id in failures:
+                duplicates.append(custom_id)
+                continue
             response = result.get("response")
             if result.get("error") or not response or response.get("status_code") != 200:
-                failures.append(result["custom_id"])
+                failures.append(custom_id)
                 continue
             body = response["body"]
-            responses[result["custom_id"]] = body["choices"][0]["message"]["content"].strip()
+            responses[custom_id] = body["choices"][0]["message"]["content"].strip()
             usages.append(_openai_usage(body.get("usage") or {}))
-        if failures:
-            raise BatchResultError(
-                f"OpenAI batch {batch_id} has failed request(s): {sorted(failures)}"
-            )
-        return BatchOutcome(responses, self._usage_summary(usages)), status
+        return BatchOutcome(
+            responses,
+            self._usage_summary(usages),
+            tuple(sorted(set(failures))),
+            tuple(sorted(set(duplicates))),
+            tuple(records),
+        ), status
 
     def _retrieve_anthropic(
         self, batch_id: str
@@ -177,22 +233,32 @@ class ProviderBatchClient:
         responses: Dict[str, str] = {}
         usages = []
         failures = []
+        duplicates = []
+        records = []
         for item in self._sdk_client.messages.batches.results(batch_id):
             result = item.result
-            if str(result.type) != "succeeded":
-                failures.append(item.custom_id)
+            custom_id = item.custom_id
+            result_type = str(result.type)
+            records.append({"custom_id": custom_id, "result_type": result_type})
+            if custom_id in responses or custom_id in failures:
+                duplicates.append(custom_id)
+                continue
+            if result_type != "succeeded":
+                failures.append(custom_id)
                 continue
             message = result.message
             text = next(
                 (block.text for block in message.content if block.type == "text"), ""
             )
-            responses[item.custom_id] = text.strip()
+            responses[custom_id] = text.strip()
             usages.append(_anthropic_usage(message.usage))
-        if failures:
-            raise BatchResultError(
-                f"Anthropic batch {batch_id} has failed request(s): {sorted(failures)}"
-            )
-        return BatchOutcome(responses, self._usage_summary(usages)), status
+        return BatchOutcome(
+            responses,
+            self._usage_summary(usages),
+            tuple(sorted(set(failures))),
+            tuple(sorted(set(duplicates))),
+            tuple(records),
+        ), status
 
     def _openai_request(self, request: BatchPrompt) -> Dict[str, Any]:
         messages = []
@@ -289,19 +355,25 @@ def _anthropic_usage(usage: Any) -> Dict[str, int]:
     }
 
 
-def _request_hash(cell: CellSpec, requests: Sequence[BatchPrompt]) -> str:
-    payload = {
-        "provider": cell.provider,
-        "model": cell.endpoint,
-        "request_params": cell.request_params,
-        "requests": [request.__dict__ for request in requests],
-    }
-    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"))
-    return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
-
-
 def _write_json(path: Path, payload: Mapping[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_suffix(path.suffix + ".tmp")
     temporary.write_text(json.dumps(payload, indent=2, sort_keys=True))
     temporary.replace(path)
+
+
+@contextmanager
+def _single_writer(state_path: Path):
+    state_path.parent.mkdir(parents=True, exist_ok=True)
+    lock_path = state_path.with_suffix(state_path.suffix + ".lock")
+    try:
+        descriptor = os.open(lock_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
+    except FileExistsError as error:
+        raise BatchResultError(
+            f"Batch state is already being modified: {state_path}"
+        ) from error
+    try:
+        os.close(descriptor)
+        yield
+    finally:
+        lock_path.unlink(missing_ok=True)

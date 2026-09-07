@@ -180,6 +180,76 @@ class TestProviderBatchClient:
         )
         with pytest.raises(BatchResultError, match="missing=.*request-00001"):
             client.process(self._requests(), state_path=state)
+        persisted = json.loads(state.read_text())
+        assert persisted["responses"] == {"request-00000": "ANSWER: 1"}
+        assert persisted["usage"]["calls"] == 1
+
+    def test_duplicate_output_id_is_rejected_and_persisted(self, tmp_path):
+        sdk = _FakeOpenAIBatchSDK()
+        client = ProviderBatchClient(self._cell(), sdk_client=sdk)
+        state = tmp_path / "batch.json"
+        client.process(self._requests(), state_path=state)
+        sdk.status = "completed"
+        sdk.output = "\n".join(
+            json.dumps(
+                {
+                    "custom_id": "request-00000",
+                    "response": {
+                        "status_code": 200,
+                        "body": {
+                            "choices": [{"message": {"content": "ANSWER: 1"}}],
+                            "usage": {},
+                        },
+                    },
+                    "error": None,
+                }
+            )
+            for _ in range(2)
+        )
+        with pytest.raises(BatchResultError, match="duplicate result ID"):
+            client.process(self._requests(), state_path=state)
+        assert json.loads(state.read_text())["duplicate_custom_ids"] == [
+            "request-00000"
+        ]
+
+    def test_effective_reasoning_reserve_is_part_of_request_hash(self, tmp_path):
+        state = tmp_path / "batch.json"
+        first = ProviderBatchClient(
+            self._cell(
+                model_name="o3-mini",
+                temperature=None,
+                request_params={"reasoning_effort": "medium"},
+                reasoning_token_reserve=1024,
+            ),
+            sdk_client=_FakeOpenAIBatchSDK(),
+        )
+        first.process(self._requests(), state_path=state)
+        changed = ProviderBatchClient(
+            self._cell(
+                model_name="o3-mini",
+                temperature=None,
+                request_params={"reasoning_effort": "medium"},
+                reasoning_token_reserve=2048,
+            ),
+            sdk_client=_FakeOpenAIBatchSDK(),
+        )
+        with pytest.raises(BatchResultError, match="changed after submission"):
+            changed.process(self._requests(), state_path=state)
+
+    def test_submission_failure_leaves_ambiguous_state_and_blocks_resubmit(
+        self, tmp_path
+    ):
+        sdk = _FakeOpenAIBatchSDK()
+        sdk.batches.create = lambda **kwargs: (_ for _ in ()).throw(
+            RuntimeError("connection lost")
+        )
+        client = ProviderBatchClient(self._cell(), sdk_client=sdk)
+        state = tmp_path / "batch.json"
+        with pytest.raises(RuntimeError, match="connection lost"):
+            client.process(self._requests(), state_path=state)
+        assert json.loads(state.read_text())["status"] == "submission_ambiguous"
+        with pytest.raises(BatchResultError, match="reconcile"):
+            client.process(self._requests(), state_path=state)
 
     def test_anthropic_thinking_request_uses_pinned_budget(self):
         cell = self._cell(
@@ -456,6 +526,7 @@ class TestProvenance:
         assert len(manifest["models"]) == 6
         by_name = {entry["model_name"]: entry for entry in manifest["models"]}
         assert by_name["o3-mini"]["request_params"]["reasoning_effort"] == "medium"
+        assert by_name["o3-mini"]["request_params"]["reasoning_token_reserve"] == 2048
         assert (
             by_name["claude-sonnet-4-5-thinking"]["request_params"]["budget_tokens"]
             == 4096
@@ -511,6 +582,15 @@ class TestProvenance:
         by_name = {entry["model_name"]: entry for entry in manifest["models"]}
         assert "temperature" in by_name["o3-mini"]["request_params"]
         assert by_name["o3-mini"]["request_params"]["temperature"] is None
+
+    def test_thinking_manifest_records_transmitted_temperature(self):
+        manifest = provenance.build_run_manifest(
+            SEUSensitivityStudyConfig(), validate=False
+        )
+        by_name = {entry["model_name"]: entry for entry in manifest["models"]}
+        thinking = by_name["claude-sonnet-4-5-thinking"]["request_params"]
+        assert thinking["temperature"] is None
+        assert thinking["effective_temperature"] == 1.0
 
     def test_undated_endpoints_are_flagged(self, caplog):
         config = SEUSensitivityStudyConfig(pool_ids=["venture"])

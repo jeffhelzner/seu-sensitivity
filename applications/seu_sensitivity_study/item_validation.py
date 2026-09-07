@@ -262,7 +262,9 @@ def _ridge_loo_r2(X: np.ndarray, y: np.ndarray, alpha: float) -> float:
     gram = Xc.T @ Xc + alpha * np.eye(Xc.shape[1])
     try:
         beta_hat = np.linalg.solve(gram, Xc.T @ yc)
-        hat_diag = np.einsum("ij,jk,ik->i", Xc, np.linalg.inv(gram), Xc)
+        hat_diag = 1.0 / n + np.einsum(
+            "ij,jk,ik->i", Xc, np.linalg.inv(gram), Xc
+        )
     except np.linalg.LinAlgError:  # pragma: no cover - guarded by the n check
         return float("nan")
 

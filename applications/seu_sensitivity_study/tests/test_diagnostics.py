@@ -138,6 +138,15 @@ class TestStabilitySubset:
         assert report["retention_after_balance"] == {2: 2, 8: 2}
         assert len(subset) == 4
 
+    def test_zero_retention_size_makes_balanced_subset_empty(self):
+        records = _menu("S1", "A", "A", 2) + _menu("L1", "B", "C", 8)
+        subset, report = diagnostics.size_balanced_stability_subset(
+            {"c1": _choice_set("c1", records)}, balance=True
+        )
+        assert subset == []
+        assert report["retention_before_balance"] == {2: 1, 8: 0}
+        assert report["retention_after_balance"] == {2: 0, 8: 0}
+
     def test_menu_flipped_in_any_cell_is_excluded_everywhere(self):
         """The subset must be a property of the design, not of one arm."""
         stable = _choice_set("c1", _menu("P1", "A", "A", 2) + _menu("P2", "B", "B", 8))

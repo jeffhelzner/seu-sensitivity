@@ -368,11 +368,6 @@ class SEUSensitivityStudyRunner:
         collected: Dict[str, Any] = {}
         for cell in cells:
             target = out_dir / f"{cell.cell_id}.json"
-            if target.exists():
-                logger.info("Choices already present for cell %s", cell.cell_id)
-                collected[cell.cell_id] = "cached"
-                continue
-
             assessments = self._load_assessments(pool_id, cell.model_name)
             client = None
             if self.config.collection_mode == "synchronous":
@@ -390,11 +385,31 @@ class SEUSensitivityStudyRunner:
                 llm_client=client,
                 max_tokens=self.config.max_choice_tokens,
             )
+            batch_client = None
+            if self.config.collection_mode == "batch":
+                batch_client = ProviderBatchClient(cell)
+
+            if target.exists():
+                cached = json.loads(target.read_text())
+                schemas.check(
+                    schemas.validate_choice_set(cached, problem_set=problem_set),
+                    context=f"choice set {cell.cell_id!r}",
+                )
+                if batch_client is not None:
+                    expected_hash = collector.batch_request_hash(batch_client)
+                    if cached.get("request_hash") != expected_hash:
+                        raise RuntimeError(
+                            f"Cached choice artifact request identity does not match "
+                            f"effective requests for {cell.cell_id}; refusing reuse"
+                        )
+                logger.info("Choices already present for cell %s", cell.cell_id)
+                collected[cell.cell_id] = "cached"
+                continue
+
             checkpoint_path = (
                 self.checkpoint_dir / pool_id / f"choices_{cell.cell_id}.json"
             )
             if self.config.collection_mode == "batch":
-                batch_client = ProviderBatchClient(cell)
                 batch_state_path = (
                     self.checkpoint_dir
                     / pool_id
@@ -446,10 +461,33 @@ class SEUSensitivityStudyRunner:
         choice_sets = self._load_all_choice_sets(pool_id)
 
         design_matrix, column_names, cell_ids = self.config.design_matrix_for_pool(pool_id)
+        cells = self.config.cells_for_pool(pool_id)
         pool_dir = self._pool_dir(pool_id)
+
+        anchored = self.config.stan_model == "h_m01_size_assessment_anchored"
+        assessment_probabilities = None
+        cell_model_names = None
+        if anchored:
+            model_names = sorted({cell.model_name for cell in cells})
+            assessment_probabilities = {
+                model_name: self._load_assessment_probabilities(pool_id, model_name)
+                for model_name in model_names
+            }
+            cell_model_names = [cell.model_name for cell in cells]
 
         outputs: Dict[str, Any] = {"design_columns": column_names}
         for include_size, filename in ((False, "stan_data.json"), (True, "stan_data_size.json")):
+            anchored_kwargs = {}
+            if anchored and include_size:
+                anchored_kwargs = {
+                    "assessment_probabilities": assessment_probabilities,
+                    "cell_model_names": cell_model_names,
+                    "utility_values": [
+                        0.0,
+                        self.config.primary_utility_middle,
+                        1.0,
+                    ],
+                }
             stan_data, report = data_preparation.build_stan_data(
                 pool=pool,
                 problem_set=problem_set,
@@ -459,11 +497,36 @@ class SEUSensitivityStudyRunner:
                 cell_ids=cell_ids,
                 K=self.config.K,
                 include_menu_size=include_size,
+                **anchored_kwargs,
             )
             self._write_json(pool_dir / filename, stan_data)
             if not include_size:
                 outputs["M_total"] = stan_data["M_total"]
                 outputs["overall_na_rate"] = report["overall_na_rate"]
+
+        if anchored:
+            sensitivity_files = []
+            for middle in self.config.utility_middle_values:
+                if middle == self.config.primary_utility_middle:
+                    continue
+                stan_data, _ = data_preparation.build_stan_data(
+                    pool=pool,
+                    problem_set=problem_set,
+                    choice_sets=choice_sets,
+                    reduced_embeddings=reduced,
+                    design_matrix=design_matrix,
+                    cell_ids=cell_ids,
+                    K=self.config.K,
+                    include_menu_size=True,
+                    assessment_probabilities=assessment_probabilities,
+                    cell_model_names=cell_model_names,
+                    utility_values=[0.0, middle, 1.0],
+                )
+                label = f"{round(middle * 100):03d}"
+                filename = f"stan_data_size_u{label}.json"
+                self._write_json(pool_dir / filename, stan_data)
+                sensitivity_files.append(filename)
+            outputs["utility_sensitivity_files"] = sensitivity_files
 
         subset, retention = diagnostics.size_balanced_stability_subset(
             choice_sets, seed=self.config.seed
@@ -595,6 +658,26 @@ class SEUSensitivityStudyRunner:
             )
         payload = json.loads(path.read_text())
         return {record["item_id"]: record["text"] for record in payload["assessments"]}
+
+    def _load_assessment_probabilities(
+        self, pool_id: str, model_name: str
+    ) -> Dict[str, List[float]]:
+        slug = get_model_spec(model_name).slug
+        path = self._pool_dir(pool_id) / "assessments" / f"{slug}.json"
+        if not path.exists():
+            raise FileNotFoundError(
+                f"No assessments for {model_name}/{pool_id}; run the 'assess' phase first"
+            )
+        payload = json.loads(path.read_text())
+        probabilities: Dict[str, List[float]] = {}
+        for record in payload["assessments"]:
+            if not record.get("parse_ok") or record.get("probabilities") is None:
+                raise ValueError(
+                    f"Assessment {model_name}/{pool_id}/{record['item_id']} has no "
+                    "parsed probabilities; anchored Stan data cannot be built"
+                )
+            probabilities[record["item_id"]] = record["probabilities"]
+        return probabilities
 
     def _load_all_assessments(self, pool_id: str) -> Dict[str, Dict[str, Any]]:
         directory = self._pool_dir(pool_id) / "assessments"

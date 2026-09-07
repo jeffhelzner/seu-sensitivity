@@ -40,6 +40,7 @@ __all__ = [
     "embed_pool_items",
     "reduce_embeddings",
     "filter_resolved_choices",
+    "assessment_expected_utilities",
     "build_stan_data",
 ]
 
@@ -184,6 +185,41 @@ def _tally(records: Sequence[Mapping[str, Any]], key: str) -> Dict[str, int]:
 # ---------------------------------------------------------------------------
 
 
+def assessment_expected_utilities(
+    probabilities: Mapping[str, Sequence[float]],
+    *,
+    item_ids: Sequence[str],
+    utilities: Sequence[float],
+) -> List[float]:
+    """Return item-level expected utilities from elicited probabilities."""
+    utility_vector = np.asarray(utilities, dtype=float)
+    if utility_vector.ndim != 1 or len(utility_vector) < 2:
+        raise ValueError("utilities must be a one-dimensional consequence vector")
+
+    expected_utilities: List[float] = []
+    for item_id in item_ids:
+        if item_id not in probabilities:
+            raise KeyError(f"No parsed assessment probabilities for item {item_id!r}")
+        probability_vector = np.asarray(probabilities[item_id], dtype=float)
+        if probability_vector.shape != utility_vector.shape:
+            raise ValueError(
+                f"Assessment probabilities for {item_id!r} have length "
+                f"{probability_vector.size}; expected {utility_vector.size}"
+            )
+        if not np.all(np.isfinite(probability_vector)) or np.any(probability_vector < 0):
+            raise ValueError(
+                f"Assessment probabilities for {item_id!r} must be finite and nonnegative"
+            )
+        total = float(probability_vector.sum())
+        if not np.isclose(total, 1.0, atol=0.05):
+            raise ValueError(
+                f"Assessment probabilities for {item_id!r} sum to {total}, expected 1"
+            )
+        probability_vector = probability_vector / total
+        expected_utilities.append(float(probability_vector @ utility_vector))
+    return expected_utilities
+
+
 def build_stan_data(
     *,
     pool: Mapping[str, Any],
@@ -194,6 +230,11 @@ def build_stan_data(
     cell_ids: Sequence[str],
     K: int,
     include_menu_size: bool = False,
+    assessment_probabilities: Optional[
+        Mapping[str, Mapping[str, Sequence[float]]]
+    ] = None,
+    cell_model_names: Optional[Sequence[str]] = None,
+    utility_values: Optional[Sequence[float]] = None,
     validate: bool = True,
 ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
     """
@@ -208,6 +249,10 @@ def build_stan_data(
     include_menu_size:
         Emit the centered per-observation covariate ``s`` for ``h_m01_size``
         (RQ6, §4).
+    assessment_probabilities:
+        Optional ``{model_name: {item_id: probabilities}}`` mapping. When
+        supplied, emit a cell-by-item matrix of fixed expected utilities
+        instead of embedding features for the assessment-anchored model.
 
     Returns
     -------
@@ -234,7 +279,10 @@ def build_stan_data(
     M_per_cell: List[int] = []
     na_logs: Dict[str, Any] = {}
 
-    for position, cell_id in enumerate(cell_ids, start=1):
+    resolved_by_cell: Dict[str, List[Dict[str, Any]]] = {}
+    retained_indices: List[int] = []
+    excluded_cells: List[str] = []
+    for index, cell_id in enumerate(cell_ids):
         if cell_id not in choice_sets:
             raise KeyError(
                 f"No choice set supplied for cell {cell_id!r}; every cell in the "
@@ -242,13 +290,35 @@ def build_stan_data(
             )
         resolved, na_log = filter_resolved_choices(choice_sets[cell_id])
         na_logs[cell_id] = na_log
-
+        if na_log["na_rate"] > 0.30:
+            excluded_cells.append(cell_id)
+            logger.warning(
+                "Excluding cell %r from Stan data: NA rate %.1f%% exceeds 30%%",
+                cell_id,
+                100.0 * na_log["na_rate"],
+            )
+            continue
         if not resolved:
             raise ValueError(
                 f"Cell {cell_id!r} has no resolved observations (NA rate "
                 f"{na_log['na_rate']:.1%}); h_m01 requires M_per_cell >= 1"
             )
+        resolved_by_cell[cell_id] = resolved
+        retained_indices.append(index)
 
+    if not retained_indices:
+        raise ValueError("Every cell exceeds the 30% NA exclusion threshold")
+
+    retained_cell_ids = [cell_ids[index] for index in retained_indices]
+    retained_design_matrix = np.asarray(design_matrix)[retained_indices]
+    retained_model_names = (
+        [cell_model_names[index] for index in retained_indices]
+        if cell_model_names is not None
+        else None
+    )
+
+    for position, cell_id in enumerate(retained_cell_ids, start=1):
+        resolved = resolved_by_cell[cell_id]
         for record in resolved:
             key = (record["problem_id"], record["presentation_id"])
             order = presentation_orders.get(key)
@@ -273,19 +343,38 @@ def build_stan_data(
         M_per_cell.append(len(resolved))
 
     stan_data: Dict[str, Any] = {
-        "J": len(cell_ids),
+        "J": len(retained_cell_ids),
         "K": K,
-        "D": D,
         "R": R,
         "P": int(design_matrix.shape[1]),
-        "w": [reduced_embeddings[item_id].tolist() for item_id in item_ids],
         "M_total": len(stacked_y),
         "cell": stacked_cell,
         "I": stacked_I,
         "y": stacked_y,
-        "X": np.asarray(design_matrix, dtype=float).tolist(),
+        "X": np.asarray(retained_design_matrix, dtype=float).tolist(),
         "M_per_cell": M_per_cell,
     }
+
+    anchored = assessment_probabilities is not None
+    if anchored:
+        if cell_model_names is None or len(cell_model_names) != len(cell_ids):
+            raise ValueError("cell_model_names must contain one model name per cell")
+        if utility_values is None or len(utility_values) != K:
+            raise ValueError(f"utility_values must contain K={K} entries")
+        stan_data["eta"] = [
+            assessment_expected_utilities(
+                assessment_probabilities[model_name],
+                item_ids=item_ids,
+                utilities=utility_values,
+            )
+            for model_name in retained_model_names
+        ]
+        stan_data["utility_values"] = [float(value) for value in utility_values]
+    else:
+        stan_data["D"] = D
+        stan_data["w"] = [
+            reduced_embeddings[item_id].tolist() for item_id in item_ids
+        ]
 
     mean_menu_size = float(np.mean(menu_sizes)) if menu_sizes else 0.0
     if include_menu_size:
@@ -293,7 +382,10 @@ def build_stan_data(
         stan_data["s"] = [float(size) - mean_menu_size for size in menu_sizes]
 
     if validate:
-        model = "h_m01_size" if include_menu_size else "h_m01"
+        if anchored:
+            model = "h_m01_size_assessment_anchored"
+        else:
+            model = "h_m01_size" if include_menu_size else "h_m01"
         schemas.check(
             schemas.validate_stan_data(stan_data, model=model),
             context=f"stan data for pool {problem_set['pool_id']!r}",
@@ -301,7 +393,8 @@ def build_stan_data(
 
     report = {
         "pool_id": problem_set["pool_id"],
-        "cell_ids": list(cell_ids),
+        "cell_ids": list(retained_cell_ids),
+        "excluded_cells": excluded_cells,
         "item_ids": item_ids,
         "mean_menu_size": mean_menu_size,
         "menu_sizes": menu_sizes,
@@ -309,11 +402,11 @@ def build_stan_data(
         "overall_na_rate": _overall_na_rate(na_logs),
     }
     logger.info(
-        "Built Stan data for pool %r: J=%d, R=%d, D=%d, M_total=%d (overall NA %.1f%%)",
+        "Built Stan data for pool %r: J=%d, R=%d, D=%s, M_total=%d (overall NA %.1f%%)",
         problem_set["pool_id"],
         stan_data["J"],
         R,
-        D,
+        D if not anchored else "assessment-anchored",
         stan_data["M_total"],
         100.0 * report["overall_na_rate"],
     )

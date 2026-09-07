@@ -271,6 +271,23 @@ class TestFullPipeline:
         assert base["J"] == 18
         assert base["M_total"] == 18 * 8 * 2
 
+    def test_assessment_anchored_config_writes_fixed_eta_payload(self, runner):
+        runner.config.stan_model = "h_m01_size_assessment_anchored"
+        self._run_all(runner)
+        pool_dir = runner.results_dir / "pools" / POOL_ID
+        sized = json.loads((pool_dir / "stan_data_size.json").read_text())
+
+        assert "eta" in sized
+        assert "w" not in sized
+        assert sized["utility_values"] == [0.0, 0.5, 1.0]
+        low = json.loads((pool_dir / "stan_data_size_u035.json").read_text())
+        high = json.loads((pool_dir / "stan_data_size_u065.json").read_text())
+        assert low["utility_values"] == [0.0, 0.35, 1.0]
+        assert high["utility_values"] == [0.0, 0.65, 1.0]
+        assert schemas.validate_stan_data(
+            sized, model="h_m01_size_assessment_anchored"
+        ) == []
+
     def test_design_matrix_rows_align_with_cells(self, runner):
         self._run_all(runner)
         base = json.loads(
@@ -312,6 +329,28 @@ class TestFullPipeline:
         self._run_all(runner)
         summary = runner.run(phases=["choices"], force=True)
         assert all(value == "cached" for value in summary["pools"][POOL_ID]["choices"].values())
+
+    def test_batch_cached_choice_rejects_changed_effective_request(
+        self, runner, monkeypatch
+    ):
+        self._run_all(runner)
+        choices_dir = runner.results_dir / "pools" / POOL_ID / "choices"
+        for path in choices_dir.glob("*.json"):
+            payload = json.loads(path.read_text())
+            payload["request_hash"] = "old-effective-request"
+            path.write_text(json.dumps(payload))
+
+        class FakeBatchClient:
+            def __init__(self, cell):
+                pass
+
+            def request_hash(self, requests):
+                return "changed-effective-request"
+
+        runner.config.collection_mode = "batch"
+        monkeypatch.setattr(study_runner, "ProviderBatchClient", FakeBatchClient)
+        with pytest.raises(RuntimeError, match="request identity does not match"):
+            runner.run(phases=["choices"], force=True)
 
     def test_manifest_validates(self, runner):
         runner.run(phases=["design", "embed"])

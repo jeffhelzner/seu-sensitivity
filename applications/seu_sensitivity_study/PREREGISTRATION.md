@@ -107,3 +107,48 @@ envelope is 50.0 serial hours, subject to the 12-hour stop on every fit.
   new preregistration.
 - No production API collection begins until Phase E4 passes and the user gives
   a final explicit spending authorization.
+
+## Amendment 1: assessment-anchored expected utilities
+
+Amended: 2026-09-07, before production choice collection.
+
+An independent frontier-model review identified a structural identification
+failure in the frozen primary model at the production dimensions. With 60 items
+and 32 embedding dimensions, the cell-specific belief map can rescale the
+item-level expected-utility contrasts while an inverse rescaling of alpha leaves
+the choice likelihood unchanged. Fixing consequence utilities removes the
+utility-scale invariance but does not remove this belief-map/alpha invariance.
+The earlier convergence and recovery evidence therefore does not establish
+likelihood identification of alpha for the production design.
+
+This amendment supersedes the **Primary model** section above. The primary
+estimand is now assessment-anchored SEU sensitivity. For model arm `a`, pool
+`p`, and item `r`, the neutral assessment collected before choice supplies the
+stated consequence-probability vector `q[a,p,r]`. Expected utility is fixed as
+
+`eta[a,p,r] = q[a,p,r]' * (0, 0.5, 1)`.
+
+The same fixed item values are used in all three prompt conditions for a given
+model arm and pool. The choice likelihood estimates how strongly choices track
+the SEU ranking implied by the model's own previously stated probabilities. It
+does not infer a latent belief map from those choices. This is an
+assessment-anchored application of the SEU-sensitivity framework, not an
+unchanged deployment of the paper's latent-belief `m_0` implementation.
+
+The utility-grid fits at middle utilities 0.35 and 0.65 remain required
+sensitivity analyses. For each grid value `u`, expected utility is recomputed as
+`q[a,p,r]' * (0, u, 1)` before fitting. The 0.50 model remains primary.
+
+This amendment also supersedes the **RQ4** rule above. With only the two
+deliberately selected pools, cross-domain robustness is descriptive. The report
+will present posterior differences in model-effect contrasts between venture
+and hiring, direction changes, uncertainty intervals, and ordering agreement.
+Neither within-pool `sigma_cell` nor a two-pool between-domain variance
+component is a confirmatory RQ4 estimand.
+
+All other confirmatory rules remain provisional until the amended model,
+simulation/recovery design, RQ5 contract, contrast family, multiplicity policy,
+NA exclusions, and diagnostics are implemented and frozen in a further dated
+amendment. Phase E4 is reopened. No production choice requests may be submitted
+until the amended pipeline passes its validation gates and receives a new
+explicit spending authorization.

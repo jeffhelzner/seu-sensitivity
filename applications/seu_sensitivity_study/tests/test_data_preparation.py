@@ -193,6 +193,53 @@ class TestStanDataAssembly:
         stan_data, _ = self._build(embeddings)
         assert "s" not in stan_data
 
+    def test_assessment_anchored_eta_is_model_specific_and_prompt_shared(
+        self, embeddings
+    ):
+        problems = [_problem("P1", ITEM_IDS[:2]), _problem("P2", ITEM_IDS)]
+        records = [
+            _record("P1", 1, ITEM_IDS[:2], 1, 2),
+            _record("P1", 2, list(reversed(ITEM_IDS[:2])), 1, 2),
+            _record("P2", 1, ITEM_IDS, 3, 4),
+            _record("P2", 2, list(reversed(ITEM_IDS)), 2, 4),
+        ]
+        choice_sets = {
+            cell_id: _choice_set(cell_id, records)
+            for cell_id in ("a_neutral", "a_deliberative", "b_neutral")
+        }
+        probabilities = {
+            "model-a": {
+                item_id: [0.2, 0.6, 0.2] for item_id in ITEM_IDS
+            },
+            "model-b": {
+                item_id: [0.1, 0.2, 0.7] for item_id in ITEM_IDS
+            },
+        }
+
+        stan_data, _ = dp.build_stan_data(
+            pool={"pool_id": "testpool"},
+            problem_set=_problem_set(problems),
+            choice_sets=choice_sets,
+            reduced_embeddings=embeddings,
+            design_matrix=np.zeros((3, 2)),
+            cell_ids=["a_neutral", "a_deliberative", "b_neutral"],
+            K=3,
+            include_menu_size=True,
+            assessment_probabilities=probabilities,
+            cell_model_names=["model-a", "model-a", "model-b"],
+            utility_values=[0.0, 0.5, 1.0],
+        )
+
+        assert "w" not in stan_data
+        assert "D" not in stan_data
+        assert stan_data["utility_values"] == [0.0, 0.5, 1.0]
+        assert stan_data["eta"][0] == pytest.approx([0.5] * 4)
+        assert stan_data["eta"][1] == pytest.approx(stan_data["eta"][0])
+        assert stan_data["eta"][2] == pytest.approx([0.8] * 4)
+        assert schemas.validate_stan_data(
+            stan_data, model="h_m01_size_assessment_anchored"
+        ) == []
+
     def test_missing_cell_raises(self, embeddings):
         problems = [_problem("P1", ITEM_IDS[:2])]
         with pytest.raises(KeyError, match="No choice set supplied"):
@@ -212,7 +259,7 @@ class TestStanDataAssembly:
             _record("P1", 1, ITEM_IDS[:2], None, 2),
             _record("P1", 2, list(reversed(ITEM_IDS[:2])), None, 2),
         ]
-        with pytest.raises(ValueError, match="no resolved observations"):
+        with pytest.raises(ValueError, match="Every cell exceeds"):
             dp.build_stan_data(
                 pool={"pool_id": "testpool"},
                 problem_set=_problem_set(problems),
@@ -222,6 +269,40 @@ class TestStanDataAssembly:
                 cell_ids=["c1"],
                 K=3,
             )
+
+    def test_cell_above_thirty_percent_na_is_excluded_with_design_row(self, embeddings):
+        problems = [_problem("P1", ITEM_IDS[:2]), _problem("P2", ITEM_IDS)]
+        mostly_missing = [
+            _record("P1", 1, ITEM_IDS[:2], 1, 2),
+            _record("P1", 2, list(reversed(ITEM_IDS[:2])), None, 2),
+            _record("P2", 1, ITEM_IDS, 1, 4),
+            _record("P2", 2, list(reversed(ITEM_IDS)), None, 4),
+        ]
+        complete = [
+            _record("P1", 1, ITEM_IDS[:2], 1, 2),
+            _record("P1", 2, list(reversed(ITEM_IDS[:2])), 1, 2),
+            _record("P2", 1, ITEM_IDS, 1, 4),
+            _record("P2", 2, list(reversed(ITEM_IDS)), 1, 4),
+        ]
+
+        stan_data, report = dp.build_stan_data(
+            pool={"pool_id": "testpool"},
+            problem_set=_problem_set(problems),
+            choice_sets={
+                "excluded": _choice_set("excluded", mostly_missing),
+                "retained": _choice_set("retained", complete),
+            },
+            reduced_embeddings=embeddings,
+            design_matrix=np.array([[1.0, 0.0], [0.0, 1.0]]),
+            cell_ids=["excluded", "retained"],
+            K=3,
+        )
+
+        assert stan_data["J"] == 1
+        assert stan_data["X"] == [[0.0, 1.0]]
+        assert set(stan_data["cell"]) == {1}
+        assert report["cell_ids"] == ["retained"]
+        assert report["excluded_cells"] == ["excluded"]
 
 
 class TestNAFiltering:

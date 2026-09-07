@@ -339,6 +339,10 @@ class SEUSensitivityStudyConfig:
 
     # Fitting
     stan_model: str = "h_m01"
+    primary_utility_middle: float = 0.5
+    utility_middle_values: List[float] = field(
+        default_factory=lambda: [0.35, 0.5, 0.65]
+    )
 
     def __post_init__(self) -> None:
         if not self.cells:
@@ -354,6 +358,14 @@ class SEUSensitivityStudyConfig:
             )
         if self.collection_mode not in {"synchronous", "batch"}:
             raise ValueError("collection_mode must be 'synchronous' or 'batch'")
+        if not 0 < self.primary_utility_middle < 1:
+            raise ValueError("primary_utility_middle must be strictly between 0 and 1")
+        if self.primary_utility_middle not in self.utility_middle_values:
+            raise ValueError("primary_utility_middle must be in utility_middle_values")
+        if any(not 0 < value < 1 for value in self.utility_middle_values):
+            raise ValueError("utility_middle_values must be strictly between 0 and 1")
+        if len(set(self.utility_middle_values)) != len(self.utility_middle_values):
+            raise ValueError("utility_middle_values must not contain duplicates")
 
     # -- Views --
 
@@ -445,6 +457,8 @@ class SEUSensitivityStudyConfig:
             "max_assessment_tokens": self.max_assessment_tokens,
             "collection_mode": self.collection_mode,
             "stan_model": self.stan_model,
+            "primary_utility_middle": self.primary_utility_middle,
+            "utility_middle_values": list(self.utility_middle_values),
             "reference_model": REFERENCE_MODEL,
             "reference_prompt": REFERENCE_PROMPT,
         }

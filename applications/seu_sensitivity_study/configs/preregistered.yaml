@@ -26,4 +26,9 @@ max_assessment_tokens: 400
 collection_mode: batch
 cache_dir: applications/seu_sensitivity_study/results/_cache
 results_dir: applications/seu_sensitivity_study/results/production
-stan_model: h_m01_size_pinned
+stan_model: h_m01_size_assessment_anchored
+primary_utility_middle: 0.5
+utility_middle_values:
+  - 0.35
+  - 0.5
+  - 0.65

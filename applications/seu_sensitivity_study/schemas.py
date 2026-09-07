@@ -793,28 +793,73 @@ def validate_stan_data(stan_data: Any, *, model: str = "h_m01") -> List[str]:
       set*, which is the single easiest thing to get wrong when stacking.
     """
     errors: List[str] = []
+    anchored = model == "h_m01_size_assessment_anchored"
     required = list(_STAN_REQUIRED)
-    if model == "h_m01_size":
+    if anchored:
+        required.remove("D")
+        required.remove("w")
+        required.extend(("eta", "utility_values"))
+    if model in {"h_m01_size", "h_m01_size_assessment_anchored"}:
         required.append("s")
     if not _require_keys(stan_data, required, errors, f"stan data ({model})"):
         return errors
 
     J = stan_data["J"]
     K = stan_data["K"]
-    D = stan_data["D"]
+    D = stan_data.get("D")
     R = stan_data["R"]
     P = stan_data["P"]
     M_total = stan_data["M_total"]
 
-    for name, value, minimum in (("J", J, 1), ("K", K, 2), ("D", D, 1), ("R", R, 2), ("P", P, 1)):
+    dimensions = [("J", J, 1), ("K", K, 2), ("R", R, 2), ("P", P, 1)]
+    if not anchored:
+        dimensions.append(("D", D, 1))
+    for name, value, minimum in dimensions:
         if not isinstance(value, int) or value < minimum:
             errors.append(f"stan data.{name}: expected int >= {minimum}, got {value!r}")
 
-    w = stan_data["w"]
-    if not isinstance(w, list) or len(w) != R:
-        errors.append(f"stan data.w: expected {R} rows, got {len(w) if isinstance(w, list) else w!r}")
-    elif any(not isinstance(row, list) or len(row) != D for row in w):
-        errors.append(f"stan data.w: every row must have length D={D}")
+    if anchored:
+        eta = stan_data["eta"]
+        if not isinstance(eta, list) or len(eta) != J:
+            errors.append(
+                f"stan data.eta: expected {J} rows, got "
+                f"{len(eta) if isinstance(eta, list) else eta!r}"
+            )
+        elif any(not isinstance(row, list) or len(row) != R for row in eta):
+            errors.append(f"stan data.eta: every row must have length R={R}")
+        elif any(
+            not isinstance(value, (int, float))
+            or not math.isfinite(value)
+            or not 0.0 <= value <= 1.0
+            for row in eta
+            for value in row
+        ):
+            errors.append("stan data.eta: values must be finite and within [0, 1]")
+        utility_values = stan_data["utility_values"]
+        if not isinstance(utility_values, list) or len(utility_values) != K:
+            errors.append(f"stan data.utility_values: expected {K} entries")
+        elif (
+            any(
+                not isinstance(value, (int, float)) or not math.isfinite(value)
+                for value in utility_values
+            )
+            or utility_values[0] != 0.0
+            or utility_values[-1] != 1.0
+            or any(
+                right <= left
+                for left, right in zip(utility_values, utility_values[1:])
+            )
+        ):
+            errors.append(
+                "stan data.utility_values: expected strictly increasing finite "
+                "values with endpoints 0 and 1"
+            )
+    else:
+        w = stan_data["w"]
+        if not isinstance(w, list) or len(w) != R:
+            errors.append(f"stan data.w: expected {R} rows, got {len(w) if isinstance(w, list) else w!r}")
+        elif any(not isinstance(row, list) or len(row) != D for row in w):
+            errors.append(f"stan data.w: every row must have length D={D}")
 
     X = stan_data["X"]
     if not isinstance(X, list) or len(X) != J:
@@ -833,7 +878,7 @@ def validate_stan_data(stan_data: Any, *, model: str = "h_m01") -> List[str]:
             )
             return errors
 
-    if model == "h_m01_size":
+    if model in {"h_m01_size", "h_m01_size_assessment_anchored"}:
         s = stan_data["s"]
         if not isinstance(s, list) or len(s) != M_total:
             errors.append(f"stan data.s: expected {M_total} entries")

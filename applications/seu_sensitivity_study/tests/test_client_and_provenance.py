@@ -6,11 +6,17 @@ Tests for the resilient client layer and the provenance manifest
 from __future__ import annotations
 
 import json
+from types import SimpleNamespace
 
 import pytest
 
 from applications.seu_sensitivity_study import provenance, schemas
 from applications.seu_sensitivity_study.client import ResilientClient, is_rate_limit_error
+from applications.seu_sensitivity_study.batch_client import (
+    BatchPrompt,
+    BatchResultError,
+    ProviderBatchClient,
+)
 from applications.seu_sensitivity_study.config import (
     REFERENCE_MODEL,
     CellSpec,
@@ -39,6 +45,156 @@ class RateLimitError(Exception):
 
 class FatalError(Exception):
     status_code = 400
+
+
+class _FakeOpenAIBatchSDK:
+    def __init__(self):
+        self.status = "in_progress"
+        self.input_lines = []
+        self.output = ""
+        outer = self
+
+        class Files:
+            def create(self, *, file, purpose):
+                assert purpose == "batch"
+                outer.input_lines = [json.loads(line) for line in file.read().decode().splitlines()]
+                return SimpleNamespace(id="file-input")
+
+            def content(self, file_id):
+                assert file_id == "file-output"
+                return SimpleNamespace(text=outer.output)
+
+        class Batches:
+            def create(self, **kwargs):
+                outer.create_kwargs = kwargs
+                return SimpleNamespace(id="batch-1")
+
+            def retrieve(self, batch_id):
+                assert batch_id == "batch-1"
+                return SimpleNamespace(
+                    status=outer.status,
+                    output_file_id="file-output" if outer.status == "completed" else None,
+                )
+
+        self.files = Files()
+        self.batches = Batches()
+
+
+class TestProviderBatchClient:
+    @staticmethod
+    def _cell(**kwargs):
+        values = dict(
+            cell_id="gpt_4o_neutral_testpool",
+            model_name="gpt-4o",
+            provider="openai",
+            prompt_condition="neutral",
+            pool_id="testpool",
+            temperature=0.0,
+        )
+        values.update(kwargs)
+        return CellSpec(**values)
+
+    @staticmethod
+    def _requests():
+        return [
+            BatchPrompt("request-00000", "first", "system", 0.0, 64),
+            BatchPrompt("request-00001", "second", "system", 0.0, 64),
+        ]
+
+    def test_openai_submits_once_then_matches_out_of_order_results(self, tmp_path):
+        sdk = _FakeOpenAIBatchSDK()
+        client = ProviderBatchClient(self._cell(), sdk_client=sdk)
+        state = tmp_path / "batch.json"
+
+        assert client.process(self._requests(), state_path=state) is None
+        assert json.loads(state.read_text())["batch_id"] == "batch-1"
+        assert sdk.create_kwargs["endpoint"] == "/v1/chat/completions"
+        assert [line["custom_id"] for line in sdk.input_lines] == [
+            "request-00000",
+            "request-00001",
+        ]
+
+        sdk.status = "completed"
+        sdk.output = "\n".join(
+            json.dumps(
+                {
+                    "custom_id": custom_id,
+                    "response": {
+                        "status_code": 200,
+                        "body": {
+                            "choices": [{"message": {"content": answer}}],
+                            "usage": {
+                                "prompt_tokens": 10,
+                                "completion_tokens": 4,
+                                "prompt_tokens_details": {"cached_tokens": 3},
+                                "completion_tokens_details": {"reasoning_tokens": 2},
+                            },
+                        },
+                    },
+                    "error": None,
+                }
+            )
+            for custom_id, answer in [
+                ("request-00001", "ANSWER: 2"),
+                ("request-00000", "ANSWER: 1"),
+            ]
+        )
+        outcome = client.process(self._requests(), state_path=state)
+        assert outcome.responses == {
+            "request-00000": "ANSWER: 1",
+            "request-00001": "ANSWER: 2",
+        }
+        assert outcome.usage["input_tokens"] == 20
+        assert outcome.usage["cached_input_tokens"] == 6
+        assert outcome.usage["reasoning_tokens"] == 4
+        assert outcome.usage["batch_discount"] == 0.5
+        recovered = ProviderBatchClient(self._cell(), sdk_client=sdk).recover_usage(state)
+        assert recovered == outcome.usage
+
+    def test_request_change_after_submission_is_rejected(self, tmp_path):
+        client = ProviderBatchClient(self._cell(), sdk_client=_FakeOpenAIBatchSDK())
+        state = tmp_path / "batch.json"
+        client.process(self._requests(), state_path=state)
+        changed = [BatchPrompt("request-00000", "changed", "system", 0.0, 64)]
+        with pytest.raises(BatchResultError, match="changed after submission"):
+            client.process(changed, state_path=state)
+
+    def test_incomplete_output_is_rejected(self, tmp_path):
+        sdk = _FakeOpenAIBatchSDK()
+        client = ProviderBatchClient(self._cell(), sdk_client=sdk)
+        state = tmp_path / "batch.json"
+        client.process(self._requests(), state_path=state)
+        sdk.status = "completed"
+        sdk.output = json.dumps(
+            {
+                "custom_id": "request-00000",
+                "response": {
+                    "status_code": 200,
+                    "body": {
+                        "choices": [{"message": {"content": "ANSWER: 1"}}],
+                        "usage": {},
+                    },
+                },
+                "error": None,
+            }
+        )
+        with pytest.raises(BatchResultError, match="missing=.*request-00001"):
+            client.process(self._requests(), state_path=state)
+
+    def test_anthropic_thinking_request_uses_pinned_budget(self):
+        cell = self._cell(
+            cell_id="claude_reasoning_neutral_testpool",
+            model_name="claude-reasoning",
+            provider="anthropic",
+            request_params={"extended_thinking": True, "budget_tokens": 1024},
+            temperature=None,
+            endpoint_id="claude-sonnet-4-5-20250929",
+        )
+        client = ProviderBatchClient(cell, sdk_client=SimpleNamespace())
+        request = client._anthropic_request(self._requests()[0])
+        assert request["params"]["temperature"] == 1.0
+        assert request["params"]["max_tokens"] == 1088
+        assert request["params"]["thinking"]["budget_tokens"] == 1024
 
 
 class _FakeUsage:

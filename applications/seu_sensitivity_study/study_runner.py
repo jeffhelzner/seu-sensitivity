@@ -36,9 +36,12 @@ Layout under ``results/``::
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
+import os
 from dataclasses import asdict
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence
 
@@ -47,6 +50,7 @@ import numpy as np
 from . import diagnostics, data_preparation, pools as pools_module, problem_generation
 from . import provenance, prompts as prompts_module, schemas
 from .assessment_collection import AssessmentCollector
+from .batch_client import ProviderBatchClient
 from .choice_collection import ChoiceCollector
 from .client import build_client
 from .config import MODELS, CellSpec, SEUSensitivityStudyConfig, get_model_spec
@@ -328,11 +332,23 @@ class SEUSensitivityStudyRunner:
             ).collect(
                 checkpoint_path=self.checkpoint_dir / pool_id / f"assess_{slug}.json"
             )
+            usage = client.get_usage_summary()
+            self._append_usage_event(
+                {
+                    "phase": "assess",
+                    "collection_mode": "synchronous",
+                    "pool_id": pool_id,
+                    "model": job.model_name,
+                    "artifact": str(target),
+                    "records": len(payload["assessments"]),
+                    "usage": usage,
+                }
+            )
             self._write_json(target, payload)
             collected[slug] = {
                 "items": len(payload["assessments"]),
                 "parsed": sum(1 for r in payload["assessments"] if r["parse_ok"]),
-                "usage": client.get_usage_summary(),
+                "usage": usage,
             }
         return collected
 
@@ -358,32 +374,68 @@ class SEUSensitivityStudyRunner:
                 continue
 
             assessments = self._load_assessments(pool_id, cell.model_name)
-            client = build_client(
-                cell,
-                cache_dir=self.cache_dir,
-                max_retries=self.config.max_retries,
-                retry_delay=self.config.retry_delay,
-            )
-            payload = ChoiceCollector(
+            client = None
+            if self.config.collection_mode == "synchronous":
+                client = build_client(
+                    cell,
+                    cache_dir=self.cache_dir,
+                    max_retries=self.config.max_retries,
+                    retry_delay=self.config.retry_delay,
+                )
+            collector = ChoiceCollector(
                 cell=cell,
                 problem_set=problem_set,
                 prompt_sets=prompt_sets,
                 assessments=assessments,
                 llm_client=client,
                 max_tokens=self.config.max_choice_tokens,
-            ).collect(
-                checkpoint_path=self.checkpoint_dir / pool_id / f"choices_{cell.cell_id}.json"
+            )
+            checkpoint_path = (
+                self.checkpoint_dir / pool_id / f"choices_{cell.cell_id}.json"
+            )
+            if self.config.collection_mode == "batch":
+                batch_client = ProviderBatchClient(cell)
+                batch_state_path = (
+                    self.checkpoint_dir
+                    / pool_id
+                    / "batches"
+                    / f"{cell.cell_id}.json"
+                )
+                payload = collector.collect_batch(
+                    batch_client=batch_client,
+                    state_path=batch_state_path,
+                    checkpoint_path=checkpoint_path,
+                )
+                if payload is None:
+                    collected[cell.cell_id] = "batch_pending"
+                    continue
+                usage = batch_client.last_usage or batch_client.recover_usage(
+                    batch_state_path
+                )
+            else:
+                payload = collector.collect(checkpoint_path=checkpoint_path)
+                usage = client.get_usage_summary()
+            _, na_log = data_preparation.filter_resolved_choices(payload)
+            self._append_usage_event(
+                {
+                    "phase": "choices",
+                    "collection_mode": self.config.collection_mode,
+                    "pool_id": pool_id,
+                    "cell_id": cell.cell_id,
+                    "model": cell.model_name,
+                    "artifact": str(target),
+                    "records": len(payload["choices"]),
+                    "usage": usage,
+                }
             )
             self._write_json(target, payload)
-
-            _, na_log = data_preparation.filter_resolved_choices(payload)
             self._write_json(
                 self._pool_dir(pool_id) / "na_logs" / f"{cell.cell_id}.json", na_log
             )
             collected[cell.cell_id] = {
                 "observations": len(payload["choices"]),
                 "na_rate": na_log["na_rate"],
-                "usage": client.get_usage_summary(),
+                "usage": usage,
             }
         return collected
 
@@ -569,6 +621,38 @@ class SEUSensitivityStudyRunner:
         with open(tmp, "w") as handle:
             json.dump(payload, handle, indent=2, default=_json_default)
         tmp.replace(path)
+
+    def _append_usage_event(self, event: Mapping[str, Any]) -> None:
+        path = self.results_dir / "usage_events.jsonl"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        identity = {
+            key: event.get(key)
+            for key in ("phase", "pool_id", "cell_id", "model", "artifact")
+        }
+        event_id = hashlib.sha256(
+            json.dumps(identity, sort_keys=True).encode("utf-8")
+        ).hexdigest()
+        if path.exists():
+            with open(path) as handle:
+                if any(
+                    json.loads(line).get("event_id") == event_id
+                    for line in handle
+                    if line.strip()
+                ):
+                    return
+        record = {
+            "event_id": event_id,
+            "recorded_at": datetime.now(timezone.utc).isoformat(),
+            "collection_mode": "synchronous",
+            **event,
+        }
+        line = json.dumps(record, default=_json_default, sort_keys=True) + "\n"
+        descriptor = os.open(path, os.O_APPEND | os.O_CREAT | os.O_WRONLY, 0o600)
+        try:
+            os.write(descriptor, line.encode("utf-8"))
+            os.fsync(descriptor)
+        finally:
+            os.close(descriptor)
 
 
 def _json_default(value: Any) -> Any:

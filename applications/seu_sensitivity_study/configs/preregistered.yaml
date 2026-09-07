@@ -23,6 +23,7 @@ max_retries: 5
 retry_delay: 2.0
 max_choice_tokens: 64
 max_assessment_tokens: 400
+collection_mode: batch
 cache_dir: applications/seu_sensitivity_study/results/_cache
 results_dir: applications/seu_sensitivity_study/results/production
 stan_model: h_m01_size_pinned

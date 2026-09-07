@@ -294,6 +294,20 @@ class TestFullPipeline:
         logs = list((runner.results_dir / "pools" / POOL_ID / "na_logs").glob("*.json"))
         assert len(logs) == 18
 
+    def test_usage_events_survive_later_phase_summaries(self, runner):
+        self._run_all(runner)
+        path = runner.results_dir / "usage_events.jsonl"
+        before = [json.loads(line) for line in path.read_text().splitlines()]
+
+        runner.run(phases=["stan_data"])
+
+        after = [json.loads(line) for line in path.read_text().splitlines()]
+        assert after == before
+        assert len(after) == 24  # six assessment arms plus 18 choice cells
+        assert {event["phase"] for event in after} == {"assess", "choices"}
+        assert all(event["collection_mode"] == "synchronous" for event in after)
+        assert all("usage" in event and "artifact" in event for event in after)
+
     def test_rerun_is_idempotent(self, runner):
         self._run_all(runner)
         summary = runner.run(phases=["choices"], force=True)

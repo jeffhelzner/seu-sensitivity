@@ -26,6 +26,7 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Mapping, Optional
 
 from . import schemas
+from .batch_client import BatchPrompt, ProviderBatchClient
 from .config import CellSpec
 from .parsing import parse_choice_response
 from .prompts import PromptSet
@@ -128,26 +129,98 @@ class ChoiceCollector:
             _write_checkpoint(checkpoint_path, records)
         return payload
 
+    def collect_batch(
+        self,
+        *,
+        batch_client: ProviderBatchClient,
+        state_path: Path,
+        checkpoint_path: Optional[Path] = None,
+        validate: bool = True,
+    ) -> Optional[Dict[str, Any]]:
+        """Submit or resume one asynchronous provider batch for this cell."""
+        self._check_assessments_complete()
+        done = _load_checkpoint(checkpoint_path) if checkpoint_path else {}
+        jobs = [
+            (problem, presentation)
+            for problem in self.problem_set["problems"]
+            for presentation in problem["presentations"]
+        ]
+        requests = []
+        for index, (problem, presentation) in enumerate(jobs):
+            key = (problem["id"], presentation["presentation_id"])
+            if key in done:
+                continue
+            prompt, system_prompt = self._render_request(problem, presentation)
+            requests.append(
+                BatchPrompt(
+                    custom_id=f"request-{index:05d}",
+                    prompt=prompt,
+                    system_prompt=system_prompt,
+                    temperature=self.cell.temperature,
+                    max_tokens=self.max_tokens,
+                )
+            )
+
+        if requests:
+            outcome = batch_client.process(requests, state_path=state_path)
+            if outcome is None:
+                return None
+            responses = outcome.responses
+        else:
+            responses = {}
+
+        records: List[Dict[str, Any]] = []
+        for index, (problem, presentation) in enumerate(jobs):
+            key = (problem["id"], presentation["presentation_id"])
+            if key in done:
+                records.append(done[key])
+                continue
+            custom_id = f"request-{index:05d}"
+            if custom_id not in responses:
+                raise RuntimeError(f"Batch result missing {custom_id}")
+            records.append(self._record_response(problem, presentation, responses[custom_id]))
+
+        payload = self._payload(records)
+        if validate:
+            schemas.check(
+                schemas.validate_choice_set(payload, problem_set=dict(self.problem_set)),
+                context=f"choice set {self.cell.cell_id!r}",
+            )
+        self._log_summary(records)
+        if checkpoint_path is not None:
+            _write_checkpoint(checkpoint_path, records)
+        return payload
+
     def _collect_one(
         self, problem: Mapping[str, Any], presentation: Mapping[str, Any]
     ) -> Dict[str, Any]:
+        prompt, system_prompt = self._render_request(problem, presentation)
+        response = self.llm_client.generate(
+            prompt,
+            system_prompt=system_prompt,
+            temperature=self.cell.temperature,
+            max_tokens=self.max_tokens,
+        )
+        return self._record_response(problem, presentation, response)
+
+    def _render_request(
+        self, problem: Mapping[str, Any], presentation: Mapping[str, Any]
+    ) -> tuple[str, str]:
         order: List[str] = list(presentation["order"])
         prompt_set = self._prompt_set_for(problem["family"])
-
-        # Assessments are inserted in presentation order; the parsed position
-        # is then resolved back through the same list.
         assessments_in_order = [self.assessments[item_id] for item_id in order]
         prompt = prompt_set.render_choice(
             self.cell.prompt_condition, assessments_in_order
         )
+        return prompt, prompt_set.choice_system.strip()
 
-        response = self.llm_client.generate(
-            prompt,
-            system_prompt=prompt_set.choice_system.strip(),
-            temperature=self.cell.temperature,
-            max_tokens=self.max_tokens,
-        )
-
+    def _record_response(
+        self,
+        problem: Mapping[str, Any],
+        presentation: Mapping[str, Any],
+        response: str,
+    ) -> Dict[str, Any]:
+        order: List[str] = list(presentation["order"])
         position, resolution_path = parse_choice_response(response, len(order))
         if position is None:
             logger.warning(
@@ -168,6 +241,17 @@ class ChoiceCollector:
             "chosen_item_id": order[position - 1] if position is not None else None,
             "resolution_path": resolution_path,
             "raw_response": response,
+        }
+
+    def _payload(self, records: List[Dict[str, Any]]) -> Dict[str, Any]:
+        return {
+            "schema_version": schemas.SCHEMA_VERSION,
+            "cell_id": self.cell.cell_id,
+            "pool_id": self.cell.pool_id,
+            "model_name": self.cell.model_name,
+            "prompt_condition": self.cell.prompt_condition,
+            "answer_format_version": schemas.ANSWER_TOKEN_VERSION,
+            "choices": records,
         }
 
     # -- Helpers --

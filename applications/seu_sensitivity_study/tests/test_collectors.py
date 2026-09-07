@@ -15,6 +15,7 @@ import pytest
 from applications.seu_sensitivity_study import problem_generation as pg
 from applications.seu_sensitivity_study import schemas
 from applications.seu_sensitivity_study.assessment_collection import AssessmentCollector
+from applications.seu_sensitivity_study.batch_client import BatchOutcome
 from applications.seu_sensitivity_study.choice_collection import ChoiceCollector
 from applications.seu_sensitivity_study.config import CellSpec
 
@@ -204,6 +205,33 @@ class TestChoiceCollector:
                 record["chosen_item_id"]
             )
         assert all(len(items) == 2 for items in by_problem.values())
+
+    def test_batch_results_are_resolved_by_custom_id(
+        self, cell, design, prompt_set, assessments, mock_client_factory, tmp_path
+    ):
+        class BatchClient:
+            def process(self, requests, *, state_path):
+                return BatchOutcome(
+                    responses={request.custom_id: "ANSWER: 1" for request in reversed(requests)},
+                    usage={},
+                )
+
+        collector = self._collector(
+            cell, design, prompt_set, assessments, mock_client_factory(default="unused")
+        )
+        payload = collector.collect_batch(
+            batch_client=BatchClient(), state_path=tmp_path / "batch.json"
+        )
+        orders = {
+            (p["id"], pres["presentation_id"]): pres["order"]
+            for p in design["problems"]
+            for pres in p["presentations"]
+        }
+        assert payload is not None
+        for record in payload["choices"]:
+            assert record["chosen_item_id"] == orders[
+                (record["problem_id"], record["presentation_id"])
+            ][0]
 
     def test_assessments_are_inserted_in_presentation_order(
         self, cell, design, prompt_set, assessments, mock_client_factory

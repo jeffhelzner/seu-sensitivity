@@ -332,6 +332,7 @@ class SEUSensitivityStudyConfig:
     max_choice_tokens: int = 64
     max_assessment_tokens: int = 400
     cache_dir: Optional[str] = None
+    collection_mode: str = "synchronous"
 
     # Storage
     results_dir: Optional[str] = None
@@ -351,6 +352,8 @@ class SEUSensitivityStudyConfig:
                 f"num_presentations is frozen at {NUM_PRESENTATIONS} (§6.2); got "
                 f"{self.num_presentations}"
             )
+        if self.collection_mode not in {"synchronous", "batch"}:
+            raise ValueError("collection_mode must be 'synchronous' or 'batch'")
 
     # -- Views --
 
@@ -440,6 +443,7 @@ class SEUSensitivityStudyConfig:
             "retry_delay": self.retry_delay,
             "max_choice_tokens": self.max_choice_tokens,
             "max_assessment_tokens": self.max_assessment_tokens,
+            "collection_mode": self.collection_mode,
             "stan_model": self.stan_model,
             "reference_model": REFERENCE_MODEL,
             "reference_prompt": REFERENCE_PROMPT,

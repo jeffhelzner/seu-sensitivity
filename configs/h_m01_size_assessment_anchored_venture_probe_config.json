@@ -1,0 +1,67 @@
+{
+  "_comment": [
+    "Short timing and geometry probe at the exact venture production shape.",
+    "One chain and 100 retained draws are not recovery or convergence evidence.",
+    "No provider calls are made; persisted assessments and menus are reused."
+  ],
+  "inference_model_path": "models/h_m01_size_assessment_anchored.stan",
+  "sim_model_path": "models/h_m01_size_assessment_anchored_sim.stan",
+  "output_dir": "results/parameter_recovery/h_m01_size_assessment_anchored_venture_probe",
+  "n_mcmc_samples": 100,
+  "n_mcmc_warmup": 100,
+  "n_mcmc_chains": 1,
+  "n_iterations": 1,
+  "adapt_delta": 0.95,
+  "max_treedepth": 12,
+  "alpha_var": "alpha_cell",
+  "extra_scalar_params": ["gamma_size"],
+  "sim_only_keys": [
+    "D",
+    "w",
+    "gamma_size_mean",
+    "gamma_size_sd",
+    "menu_size",
+    "mean_menu_size"
+  ],
+  "sim_overrides": {
+    "gamma_size_mean": 0.309,
+    "gamma_size_sd": 0.0
+  },
+  "fixed_eta_config": {
+    "pool_path": "applications/seu_sensitivity_study/results/pools/venture/pool.json",
+    "assessment_files": [
+      "applications/seu_sensitivity_study/results/pools/venture/assessments/gpt_4o.json",
+      "applications/seu_sensitivity_study/results/pools/venture/assessments/gpt_4o.json",
+      "applications/seu_sensitivity_study/results/pools/venture/assessments/gpt_4o.json",
+      "applications/seu_sensitivity_study/results/pools/venture/assessments/gpt_4o_mini.json",
+      "applications/seu_sensitivity_study/results/pools/venture/assessments/gpt_4o_mini.json",
+      "applications/seu_sensitivity_study/results/pools/venture/assessments/gpt_4o_mini.json",
+      "applications/seu_sensitivity_study/results/pools/venture/assessments/o3_mini.json",
+      "applications/seu_sensitivity_study/results/pools/venture/assessments/o3_mini.json",
+      "applications/seu_sensitivity_study/results/pools/venture/assessments/o3_mini.json",
+      "applications/seu_sensitivity_study/results/pools/venture/assessments/claude_sonnet_4_5.json",
+      "applications/seu_sensitivity_study/results/pools/venture/assessments/claude_sonnet_4_5.json",
+      "applications/seu_sensitivity_study/results/pools/venture/assessments/claude_sonnet_4_5.json",
+      "applications/seu_sensitivity_study/results/pools/venture/assessments/claude_haiku_4_5.json",
+      "applications/seu_sensitivity_study/results/pools/venture/assessments/claude_haiku_4_5.json",
+      "applications/seu_sensitivity_study/results/pools/venture/assessments/claude_haiku_4_5.json",
+      "applications/seu_sensitivity_study/results/pools/venture/assessments/claude_sonnet_4_5_thinking.json",
+      "applications/seu_sensitivity_study/results/pools/venture/assessments/claude_sonnet_4_5_thinking.json",
+      "applications/seu_sensitivity_study/results/pools/venture/assessments/claude_sonnet_4_5_thinking.json"
+    ],
+    "utility_values": [0.0, 0.5, 1.0]
+  },
+  "study_design_config": {
+    "factors": [6, 3],
+    "reference_indices": [0, 0],
+    "include_interactions": false,
+    "K": 3,
+    "D": 1,
+    "R": 60,
+    "M_per_cell": 280,
+    "menu_sizes": [2, 4, 6, 8],
+    "problem_set_path": "applications/seu_sensitivity_study/results/pools/venture/problems.json",
+    "pool_path": "applications/seu_sensitivity_study/results/pools/venture/pool.json",
+    "design_name": "venture_exact_assessment_anchored_probe"
+  }
+}

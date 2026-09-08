@@ -152,3 +152,24 @@ NA exclusions, and diagnostics are implemented and frozen in a further dated
 amendment. Phase E4 is reopened. No production choice requests may be submitted
 until the amended pipeline passes its validation gates and receives a new
 explicit spending authorization.
+
+## Amendment 2: anchored-model size-slope prior
+
+Amended: 2026-09-07, before production choice collection.
+
+The assessment-anchored model uses `gamma_size ~ normal(0, 0.2)`, replacing the
+legacy `normal(0, 0.5)` prior inherited from the latent-belief model. On the
+frozen size range 2 to 8, the legacy prior assigned approximately 44% probability
+to alpha changing by more than a factor of 10 in either direction and had an
+approximately `[0.007, 146]` central 90% interval for the size-8/size-2 alpha
+ratio. It also generated repeated non-finite-logit proposal rejections in both
+anchored smoke fits.
+
+Using the persisted neutral assessments and exact frozen menus, an SD of 0.2
+gives an approximately `[0.14, 7.35]` central 90% interval for that ratio and
+about 5% total probability beyond a factor of 10. An SD of 0.1 was rejected as
+too restrictive because the earlier venture smoke estimated `gamma_size = 0.309
+[0.166, 0.452]`; the structural alpha/eta rescaling counterexample leaves
+`gamma_size` unchanged, so that evidence remains relevant to prior calibration.
+The RQ6 practical-effect threshold remains `abs(gamma_size) > log(1.05)` per
+added alternative.

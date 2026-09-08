@@ -1,11 +1,17 @@
 import gzip
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 import pytest
 
+from analysis.assessment_anchored_prior_predictive import (
+    _menu_metrics,
+    _prior_predictive,
+)
 from analysis.hierarchical_parameter_recovery import _generate_fixed_eta
 from analysis.hierarchical_power import fit_diagnostics
+from scripts.run_hierarchical_parameter_recovery import _build_study_design
 from utils.cmdstan_artifacts import gzip_csv_files
 
 
@@ -75,6 +81,86 @@ def test_fixed_eta_generation_is_seeded_and_shares_declared_rows():
 def test_fixed_eta_generation_rejects_wrong_group_count():
     with pytest.raises(ValueError, match="length J=3"):
         _generate_fixed_eta({"row_groups": [0, 1]}, J=3, K=3, R=4)
+
+
+def test_fixed_eta_generation_loads_assessments_in_pool_order(tmp_path):
+    pool_path = tmp_path / "pool.json"
+    pool_path.write_text(
+        '{"items": [{"id": "second"}, {"id": "first"}]}'
+    )
+    assessment_path = tmp_path / "assessment.json"
+    assessment_path.write_text(
+        '{"assessments": ['
+        '{"item_id": "first", "parse_ok": true, "probabilities": [0.1, 0.2, 0.7]},'
+        '{"item_id": "second", "parse_ok": true, "probabilities": [0.6, 0.3, 0.1]}'
+        ']}'
+    )
+
+    result = _generate_fixed_eta(
+        {
+            "pool_path": str(pool_path),
+            "assessment_files": [str(assessment_path), str(assessment_path)],
+            "utility_values": [0.0, 0.5, 1.0],
+        },
+        J=2,
+        K=3,
+        R=2,
+    )
+
+    assert np.allclose(result["eta"], [[0.25, 0.8], [0.25, 0.8]])
+
+
+def test_exact_venture_problem_set_reconstructs_production_geometry():
+    design = _build_study_design(
+        {
+            "factors": [6, 3],
+            "reference_indices": [0, 0],
+            "K": 3,
+            "D": 1,
+            "R": 60,
+            "M_per_cell": 280,
+            "menu_sizes": [2, 4, 6, 8],
+            "problem_set_path": str(
+                ROOT
+                / "applications/seu_sensitivity_study/results/pools/venture/problems.json"
+            ),
+            "pool_path": str(
+                ROOT / "applications/seu_sensitivity_study/results/pools/venture/pool.json"
+            ),
+        }
+    )
+
+    assert design.M_total == 5040
+    assert design.get_data_dict()["M_per_cell"] == [280] * 18
+    assert design.I.shape == (5040, 60)
+    assert design.cell.tolist() == np.repeat(np.arange(1, 19), 280).tolist()
+    assert np.array_equal(design.I[:280], design.I[280:560])
+    assert sorted(np.unique(design.I[:280].sum(axis=1)).tolist()) == [2, 4, 6, 8]
+
+
+def test_anchored_prior_predictive_reflects_gamma_size_prior_scale():
+    problems = [
+        {"item_ids": ["low", "high"], "menu_size": 2},
+        {"item_ids": ["low", "mid", "high", "other"], "menu_size": 4},
+    ]
+    eta = {"low": 0.1, "mid": 0.4, "high": 0.9, "other": 0.2}
+    common = {
+        "eta_by_cell": [eta],
+        "problems": problems,
+        "design_matrix": np.zeros((1, 1)),
+        "draws": 2000,
+        "seed": 42,
+    }
+
+    narrow = _prior_predictive(**common, gamma_size_sd=0.1)
+    wide = _prior_predictive(**common, gamma_size_sd=0.5)
+
+    assert narrow["alpha_ratio_largest_to_smallest_menu"]["q95"] < wide[
+        "alpha_ratio_largest_to_smallest_menu"
+    ]["q95"]
+    gaps, by_size = _menu_metrics(eta, problems)
+    assert gaps.tolist() == pytest.approx([0.8, 0.5])
+    assert sorted(by_size) == [2, 4]
 
 
 def test_gzip_csv_files_preserves_content_and_retains_source(tmp_path):

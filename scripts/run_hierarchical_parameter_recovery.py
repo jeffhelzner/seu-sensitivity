@@ -70,6 +70,7 @@ def _build_study_design(design_config: dict) -> HierarchicalStudyDesign:
             design_name=design_config.get("design_name", "h_m01_parameter_recovery"),
         )
         design.generate()
+        _apply_problem_set(design, design_config)
         return design
 
     X = design_config.get("X")
@@ -94,7 +95,42 @@ def _build_study_design(design_config: dict) -> HierarchicalStudyDesign:
         design_name=design_config.get("design_name", "h_m01_parameter_recovery"),
     )
     design.generate()
+    _apply_problem_set(design, design_config)
     return design
+
+
+def _apply_problem_set(
+    design: HierarchicalStudyDesign, design_config: dict
+) -> None:
+    """Replace generated menus with a persisted problem set when configured."""
+    problem_set_path = design_config.get("problem_set_path")
+    pool_path = design_config.get("pool_path")
+    if not problem_set_path and not pool_path:
+        return
+    if not problem_set_path or not pool_path:
+        raise ValueError("problem_set_path and pool_path must be supplied together")
+
+    with open(pool_path) as handle:
+        pool = json.load(handle)
+    with open(problem_set_path) as handle:
+        problem_set = json.load(handle)
+    item_ids = [item["id"] for item in pool["items"]]
+    if len(item_ids) != design.R:
+        raise ValueError(f"Pool has {len(item_ids)} items; expected R={design.R}")
+    item_index = {item_id: index for index, item_id in enumerate(item_ids)}
+
+    rows = []
+    for problem in problem_set["problems"]:
+        row = np.zeros(design.R, dtype=int)
+        for item_id in problem["item_ids"]:
+            row[item_index[item_id]] = 1
+        rows.extend([row.copy() for _ in problem["presentations"]])
+
+    observations_per_cell = len(rows)
+    design._M_per_cell = [observations_per_cell] * design.J
+    design.M_total = observations_per_cell * design.J
+    design.I = np.tile(np.asarray(rows), (design.J, 1))
+    design.cell = np.repeat(np.arange(1, design.J + 1), observations_per_cell)
 
 
 def run_from_config(config_path: str) -> HierarchicalParameterRecovery:
@@ -106,6 +142,7 @@ def run_from_config(config_path: str) -> HierarchicalParameterRecovery:
     sim_model_path = config.get("sim_model_path")
     output_dir = config.get("output_dir")
     n_mcmc_samples = config.get("n_mcmc_samples", 2000)
+    n_mcmc_warmup = config.get("n_mcmc_warmup")
     n_mcmc_chains = config.get("n_mcmc_chains", 4)
     n_iterations = config.get("n_iterations", 20)
 
@@ -127,6 +164,7 @@ def run_from_config(config_path: str) -> HierarchicalParameterRecovery:
         study_design=study_design,
         output_dir=output_dir,
         n_mcmc_samples=n_mcmc_samples,
+        n_mcmc_warmup=n_mcmc_warmup,
         n_mcmc_chains=n_mcmc_chains,
         n_iterations=n_iterations,
         # Variant hooks; the defaults reproduce the h_m01 behaviour exactly.
@@ -135,6 +173,8 @@ def run_from_config(config_path: str) -> HierarchicalParameterRecovery:
         sim_only_keys=tuple(config.get("sim_only_keys", ())),
         sim_overrides=config.get("sim_overrides"),
         fixed_eta_config=config.get("fixed_eta_config"),
+        adapt_delta=config.get("adapt_delta", 0.95),
+        max_treedepth=config.get("max_treedepth", 12),
     )
 
     true_params, posterior_summaries = recovery.run()

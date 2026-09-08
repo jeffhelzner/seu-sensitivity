@@ -39,6 +39,7 @@ class HierarchicalParameterRecovery:
         study_design: HierarchicalStudyDesign = None,
         output_dir: str = None,
         n_mcmc_samples: int = 2000,
+        n_mcmc_warmup: int = None,
         n_mcmc_chains: int = 4,
         n_iterations: int = 20,
         alpha_var: str = "alpha",
@@ -46,6 +47,8 @@ class HierarchicalParameterRecovery:
         sim_only_keys: tuple = (),
         sim_overrides: dict = None,
         fixed_eta_config: dict = None,
+        adapt_delta: float = 0.95,
+        max_treedepth: int = 12,
     ):
         project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -58,6 +61,11 @@ class HierarchicalParameterRecovery:
         self.sim_model_path = sim_model_path
         self.study_design = study_design
         self.n_mcmc_samples = n_mcmc_samples
+        self.n_mcmc_warmup = (
+            n_mcmc_warmup
+            if n_mcmc_warmup is not None
+            else n_mcmc_samples // 2
+        )
         self.n_mcmc_chains = n_mcmc_chains
         self.n_iterations = n_iterations
         # h_m01_size renames alpha -> alpha_cell (alpha is observation-varying
@@ -72,6 +80,8 @@ class HierarchicalParameterRecovery:
         # bias and coverage for gamma_size become exactly the null statistics.
         self.sim_overrides = dict(sim_overrides or {})
         self.fixed_eta_config = dict(fixed_eta_config or {})
+        self.adapt_delta = adapt_delta
+        self.max_treedepth = max_treedepth
 
         if output_dir is None:
             timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -143,7 +153,10 @@ class HierarchicalParameterRecovery:
                 {
                     "n_iterations": self.n_iterations,
                     "n_mcmc_samples": self.n_mcmc_samples,
+                    "n_mcmc_warmup": self.n_mcmc_warmup,
                     "n_mcmc_chains": self.n_mcmc_chains,
+                    "adapt_delta": self.adapt_delta,
+                    "max_treedepth": self.max_treedepth,
                     "sim_overrides": self.sim_overrides,
                     "fixed_eta_config": self.fixed_eta_config,
                     "J": J, "K": K, "D": D, "P": P, "M_total": M_total,
@@ -195,10 +208,10 @@ class HierarchicalParameterRecovery:
                     data=inference_data,
                     seed=54321 + iteration,
                     iter_sampling=self.n_mcmc_samples,
-                    iter_warmup=self.n_mcmc_samples // 2,
+                    iter_warmup=self.n_mcmc_warmup,
                     chains=self.n_mcmc_chains,
-                    adapt_delta=0.95,
-                    max_treedepth=12,
+                    adapt_delta=self.adapt_delta,
+                    max_treedepth=self.max_treedepth,
                     show_console=False,
                 )
             except RuntimeError as e:
@@ -390,6 +403,38 @@ class HierarchicalParameterRecovery:
 
 def _generate_fixed_eta(config: dict, *, J: int, K: int, R: int) -> dict:
     """Generate reproducible expected utilities, optionally shared across cells."""
+    utility_values = list(config.get("utility_values", np.linspace(0, 1, K)))
+    if len(utility_values) != K:
+        raise ValueError(f"fixed_eta utility_values must have length K={K}")
+
+    assessment_files = config.get("assessment_files")
+    if assessment_files is not None:
+        if len(assessment_files) != J:
+            raise ValueError(f"fixed_eta assessment_files must have length J={J}")
+        pool = json.loads(open(config["pool_path"]).read())
+        item_ids = [item["id"] for item in pool["items"]]
+        if len(item_ids) != R:
+            raise ValueError(f"fixed_eta pool has {len(item_ids)} items; expected R={R}")
+        eta = []
+        for assessment_file in assessment_files:
+            payload = json.loads(open(assessment_file).read())
+            probabilities = {
+                record["item_id"]: record["probabilities"]
+                for record in payload["assessments"]
+                if record.get("parse_ok") and record.get("probabilities") is not None
+            }
+            if set(probabilities) != set(item_ids):
+                raise ValueError(
+                    f"Assessment items do not match pool items: {assessment_file}"
+                )
+            eta.append(
+                [
+                    float(np.asarray(probabilities[item_id]) @ utility_values)
+                    for item_id in item_ids
+                ]
+            )
+        return {"eta": eta, "utility_values": utility_values}
+
     row_groups = list(config.get("row_groups", range(J)))
     if len(row_groups) != J:
         raise ValueError(f"fixed_eta row_groups must have length J={J}")
@@ -409,8 +454,5 @@ def _generate_fixed_eta(config: dict, *, J: int, K: int, R: int) -> dict:
     else:
         raise ValueError(f"Unsupported fixed_eta distribution {distribution!r}")
 
-    utility_values = list(config.get("utility_values", np.linspace(0, 1, K)))
-    if len(utility_values) != K:
-        raise ValueError(f"fixed_eta utility_values must have length K={K}")
     eta = np.asarray([group_eta[group_index[group]] for group in row_groups])
     return {"eta": eta.tolist(), "utility_values": utility_values}

@@ -49,8 +49,24 @@ request identity now covers provider-ready bodies and binds state, checkpoints,
 and final choice artifacts. Duplicate IDs and changed completed artifacts are
 rejected, and partial terminal evidence is persisted before an integrity error.
 
-All maintained application tests pass (474 tests). Repository-wide pytest also
-passes 475 tests but reports three unrelated collection errors from the legacy
+Prior predictive checks now use all persisted neutral assessments and the exact
+frozen menus. Under the amended `gamma_size ~ normal(0, 0.2)` prior, the
+size-8/size-2 alpha ratio has an approximately `[0.135, 7.03]` central 90%
+interval; 2.92% of draws are below 0.1 and 2.46% are above 10. The inherited SD
+0.5 prior had an approximately `[0.007, 146]` interval and about 44% total mass
+beyond a factor of 10. Amendment 2 records the prior decision and its rationale.
+
+An exact venture-shape diagnostic reconstructed 18 cells, 60 assessed items,
+140 menus with two presentations, and 5,040 observations. A one-chain fit with
+100 warmup and 100 retained draws finished in about 4.5 minutes, had zero
+divergences and satisfactory treedepth/E-BFMI, and estimated a fixed true
+`gamma_size=0.309` with bias `-0.0113` and 90% interval width `0.0429`.
+Non-finite-logit proposals were still rejected during warmup. The short
+single-chain fit is geometry and timing evidence only: its R-hat values are not
+interpretable, and it does not establish bias, coverage, or convergence.
+
+All maintained application tests pass (478 tests). Repository-wide pytest last
+passed 475 tests but reported three unrelated collection errors from the legacy
 executable `scripts/test_m1_model.py`, whose helper functions are named
 `test_*` but require command-line arguments rather than pytest fixtures.
 

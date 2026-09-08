@@ -98,7 +98,7 @@ transformed parameters {
 model {
   gamma0 ~ normal(2.5, 0.5);
   gamma ~ normal(0, 0.5);
-  gamma_size ~ normal(0, 0.5);
+  gamma_size ~ normal(0, 0.2);
   sigma_cell ~ normal(0, 0.3);
   z_alpha ~ std_normal();
 

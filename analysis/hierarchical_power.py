@@ -56,7 +56,7 @@ except ImportError:  # pragma: no cover
 DEFAULT_ROPE_LOG = float(np.log(1.25))
 
 DIAGNOSTIC_EXCLUDE_PREFIXES = (
-    "log_lik", "y_pred", "eta", "alpha_obs", "log_alpha_obs",
+    "lp__", "log_lik", "y_pred", "eta", "alpha_obs", "log_alpha_obs",
     "T_obs", "T_rep", "ppc_",
 )
 
@@ -87,6 +87,19 @@ def fit_diagnostics(fit: Any, *, seconds: float, max_treedepth: int) -> Dict[str
     method_variables = fit.method_variables()
     treedepth = np.asarray(method_variables["treedepth__"])
     divergent = np.asarray(method_variables["divergent__"])
+    energy = np.asarray(method_variables.get("energy__", []), dtype=float)
+    if energy.ndim == 1:
+        energy = energy[:, np.newaxis]
+    ebfmi = []
+    if energy.shape[0] > 1:
+        for chain in range(energy.shape[1]):
+            chain_energy = energy[:, chain]
+            variance = np.var(chain_energy)
+            ebfmi.append(
+                float(np.mean(np.diff(chain_energy) ** 2) / variance)
+                if variance > 0 else float("nan")
+            )
+    finite_ebfmi = [value for value in ebfmi if np.isfinite(value)]
     minimum_bulk = min(bulk.values()) if bulk else None
     return {
         "seconds": seconds,
@@ -94,6 +107,8 @@ def fit_diagnostics(fit: Any, *, seconds: float, max_treedepth: int) -> Dict[str
         "max_treedepth_reached": int(treedepth.max()),
         "treedepth_saturated_share": float((treedepth >= max_treedepth).mean()),
         "divergences": int(divergent.sum()),
+        "ebfmi_by_chain": ebfmi,
+        "min_ebfmi": min(finite_ebfmi) if finite_ebfmi else None,
         "ess_bulk": bulk,
         "rhat": rhat,
         "min_ess_bulk": minimum_bulk,

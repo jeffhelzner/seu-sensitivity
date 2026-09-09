@@ -12,6 +12,8 @@ import os
 import sys
 import json
 import datetime
+import time
+from pathlib import Path
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -21,6 +23,71 @@ from tqdm import tqdm
 # Add parent directory to path so we can import from utils
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.study_design_hierarchical import HierarchicalStudyDesign
+from utils.cmdstan_artifacts import gzip_csv_files
+from analysis.hierarchical_power import fit_diagnostics
+
+
+def _rejected_proposal_counts(paths) -> list[int]:
+    marker = "categorical_logit_lpmf: log odds parameter[1] is inf"
+    return [Path(path).read_text().count(marker) for path in paths]
+
+
+def _load_completed_iteration(iter_dir: Path):
+    true_path = iter_dir / "true_parameters.json"
+    summary_path = iter_dir / "posterior_summary.csv"
+    diagnostics_path = iter_dir / "diagnostics.json"
+    if not all(path.exists() for path in (true_path, summary_path, diagnostics_path)):
+        return None
+    with true_path.open() as handle:
+        true_params = json.load(handle)
+    return true_params, pd.read_csv(summary_path, index_col=0)
+
+
+def _summarize_sampler_diagnostics(output_dir: Path) -> dict:
+    records = []
+    for diagnostics_path in sorted(output_dir.glob("iteration_*/diagnostics.json")):
+        with diagnostics_path.open() as handle:
+            diagnostics = json.load(handle)
+        records.append(
+            {
+                "iteration": int(diagnostics_path.parent.name.split("_")[-1]),
+                "seconds": diagnostics["seconds"],
+                "max_rhat": diagnostics["max_rhat"],
+                "min_ess_bulk": diagnostics["min_ess_bulk"],
+                "min_ebfmi": diagnostics["min_ebfmi"],
+                "divergences": diagnostics["divergences"],
+                "treedepth_saturated_share": diagnostics[
+                    "treedepth_saturated_share"
+                ],
+                "nonfinite_proposals_total": diagnostics[
+                    "nonfinite_proposals_total"
+                ],
+            }
+        )
+    thresholds = {
+        "max_rhat": 1.01,
+        "min_ess_bulk": 400.0,
+        "min_ebfmi": 0.3,
+        "max_divergences": 0,
+        "max_treedepth_saturated_share": 0.0,
+    }
+    for record in records:
+        record["passes"] = (
+            record["max_rhat"] < thresholds["max_rhat"]
+            and record["min_ess_bulk"] >= thresholds["min_ess_bulk"]
+            and record["min_ebfmi"] >= thresholds["min_ebfmi"]
+            and record["divergences"] <= thresholds["max_divergences"]
+            and record["treedepth_saturated_share"]
+            <= thresholds["max_treedepth_saturated_share"]
+        )
+    return {
+        "thresholds": thresholds,
+        "iterations": records,
+        "completed": len(records),
+        "passed": sum(record["passes"] for record in records),
+        "all_passed": bool(records) and all(record["passes"] for record in records),
+        "total_fit_seconds": sum(record["seconds"] for record in records),
+    }
 
 
 class HierarchicalParameterRecovery:
@@ -168,8 +235,14 @@ class HierarchicalParameterRecovery:
         print(f"Running {self.n_iterations} iterations of hierarchical parameter recovery...")
 
         for iteration in tqdm(range(self.n_iterations)):
-            iter_dir = os.path.join(self.output_dir, f"iteration_{iteration+1}")
-            os.makedirs(iter_dir, exist_ok=True)
+            iter_dir = Path(self.output_dir) / f"iteration_{iteration+1}"
+            iter_dir.mkdir(parents=True, exist_ok=True)
+            completed = _load_completed_iteration(iter_dir)
+            if completed is not None:
+                true_params, summary = completed
+                all_true_params.append(true_params)
+                all_posterior_summaries.append(summary)
+                continue
 
             # 1. Simulate data
             sim_fit = self.sim_model.sample(
@@ -187,7 +260,7 @@ class HierarchicalParameterRecovery:
             # 2. Extract true parameters
             true_params = self._extract_true_params(sim_samples, J, K, D, P)
 
-            with open(os.path.join(iter_dir, "true_parameters.json"), "w") as f:
+            with open(iter_dir / "true_parameters.json", "w") as f:
                 json.dump(true_params, f, indent=2)
 
             # 3. Build inference data
@@ -204,6 +277,9 @@ class HierarchicalParameterRecovery:
 
             # 4. Fit inference model
             try:
+                chain_dir = iter_dir / "chains" / "main"
+                chain_dir.mkdir(parents=True, exist_ok=True)
+                fit_started = time.time()
                 fit = self.inference_model.sample(
                     data=inference_data,
                     seed=54321 + iteration,
@@ -213,27 +289,51 @@ class HierarchicalParameterRecovery:
                     adapt_delta=self.adapt_delta,
                     max_treedepth=self.max_treedepth,
                     show_console=False,
+                    output_dir=str(chain_dir),
                 )
+                fit_seconds = time.time() - fit_started
             except RuntimeError as e:
                 print(f"\n  Warning: Iteration {iteration+1} sampling failed: {str(e)[:200]}")
-                with open(os.path.join(iter_dir, "error.txt"), "w") as f:
+                with open(iter_dir / "error.txt", "w") as f:
                     f.write(f"Sampling error: {str(e)}\n")
                 continue
 
             # 5. Store results
             try:
                 summary = fit.summary()
-                summary.to_csv(os.path.join(iter_dir, "posterior_summary.csv"))
+                summary.to_csv(iter_dir / "posterior_summary.csv")
 
                 diagnostics = fit.diagnose()
-                with open(os.path.join(iter_dir, "diagnostics.txt"), "w") as f:
+                with open(iter_dir / "diagnostics.txt", "w") as f:
                     f.write(diagnostics)
+                chain_files = gzip_csv_files(fit.runset.csv_files)
+                filtered_diagnostics = fit_diagnostics(
+                    fit,
+                    seconds=fit_seconds,
+                    max_treedepth=self.max_treedepth,
+                )
+                filtered_diagnostics["chain_files"] = [
+                    str(path) for path in chain_files
+                ]
+                rejection_counts = _rejected_proposal_counts(
+                    fit.runset.stdout_files
+                )
+                filtered_diagnostics["nonfinite_proposals_by_chain"] = (
+                    rejection_counts
+                )
+                filtered_diagnostics["nonfinite_proposals_total"] = sum(
+                    rejection_counts
+                )
+                with open(iter_dir / "diagnostics.json", "w") as f:
+                    json.dump(filtered_diagnostics, f, indent=2)
+                for path in fit.runset.csv_files:
+                    Path(path).unlink()
 
                 all_true_params.append(true_params)
                 all_posterior_summaries.append(summary)
             except Exception as e:
                 print(f"\n  Warning: Iteration {iteration+1} failed: {str(e)}")
-                with open(os.path.join(iter_dir, "error.txt"), "w") as f:
+                with open(iter_dir / "error.txt", "w") as f:
                     f.write(f"Error: {str(e)}\n")
                 continue
 
@@ -249,6 +349,12 @@ class HierarchicalParameterRecovery:
 
         # Analyze recovery
         self._analyze_recovery(all_true_params, all_posterior_summaries)
+        sampler_summary = _summarize_sampler_diagnostics(Path(self.output_dir))
+        with open(
+            Path(self.output_dir) / "recovery_summary" / "sampler_diagnostics.json",
+            "w",
+        ) as handle:
+            json.dump(sampler_summary, handle, indent=2)
 
         return all_true_params, all_posterior_summaries
 

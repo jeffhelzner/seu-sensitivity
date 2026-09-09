@@ -65,7 +65,61 @@ Non-finite-logit proposals were still rejected during warmup. The short
 single-chain fit is geometry and timing evidence only: its R-hat values are not
 interpretable, and it does not establish bias, coverage, or convergence.
 
-All maintained application tests pass (478 tests). Repository-wide pytest last
+Matched four-chain exact-shape validations subsequently used 500 warmup and 500
+retained draws per chain. Both pools had zero divergences, maximum treedepth 7
+of 12, no treedepth saturation, and satisfactory E-BFMI. Venture's minimum
+structural-parameter bulk ESS was 1,416 and maximum R-hat was 1.0043; hiring's
+were 1,469 and 1.0053. The fixed E1 slopes were locally recovered as follows:
+
+| Pool | True `gamma_size` | Bias | 90% interval width | Covered |
+|---|---:|---:|---:|---:|
+| Venture | 0.309 | -0.0116 | 0.0482 | yes |
+| Hiring | 0.019 | -0.0130 | 0.0423 | yes |
+
+Sampling took 11.8 minutes for venture and 10.5 minutes for hiring. Each fit
+logged a small number of non-finite-logit proposal rejections during initial
+warmup (26 and 28 respectively), with none after retained sampling began.
+Compressed chain CSVs were preserved. These runs pass the production-geometry
+and convergence check for their simulated datasets, including the lower-spread
+hiring assessments. They do not estimate repeated-sampling bias or coverage;
+the recovery/SBC campaign decision therefore remains open.
+
+A matched two-dataset pilot then drew `gamma_size` from its amended
+`normal(0, 0.2)` prior for each dataset. Four chains with 250 warmup and 250
+retained draws were rejected as a campaign setting: venture maximum R-hat was
+1.0208 and 1.0162, and one dataset had minimum structural bulk ESS 274. At 500
+warmup and 500 retained draws, both venture and both hiring datasets passed the
+prespecified sampler gates (R-hat below 1.01, structural bulk ESS at least 400,
+E-BFMI at least 0.3, zero divergences, and zero treedepth saturation). This
+included a prior draw with `sigma_cell=0.012`, close to the boundary.
+
+The completed recovery campaigns used 40 datasets per pool with four chains and
+500 warmup plus 500 retained draws. Five hiring fits and four venture fits that
+narrowly missed a prespecified sampler gate were replaced by 1,000-warmup,
+1,000-retained-draw fits of the same deterministic datasets. The original fits
+were archived, and hashes confirmed that every replacement retained its exact
+simulated parameters. Both final campaigns passed all gates for all 40 datasets:
+
+| Pool | Passed | Maximum R-hat | Minimum bulk ESS | Minimum E-BFMI | Divergences | Treedepth saturation |
+|---|---:|---:|---:|---:|---:|---:|
+| Venture | 40/40 | 1.00925 | 425.273 | 0.6502 | 0 | 0 |
+| Hiring | 40/40 | 1.00939 | 411.571 | 0.6990 | 0 | 0 |
+
+The primary size-slope recovery results were:
+
+| Pool | Bias | RMSE | 90% coverage | Mean interval width |
+|---|---:|---:|---:|---:|
+| Venture | -0.00069 | 0.01359 | 0.900 | 0.04136 |
+| Hiring | -0.00270 | 0.01368 | 0.925 | 0.04006 |
+
+At nominal 90% coverage, the Monte Carlo standard error from 40 datasets is
+0.047. The observed `gamma_size` coverages are therefore consistent with the
+nominal target at this resolution. Total recorded fit time was 5.57 hours for
+venture and 5.79 hours for hiring. The repeated-recovery requirement is
+complete; the decision on formal SBC and the dependence-aware presentation
+sensitivity remain open.
+
+All maintained application tests pass (483 tests). Repository-wide pytest last
 passed 475 tests but reported three unrelated collection errors from the legacy
 executable `scripts/test_m1_model.py`, whose helper functions are named
 `test_*` but require command-line arguments rather than pytest fixtures.

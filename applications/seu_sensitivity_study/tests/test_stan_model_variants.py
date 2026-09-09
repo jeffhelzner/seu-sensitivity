@@ -9,9 +9,17 @@ from analysis.assessment_anchored_prior_predictive import (
     _menu_metrics,
     _prior_predictive,
 )
-from analysis.hierarchical_parameter_recovery import _generate_fixed_eta
+from analysis.hierarchical_parameter_recovery import (
+    _generate_fixed_eta,
+    _load_completed_iteration,
+    _rejected_proposal_counts,
+    _summarize_sampler_diagnostics,
+)
 from analysis.hierarchical_power import fit_diagnostics
-from scripts.run_hierarchical_parameter_recovery import _build_study_design
+from scripts.run_hierarchical_parameter_recovery import (
+    _build_study_design,
+    _load_config,
+)
 from utils.cmdstan_artifacts import gzip_csv_files
 
 
@@ -138,6 +146,39 @@ def test_exact_venture_problem_set_reconstructs_production_geometry():
     assert sorted(np.unique(design.I[:280].sum(axis=1)).tolist()) == [2, 4, 6, 8]
 
 
+def test_recovery_config_can_override_top_level_base_values(tmp_path):
+    base_path = tmp_path / "base.json"
+    base_path.write_text('{"chains": 4, "nested": {"kept": true}}')
+    child_path = tmp_path / "child.json"
+    child_path.write_text(
+        '{"base_config_path": "' + str(base_path) + '", "chains": 2}'
+    )
+
+    assert _load_config(str(child_path)) == {
+        "chains": 2,
+        "nested": {"kept": True},
+    }
+
+
+def test_recovery_config_resolves_nested_inheritance(tmp_path):
+    base_path = tmp_path / "base.json"
+    base_path.write_text('{"chains": 4, "samples": 500}')
+    middle_path = tmp_path / "middle.json"
+    middle_path.write_text(
+        '{"base_config_path": "' + str(base_path) + '", "samples": 1000}'
+    )
+    child_path = tmp_path / "child.json"
+    child_path.write_text(
+        '{"base_config_path": "' + str(middle_path) + '", "warmup": 1000}'
+    )
+
+    assert _load_config(str(child_path)) == {
+        "chains": 4,
+        "samples": 1000,
+        "warmup": 1000,
+    }
+
+
 def test_anchored_prior_predictive_reflects_gamma_size_prior_scale():
     problems = [
         {"item_ids": ["low", "high"], "menu_size": 2},
@@ -175,21 +216,67 @@ def test_gzip_csv_files_preserves_content_and_retains_source(tmp_path):
         assert preserved_file.read() == b"lp__,gamma0\n-1.0,2.5\n"
 
 
+def test_rejected_proposal_counts_reads_each_chain_log(tmp_path):
+    first = tmp_path / "first.txt"
+    second = tmp_path / "second.txt"
+    marker = "categorical_logit_lpmf: log odds parameter[1] is inf"
+    first.write_text(f"before\n{marker}\nafter\n{marker}\n")
+    second.write_text("clean\n")
+
+    assert _rejected_proposal_counts([first, second]) == [2, 0]
+
+
+def test_completed_recovery_iteration_requires_all_durable_outputs(tmp_path):
+    iteration = tmp_path / "iteration_1"
+    iteration.mkdir()
+    (iteration / "true_parameters.json").write_text('{"gamma0": 2.5}')
+    (iteration / "posterior_summary.csv").write_text(
+        ",Mean,5%,95%\ngamma0,2.4,2.0,2.8\n"
+    )
+    assert _load_completed_iteration(iteration) is None
+
+    (iteration / "diagnostics.json").write_text("{}")
+    true_params, summary = _load_completed_iteration(iteration)
+    assert true_params == {"gamma0": 2.5}
+    assert summary.loc["gamma0", "Mean"] == 2.4
+
+
+def test_sampler_summary_applies_campaign_thresholds(tmp_path):
+    for iteration, max_rhat in ((1, 1.009), (2, 1.011)):
+        directory = tmp_path / f"iteration_{iteration}"
+        directory.mkdir()
+        (directory / "diagnostics.json").write_text(
+            '{"seconds": 10, "max_rhat": '
+            + str(max_rhat)
+            + ', "min_ess_bulk": 500, "min_ebfmi": 0.8, '
+            '"divergences": 0, "treedepth_saturated_share": 0, '
+            '"nonfinite_proposals_total": 3}'
+        )
+
+    summary = _summarize_sampler_diagnostics(tmp_path)
+
+    assert summary["completed"] == 2
+    assert summary["passed"] == 1
+    assert not summary["all_passed"]
+    assert summary["total_fit_seconds"] == 20
+
+
 def test_fit_diagnostics_covers_parameters_and_excludes_observation_arrays():
     class FakeFit:
         def summary(self):
             return pd.DataFrame(
                 {
-                    "ESS_bulk": [120.0, 80.0, 500.0, float("nan")],
-                    "R_hat": [1.001, 1.009, 1.000, float("nan")],
+                    "ESS_bulk": [40.0, 120.0, 80.0, 500.0, float("nan")],
+                    "R_hat": [1.02, 1.001, 1.009, 1.000, float("nan")],
                 },
-                index=["gamma0", "beta[1,1,1]", "eta[1]", "delta[1]"],
+                index=["lp__", "gamma0", "beta[1,1,1]", "eta[1]", "delta[1]"],
             )
 
         def method_variables(self):
             return {
                 "treedepth__": [[9, 10], [10, 12]],
                 "divergent__": [[0, 0], [1, 0]],
+                "energy__": [[1.0, 2.0], [2.0, 4.0], [1.0, 2.0]],
             }
 
     diagnostics = fit_diagnostics(FakeFit(), seconds=200.0, max_treedepth=12)
@@ -199,7 +286,10 @@ def test_fit_diagnostics_covers_parameters_and_excludes_observation_arrays():
     assert diagnostics["mean_treedepth"] == 10.25
     assert diagnostics["treedepth_saturated_share"] == 0.25
     assert diagnostics["divergences"] == 1
+    assert diagnostics["ebfmi_by_chain"] == pytest.approx([4.5, 4.5])
+    assert diagnostics["min_ebfmi"] == pytest.approx(4.5)
     assert diagnostics["ess_bulk_per_1000_seconds"] == 400.0
+    assert "lp__" not in diagnostics["ess_bulk"]
     assert "beta[1,1,1]" in diagnostics["ess_bulk"]
     assert "eta[1]" not in diagnostics["ess_bulk"]
     assert "delta[1]" not in diagnostics["ess_bulk"]

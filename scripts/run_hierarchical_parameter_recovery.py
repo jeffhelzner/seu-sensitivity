@@ -133,10 +133,25 @@ def _apply_problem_set(
     design.cell = np.repeat(np.arange(1, design.J + 1), observations_per_cell)
 
 
+def _load_config(config_path: str, _seen: set[str] = None) -> dict:
+    resolved_path = os.path.abspath(config_path)
+    seen = set(_seen or ())
+    if resolved_path in seen:
+        raise ValueError(f"Circular base_config_path inheritance at {config_path}")
+    seen.add(resolved_path)
+    with open(config_path) as handle:
+        config = json.load(handle)
+    base_config_path = config.pop("base_config_path", None)
+    if base_config_path is None:
+        return config
+    base_config = _load_config(base_config_path, seen)
+    base_config.update(config)
+    return base_config
+
+
 def run_from_config(config_path: str) -> HierarchicalParameterRecovery:
     """Run hierarchical parameter recovery analysis from a JSON config."""
-    with open(config_path, "r") as f:
-        config = json.load(f)
+    config = _load_config(config_path)
 
     inference_model_path = config.get("inference_model_path")
     sim_model_path = config.get("sim_model_path")

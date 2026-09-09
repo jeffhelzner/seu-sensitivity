@@ -18,7 +18,7 @@ it does not authorize production collection or supersede the preregistration.
 | F7: unstaged production root/preflight | Accepted; partially remediated | Provenance now records reasoning reserve and configured versus effective temperature. Immutable prerequisite staging, source/artifact hashes, exact request rendering, fresh gate binding, authorization binding, and enforced preflight remain open. |
 | F8: whole-cell NA exclusion | Accepted; implemented | Cells above 30% NA are excluded before Stan assembly; cell IDs, design rows, and model mappings are subset and reindexed together. Excluded cells are reported. Contrast-estimability checks after exclusions remain under F6. |
 | F9: zero-retention menu size | Accepted; implemented | Balancing includes every designed size, including zero-retention bins; one empty size therefore yields zero balanced menus instead of silently changing support. |
-| F10: evidence scope/dependence | Accepted; partially remediated | A fixed-eta anchored simulator and smoke recovery now exist. Prior predictive checks use the persisted assessments and exact menus; they motivated narrowing the size-slope prior from SD 0.5 to 0.2. An exact-shape venture probe completed with zero divergences and satisfactory treedepth/E-BFMI, but one short chain is not recovery evidence. Multi-chain recovery/SBC decision and a dependence-aware presentation sensitivity remain open. |
+| F10: evidence scope/dependence | Accepted; partially remediated | Prior predictive checks using the persisted assessments and exact menus motivated narrowing the size-slope prior from SD 0.5 to 0.2. Matched exact-shape validation and pilot fits selected four chains with 500 warmup and 500 retained draws as the campaign setting. The completed 40-dataset campaigns passed every prespecified sampler gate after exact-dataset 1,000/1,000 reruns of four venture and five hiring fits: maximum structural R-hat was below 1.01, minimum structural bulk ESS exceeded 400, minimum E-BFMI exceeded 0.65, and there were zero divergences and zero treedepth saturation. Venture and hiring `gamma_size` bias/RMSE were -0.00069/0.01359 and -0.00270/0.01368, with 90% interval coverage of 0.900 and 0.925. A formal SBC decision and dependence-aware presentation sensitivity remain open. |
 | F11: gate interpretation/ridge LOO | Accepted; numerical defect fixed | Ridge LOO leverage now includes the unpenalized intercept and is tested against explicit refits. Gate passes remain screens rather than identification proofs; fresh reports must be regenerated in preflight. |
 | F12: reasoning treatment/probe | Accepted; partially remediated | The manifest records the effective Anthropic thinking temperature and OpenAI reasoning reserve. The contrast must be reported as a treatment bundle. No live reasoning-arm Batch probe has been authorized or run. |
 
@@ -28,7 +28,7 @@ it does not authorize production collection or supersede the preregistration.
 - Client, Batch, and provenance module: 45 passed.
 - Checkpoint/final-artifact identity slice: 20 passed.
 - Anchored Stan-variant and fixed-eta generation tests: 7 passed.
-- All maintained application tests: 474 passed.
+- All maintained application tests: 483 passed.
 - Repository-wide pytest discovery: 475 passed, with three unrelated collection
   errors in `scripts/test_m1_model.py` because executable helper functions named
   `test_*` require non-pytest arguments.

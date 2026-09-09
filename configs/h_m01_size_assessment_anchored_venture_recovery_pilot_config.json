@@ -1,0 +1,16 @@
+{
+  "_comment": [
+    "Two-dataset exact venture recovery pilot at the validated draw count.",
+    "Inherits the frozen artifact geometry from the multi-chain validation config.",
+    "No provider calls are made."
+  ],
+  "base_config_path": "configs/h_m01_size_assessment_anchored_venture_validation_config.json",
+  "output_dir": "results/parameter_recovery/h_m01_size_assessment_anchored_venture_recovery_pilot_500",
+  "n_mcmc_samples": 500,
+  "n_mcmc_warmup": 500,
+  "n_iterations": 2,
+  "sim_overrides": {
+    "gamma_size_mean": 0.0,
+    "gamma_size_sd": 0.2
+  }
+}

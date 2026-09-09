@@ -1,0 +1,16 @@
+{
+  "_comment": [
+    "Forty-dataset exact-geometry hiring recovery campaign.",
+    "Reuses the first two completed pilot iterations through durable iteration resume.",
+    "At 90% coverage, n=40 gives Monte Carlo SE approximately 0.047."
+  ],
+  "base_config_path": "configs/h_m01_size_assessment_anchored_hiring_validation_config.json",
+  "output_dir": "results/parameter_recovery/h_m01_size_assessment_anchored_hiring_recovery_pilot_500",
+  "n_mcmc_samples": 500,
+  "n_mcmc_warmup": 500,
+  "n_iterations": 40,
+  "sim_overrides": {
+    "gamma_size_mean": 0.0,
+    "gamma_size_sd": 0.2
+  }
+}

@@ -49,6 +49,27 @@ def _build_study_design(design_config: dict) -> HierarchicalStudyDesign:
     Supports factorial mode via ``factors: [k1, k2, ...]`` or manual mode
     via explicit J/P (with optional ``X``).
     """
+    template_path = design_config.get("stan_data_template_path")
+    if template_path:
+        with open(template_path) as handle:
+            template = json.load(handle)
+        design = HierarchicalStudyDesign(
+            J=template["J"],
+            K=template["K"],
+            D=1,
+            R=template["R"],
+            P=template["P"],
+            M_per_cell=template["M_per_cell"],
+            X=np.asarray(template["X"], dtype=float),
+            menu_sizes=sorted({int(sum(row)) for row in template["I"]}),
+            design_name=design_config.get("design_name", "stan_data_template"),
+        )
+        design.w = [np.zeros(1) for _ in range(design.R)]
+        design.I = np.asarray(template["I"], dtype=int)
+        design.cell = np.asarray(template["cell"], dtype=int)
+        design.M_total = int(template["M_total"])
+        return design
+
     if "factors" in design_config:
         design = HierarchicalStudyDesign.from_factorial(
             factors=design_config["factors"],
@@ -188,6 +209,7 @@ def run_from_config(config_path: str) -> HierarchicalParameterRecovery:
         sim_only_keys=tuple(config.get("sim_only_keys", ())),
         sim_overrides=config.get("sim_overrides"),
         fixed_eta_config=config.get("fixed_eta_config"),
+        linear_contrasts=config.get("linear_contrasts"),
         adapt_delta=config.get("adapt_delta", 0.95),
         max_treedepth=config.get("max_treedepth", 12),
     )

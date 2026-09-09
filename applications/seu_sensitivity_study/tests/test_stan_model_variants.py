@@ -1,4 +1,5 @@
 import gzip
+import json
 from pathlib import Path
 
 import numpy as np
@@ -11,6 +12,7 @@ from analysis.assessment_anchored_prior_predictive import (
 )
 from analysis.hierarchical_parameter_recovery import (
     _generate_fixed_eta,
+    _linear_contrast_summary,
     _load_completed_iteration,
     _rejected_proposal_counts,
     _summarize_sampler_diagnostics,
@@ -28,6 +30,48 @@ BASE_MODEL = ROOT / "models" / "h_m01_size.stan"
 PINNED_MODEL = ROOT / "models" / "h_m01_size_pinned.stan"
 ANCHORED_MODEL = ROOT / "models" / "h_m01_size_assessment_anchored.stan"
 ANCHORED_SIM_MODEL = ROOT / "models" / "h_m01_size_assessment_anchored_sim.stan"
+
+
+def test_linear_contrast_summary_uses_joint_draws():
+    gamma_draws = np.array([[1.0, -1.0], [2.0, -2.0], [3.0, -3.0]])
+    summary = _linear_contrast_summary(gamma_draws, (1.0, 1.0))
+    assert summary == {"Mean": 0.0, "5%": 0.0, "95%": 0.0}
+    with pytest.raises(ValueError, match="2 weights"):
+        _linear_contrast_summary(gamma_draws[:, :1], (1.0, 1.0))
+
+
+def test_recovery_design_and_eta_load_from_stan_template(tmp_path):
+    template = {
+        "J": 2,
+        "K": 3,
+        "R": 3,
+        "P": 1,
+        "M_total": 4,
+        "M_per_cell": [2, 2],
+        "X": [[0.0], [1.0]],
+        "cell": [1, 1, 2, 2],
+        "I": [[1, 1, 0], [1, 1, 1], [1, 1, 0], [1, 1, 1]],
+        "s": [-0.5, 0.5, -0.5, 0.5],
+        "eta": [[0.1, 0.5, 0.9], [0.2, 0.6, 0.8]],
+        "utility_values": [0.0, 0.5, 1.0],
+    }
+    path = tmp_path / "stan_data_size.json"
+    path.write_text(json.dumps(template))
+
+    design = _build_study_design({"stan_data_template_path": str(path)})
+    data = design.get_data_dict()
+    fixed_eta = _generate_fixed_eta(
+        {"stan_data_template_path": str(path)}, J=2, K=3, R=3
+    )
+
+    assert data["X"] == template["X"]
+    assert data["I"] == template["I"]
+    assert data["cell"] == template["cell"]
+    assert data["s"] == template["s"]
+    assert fixed_eta == {
+        "eta": template["eta"],
+        "utility_values": template["utility_values"],
+    }
 
 
 def _block(source: str, start: str, end: str) -> str:

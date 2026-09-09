@@ -41,6 +41,7 @@ __all__ = [
     "reduce_embeddings",
     "filter_resolved_choices",
     "assessment_expected_utilities",
+    "build_matched_rq5_stan_data",
     "build_stan_data",
 ]
 
@@ -235,6 +236,7 @@ def build_stan_data(
     ] = None,
     cell_model_names: Optional[Sequence[str]] = None,
     utility_values: Optional[Sequence[float]] = None,
+    design_column_names: Optional[Sequence[str]] = None,
     validate: bool = True,
 ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
     """
@@ -253,6 +255,9 @@ def build_stan_data(
         Optional ``{model_name: {item_id: probabilities}}`` mapping. When
         supplied, emit a cell-by-item matrix of fixed expected utilities
         instead of embedding features for the assessment-anchored model.
+    design_column_names:
+        When supplied, require the retained intercept-plus-design matrix to
+        remain full rank after whole-cell NA exclusions.
 
     Returns
     -------
@@ -311,6 +316,24 @@ def build_stan_data(
 
     retained_cell_ids = [cell_ids[index] for index in retained_indices]
     retained_design_matrix = np.asarray(design_matrix)[retained_indices]
+    design_rank = None
+    required_design_rank = None
+    if design_column_names is not None:
+        if len(design_column_names) != retained_design_matrix.shape[1]:
+            raise ValueError(
+                "design_column_names must contain one name per design-matrix column"
+            )
+        with_intercept = np.column_stack(
+            [np.ones(len(retained_design_matrix)), retained_design_matrix]
+        )
+        design_rank = int(np.linalg.matrix_rank(with_intercept))
+        required_design_rank = with_intercept.shape[1]
+        if design_rank < required_design_rank:
+            raise ValueError(
+                "Cell exclusions make the confirmatory design inestimable: "
+                f"rank {design_rank} < {required_design_rank}; excluded cells: "
+                f"{excluded_cells}"
+            )
     retained_model_names = (
         [cell_model_names[index] for index in retained_indices]
         if cell_model_names is not None
@@ -395,6 +418,8 @@ def build_stan_data(
         "pool_id": problem_set["pool_id"],
         "cell_ids": list(retained_cell_ids),
         "excluded_cells": excluded_cells,
+        "confirmatory_design_rank": design_rank,
+        "confirmatory_design_required_rank": required_design_rank,
         "item_ids": item_ids,
         "mean_menu_size": mean_menu_size,
         "menu_sizes": menu_sizes,
@@ -409,6 +434,119 @@ def build_stan_data(
         D if not anchored else "assessment-anchored",
         stan_data["M_total"],
         100.0 * report["overall_na_rate"],
+    )
+    return stan_data, report
+
+
+def build_matched_rq5_stan_data(
+    *,
+    venture_pool: Mapping[str, Any],
+    hiring_pool: Mapping[str, Any],
+    venture_problem_set: Mapping[str, Any],
+    hiring_problem_set: Mapping[str, Any],
+    venture_choice_sets: Mapping[str, Mapping[str, Any]],
+    hiring_choice_sets: Mapping[str, Mapping[str, Any]],
+    assessment_probabilities: Mapping[str, Mapping[str, Sequence[float]]],
+    design_matrix: np.ndarray,
+    cell_ids: Sequence[str],
+    cell_model_names: Sequence[str],
+    design_column_names: Sequence[str],
+    utility_values: Sequence[float],
+    K: int,
+) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+    """Build the dedicated assessment-anchored matched RQ5 re-slice."""
+    family_by_pool = {"venture": "procurement", "hiring": "matched"}
+    pools_by_id = {"venture": venture_pool, "hiring": hiring_pool}
+    problems_by_id = {
+        "venture": venture_problem_set,
+        "hiring": hiring_problem_set,
+    }
+    choices_by_id = {
+        "venture": venture_choice_sets,
+        "hiring": hiring_choice_sets,
+    }
+
+    selected_items: Dict[str, List[Mapping[str, Any]]] = {}
+    matched_keys: Dict[str, Dict[str, str]] = {}
+    for pool_id, family in family_by_pool.items():
+        items = [item for item in pools_by_id[pool_id]["items"] if item["family"] == family]
+        index = {item.get("matched_key"): item["id"] for item in items}
+        if None in index or len(index) != len(items):
+            raise ValueError(f"{pool_id}/{family} must have unique non-null matched keys")
+        selected_items[pool_id] = items
+        matched_keys[pool_id] = index
+    if set(matched_keys["venture"]) != set(matched_keys["hiring"]):
+        raise ValueError("RQ5 matched keys differ between procurement and hiring")
+
+    selected_problems: Dict[str, List[Mapping[str, Any]]] = {}
+    key_menus: Dict[str, List[List[str]]] = {}
+    for pool_id, family in family_by_pool.items():
+        problems = [
+            problem for problem in problems_by_id[pool_id]["problems"]
+            if problem["family"] == family
+        ]
+        item_to_key = {item_id: key for key, item_id in matched_keys[pool_id].items()}
+        selected_problems[pool_id] = problems
+        key_menus[pool_id] = [
+            [item_to_key[item_id] for item_id in problem["item_ids"]]
+            for problem in problems
+        ]
+    if key_menus["venture"] != key_menus["hiring"]:
+        raise ValueError("RQ5 procurement and hiring menus are not paired by matched key")
+
+    problem_ids = {
+        pool_id: {problem["id"] for problem in problems}
+        for pool_id, problems in selected_problems.items()
+    }
+    if problem_ids["venture"] & problem_ids["hiring"]:
+        raise ValueError("RQ5 problem IDs must be unique across source pools")
+
+    sliced_choices: Dict[str, Dict[str, Any]] = {}
+    for pool_id, source in choices_by_id.items():
+        for cell_id, choice_set in source.items():
+            sliced = [
+                record for record in choice_set["choices"]
+                if record["problem_id"] in problem_ids[pool_id]
+            ]
+            sliced_choices[cell_id] = {
+                **choice_set,
+                "pool_id": "matched_rq5",
+                "choices": sliced,
+            }
+
+    combined_items = selected_items["venture"] + selected_items["hiring"]
+    placeholder_vectors = {
+        item["id"]: np.zeros(1, dtype=float) for item in combined_items
+    }
+    combined_pool = {
+        "pool_id": "matched_rq5",
+        "items": combined_items,
+    }
+    combined_problem_set = {
+        "pool_id": "matched_rq5",
+        "problems": selected_problems["venture"] + selected_problems["hiring"],
+    }
+    stan_data, report = build_stan_data(
+        pool=combined_pool,
+        problem_set=combined_problem_set,
+        choice_sets=sliced_choices,
+        reduced_embeddings=placeholder_vectors,
+        design_matrix=design_matrix,
+        cell_ids=cell_ids,
+        K=K,
+        include_menu_size=True,
+        assessment_probabilities=assessment_probabilities,
+        cell_model_names=cell_model_names,
+        utility_values=utility_values,
+        design_column_names=design_column_names,
+    )
+    report.update(
+        {
+            "matched_item_pairs": len(matched_keys["venture"]),
+            "paired_menus_per_task": len(key_menus["venture"]),
+            "representation": "assessment_anchored_no_pca",
+            "source_families": family_by_pool,
+        }
     )
     return stan_data, report
 

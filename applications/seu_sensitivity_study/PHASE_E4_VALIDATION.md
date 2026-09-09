@@ -119,7 +119,28 @@ venture and 5.79 hours for hiring. The repeated-recovery requirement is
 complete; the decision on formal SBC and the dependence-aware presentation
 sensitivity remain open.
 
-All maintained application tests pass (483 tests). Repository-wide pytest last
+The confirmatory contract now verifies RQ3 against the exact production design.
+The additive intercept-plus-design matrix has rank 8; the 10 model-by-prompt
+columns have residualized rank 10 and bring the 18-cell matrix to rank 18. Thus
+the full interaction exactly spans the cell-residual space already represented
+by `sigma_cell * z_alpha`. RQ3 is frozen as secondary/descriptive from the
+existing anchored fit; no separate saturated fit will be treated as additional
+likelihood evidence.
+
+RQ5 preparation now builds a dedicated assessment-anchored re-slice after both
+source pools complete Stan-data preparation. The frozen artifacts contain 24
+matched merit keys and 40 menus per task; every procurement menu and its hiring
+counterpart have identical matched-key sets and order. The joint design has 36
+cells and rank 14 including its intercept, identifying six within-model
+hiring-minus-procurement contrasts. Because the amended model consumes fixed
+expected utilities rather than embeddings, the former joint-PCA requirement is
+obsolete. Primary and `u=0.35/0.65` sensitivity payloads are emitted under
+`matched_rq5/`. The recovery harness can reconstruct the exact generated design
+and fixed `eta` from that payload and scores all six named task contrasts from
+joint posterior draws. The production-dimensional validation fit and repeated
+recovery campaign have not been run and remain required before inference.
+
+All maintained application tests pass (495 tests). Repository-wide pytest last
 passed 475 tests but reported three unrelated collection errors from the legacy
 executable `scripts/test_m1_model.py`, whose helper functions are named
 `test_*` but require command-line arguments rather than pytest fixtures.

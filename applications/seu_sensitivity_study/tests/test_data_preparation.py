@@ -14,6 +14,8 @@ import numpy as np
 import pytest
 
 from applications.seu_sensitivity_study import data_preparation as dp
+from applications.seu_sensitivity_study import confirmatory_analysis as ca
+from applications.seu_sensitivity_study import config, pools, problem_generation
 from applications.seu_sensitivity_study import schemas
 
 
@@ -193,6 +195,89 @@ class TestStanDataAssembly:
         stan_data, _ = self._build(embeddings)
         assert "s" not in stan_data
 
+
+class TestMatchedRQ5Assembly:
+    def test_real_matched_geometry_builds_joint_anchored_payload(self):
+        venture_pool = pools.load_pool("venture")
+        hiring_pool = pools.load_pool("hiring")
+        venture_problems = problem_generation.generate_problem_set(
+            venture_pool,
+            problems_per_family={"procurement": 8},
+            families=["procurement"],
+            seed=42,
+        )
+        hiring_problems = problem_generation.generate_problem_set(
+            hiring_pool,
+            problems_per_family={"matched": 8},
+            families=["matched"],
+            seed=42,
+        )
+        cells = config.build_cells(["venture", "hiring"])
+        design_matrix, columns = ca.matched_rq5_design(cells)
+
+        def choice_sets(pool_id, problem_set):
+            records = []
+            for problem in problem_set["problems"]:
+                for presentation in problem["presentations"]:
+                    records.append(
+                        {
+                            "problem_id": problem["id"],
+                            "presentation_id": presentation["presentation_id"],
+                            "menu_size": problem["menu_size"],
+                            "difficulty_stratum": problem["difficulty_stratum"],
+                            "family": problem["family"],
+                            "chosen_position": 1,
+                            "chosen_item_id": presentation["order"][0],
+                            "resolution_path": "answer_token",
+                            "raw_response": "ANSWER: 1",
+                        }
+                    )
+            return {
+                cell.cell_id: {
+                    "cell_id": cell.cell_id,
+                    "pool_id": pool_id,
+                    "model_name": cell.model_name,
+                    "prompt_condition": cell.prompt_condition,
+                    "choices": records,
+                }
+                for cell in cells if cell.pool_id == pool_id
+            }
+
+        all_item_ids = [
+            item["id"] for pool in (venture_pool, hiring_pool)
+            for item in pool["items"] if item["family"] in {"procurement", "matched"}
+        ]
+        probabilities = {
+            model.name: {item_id: [0.2, 0.5, 0.3] for item_id in all_item_ids}
+            for model in config.MODELS
+        }
+        stan_data, report = dp.build_matched_rq5_stan_data(
+            venture_pool=venture_pool,
+            hiring_pool=hiring_pool,
+            venture_problem_set=venture_problems,
+            hiring_problem_set=hiring_problems,
+            venture_choice_sets=choice_sets("venture", venture_problems),
+            hiring_choice_sets=choice_sets("hiring", hiring_problems),
+            assessment_probabilities=probabilities,
+            design_matrix=design_matrix,
+            cell_ids=[cell.cell_id for cell in cells],
+            cell_model_names=[cell.model_name for cell in cells],
+            design_column_names=columns,
+            utility_values=[0.0, 0.5, 1.0],
+            K=3,
+        )
+
+        assert stan_data["J"] == 36
+        assert stan_data["R"] == 48
+        assert stan_data["P"] == 13
+        assert stan_data["M_total"] == 36 * 8 * 2
+        assert report["matched_item_pairs"] == 24
+        assert report["paired_menus_per_task"] == 8
+        assert report["confirmatory_design_rank"] == 14
+        assert schemas.validate_stan_data(
+            stan_data, model="h_m01_size_assessment_anchored"
+        ) == []
+
     def test_assessment_anchored_eta_is_model_specific_and_prompt_shared(
         self, embeddings
     ):
@@ -303,6 +388,36 @@ class TestStanDataAssembly:
         assert set(stan_data["cell"]) == {1}
         assert report["cell_ids"] == ["retained"]
         assert report["excluded_cells"] == ["excluded"]
+
+    def test_exclusion_that_breaks_confirmatory_design_raises(self, embeddings):
+        problems = [_problem("P1", ITEM_IDS[:2]), _problem("P2", ITEM_IDS)]
+        mostly_missing = [
+            _record("P1", 1, ITEM_IDS[:2], 1, 2),
+            _record("P1", 2, list(reversed(ITEM_IDS[:2])), None, 2),
+            _record("P2", 1, ITEM_IDS, 1, 4),
+            _record("P2", 2, list(reversed(ITEM_IDS)), None, 4),
+        ]
+        complete = [
+            _record("P1", 1, ITEM_IDS[:2], 1, 2),
+            _record("P1", 2, list(reversed(ITEM_IDS[:2])), 1, 2),
+            _record("P2", 1, ITEM_IDS, 1, 4),
+            _record("P2", 2, list(reversed(ITEM_IDS)), 1, 4),
+        ]
+
+        with pytest.raises(ValueError, match="confirmatory design inestimable"):
+            dp.build_stan_data(
+                pool={"pool_id": "testpool"},
+                problem_set=_problem_set(problems),
+                choice_sets={
+                    "reference": _choice_set("reference", complete),
+                    "model_effect": _choice_set("model_effect", mostly_missing),
+                },
+                reduced_embeddings=embeddings,
+                design_matrix=np.array([[0.0], [1.0]]),
+                design_column_names=["model_effect"],
+                cell_ids=["reference", "model_effect"],
+                K=3,
+            )
 
 
 class TestNAFiltering:

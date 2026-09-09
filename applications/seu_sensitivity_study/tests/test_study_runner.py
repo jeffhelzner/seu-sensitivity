@@ -138,6 +138,31 @@ class TestDryRun:
         assert summary["plan"]["totals"]["choice_calls"] == 288
 
 
+def test_matched_rq5_runs_only_after_both_source_pools(monkeypatch, tmp_path):
+    config = SEUSensitivityStudyConfig(
+        pool_ids=["venture", "hiring"],
+        results_dir=str(tmp_path / "results"),
+        stan_model="h_m01_size_assessment_anchored",
+    )
+    runner = SEUSensitivityStudyRunner(config)
+    events = []
+    monkeypatch.setattr(
+        runner,
+        "_run_pool",
+        lambda pool_id, *args, **kwargs: events.append(pool_id) or {"stan_data": {}},
+    )
+    monkeypatch.setattr(
+        runner,
+        "_phase_matched_rq5_stan_data",
+        lambda: events.append("matched_rq5") or {"M_total": 2880},
+    )
+
+    summary = runner.run(phases=["stan_data"])
+
+    assert events == ["venture", "hiring", "matched_rq5"]
+    assert summary["matched_rq5"]["M_total"] == 2880
+
+
 class TestPhases:
     def test_design_writes_a_valid_problem_set(self, runner):
         runner.run(phases=["design"])
@@ -273,7 +298,7 @@ class TestFullPipeline:
 
     def test_assessment_anchored_config_writes_fixed_eta_payload(self, runner):
         runner.config.stan_model = "h_m01_size_assessment_anchored"
-        self._run_all(runner)
+        summary = self._run_all(runner)
         pool_dir = runner.results_dir / "pools" / POOL_ID
         sized = json.loads((pool_dir / "stan_data_size.json").read_text())
 
@@ -287,6 +312,15 @@ class TestFullPipeline:
         assert schemas.validate_stan_data(
             sized, model="h_m01_size_assessment_anchored"
         ) == []
+        stan_summary = summary["pools"][POOL_ID]["stan_data"]
+        assert stan_summary["confirmatory_design_rank"] == 8
+        assert stan_summary["confirmatory_design_required_rank"] == 8
+        assert stan_summary["analysis_contract"] == "analysis_contract.json"
+        contract = json.loads((pool_dir / "analysis_contract.json").read_text())
+        assert contract["primary_decisions_per_pool"] == 9
+        assert contract["rq5"]["status"] == (
+            "confirmatory_preparation_implemented_validation_pending"
+        )
 
     def test_design_matrix_rows_align_with_cells(self, runner):
         self._run_all(runner)

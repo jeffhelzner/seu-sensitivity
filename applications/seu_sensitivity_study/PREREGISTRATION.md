@@ -173,3 +173,59 @@ too restrictive because the earlier venture smoke estimated `gamma_size = 0.309
 `gamma_size` unchanged, so that evidence remains relevant to prior calibration.
 The RQ6 practical-effect threshold remains `abs(gamma_size) > log(1.05)` per
 added alternative.
+
+## Amendment 3: executable confirmatory analysis contract
+
+Amended: 2026-09-09, before production choice collection.
+
+Confirmatory decisions use central 90% credible intervals (posterior quantiles
+0.05 and 0.95), matching the calibration and recovery convention. A contrast is
+detected only when this interval excludes zero and the posterior median exceeds
+the applicable ROPE in absolute magnitude. Direction follows the median's sign.
+The primary log-alpha ROPE remains `log(1.25)`; the RQ6 slope ROPE remains
+`log(1.05)` per added alternative. Final fits require both bulk and tail ESS of
+at least 400 for every structural parameter, in addition to the other frozen
+sampler gates.
+
+For each pool's additive primary fit, RQ1 contains seven confirmatory model
+contrasts: all five non-reference models versus GPT-4o, plus the OpenAI and
+Anthropic within-vendor flagship-minus-small contrasts. RQ2 contains two:
+SEU-maximizing minus neutral and deliberative minus neutral. Thus the additive
+primary family has nine decisions per pool. The OpenAI within-vendor contrast is
+the sign reversal of the GPT-4o-mini-versus-GPT-4o coefficient; both are retained
+because the approved family includes both the model-coded and directly stated
+within-vendor hypotheses.
+
+There is no multiplicity adjustment. Hierarchical shrinkage and the ROPE are
+the predeclared mitigation. Every family member, interval, decision, and the
+total decision count will be reported; selecting a detected contrast for
+isolated presentation is prohibited.
+
+RQ3 remains secondary and descriptive. In the complete 6-model by 3-prompt
+factorial, the 10 treatment-coded interaction columns have residualized rank 10,
+exactly equal to the 10 cell dimensions left after the rank-8 additive design.
+The full interaction and the additive model's cell residuals therefore span the
+same likelihood space. A separate saturated interaction fit would change only
+the prior parameterization, not add information. RQ3 will instead report
+`sigma_cell`, the `sigma_cell * z_alpha` cell residuals, and derived prompt
+difference-in-differences from the existing anchored fit, without a confirmatory
+interaction decision. The generated analysis contract records and verifies the
+rank identity against the production design matrix.
+
+RQ4 remains descriptive. The confirmatory RQ5 estimand is the within-model
+hiring-minus-procurement contrast from a dedicated 36-cell matched-item fit.
+The earlier joint-PCA requirement is superseded by the assessment-anchored
+model: this fit consumes fixed assessment-derived expected utilities and has no
+embedding matrix or latent belief map. It joins the separately labeled hiring
+and procurement assessments over the 24 matched merit keys and 40 exactly
+paired menus per task. Its rank-14 design contains additive model and prompt
+effects, a hiring-task indicator, and five model-by-task terms; these identify
+six within-model hiring-minus-procurement contrasts. Cross-pool differences
+between primary venture and hiring fits remain supporting evidence, not a
+substitute. The dedicated fit remains unavailable for inference until its
+production-dimensional simulation and recovery checks pass.
+
+The pipeline writes this policy as `analysis_contract.json` beside each pool's
+Stan data. After whole-cell NA exclusion, every anchored primary and utility-grid
+payload must retain full rank in its intercept-plus-design matrix. Failure stops
+analysis rather than silently changing the confirmatory family.

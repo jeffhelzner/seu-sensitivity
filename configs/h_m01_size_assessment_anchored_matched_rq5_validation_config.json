@@ -1,0 +1,45 @@
+{
+  "_comment": [
+    "One-dataset geometry and local-recovery check for the dedicated matched RQ5 fit.",
+    "Uses the exact 36-cell artifact emitted after both source pools complete stan_data.",
+    "No provider calls are made. This config must pass before a repeated recovery campaign."
+  ],
+  "inference_model_path": "models/h_m01_size_assessment_anchored.stan",
+  "sim_model_path": "models/h_m01_size_assessment_anchored_sim.stan",
+  "output_dir": "results/parameter_recovery/h_m01_size_assessment_anchored_matched_rq5_validation",
+  "n_mcmc_samples": 500,
+  "n_mcmc_warmup": 500,
+  "n_mcmc_chains": 4,
+  "n_iterations": 1,
+  "adapt_delta": 0.95,
+  "max_treedepth": 12,
+  "alpha_var": "alpha_cell",
+  "extra_scalar_params": ["gamma_size"],
+  "linear_contrasts": {
+    "rq5_gpt_4o_hiring_minus_procurement": [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+    "rq5_gpt_4o_mini_hiring_minus_procurement": [0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0],
+    "rq5_o3_mini_hiring_minus_procurement": [0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0],
+    "rq5_claude_sonnet_4_5_hiring_minus_procurement": [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0],
+    "rq5_claude_haiku_4_5_hiring_minus_procurement": [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0],
+    "rq5_claude_sonnet_4_5_thinking_hiring_minus_procurement": [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
+  },
+  "sim_only_keys": [
+    "D",
+    "w",
+    "gamma_size_mean",
+    "gamma_size_sd",
+    "menu_size",
+    "mean_menu_size"
+  ],
+  "sim_overrides": {
+    "gamma_size_mean": 0.0,
+    "gamma_size_sd": 0.2
+  },
+  "fixed_eta_config": {
+    "stan_data_template_path": "applications/seu_sensitivity_study/results/matched_rq5/stan_data_size.json"
+  },
+  "study_design_config": {
+    "stan_data_template_path": "applications/seu_sensitivity_study/results/matched_rq5/stan_data_size.json",
+    "design_name": "matched_rq5_exact_assessment_anchored_validation"
+  }
+}

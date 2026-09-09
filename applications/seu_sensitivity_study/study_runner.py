@@ -47,7 +47,8 @@ from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence
 
 import numpy as np
 
-from . import diagnostics, data_preparation, pools as pools_module, problem_generation
+from . import confirmatory_analysis, diagnostics, data_preparation
+from . import pools as pools_module, problem_generation
 from . import provenance, prompts as prompts_module, schemas
 from .assessment_collection import AssessmentCollector
 from .batch_client import ProviderBatchClient
@@ -182,6 +183,13 @@ class SEUSensitivityStudyRunner:
                     model_names=selected_models,
                     force=force,
                 )
+
+        if (
+            "stan_data" in selected_phases
+            and self.config.stan_model == "h_m01_size_assessment_anchored"
+            and {"venture", "hiring"}.issubset(selected_pools)
+        ):
+            summary["matched_rq5"] = self._phase_matched_rq5_stan_data()
 
         self._write_json(self.results_dir / "run_summary.json", summary)
         return summary
@@ -476,6 +484,12 @@ class SEUSensitivityStudyRunner:
             cell_model_names = [cell.model_name for cell in cells]
 
         outputs: Dict[str, Any] = {"design_columns": column_names}
+        analysis_contract_path = pool_dir / "analysis_contract.json"
+        self._write_json(
+            analysis_contract_path,
+            confirmatory_analysis.contract_manifest(column_names, design_matrix),
+        )
+        outputs["analysis_contract"] = analysis_contract_path.name
         for include_size, filename in ((False, "stan_data.json"), (True, "stan_data_size.json")):
             anchored_kwargs = {}
             if anchored and include_size:
@@ -487,6 +501,7 @@ class SEUSensitivityStudyRunner:
                         self.config.primary_utility_middle,
                         1.0,
                     ],
+                    "design_column_names": column_names,
                 }
             stan_data, report = data_preparation.build_stan_data(
                 pool=pool,
@@ -503,6 +518,13 @@ class SEUSensitivityStudyRunner:
             if not include_size:
                 outputs["M_total"] = stan_data["M_total"]
                 outputs["overall_na_rate"] = report["overall_na_rate"]
+            elif anchored:
+                outputs["confirmatory_design_rank"] = report[
+                    "confirmatory_design_rank"
+                ]
+                outputs["confirmatory_design_required_rank"] = report[
+                    "confirmatory_design_required_rank"
+                ]
 
         if anchored:
             sensitivity_files = []
@@ -521,6 +543,7 @@ class SEUSensitivityStudyRunner:
                     assessment_probabilities=assessment_probabilities,
                     cell_model_names=cell_model_names,
                     utility_values=[0.0, middle, 1.0],
+                    design_column_names=column_names,
                 )
                 label = f"{round(middle * 100):03d}"
                 filename = f"stan_data_size_u{label}.json"
@@ -543,6 +566,69 @@ class SEUSensitivityStudyRunner:
         )
         outputs["stability_retention"] = retention["retention_after_balance"]
         return outputs
+
+    def _phase_matched_rq5_stan_data(self) -> Dict[str, Any]:
+        """Build the joint assessment-anchored matched-task RQ5 re-slice."""
+        cells = self.config.cells_for_pool("venture") + self.config.cells_for_pool(
+            "hiring"
+        )
+        design_matrix, column_names = confirmatory_analysis.matched_rq5_design(cells)
+        cell_ids = [cell.cell_id for cell in cells]
+        cell_model_names = [cell.model_name for cell in cells]
+
+        probabilities: Dict[str, Dict[str, List[float]]] = {}
+        for model in MODELS:
+            probabilities[model.name] = {
+                **self._load_assessment_probabilities("venture", model.name),
+                **self._load_assessment_probabilities("hiring", model.name),
+            }
+
+        output_dir = self.results_dir / "matched_rq5"
+        contract = confirmatory_analysis.matched_rq5_contract(cells)
+        self._write_json(output_dir / "analysis_contract.json", contract)
+
+        common = {
+            "venture_pool": self._load_pool_artifact("venture"),
+            "hiring_pool": self._load_pool_artifact("hiring"),
+            "venture_problem_set": self._load_problem_set("venture"),
+            "hiring_problem_set": self._load_problem_set("hiring"),
+            "venture_choice_sets": self._load_all_choice_sets("venture"),
+            "hiring_choice_sets": self._load_all_choice_sets("hiring"),
+            "assessment_probabilities": probabilities,
+            "design_matrix": design_matrix,
+            "cell_ids": cell_ids,
+            "cell_model_names": cell_model_names,
+            "design_column_names": column_names,
+            "K": self.config.K,
+        }
+        files = []
+        primary_report = None
+        for middle in self.config.utility_middle_values:
+            stan_data, report = data_preparation.build_matched_rq5_stan_data(
+                **common,
+                utility_values=[0.0, middle, 1.0],
+            )
+            if middle == self.config.primary_utility_middle:
+                filename = "stan_data_size.json"
+                primary_report = report
+            else:
+                filename = f"stan_data_size_u{round(middle * 100):03d}.json"
+            self._write_json(output_dir / filename, stan_data)
+            files.append(filename)
+
+        assert primary_report is not None
+        self._write_json(output_dir / "assembly_report.json", primary_report)
+        return {
+            "analysis_contract": "analysis_contract.json",
+            "stan_data_files": files,
+            "matched_item_pairs": primary_report["matched_item_pairs"],
+            "paired_menus_per_task": primary_report["paired_menus_per_task"],
+            "M_total": sum(primary_report["na_logs"][cell_id]["resolved"] for cell_id in cell_ids),
+            "confirmatory_design_rank": primary_report["confirmatory_design_rank"],
+            "confirmatory_design_required_rank": primary_report[
+                "confirmatory_design_required_rank"
+            ],
+        }
 
     # -- Gate enforcement --
 

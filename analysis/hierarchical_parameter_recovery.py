@@ -32,6 +32,24 @@ def _rejected_proposal_counts(paths) -> list[int]:
     return [Path(path).read_text().count(marker) for path in paths]
 
 
+def _linear_contrast_summary(
+    gamma_draws: np.ndarray, weights: tuple[float, ...]
+) -> dict:
+    draws = np.asarray(gamma_draws, dtype=float)
+    contrast = np.asarray(weights, dtype=float)
+    if draws.ndim != 2 or draws.shape[1] != len(contrast):
+        raise ValueError(
+            f"Linear contrast has {len(contrast)} weights for gamma draws "
+            f"with shape {draws.shape}"
+        )
+    values = draws @ contrast
+    return {
+        "Mean": float(np.mean(values)),
+        "5%": float(np.quantile(values, 0.05)),
+        "95%": float(np.quantile(values, 0.95)),
+    }
+
+
 def _load_completed_iteration(iter_dir: Path):
     true_path = iter_dir / "true_parameters.json"
     summary_path = iter_dir / "posterior_summary.csv"
@@ -114,6 +132,7 @@ class HierarchicalParameterRecovery:
         sim_only_keys: tuple = (),
         sim_overrides: dict = None,
         fixed_eta_config: dict = None,
+        linear_contrasts: dict = None,
         adapt_delta: float = 0.95,
         max_treedepth: int = 12,
     ):
@@ -147,6 +166,10 @@ class HierarchicalParameterRecovery:
         # bias and coverage for gamma_size become exactly the null statistics.
         self.sim_overrides = dict(sim_overrides or {})
         self.fixed_eta_config = dict(fixed_eta_config or {})
+        self.linear_contrasts = {
+            str(name): tuple(float(weight) for weight in weights)
+            for name, weights in (linear_contrasts or {}).items()
+        }
         self.adapt_delta = adapt_delta
         self.max_treedepth = max_treedepth
 
@@ -226,6 +249,7 @@ class HierarchicalParameterRecovery:
                     "max_treedepth": self.max_treedepth,
                     "sim_overrides": self.sim_overrides,
                     "fixed_eta_config": self.fixed_eta_config,
+                    "linear_contrasts": self.linear_contrasts,
                     "J": J, "K": K, "D": D, "P": P, "M_total": M_total,
                 },
                 f,
@@ -301,6 +325,18 @@ class HierarchicalParameterRecovery:
             # 5. Store results
             try:
                 summary = fit.summary()
+                if self.linear_contrasts:
+                    gamma_draws = np.column_stack(
+                        [fit.stan_variable("gamma")[:, p] for p in range(P)]
+                    )
+                    for name, weights in self.linear_contrasts.items():
+                        contrast_summary = _linear_contrast_summary(
+                            gamma_draws, weights
+                        )
+                        summary.loc[name, ["Mean", "5%", "95%"]] = [
+                            contrast_summary[column]
+                            for column in ("Mean", "5%", "95%")
+                        ]
                 summary.to_csv(iter_dir / "posterior_summary.csv")
 
                 diagnostics = fit.diagnose()
@@ -373,6 +409,10 @@ class HierarchicalParameterRecovery:
         params["extras"] = {
             name: float(sim_samples[name]) for name in self.extra_scalar_params
         }
+        params["contrasts"] = {
+            name: float(np.asarray(weights) @ np.asarray(params["gamma"]))
+            for name, weights in self.linear_contrasts.items()
+        }
         return params
 
     def _analyze_recovery(self, all_true_params, all_posterior_summaries):
@@ -391,6 +431,8 @@ class HierarchicalParameterRecovery:
             regression_params.append((f"gamma[{p+1}]", f"gamma_{p+1}"))
         for name in self.extra_scalar_params:
             regression_params.append((name, name))
+        for name in self.linear_contrasts:
+            regression_params.append((name, name))
         regression_params.append(("sigma_cell", "sigma_cell"))
 
         fig, axes = plt.subplots(1, len(regression_params), figsize=(5 * len(regression_params), 5))
@@ -404,6 +446,8 @@ class HierarchicalParameterRecovery:
                 true_vals = [p["sigma_cell"] for p in all_true_params]
             elif stan_name in self.extra_scalar_params:
                 true_vals = [p["extras"][stan_name] for p in all_true_params]
+            elif stan_name in self.linear_contrasts:
+                true_vals = [p["contrasts"][stan_name] for p in all_true_params]
             else:
                 p_idx = int(stan_name.split("[")[1].rstrip("]")) - 1
                 true_vals = [p["gamma"][p_idx] for p in all_true_params]
@@ -509,6 +553,20 @@ class HierarchicalParameterRecovery:
 
 def _generate_fixed_eta(config: dict, *, J: int, K: int, R: int) -> dict:
     """Generate reproducible expected utilities, optionally shared across cells."""
+    template_path = config.get("stan_data_template_path")
+    if template_path:
+        with open(template_path) as handle:
+            template = json.load(handle)
+        eta = np.asarray(template["eta"], dtype=float)
+        utility_values = list(template["utility_values"])
+        if eta.shape != (J, R):
+            raise ValueError(
+                f"fixed_eta template eta shape {eta.shape}; expected {(J, R)}"
+            )
+        if len(utility_values) != K:
+            raise ValueError(f"fixed_eta template utilities must have length K={K}")
+        return {"eta": eta.tolist(), "utility_values": utility_values}
+
     utility_values = list(config.get("utility_values", np.linspace(0, 1, K)))
     if len(utility_values) != K:
         raise ValueError(f"fixed_eta utility_values must have length K={K}")

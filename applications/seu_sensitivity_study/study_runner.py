@@ -42,6 +42,7 @@ import json
 import logging
 import math
 import os
+import shutil
 from dataclasses import asdict
 from datetime import datetime, timezone
 from pathlib import Path
@@ -758,6 +759,116 @@ class SEUSensitivityStudyRunner:
         self._write_json(self.results_dir / "run_manifest.json", manifest)
         return manifest
 
+    def run_production_preflight(self) -> Dict[str, Any]:
+        """Stage and bind exact prerequisites for one authorized Batch wave."""
+        if self.config.collection_mode != "batch":
+            raise RuntimeError("Production preflight requires collection_mode=batch")
+        if not self.config.batch_wave_id or not self.config.batch_wave_cell_ids:
+            raise RuntimeError("Production preflight requires an authorized Batch wave")
+
+        cells_by_id = {cell.cell_id: cell for cell in self.config.cells}
+        cells = [cells_by_id[cell_id] for cell_id in self.config.batch_wave_cell_ids]
+        wave_pool_ids = list(dict.fromkeys(cell.pool_id for cell in cells))
+        for pool_id in self.config.pool_ids:
+            self._phase_validate(pool_id)
+        if len(self.config.pool_ids) > 1:
+            for pool_id in self.config.pool_ids:
+                self._phase_validate(pool_id)
+
+        source_paths = []
+        gate_hashes = {}
+        assessment_jobs = list(self.config.assessment_jobs().values())
+        for pool_id in wave_pool_ids:
+            pool_dir = self._pool_dir(pool_id)
+            gate_path = pool_dir / "gate_report.json"
+            gate = json.loads(gate_path.read_text())
+            if not gate.get("passed"):
+                raise RuntimeError(
+                    f"Production preflight gate did not pass for pool {pool_id}"
+                )
+            required = [
+                pool_dir / "pool.json",
+                pool_dir / "problems.json",
+                pool_dir / "embeddings_raw.npz",
+                pool_dir / "embeddings_reduced.npz",
+                pool_dir / "pca_info.json",
+                gate_path,
+            ]
+            assessment_paths = sorted((pool_dir / "assessments").glob("*.json"))
+            expected_assessments = sum(
+                job.pool_id == pool_id for job in assessment_jobs
+            )
+            if len(assessment_paths) != expected_assessments:
+                raise RuntimeError(
+                    f"Production preflight requires {expected_assessments} assessment "
+                    f"artifacts for pool {pool_id}; found {len(assessment_paths)}"
+                )
+            required.extend(assessment_paths)
+            missing = [str(path) for path in required if not path.exists()]
+            if missing:
+                raise FileNotFoundError(f"Production preflight missing artifacts: {missing}")
+            source_paths.extend(required)
+            gate_hashes[pool_id] = _sha256_file(gate_path)
+
+        source_hashes = {
+            str(path.relative_to(self.results_dir)): _sha256_file(path)
+            for path in source_paths
+        }
+        prompt_sets = {
+            pool_id: prompts_module.load_prompt_sets(pool_id)
+            for pool_id in wave_pool_ids
+        }
+        prompt_hashes = prompts_module.prompt_hashes(prompt_sets)
+        request_hashes = {}
+        for cell in cells:
+            collector = ChoiceCollector(
+                cell=cell,
+                problem_set=self._load_problem_set(cell.pool_id),
+                prompt_sets=prompt_sets[cell.pool_id],
+                assessments=self._load_assessments(cell.pool_id, cell.model_name),
+                llm_client=None,
+                max_tokens=self.config.max_choice_tokens,
+            )
+            batch_client = ProviderBatchClient(cell, sdk_client=object())
+            request_hashes[cell.cell_id] = collector.batch_request_hash(batch_client)
+
+        evidence = {
+            "schema_version": 1,
+            "wave_id": self.config.batch_wave_id,
+            "authorized_cell_ids": list(self.config.batch_wave_cell_ids),
+            "config_hash": _sha256_json(self.config.to_dict()),
+            "source_hashes": source_hashes,
+            "prompt_hashes": prompt_hashes,
+            "gate_hashes": gate_hashes,
+            "request_hashes": request_hashes,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        }
+        evidence["aggregate_hash"] = _sha256_json(evidence)
+
+        stage_dir = self.results_dir / "production_stages" / self.config.batch_wave_id
+        if stage_dir.exists():
+            raise RuntimeError(
+                f"Production stage already exists for wave {self.config.batch_wave_id}; "
+                "use a new wave ID"
+            )
+        temporary = stage_dir.with_name(stage_dir.name + ".tmp")
+        if temporary.exists():
+            shutil.rmtree(temporary)
+        for source in source_paths:
+            destination = temporary / source.relative_to(self.results_dir)
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source, destination)
+        self._write_json(temporary / "preflight_manifest.json", evidence)
+        for path in temporary.rglob("*"):
+            if path.is_file():
+                path.chmod(0o444)
+        temporary.replace(stage_dir)
+        for path in sorted(stage_dir.rglob("*"), reverse=True):
+            if path.is_dir():
+                path.chmod(0o555)
+        stage_dir.chmod(0o555)
+        return evidence
+
     # -- Artefact IO --
 
     def _pool_dir(self, pool_id: str) -> Path:
@@ -882,6 +993,7 @@ class SEUSensitivityStudyRunner:
                 f"Batch cell {cell.cell_id} is not authorized in wave "
                 f"{self.config.batch_wave_id}"
             )
+        self._assert_production_preflight(state, cell)
         path = self.results_dir / "batch_budget_reservations.jsonl"
         lock_path = path.with_suffix(path.suffix + ".lock")
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -957,6 +1069,65 @@ class SEUSensitivityStudyRunner:
                 os.close(ledger)
         finally:
             os.close(descriptor)
+
+    def _assert_production_preflight(
+        self, state: Mapping[str, Any], cell: Any
+    ) -> None:
+        wave_id = self.config.batch_wave_id
+        if not wave_id:
+            raise RuntimeError("Batch submission is not authorized: batch_wave_id is unset")
+        manifest_path = (
+            self.results_dir / "production_stages" / wave_id / "preflight_manifest.json"
+        )
+        if not manifest_path.exists():
+            raise RuntimeError(
+                f"Production preflight has not been staged for wave {wave_id}"
+            )
+        manifest = json.loads(manifest_path.read_text())
+        signed_evidence = {
+            key: value
+            for key, value in manifest.items()
+            if key != "aggregate_hash"
+        }
+        if manifest.get("aggregate_hash") != _sha256_json(signed_evidence):
+            raise RuntimeError("Production preflight manifest hash does not match")
+        if manifest.get("wave_id") != wave_id:
+            raise RuntimeError("Production preflight wave identity does not match config")
+        if manifest.get("config_hash") != _sha256_json(self.config.to_dict()):
+            raise RuntimeError("Production preflight config hash does not match")
+        if cell.cell_id not in manifest.get("authorized_cell_ids", []):
+            raise RuntimeError(
+                f"Batch cell {cell.cell_id} is not authorized by production preflight"
+            )
+        if manifest.get("request_hashes", {}).get(cell.cell_id) != state.get(
+            "request_hash"
+        ):
+            raise RuntimeError(
+                f"Rendered Batch request hash does not match production preflight for {cell.cell_id}"
+            )
+        current_prompts = prompts_module.prompt_hashes(
+            {cell.pool_id: prompts_module.load_prompt_sets(cell.pool_id)}
+        )
+        expected_prompts = {
+            key: value
+            for key, value in manifest.get("prompt_hashes", {}).items()
+            if key.startswith(f"{cell.pool_id}/")
+        }
+        if current_prompts != expected_prompts:
+            raise RuntimeError("Production preflight prompt hashes do not match")
+        for relative_path, expected_hash in manifest.get("source_hashes", {}).items():
+            if not relative_path.startswith(f"pools/{cell.pool_id}/"):
+                continue
+            path = self.results_dir / relative_path
+            if not path.exists() or _sha256_file(path) != expected_hash:
+                raise RuntimeError(
+                    f"Production preflight artifact hash does not match: {relative_path}"
+                )
+            staged_path = manifest_path.parent / relative_path
+            if not staged_path.exists() or _sha256_file(staged_path) != expected_hash:
+                raise RuntimeError(
+                    f"Production staged artifact hash does not match: {relative_path}"
+                )
 
     @staticmethod
     def _load_batch_budget_records(path: Path) -> List[Dict[str, Any]]:
@@ -1060,3 +1231,18 @@ def _json_default(value: Any) -> Any:
     if isinstance(value, Path):
         return str(value)
     raise TypeError(f"Object of type {type(value).__name__} is not JSON serializable")
+
+
+def _sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with open(path, "rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _sha256_json(value: Any) -> str:
+    encoded = json.dumps(
+        value, default=_json_default, sort_keys=True, separators=(",", ":")
+    )
+    return hashlib.sha256(encoded.encode("utf-8")).hexdigest()

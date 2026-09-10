@@ -4,6 +4,7 @@ Command-line interface for the SEU Sensitivity Study.
 Usage:
     python -m applications.seu_sensitivity_study run [options]
     python -m applications.seu_sensitivity_study validate [options]
+    python -m applications.seu_sensitivity_study preflight [options]
 """
 from __future__ import annotations
 
@@ -116,6 +117,23 @@ def cmd_manifest(args: argparse.Namespace) -> None:
     print(json.dumps(manifest, indent=2, default=str))
 
 
+def cmd_preflight(args: argparse.Namespace) -> None:
+    """Validate and stage an authorized Batch wave without provider access."""
+    from .config import SEUSensitivityStudyConfig
+    from .study_runner import SEUSensitivityStudyRunner
+
+    config = (
+        SEUSensitivityStudyConfig.from_yaml(args.config)
+        if args.config
+        else SEUSensitivityStudyConfig()
+    )
+    if args.output_dir:
+        config.results_dir = args.output_dir
+
+    evidence = SEUSensitivityStudyRunner(config).run_production_preflight()
+    print(json.dumps(evidence, indent=2, default=str))
+
+
 def main() -> None:
     from .study_runner import PHASES
 
@@ -166,6 +184,12 @@ def main() -> None:
     p_manifest.add_argument("--config", type=str, default=None)
     p_manifest.add_argument("--output-dir", type=str, default=None)
 
+    p_preflight = subparsers.add_parser(
+        "preflight", help="Validate and stage an authorized Batch wave"
+    )
+    p_preflight.add_argument("--config", type=str, default=None)
+    p_preflight.add_argument("--output-dir", type=str, default=None)
+
     args = parser.parse_args()
     _setup_logging(args.verbose)
 
@@ -175,6 +199,8 @@ def main() -> None:
         cmd_run(args)
     elif args.command == "manifest":
         cmd_manifest(args)
+    elif args.command == "preflight":
+        cmd_preflight(args)
     else:
         parser.print_help()
         sys.exit(1)

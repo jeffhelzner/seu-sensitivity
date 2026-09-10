@@ -110,6 +110,10 @@ class TestStudyConfig:
             )
 
         cell_id = cfg.SEUSensitivityStudyConfig().cells[0].cell_id
+        with pytest.raises(ValueError, match="path-safe"):
+            cfg.SEUSensitivityStudyConfig(
+                batch_wave_id="../wave", batch_wave_cell_ids=[cell_id]
+            )
         config = cfg.SEUSensitivityStudyConfig(
             batch_wave_id="wave-1", batch_wave_cell_ids=[cell_id]
         )

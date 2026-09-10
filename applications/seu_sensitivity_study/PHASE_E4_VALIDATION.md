@@ -223,6 +223,23 @@ no-spend by default. A separately reviewed config change must name and allowlist
 each production wave before any provider submission can pass the reservation
 boundary.
 
+The offline `preflight` command implements the F7 production-root boundary. It
+refreshes all configured pool gates, requires passing evidence for every pool
+represented in the authorized wave, and locally renders exact provider-ready
+request bodies without creating an SDK client or contacting a provider. It
+copies the required pool, problem, embedding, PCA, assessment, and fresh gate
+artifacts into a single-use `production_stages/<wave_id>/` directory, writes an
+aggregate-hashed manifest binding configuration, prompts, authorization, and
+per-cell request hashes, then makes staged files read-only.
+
+Immediately before a new budget reservation, the runner verifies the manifest
+aggregate, current configuration, prompt hashes, mutable source hashes,
+immutable staged-copy hashes, cell authorization, and the in-memory request
+hash. Any absent or changed evidence fails before ledger append or provider
+submission. The mechanism is covered by offline tests; it has not yet been run
+against an authorized production wave, because the checked-in production YAML
+remains deliberately no-spend.
+
 Results are joined through deterministic `custom_id` values, never provider
 output order. Terminal batch failures, per-request failures, incomplete result
 sets, and unexpected result IDs stop collection explicitly. Successful results
@@ -243,7 +260,9 @@ Anthropic extended-thinking request parameters, out-of-order results,
 incomplete output, terminal error-file persistence, aggregate failed-Batch
 usage, partial-success checkpoint salvage, hard-ceiling reservation,
 truncated-ledger rejection, collector presentation mapping, and preservation
-of the synchronous path.
+of the synchronous path. Preflight tests additionally cover successful
+read-only staging, exact request binding, source tamper rejection, failed fresh
+gates, and path-unsafe wave IDs.
 
 ## Live provider Batch probe
 

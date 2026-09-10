@@ -114,6 +114,16 @@ only the cells approved for that launch. A replacement attempt requires a new
 authorization and budget amendment; it is never inferred from unused estimated
 cost or a failed prior batch.
 
+Before reservation, the authorized wave must pass the offline `preflight`
+command. Preflight refreshes the configured validation gates, renders the exact
+provider-ready request bodies, and creates a wave-specific read-only stage. Its
+manifest binds the configuration, prerequisite source artifacts, prompts, fresh
+gate reports, authorized cell IDs, and per-cell request hashes under an
+aggregate hash. The reservation callback re-verifies the manifest, staged and
+source artifacts, prompts, configuration, and the current cell request hash.
+Any mismatch blocks before the budget ledger or provider is touched. A wave ID
+is single-use and must be a path-safe identifier.
+
 ## Reporting restrictions
 
 - Smoke estimates are feasibility evidence, not confirmatory results.

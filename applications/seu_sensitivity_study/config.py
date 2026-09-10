@@ -19,6 +19,7 @@ and copied into the run manifest (§6.5).
 from __future__ import annotations
 
 import logging
+import re
 from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence, Tuple
@@ -372,6 +373,10 @@ class SEUSensitivityStudyConfig:
             raise ValueError(
                 "batch_wave_id and batch_wave_cell_ids must be configured together"
             )
+        if self.batch_wave_id and not re.fullmatch(
+            r"[A-Za-z0-9][A-Za-z0-9._-]{0,63}", self.batch_wave_id
+        ):
+            raise ValueError("batch_wave_id must be a path-safe identifier")
         known_cell_ids = {cell.cell_id for cell in self.cells}
         if len(set(self.batch_wave_cell_ids)) != len(self.batch_wave_cell_ids):
             raise ValueError("batch_wave_cell_ids must not contain duplicates")

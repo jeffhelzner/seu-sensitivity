@@ -369,13 +369,16 @@ class TestFullPipeline:
         assert all(event["collection_mode"] == "synchronous" for event in after)
         assert all("usage" in event and "artifact" in event for event in after)
 
-    def test_batch_budget_reservation_is_idempotent_and_enforces_ceiling(self, runner):
+    def test_batch_budget_reservation_is_idempotent_and_enforces_ceiling(
+        self, runner, monkeypatch
+    ):
         cell = runner.config.cells_for_pool(POOL_ID)[0]
         second_cell = runner.config.cells_for_pool(POOL_ID)[1]
         runner.config.batch_wave_id = "test-wave"
         runner.config.batch_wave_cell_ids = [cell.cell_id, second_cell.cell_id]
         runner.config.batch_choice_reservation_per_request_usd = 0.5
         runner.config.batch_choice_budget_usd = 1.0
+        monkeypatch.setattr(runner, "_assert_production_preflight", lambda *args: None)
         state = {
             "submission_id": "submission-1",
             "request_hash": "hash-1",
@@ -401,10 +404,13 @@ class TestFullPipeline:
             )
         assert len(path.read_text().splitlines()) == 1
 
-    def test_truncated_batch_budget_ledger_blocks_reservation(self, runner):
+    def test_truncated_batch_budget_ledger_blocks_reservation(
+        self, runner, monkeypatch
+    ):
         cell = runner.config.cells_for_pool(POOL_ID)[0]
         runner.config.batch_wave_id = "test-wave"
         runner.config.batch_wave_cell_ids = [cell.cell_id]
+        monkeypatch.setattr(runner, "_assert_production_preflight", lambda *args: None)
         path = runner.results_dir / "batch_budget_reservations.jsonl"
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text('{"submission_id": "incomplete"')
@@ -430,10 +436,13 @@ class TestFullPipeline:
                 cell,
             )
 
-    def test_batch_budget_report_keeps_missing_actual_cost_unresolved(self, runner):
+    def test_batch_budget_report_keeps_missing_actual_cost_unresolved(
+        self, runner, monkeypatch
+    ):
         cells = runner.config.cells_for_pool(POOL_ID)[:2]
         runner.config.batch_wave_id = "test-wave"
         runner.config.batch_wave_cell_ids = [cell.cell_id for cell in cells]
+        monkeypatch.setattr(runner, "_assert_production_preflight", lambda *args: None)
         runner.config.batch_choice_reservation_per_request_usd = 0.1
         runner.config.batch_choice_budget_usd = 1.0
         for index, cell in enumerate(cells, start=1):
@@ -484,6 +493,72 @@ class TestFullPipeline:
         with pytest.raises(RuntimeError, match="not authorized in wave"):
             runner._reserve_batch_budget(state, cells[0])
         assert not (runner.results_dir / "batch_budget_reservations.jsonl").exists()
+
+    def test_production_preflight_stages_and_binds_exact_inputs(
+        self, runner, monkeypatch
+    ):
+        self._run_all(runner)
+        cell = runner.config.cells_for_pool(POOL_ID)[0]
+        runner.config.collection_mode = "batch"
+        runner.config.batch_wave_id = "test-wave"
+        runner.config.batch_wave_cell_ids = [cell.cell_id]
+        gate = {"pool_id": POOL_ID, "status": "passed", "passed": True}
+        gate_path = runner.results_dir / "pools" / POOL_ID / "gate_report.json"
+        runner._write_json(gate_path, gate)
+        monkeypatch.setattr(runner, "_phase_validate", lambda pool_id: gate)
+
+        evidence = runner.run_production_preflight()
+        manifest_path = (
+            runner.results_dir
+            / "production_stages"
+            / "test-wave"
+            / "preflight_manifest.json"
+        )
+        staged_problem = manifest_path.parent / "pools" / POOL_ID / "problems.json"
+        assert manifest_path.exists()
+        assert staged_problem.stat().st_mode & 0o222 == 0
+        assert manifest_path.parent.stat().st_mode & 0o222 == 0
+        assert evidence["request_hashes"][cell.cell_id]
+
+        state = {
+            "request_hash": evidence["request_hashes"][cell.cell_id],
+            "request_count": 1,
+            "submission_id": "submission-1",
+        }
+        runner._assert_production_preflight(state, cell)
+        with pytest.raises(RuntimeError, match="Production stage already exists"):
+            runner.run_production_preflight()
+        with pytest.raises(RuntimeError, match="Rendered Batch request hash"):
+            runner._assert_production_preflight(
+                {**state, "request_hash": "changed"}, cell
+            )
+
+        runner.config.max_choice_tokens += 1
+        with pytest.raises(RuntimeError, match="config hash does not match"):
+            runner._assert_production_preflight(state, cell)
+        runner.config.max_choice_tokens -= 1
+
+        staged_problem_content = staged_problem.read_text()
+        staged_problem.chmod(0o644)
+        staged_problem.write_text(staged_problem_content + "\n")
+        with pytest.raises(RuntimeError, match="staged artifact hash does not match"):
+            runner._assert_production_preflight(state, cell)
+        staged_problem.write_text(staged_problem_content)
+        staged_problem.chmod(0o444)
+
+        source_problem = runner.results_dir / "pools" / POOL_ID / "problems.json"
+        source_problem.write_text(source_problem.read_text() + "\n")
+        with pytest.raises(RuntimeError, match="artifact hash does not match"):
+            runner._assert_production_preflight(state, cell)
+
+    def test_production_preflight_rejects_failed_fresh_gate(self, runner):
+        runner.run(phases=["design", "embed", "assess"])
+        cell = runner.config.cells_for_pool(POOL_ID)[0]
+        runner.config.collection_mode = "batch"
+        runner.config.batch_wave_id = "test-wave"
+        runner.config.batch_wave_cell_ids = [cell.cell_id]
+        with pytest.raises(RuntimeError, match="gate did not pass"):
+            runner.run_production_preflight()
 
     def test_rerun_is_idempotent(self, runner):
         self._run_all(runner)

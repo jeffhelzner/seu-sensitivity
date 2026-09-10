@@ -8,6 +8,7 @@ above all that presentations are actually iterated and that the recorded
 
 from __future__ import annotations
 
+import hashlib
 import json
 
 import pytest
@@ -15,7 +16,11 @@ import pytest
 from applications.seu_sensitivity_study import problem_generation as pg
 from applications.seu_sensitivity_study import schemas
 from applications.seu_sensitivity_study.assessment_collection import AssessmentCollector
-from applications.seu_sensitivity_study.batch_client import BatchOutcome, BatchResultError
+from applications.seu_sensitivity_study.batch_client import (
+    BatchOutcome,
+    BatchResultError,
+    ProviderBatchClient,
+)
 from applications.seu_sensitivity_study.choice_collection import ChoiceCollector
 from applications.seu_sensitivity_study.config import CellSpec
 
@@ -205,6 +210,28 @@ class TestChoiceCollector:
                 record["chosen_item_id"]
             )
         assert all(len(items) == 2 for items in by_problem.values())
+
+    def test_batch_request_evidence_binds_bodies_and_observation_mapping(
+        self, cell, design, prompt_set, assessments, mock_client_factory
+    ):
+        collector = self._collector(
+            cell, design, prompt_set, assessments, mock_client_factory(default="unused")
+        )
+        batch_client = ProviderBatchClient(cell, sdk_client=object())
+
+        evidence = collector.batch_request_evidence(batch_client)
+        encoded = json.dumps(
+            evidence["requests"], sort_keys=True, separators=(",", ":")
+        ).encode("utf-8")
+
+        assert evidence["request_hash"] == hashlib.sha256(encoded).hexdigest()
+        assert len(evidence["mapping"]) == len(evidence["requests"])
+        assert evidence["mapping"][0] == {
+            "custom_id": "request-00000",
+            "problem_id": design["problems"][0]["id"],
+            "presentation_id": 1,
+            "item_order": design["problems"][0]["presentations"][0]["order"],
+        }
 
     def test_batch_results_are_resolved_by_custom_id(
         self, cell, design, prompt_set, assessments, mock_client_factory, tmp_path

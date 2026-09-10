@@ -159,16 +159,62 @@ from 0.0177 to 0.0414, RMSE from 0.1820 to 0.2573, central 90% coverage from
 0.850 to 0.950, and mean interval width from 0.5430 to 0.8174. With 40 datasets,
 the Monte Carlo standard error of nominal 90% coverage is 0.047; the observed
 contrast coverages are consistent with that target at this resolution. The RQ5
-simulation/recovery gate is complete; final contrast-table reporting remains.
+simulation/recovery gate is complete.
 
-All maintained application tests pass (519 tests). Repository-wide pytest last
+The offline reporting command reconstructs saved CmdStan chain CSVs from an
+explicit fit manifest, hashes every chain artifact, and emits all nine primary
+decisions per pool, descriptive RQ3 residual summaries, descriptive fixed-domain
+RQ4 comparisons, six matched RQ5 decisions, and RQ6. It computes linear
+contrasts draw by draw, enforces R-hat, bulk ESS, tail ESS, E-BFMI, divergence,
+and treedepth gates, reports the full unadjusted family, and compares the full
+paired fit with both frozen presentation-only fits for sign, interval-decision,
+and substantive-interpretation changes. Synthetic artifact tests cover this
+path without running Stan.
+
+`scripts/build_confirmatory_report.py` takes a JSON fit manifest and an output
+path. The fit manifest must contain `venture`, `hiring`, and `matched_rq5`
+groups, each with directories for `primary`, `presentation_1_only`, and
+`presentation_2_only` CmdStan chain CSVs plus the two full-data utility-grid
+variants `utility_035` and `utility_065`:
+
+```json
+{
+	"max_treedepth": 12,
+	"fits": {
+		"venture": {
+			"primary": "results/fits/venture/primary",
+			"presentation_1_only": "results/fits/venture/presentation_1_only",
+			"presentation_2_only": "results/fits/venture/presentation_2_only",
+			"utility_035": "results/fits/venture/utility_035",
+			"utility_065": "results/fits/venture/utility_065"
+		},
+		"hiring": {
+			"primary": "results/fits/hiring/primary",
+			"presentation_1_only": "results/fits/hiring/presentation_1_only",
+			"presentation_2_only": "results/fits/hiring/presentation_2_only",
+			"utility_035": "results/fits/hiring/utility_035",
+			"utility_065": "results/fits/hiring/utility_065"
+		},
+		"matched_rq5": {
+			"primary": "results/fits/matched_rq5/primary",
+			"presentation_1_only": "results/fits/matched_rq5/presentation_1_only",
+			"presentation_2_only": "results/fits/matched_rq5/presentation_2_only",
+			"utility_035": "results/fits/matched_rq5/utility_035",
+			"utility_065": "results/fits/matched_rq5/utility_065"
+		}
+	}
+}
+```
+
+All maintained application tests pass (536 tests). Repository-wide pytest last
 passed 475 tests but reported three unrelated collection errors from the legacy
 executable `scripts/test_m1_model.py`, whose helper functions are named
 `test_*` but require command-line arguments rather than pytest fixtures.
 
 The detailed status of every independent-review finding is tracked in
-`REVIEW_DISPOSITION.md`. Open Batch reconciliation, all-attempt budget control,
-and production-root preflight continue to block a GO.
+`REVIEW_DISPOSITION.md`. The remaining prelaunch operations are the separately
+authorized live reasoning-arm probes and execution of preflight against a named,
+authorized production wave; neither has occurred.
 
 ## Batch and usage-persistence gate
 
@@ -192,6 +238,16 @@ process exits; stale lock files are therefore safely reusable while a live
 owner still blocks concurrent mutation. Anthropic ambiguous submissions remain
 manual reconciliation cases because Message Batches expose no equivalent
 request-bound listing metadata.
+
+Manual Anthropic reconciliation uses `scripts/attach_anthropic_batch.py` only
+after an operator identifies the unique candidate in the provider console. The
+command accepts only an existing `submission_ambiguous` Anthropic state,
+retrieves rather than creates the supplied provider Batch, checks its request
+count from either a total or the complete provider status counts, and records
+the operator note, remote status, timestamp, and durable attachment before
+normal retrieval resumes. Missing count evidence, a count mismatch,
+non-ambiguous state, or provider/model mismatch remains blocked. Replacement
+submission is never part of this procedure.
 
 The approved `$31` choice ceiling and a `$31 / 10,080` per-request reservation
 rate are machine-readable configuration. Before the provider call begins, each
@@ -229,13 +285,17 @@ represented in the authorized wave, and locally renders exact provider-ready
 request bodies without creating an SDK client or contacting a provider. It
 copies the required pool, problem, embedding, PCA, assessment, and fresh gate
 artifacts into a single-use `production_stages/<wave_id>/` directory, writes an
-aggregate-hashed manifest binding configuration, prompts, authorization, and
-per-cell request hashes, then makes staged files read-only.
+archive of exact provider-ready bodies and their custom-ID/problem/presentation/
+item-order mapping, and an aggregate-hashed manifest. The manifest binds a clean
+Git commit, application and active Stan/config sources, toolchain versions,
+exact configuration, prompts, authorization, per-cell request hashes, and
+request counts. Staged files and directories are then made read-only.
 
 Immediately before a new budget reservation, the runner verifies the manifest
 aggregate, current configuration, prompt hashes, mutable source hashes,
 immutable staged-copy hashes, cell authorization, and the in-memory request
-hash. Any absent or changed evidence fails before ledger append or provider
+hash and count. It also rechecks the clean Git identity, repository source
+hashes, and generated archives. Any absent or changed evidence fails before ledger append or provider
 submission. The mechanism is covered by offline tests; it has not yet been run
 against an authorized production wave, because the checked-in production YAML
 remains deliberately no-spend.
@@ -294,11 +354,11 @@ checks did not establish scientific identification or cover critical Batch
 failure modes.
 
 **Current verdict: NOT READY.** Production choice collection is stopped. A new
-GO requires validation of the assessment-anchored model, completion of the
-confirmatory analysis contract, correction of the Batch integrity and
-all-attempt accounting failures, and an exact-root production preflight.
-Passing those gates will still not authorize production spending: a new
-explicit authorization will be required for the 10,080-call Batch run.
+GO requires successful live two-request probes for both reasoning arms and an
+exact-root preflight executed from a clean committed revision against a named,
+authorized production wave. Those operations require separate authorization.
+Passing them will still not authorize the 10,080-call production run; that
+spend requires a new explicit authorization.
 
 The synchronous path is technically validated, but using it would invoke the
 $61 fallback and also requires separate approval. No production calls have

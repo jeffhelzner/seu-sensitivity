@@ -498,6 +498,12 @@ class TestFullPipeline:
         self, runner, monkeypatch
     ):
         self._run_all(runner)
+        repository_root = study_runner.Path(study_runner.__file__).resolve().parents[2]
+        monkeypatch.setattr(
+            study_runner,
+            "_clean_repository_identity",
+            lambda: (repository_root, "test-commit"),
+        )
         cell = runner.config.cells_for_pool(POOL_ID)[0]
         runner.config.collection_mode = "batch"
         runner.config.batch_wave_id = "test-wave"
@@ -515,17 +521,28 @@ class TestFullPipeline:
             / "preflight_manifest.json"
         )
         staged_problem = manifest_path.parent / "pools" / POOL_ID / "problems.json"
+        request_archive = json.loads(
+            (manifest_path.parent / "requests" / f"{cell.cell_id}.json").read_text()
+        )
         assert manifest_path.exists()
         assert staged_problem.stat().st_mode & 0o222 == 0
         assert manifest_path.parent.stat().st_mode & 0o222 == 0
         assert evidence["request_hashes"][cell.cell_id]
+        assert evidence["git_commit"] == "test-commit"
+        assert evidence["repository_hashes"]
+        assert evidence["toolchain"]["python"]
+        assert len(request_archive["requests"]) == 16
+        assert len(request_archive["mapping"]) == 16
+        assert request_archive["request_hash"] == evidence["request_hashes"][cell.cell_id]
 
         state = {
             "request_hash": evidence["request_hashes"][cell.cell_id],
-            "request_count": 1,
+            "request_count": len(request_archive["requests"]),
             "submission_id": "submission-1",
         }
         runner._assert_production_preflight(state, cell)
+        with pytest.raises(RuntimeError, match="request count does not match"):
+            runner._assert_production_preflight({**state, "request_count": 1}, cell)
         with pytest.raises(RuntimeError, match="Production stage already exists"):
             runner.run_production_preflight()
         with pytest.raises(RuntimeError, match="Rendered Batch request hash"):
@@ -537,6 +554,18 @@ class TestFullPipeline:
         with pytest.raises(RuntimeError, match="config hash does not match"):
             runner._assert_production_preflight(state, cell)
         runner.config.max_choice_tokens -= 1
+
+        original_toolchain = study_runner.provenance.toolchain_versions
+        monkeypatch.setattr(
+            study_runner.provenance,
+            "toolchain_versions",
+            lambda: {"python": "changed"},
+        )
+        with pytest.raises(RuntimeError, match="toolchain does not match"):
+            runner._assert_production_preflight(state, cell)
+        monkeypatch.setattr(
+            study_runner.provenance, "toolchain_versions", original_toolchain
+        )
 
         staged_problem_content = staged_problem.read_text()
         staged_problem.chmod(0o644)
@@ -551,8 +580,14 @@ class TestFullPipeline:
         with pytest.raises(RuntimeError, match="artifact hash does not match"):
             runner._assert_production_preflight(state, cell)
 
-    def test_production_preflight_rejects_failed_fresh_gate(self, runner):
+    def test_production_preflight_rejects_failed_fresh_gate(self, runner, monkeypatch):
         runner.run(phases=["design", "embed", "assess"])
+        repository_root = study_runner.Path(study_runner.__file__).resolve().parents[2]
+        monkeypatch.setattr(
+            study_runner,
+            "_clean_repository_identity",
+            lambda: (repository_root, "test-commit"),
+        )
         cell = runner.config.cells_for_pool(POOL_ID)[0]
         runner.config.collection_mode = "batch"
         runner.config.batch_wave_id = "test-wave"

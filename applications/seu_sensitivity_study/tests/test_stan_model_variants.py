@@ -324,6 +324,7 @@ def test_sampler_summary_applies_campaign_thresholds(tmp_path):
             '{"seconds": 10, "max_rhat": '
             + str(max_rhat)
             + ', "min_ess_bulk": 500, "min_ebfmi": 0.8, '
+            + '"min_ess_tail": 500, '
             '"divergences": 0, "treedepth_saturated_share": 0, '
             '"nonfinite_proposals_total": 3}'
         )
@@ -342,6 +343,7 @@ def test_fit_diagnostics_covers_parameters_and_excludes_observation_arrays():
             return pd.DataFrame(
                 {
                     "ESS_bulk": [40.0, 120.0, 80.0, 500.0, float("nan")],
+                        "ESS_tail": [30.0, 480.0, 70.0, 490.0, float("nan")],
                     "R_hat": [1.02, 1.001, 1.009, 1.000, float("nan")],
                 },
                 index=["lp__", "gamma0", "beta[1,1,1]", "eta[1]", "delta[1]"],
@@ -358,6 +360,7 @@ def test_fit_diagnostics_covers_parameters_and_excludes_observation_arrays():
 
     assert diagnostics["min_ess_bulk"] == 80.0
     assert diagnostics["max_rhat"] == 1.009
+    assert diagnostics["min_ess_tail"] == 70.0
     assert diagnostics["mean_treedepth"] == 10.25
     assert diagnostics["treedepth_saturated_share"] == 0.25
     assert diagnostics["divergences"] == 1

@@ -43,6 +43,7 @@ import logging
 import math
 import os
 import shutil
+import subprocess
 from dataclasses import asdict
 from datetime import datetime, timezone
 from pathlib import Path
@@ -769,6 +770,14 @@ class SEUSensitivityStudyRunner:
         cells_by_id = {cell.cell_id: cell for cell in self.config.cells}
         cells = [cells_by_id[cell_id] for cell_id in self.config.batch_wave_cell_ids]
         wave_pool_ids = list(dict.fromkeys(cell.pool_id for cell in cells))
+        repository_root, git_commit = _clean_repository_identity()
+        repository_sources = _production_source_paths(
+            repository_root, self.config.stan_model
+        )
+        repository_hashes = {
+            str(path.relative_to(repository_root)): _sha256_file(path)
+            for path in repository_sources
+        }
         for pool_id in self.config.pool_ids:
             self._phase_validate(pool_id)
         if len(self.config.pool_ids) > 1:
@@ -820,6 +829,7 @@ class SEUSensitivityStudyRunner:
         }
         prompt_hashes = prompts_module.prompt_hashes(prompt_sets)
         request_hashes = {}
+        request_evidence = {}
         for cell in cells:
             collector = ChoiceCollector(
                 cell=cell,
@@ -830,14 +840,32 @@ class SEUSensitivityStudyRunner:
                 max_tokens=self.config.max_choice_tokens,
             )
             batch_client = ProviderBatchClient(cell, sdk_client=object())
-            request_hashes[cell.cell_id] = collector.batch_request_hash(batch_client)
+            cell_evidence = collector.batch_request_evidence(batch_client)
+            request_hashes[cell.cell_id] = cell_evidence["request_hash"]
+            request_evidence[cell.cell_id] = cell_evidence
+
+        generated_artifacts = {
+            "preflight_config.json": self.config.to_dict(),
+            **{
+                f"requests/{cell_id}.json": payload
+                for cell_id, payload in request_evidence.items()
+            },
+        }
+        generated_hashes = {
+            relative_path: _sha256_json(payload)
+            for relative_path, payload in generated_artifacts.items()
+        }
 
         evidence = {
-            "schema_version": 1,
+            "schema_version": 2,
             "wave_id": self.config.batch_wave_id,
             "authorized_cell_ids": list(self.config.batch_wave_cell_ids),
             "config_hash": _sha256_json(self.config.to_dict()),
+            "git_commit": git_commit,
+            "repository_hashes": repository_hashes,
+            "toolchain": provenance.toolchain_versions(),
             "source_hashes": source_hashes,
+            "generated_hashes": generated_hashes,
             "prompt_hashes": prompt_hashes,
             "gate_hashes": gate_hashes,
             "request_hashes": request_hashes,
@@ -858,6 +886,12 @@ class SEUSensitivityStudyRunner:
             destination = temporary / source.relative_to(self.results_dir)
             destination.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(source, destination)
+        for source in repository_sources:
+            destination = temporary / "repository" / source.relative_to(repository_root)
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source, destination)
+        for relative_path, payload in generated_artifacts.items():
+            self._write_json(temporary / relative_path, payload)
         self._write_json(temporary / "preflight_manifest.json", evidence)
         for path in temporary.rglob("*"):
             if path.is_file():
@@ -1095,6 +1129,11 @@ class SEUSensitivityStudyRunner:
             raise RuntimeError("Production preflight wave identity does not match config")
         if manifest.get("config_hash") != _sha256_json(self.config.to_dict()):
             raise RuntimeError("Production preflight config hash does not match")
+        repository_root, git_commit = _clean_repository_identity()
+        if manifest.get("git_commit") != git_commit:
+            raise RuntimeError("Production preflight Git commit does not match")
+        if manifest.get("toolchain") != provenance.toolchain_versions():
+            raise RuntimeError("Production preflight toolchain does not match")
         if cell.cell_id not in manifest.get("authorized_cell_ids", []):
             raise RuntimeError(
                 f"Batch cell {cell.cell_id} is not authorized by production preflight"
@@ -1115,6 +1154,46 @@ class SEUSensitivityStudyRunner:
         }
         if current_prompts != expected_prompts:
             raise RuntimeError("Production preflight prompt hashes do not match")
+        for relative_path, expected_hash in manifest.get(
+            "repository_hashes", {}
+        ).items():
+            source_path = repository_root / relative_path
+            staged_path = manifest_path.parent / "repository" / relative_path
+            if not source_path.exists() or _sha256_file(source_path) != expected_hash:
+                raise RuntimeError(
+                    f"Production preflight repository hash does not match: {relative_path}"
+                )
+            if not staged_path.exists() or _sha256_file(staged_path) != expected_hash:
+                raise RuntimeError(
+                    f"Production staged repository hash does not match: {relative_path}"
+                )
+        generated_paths = ["preflight_config.json", f"requests/{cell.cell_id}.json"]
+        request_archive = None
+        for relative_path in generated_paths:
+            generated_path = manifest_path.parent / relative_path
+            expected_hash = manifest.get("generated_hashes", {}).get(relative_path)
+            if not generated_path.exists():
+                raise RuntimeError(
+                    f"Production staged generated artifact is missing: {relative_path}"
+                )
+            try:
+                actual_hash = _sha256_json(json.loads(generated_path.read_text()))
+            except (json.JSONDecodeError, OSError) as error:
+                raise RuntimeError(
+                    f"Production staged generated artifact is invalid: {relative_path}"
+                ) from error
+            if actual_hash != expected_hash:
+                raise RuntimeError(
+                    f"Production staged generated artifact hash does not match: {relative_path}"
+                )
+            if relative_path.startswith("requests/"):
+                request_archive = json.loads(generated_path.read_text())
+        if request_archive is None or len(request_archive.get("requests", [])) != int(
+            state.get("request_count", -1)
+        ):
+            raise RuntimeError(
+                "Batch request count does not match production staged request archive"
+            )
         for relative_path, expected_hash in manifest.get("source_hashes", {}).items():
             if not relative_path.startswith(f"pools/{cell.pool_id}/"):
                 continue
@@ -1246,3 +1325,42 @@ def _sha256_json(value: Any) -> str:
         value, default=_json_default, sort_keys=True, separators=(",", ":")
     )
     return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
+
+
+def _clean_repository_identity() -> tuple[Path, str]:
+    repository_root = Path(__file__).resolve().parents[2]
+    status = subprocess.run(
+        ["git", "status", "--porcelain"],
+        cwd=repository_root,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    if status.stdout.strip():
+        raise RuntimeError("Production preflight requires a clean tracked worktree")
+    commit = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=repository_root,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    return repository_root, commit
+
+
+def _production_source_paths(repository_root: Path, stan_model: str) -> List[Path]:
+    package_dir = repository_root / "applications" / "seu_sensitivity_study"
+    paths = sorted(package_dir.glob("*.py"))
+    relative_paths = [
+        "applications/seu_sensitivity_study/PREREGISTRATION.md",
+        "applications/seu_sensitivity_study/configs/preregistered.yaml",
+        "environment.yml",
+        "requirements.txt",
+        f"models/{stan_model}.stan",
+    ]
+    paths.extend(repository_root / relative_path for relative_path in relative_paths)
+    paths = sorted(set(path.resolve() for path in paths))
+    missing = [str(path) for path in paths if not path.exists()]
+    if missing:
+        raise FileNotFoundError(f"Production preflight missing source files: {missing}")
+    return paths

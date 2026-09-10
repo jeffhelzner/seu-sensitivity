@@ -72,16 +72,22 @@ def fit_diagnostics(fit: Any, *, seconds: float, max_treedepth: int) -> Dict[str
         column for column in summary.columns
         if "ESS_bulk" in column or column == "N_Eff"
     ]
+    tail_columns = [column for column in summary.columns if "ESS_tail" in column]
     rhat_columns = [column for column in summary.columns if "hat" in column.lower()]
     bulk = (
         {name: float(summary.loc[name, bulk_columns[0]]) for name in parameters}
         if bulk_columns else {}
+    )
+    tail = (
+        {name: float(summary.loc[name, tail_columns[0]]) for name in parameters}
+        if tail_columns else {}
     )
     rhat = (
         {name: float(summary.loc[name, rhat_columns[0]]) for name in parameters}
         if rhat_columns else {}
     )
     bulk = {name: value for name, value in bulk.items() if np.isfinite(value)}
+    tail = {name: value for name, value in tail.items() if np.isfinite(value)}
     rhat = {name: value for name, value in rhat.items() if np.isfinite(value)}
 
     method_variables = fit.method_variables()
@@ -101,6 +107,7 @@ def fit_diagnostics(fit: Any, *, seconds: float, max_treedepth: int) -> Dict[str
             )
     finite_ebfmi = [value for value in ebfmi if np.isfinite(value)]
     minimum_bulk = min(bulk.values()) if bulk else None
+    minimum_tail = min(tail.values()) if tail else None
     return {
         "seconds": seconds,
         "mean_treedepth": float(treedepth.mean()),
@@ -110,14 +117,17 @@ def fit_diagnostics(fit: Any, *, seconds: float, max_treedepth: int) -> Dict[str
         "ebfmi_by_chain": ebfmi,
         "min_ebfmi": min(finite_ebfmi) if finite_ebfmi else None,
         "ess_bulk": bulk,
+        "ess_tail": tail,
         "rhat": rhat,
         "min_ess_bulk": minimum_bulk,
+        "min_ess_tail": minimum_tail,
         "max_rhat": max(rhat.values()) if rhat else None,
         "ess_bulk_per_1000_seconds": (
             minimum_bulk / (seconds / 1000.0)
             if minimum_bulk is not None and seconds > 0 else None
         ),
         "worst_ess": sorted(bulk.items(), key=lambda item: item[1])[:12],
+        "worst_tail_ess": sorted(tail.items(), key=lambda item: item[1])[:12],
         "worst_rhat": sorted(rhat.items(), key=lambda item: -item[1])[:12],
     }
 

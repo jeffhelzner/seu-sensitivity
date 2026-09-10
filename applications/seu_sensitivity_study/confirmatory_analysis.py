@@ -18,12 +18,22 @@ __all__ = [
     "MENU_SIZE_ROPE",
     "TAIL_ESS_MINIMUM",
     "ContrastSpec",
+    "assert_sampler_gates",
     "classify_interval",
+    "compare_presentation_reports",
+    "compare_utility_reports",
     "contract_manifest",
+    "cross_pool_descriptive_report",
     "interaction_aliasing_report",
+    "linear_contrast_report",
     "matched_rq5_contract",
     "matched_rq5_design",
+    "parameter_report",
+    "posterior_fit_report",
     "primary_contrasts",
+    "rq3_descriptive_report",
+    "summarize_draws",
+    "complete_confirmatory_report",
 ]
 
 
@@ -140,6 +150,351 @@ def classify_interval(
     if upper < 0 and median < -rope_half_width:
         return "detected_negative"
     return "not_detected"
+
+
+def assert_sampler_gates(diagnostics: Mapping[str, Any]) -> Dict[str, Any]:
+    """Require the frozen sampler gates before confirmatory reporting."""
+    required = {
+        "max_rhat",
+        "min_ess_bulk",
+        "min_ess_tail",
+        "min_ebfmi",
+        "divergences",
+        "treedepth_saturated_share",
+    }
+    missing = sorted(required - set(diagnostics))
+    if missing:
+        raise ValueError(f"Sampler gates missing required fields: {missing}")
+    checks = {
+        "rhat": float(diagnostics["max_rhat"]) < 1.01,
+        "bulk_ess": float(diagnostics["min_ess_bulk"]) >= BULK_ESS_MINIMUM,
+        "tail_ess": float(diagnostics["min_ess_tail"]) >= TAIL_ESS_MINIMUM,
+        "ebfmi": float(diagnostics["min_ebfmi"]) >= 0.3,
+        "divergences": int(diagnostics["divergences"]) == 0,
+        "treedepth": float(diagnostics["treedepth_saturated_share"]) == 0.0,
+    }
+    if not all(checks.values()):
+        failed = sorted(name for name, passed in checks.items() if not passed)
+        raise ValueError(f"Sampler gates failed: {failed}")
+    return {"passed": True, "checks": checks, "diagnostics": dict(diagnostics)}
+
+
+def summarize_draws(
+    draws: Sequence[float], *, rope_half_width: float | None = None
+) -> Dict[str, Any]:
+    """Summarize one posterior estimand under the frozen central interval."""
+    values = np.asarray(draws, dtype=float).reshape(-1)
+    if values.size == 0 or not np.all(np.isfinite(values)):
+        raise ValueError("Posterior draws must be nonempty and finite")
+    lower, median, upper = np.quantile(values, [0.05, 0.5, 0.95])
+    summary: Dict[str, Any] = {
+        "mean": float(np.mean(values)),
+        "median": float(median),
+        "lower_90": float(lower),
+        "upper_90": float(upper),
+        "median_sign": "positive" if median > 0 else "negative" if median < 0 else "zero",
+    }
+    if rope_half_width is not None:
+        summary["rope_half_width"] = float(rope_half_width)
+        summary["decision"] = classify_interval(
+            lower=float(lower),
+            median=float(median),
+            upper=float(upper),
+            rope_half_width=rope_half_width,
+        )
+        summary["substantive_interpretation"] = (
+            "positive_practical"
+            if median > rope_half_width
+            else "negative_practical"
+            if median < -rope_half_width
+            else "within_rope"
+        )
+    return summary
+
+
+def linear_contrast_report(
+    gamma_draws: Sequence[Sequence[float]],
+    contrasts: Sequence[ContrastSpec],
+    diagnostics: Mapping[str, Any],
+) -> Dict[str, Any]:
+    """Apply named contrasts draw by draw, preserving posterior covariance."""
+    gate = assert_sampler_gates(diagnostics)
+    gamma = np.asarray(gamma_draws, dtype=float)
+    if gamma.ndim != 2 or not np.all(np.isfinite(gamma)):
+        raise ValueError("gamma_draws must be a finite two-dimensional array")
+    rows = []
+    for contrast in contrasts:
+        weights = np.asarray(contrast.coefficients, dtype=float)
+        if gamma.shape[1] != len(weights):
+            raise ValueError(
+                f"Contrast {contrast.contrast_id} has {len(weights)} weights for "
+                f"gamma draws with shape {gamma.shape}"
+            )
+        rows.append(
+            {
+                **contrast.to_dict(),
+                **summarize_draws(
+                    gamma @ weights, rope_half_width=contrast.rope_half_width
+                ),
+            }
+        )
+    return {"sampler_gates": gate, "decision_count": len(rows), "rows": rows}
+
+
+def parameter_report(
+    parameter_id: str,
+    draws: Sequence[float],
+    diagnostics: Mapping[str, Any],
+    *,
+    rope_half_width: float | None = None,
+) -> Dict[str, Any]:
+    """Report one scalar parameter after enforcing sampler diagnostics."""
+    return {
+        "parameter_id": parameter_id,
+        "sampler_gates": assert_sampler_gates(diagnostics),
+        **summarize_draws(draws, rope_half_width=rope_half_width),
+    }
+
+
+def rq3_descriptive_report(
+    sigma_cell_draws: Sequence[float],
+    z_alpha_draws: Sequence[Sequence[float]],
+    cell_ids: Sequence[str],
+    diagnostics: Mapping[str, Any],
+) -> Dict[str, Any]:
+    """Report residual cell heterogeneity without a point-null decision."""
+    gate = assert_sampler_gates(diagnostics)
+    sigma = np.asarray(sigma_cell_draws, dtype=float).reshape(-1)
+    z_alpha = np.asarray(z_alpha_draws, dtype=float)
+    if z_alpha.shape != (len(sigma), len(cell_ids)):
+        raise ValueError("z_alpha draws must have one column per cell ID")
+    residuals = sigma[:, None] * z_alpha
+    return {
+        "status": "descriptive",
+        "sampler_gates": gate,
+        "sigma_cell": summarize_draws(sigma),
+        "cell_residuals": [
+            {"cell_id": cell_id, **summarize_draws(residuals[:, index])}
+            for index, cell_id in enumerate(cell_ids)
+        ],
+    }
+
+
+def cross_pool_descriptive_report(
+    venture_gamma_draws: Sequence[Sequence[float]],
+    hiring_gamma_draws: Sequence[Sequence[float]],
+    contrasts: Sequence[ContrastSpec],
+    venture_diagnostics: Mapping[str, Any],
+    hiring_diagnostics: Mapping[str, Any],
+) -> Dict[str, Any]:
+    """Describe fixed-domain contrast differences without a variance claim."""
+    assert_sampler_gates(venture_diagnostics)
+    assert_sampler_gates(hiring_diagnostics)
+    venture = np.asarray(venture_gamma_draws, dtype=float)
+    hiring = np.asarray(hiring_gamma_draws, dtype=float)
+    if venture.ndim != 2 or hiring.ndim != 2 or venture.shape[1] != hiring.shape[1]:
+        raise ValueError("Cross-pool gamma draws must have the same parameter columns")
+    rows = []
+    for contrast in contrasts:
+        weights = np.asarray(contrast.coefficients, dtype=float)
+        venture_values = venture @ weights
+        hiring_values = hiring @ weights
+        venture_summary = summarize_draws(venture_values)
+        hiring_summary = summarize_draws(hiring_values)
+        rows.append(
+            {
+                "contrast_id": contrast.contrast_id,
+                "venture": venture_summary,
+                "hiring": hiring_summary,
+                "median_difference_hiring_minus_venture": (
+                    hiring_summary["median"] - venture_summary["median"]
+                ),
+                "median_sign_agrees": venture_summary["median_sign"]
+                == hiring_summary["median_sign"],
+            }
+        )
+    return {
+        "status": "descriptive_two_fixed_domains",
+        "population_variance_claim": False,
+        "sigma_cell_used_as_cross_pool_variance": False,
+        "cross_pool_draw_pairing": False,
+        "rows": rows,
+    }
+
+
+def compare_presentation_reports(
+    primary: Mapping[str, Any],
+    presentation_1: Mapping[str, Any],
+    presentation_2: Mapping[str, Any],
+) -> Dict[str, Any]:
+    """Flag prespecified changes across full and presentation-only fits."""
+    return _compare_reports(
+        {
+        "primary": primary,
+        "presentation_1_only": presentation_1,
+        "presentation_2_only": presentation_2,
+        },
+        sensitivity="presentation_dependence",
+    )
+
+
+def compare_utility_reports(
+    primary: Mapping[str, Any],
+    utility_035: Mapping[str, Any],
+    utility_065: Mapping[str, Any],
+) -> Dict[str, Any]:
+    """Flag changes across the frozen full-data utility-scale grid."""
+    return _compare_reports(
+        {"primary": primary, "utility_035": utility_035, "utility_065": utility_065},
+        sensitivity="utility_scale",
+    )
+
+
+def _compare_reports(
+    reports: Mapping[str, Mapping[str, Any]], *, sensitivity: str
+) -> Dict[str, Any]:
+    indexed = {
+        name: {row.get("contrast_id", row.get("parameter_id")): row for row in report["rows"]}
+        for name, report in reports.items()
+    }
+    contrast_ids = set(indexed["primary"])
+    if any(set(rows) != contrast_ids for rows in indexed.values()):
+        raise ValueError("Presentation reports must contain identical estimands")
+    rows = []
+    for contrast_id in sorted(contrast_ids):
+        values = {name: report[contrast_id] for name, report in indexed.items()}
+        signs = {row["median_sign"] for row in values.values()}
+        decisions = {row["decision"] for row in values.values()}
+        interpretations = {
+            row["substantive_interpretation"] for row in values.values()
+        }
+        rows.append(
+            {
+                "contrast_id": contrast_id,
+                "sign_changed": len(signs) > 1,
+                "interval_decision_changed": len(decisions) > 1,
+                "substantive_interpretation_changed": len(interpretations) > 1,
+                "estimates": values,
+            }
+        )
+    return {
+        "sensitivity": sensitivity,
+        "selection_conditioned_on_outcomes": False,
+        "any_disagreement": any(
+            row["sign_changed"]
+            or row["interval_decision_changed"]
+            or row["substantive_interpretation_changed"]
+            for row in rows
+        ),
+        "rows": rows,
+    }
+
+
+def posterior_fit_report(
+    *,
+    gamma_draws: Sequence[Sequence[float]],
+    gamma_size_draws: Sequence[float],
+    sigma_cell_draws: Sequence[float],
+    z_alpha_draws: Sequence[Sequence[float]],
+    contrasts: Sequence[ContrastSpec],
+    cell_ids: Sequence[str],
+    diagnostics: Mapping[str, Any],
+) -> Dict[str, Any]:
+    """Build all report sections supplied by one anchored posterior fit."""
+    contrast_report = linear_contrast_report(gamma_draws, contrasts, diagnostics)
+    rq6 = parameter_report(
+        "rq6_gamma_size",
+        gamma_size_draws,
+        diagnostics,
+        rope_half_width=MENU_SIZE_ROPE,
+    )
+    decision_rows = list(contrast_report["rows"]) + [rq6]
+    return {
+        "sampler_gates": contrast_report["sampler_gates"],
+        "contrast_decisions": contrast_report,
+        "rq3": rq3_descriptive_report(
+            sigma_cell_draws, z_alpha_draws, cell_ids, diagnostics
+        ),
+        "rq6": rq6,
+        "rows": decision_rows,
+    }
+
+
+def complete_confirmatory_report(
+    *,
+    pool_variants: Mapping[str, Mapping[str, Mapping[str, Any]]],
+    pool_contrasts: Mapping[str, Sequence[ContrastSpec]],
+    matched_variants: Mapping[str, Mapping[str, Any]],
+    matched_contrasts: Sequence[ContrastSpec],
+) -> Dict[str, Any]:
+    """Assemble the frozen primary, matched, and dependence-sensitivity report."""
+    required_variants = {
+        "primary",
+        "presentation_1_only",
+        "presentation_2_only",
+        "utility_035",
+        "utility_065",
+    }
+    pool_reports = {}
+    for pool_id, variants in pool_variants.items():
+        if set(variants) != required_variants:
+            raise ValueError(f"Pool {pool_id} must supply all three fit variants")
+        reports = {
+            name: posterior_fit_report(
+                contrasts=pool_contrasts[pool_id], **payload
+            )
+            for name, payload in variants.items()
+        }
+        reports["presentation_sensitivity"] = compare_presentation_reports(
+            reports["primary"],
+            reports["presentation_1_only"],
+            reports["presentation_2_only"],
+        )
+        reports["utility_sensitivity"] = compare_utility_reports(
+            reports["primary"], reports["utility_035"], reports["utility_065"]
+        )
+        pool_reports[pool_id] = reports
+
+    if set(pool_reports) != {"venture", "hiring"}:
+        raise ValueError("Confirmatory report requires venture and hiring pools")
+    venture_primary = pool_variants["venture"]["primary"]
+    hiring_primary = pool_variants["hiring"]["primary"]
+    rq4 = cross_pool_descriptive_report(
+        venture_primary["gamma_draws"],
+        hiring_primary["gamma_draws"],
+        pool_contrasts["venture"],
+        venture_primary["diagnostics"],
+        hiring_primary["diagnostics"],
+    )
+
+    if set(matched_variants) != required_variants:
+        raise ValueError("Matched RQ5 report must supply all three fit variants")
+    matched_reports = {
+        name: posterior_fit_report(contrasts=matched_contrasts, **payload)
+        for name, payload in matched_variants.items()
+    }
+    matched_reports["presentation_sensitivity"] = compare_presentation_reports(
+        matched_reports["primary"],
+        matched_reports["presentation_1_only"],
+        matched_reports["presentation_2_only"],
+    )
+    matched_reports["utility_sensitivity"] = compare_utility_reports(
+        matched_reports["primary"],
+        matched_reports["utility_035"],
+        matched_reports["utility_065"],
+    )
+    return {
+        "schema_version": 1,
+        "central_interval_mass": CENTRAL_INTERVAL_MASS,
+        "pools": pool_reports,
+        "rq4": rq4,
+        "matched_rq5": matched_reports,
+        "multiplicity": {
+            "adjustment": "none",
+            "full_family_reported": True,
+            "selection_from_family": False,
+        },
+    }
 
 
 def interaction_aliasing_report(

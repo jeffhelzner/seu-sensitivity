@@ -72,6 +72,7 @@ def _summarize_sampler_diagnostics(output_dir: Path) -> dict:
                 "seconds": diagnostics["seconds"],
                 "max_rhat": diagnostics["max_rhat"],
                 "min_ess_bulk": diagnostics["min_ess_bulk"],
+                "min_ess_tail": diagnostics["min_ess_tail"],
                 "min_ebfmi": diagnostics["min_ebfmi"],
                 "divergences": diagnostics["divergences"],
                 "treedepth_saturated_share": diagnostics[
@@ -85,6 +86,7 @@ def _summarize_sampler_diagnostics(output_dir: Path) -> dict:
     thresholds = {
         "max_rhat": 1.01,
         "min_ess_bulk": 400.0,
+        "min_ess_tail": 400.0,
         "min_ebfmi": 0.3,
         "max_divergences": 0,
         "max_treedepth_saturated_share": 0.0,
@@ -93,6 +95,7 @@ def _summarize_sampler_diagnostics(output_dir: Path) -> dict:
         record["passes"] = (
             record["max_rhat"] < thresholds["max_rhat"]
             and record["min_ess_bulk"] >= thresholds["min_ess_bulk"]
+            and record["min_ess_tail"] >= thresholds["min_ess_tail"]
             and record["min_ebfmi"] >= thresholds["min_ebfmi"]
             and record["divergences"] <= thresholds["max_divergences"]
             and record["treedepth_saturated_share"]

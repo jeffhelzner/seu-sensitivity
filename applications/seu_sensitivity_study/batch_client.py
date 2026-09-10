@@ -11,6 +11,7 @@ import socket
 import uuid
 from contextlib import contextmanager
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable, Dict, Mapping, Optional, Sequence
 
@@ -172,16 +173,21 @@ class ProviderBatchClient:
 
     def request_hash(self, requests: Sequence[BatchPrompt]) -> str:
         """Hash the exact provider request bodies that would be transmitted."""
-        effective_requests = [
+        encoded = json.dumps(
+            self.render_requests(requests), sort_keys=True, separators=(",", ":")
+        )
+        return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
+
+    def render_requests(
+        self, requests: Sequence[BatchPrompt]
+    ) -> List[Dict[str, Any]]:
+        """Render the canonical provider request bodies without network access."""
+        return [
             self._openai_request(request)
             if self.provider == "openai"
             else self._anthropic_request(request)
             for request in requests
         ]
-        encoded = json.dumps(
-            effective_requests, sort_keys=True, separators=(",", ":")
-        )
-        return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
 
     def recover_usage(self, state_path: Path) -> Dict[str, Any]:
         """Recover usage after results were checkpointed but not yet ledgered."""
@@ -211,6 +217,54 @@ class ProviderBatchClient:
             for custom_id, response in (state.get("responses") or {}).items()
             if custom_id not in blocked
         }
+
+    def attach_ambiguous_batch(
+        self, *, state_path: Path, batch_id: str, operator_note: str
+    ) -> Dict[str, Any]:
+        """Attach an operator-identified Anthropic batch without submitting."""
+        if self.provider != "anthropic":
+            raise BatchResultError(
+                "Manual attachment is restricted to Anthropic ambiguous submissions"
+            )
+        if not batch_id.strip() or not operator_note.strip():
+            raise ValueError("batch_id and operator_note must be nonempty")
+        with _single_writer(state_path):
+            if not state_path.exists():
+                raise BatchResultError(f"Batch state does not exist: {state_path}")
+            state = json.loads(state_path.read_text())
+            if state.get("provider") != self.provider or state.get("model") != self.model:
+                raise BatchResultError("Batch state provider or model does not match client")
+            if state.get("status") != "submission_ambiguous" or state.get("batch_id"):
+                raise BatchResultError(
+                    "Manual attachment requires an ambiguous state without a batch ID"
+                )
+            remote = self._sdk_client.messages.batches.retrieve(batch_id)
+            remote_total = _anthropic_request_count(
+                getattr(remote, "request_counts", None)
+            )
+            if remote_total is None:
+                raise BatchResultError(
+                    "Anthropic batch exposes no complete request count; "
+                    "manual attachment cannot verify identity"
+                )
+            if remote_total != int(state["request_count"]):
+                raise BatchResultError(
+                    "Anthropic batch request count does not match durable state"
+                )
+            state.update(
+                batch_id=batch_id,
+                status="submitted",
+                reconciled_from_provider=True,
+                reconciliation={
+                    "method": "operator_attached_anthropic_batch",
+                    "operator_note": operator_note,
+                    "attached_at": datetime.now(timezone.utc).isoformat(),
+                    "remote_processing_status": str(remote.processing_status),
+                    "remote_request_count": remote_total,
+                },
+            )
+            _write_json(state_path, state)
+            return state
 
     def _new_sdk_client(self) -> Any:
         if self.provider == "openai":
@@ -336,7 +390,17 @@ class ProviderBatchClient:
         usage_summary = self._usage_summary(usages)
         request_counts = getattr(batch, "request_counts", None)
         if request_counts is not None:
-            usage_summary["calls"] = int(_object_value(request_counts, "total", 0))
+            remote_total = _object_value(request_counts, "total", None)
+            if remote_total is None:
+                usage_summary["calls"] = None
+                provider_errors.append(
+                    {
+                        "status": status,
+                        "message": "Batch request_counts omitted total",
+                    }
+                )
+            else:
+                usage_summary["calls"] = int(remote_total)
         return BatchOutcome(
             responses,
             usage_summary,
@@ -483,6 +547,19 @@ def _object_value(value: Any, key: str, default: Any) -> Any:
     if isinstance(value, Mapping):
         return value.get(key, default)
     return getattr(value, key, default)
+
+
+def _anthropic_request_count(request_counts: Any) -> Optional[int]:
+    if request_counts is None:
+        return None
+    total = _object_value(request_counts, "total", None)
+    if total is not None:
+        return int(total)
+    statuses = ("processing", "succeeded", "errored", "canceled", "expired")
+    counts = [_object_value(request_counts, status, None) for status in statuses]
+    if any(count is None for count in counts):
+        return None
+    return sum(int(count) for count in counts)
 
 
 def _openai_error_record(error: Any) -> Dict[str, Any]:

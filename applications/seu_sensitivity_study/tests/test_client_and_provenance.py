@@ -97,6 +97,26 @@ class _FakeOpenAIBatchSDK:
         self.batches = Batches()
 
 
+class _FakeAnthropicBatchSDK:
+    def __init__(self, request_count=2):
+        outer = self
+        self.created = 0
+
+        class Batches:
+            def create(self, **kwargs):
+                outer.created += 1
+                return SimpleNamespace(id="new-batch")
+
+            def retrieve(self, batch_id):
+                assert batch_id == "existing-batch"
+                return SimpleNamespace(
+                    processing_status="in_progress",
+                    request_counts=SimpleNamespace(total=request_count),
+                )
+
+        self.messages = SimpleNamespace(batches=Batches())
+
+
 class TestProviderBatchClient:
     @staticmethod
     def _cell(**kwargs):
@@ -110,6 +130,97 @@ class TestProviderBatchClient:
         )
         values.update(kwargs)
         return CellSpec(**values)
+
+    def test_anthropic_ambiguous_batch_can_be_attached_without_resubmission(
+        self, tmp_path
+    ):
+        cell = self._cell(
+            cell_id="claude_neutral_testpool",
+            model_name="claude-sonnet-4-5",
+            provider="anthropic",
+        )
+        sdk = _FakeAnthropicBatchSDK(request_count=2)
+        state_path = tmp_path / "batch.json"
+        state_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 2,
+                    "provider": "anthropic",
+                    "model": cell.endpoint,
+                    "request_hash": "hash",
+                    "request_count": 2,
+                    "status": "submission_ambiguous",
+                    "submission_id": "intent-1",
+                }
+            )
+        )
+
+        state = ProviderBatchClient(cell, sdk_client=sdk).attach_ambiguous_batch(
+            state_path=state_path,
+            batch_id="existing-batch",
+            operator_note="Matched in provider console by creation time and request count.",
+        )
+
+        assert state["batch_id"] == "existing-batch"
+        assert state["reconciliation"]["remote_request_count"] == 2
+        assert sdk.created == 0
+
+    def test_anthropic_attachment_rejects_request_count_mismatch(self, tmp_path):
+        cell = self._cell(
+            cell_id="claude_neutral_testpool",
+            model_name="claude-sonnet-4-5",
+            provider="anthropic",
+        )
+        state_path = tmp_path / "batch.json"
+        state_path.write_text(
+            json.dumps(
+                {
+                    "provider": "anthropic",
+                    "model": cell.endpoint,
+                    "request_count": 2,
+                    "status": "submission_ambiguous",
+                    "submission_id": "intent-1",
+                }
+            )
+        )
+        client = ProviderBatchClient(
+            cell, sdk_client=_FakeAnthropicBatchSDK(request_count=1)
+        )
+        with pytest.raises(BatchResultError, match="request count"):
+            client.attach_ambiguous_batch(
+                state_path=state_path,
+                batch_id="existing-batch",
+                operator_note="Candidate found in provider console.",
+            )
+
+    def test_anthropic_attachment_requires_request_count_evidence(self, tmp_path):
+        cell = self._cell(
+            cell_id="claude_neutral_testpool",
+            model_name="claude-sonnet-4-5",
+            provider="anthropic",
+        )
+        state_path = tmp_path / "batch.json"
+        state_path.write_text(
+            json.dumps(
+                {
+                    "provider": "anthropic",
+                    "model": cell.endpoint,
+                    "request_count": 2,
+                    "status": "submission_ambiguous",
+                    "submission_id": "intent-1",
+                }
+            )
+        )
+        sdk = _FakeAnthropicBatchSDK(request_count=2)
+        sdk.messages.batches.retrieve = lambda batch_id: SimpleNamespace(
+            processing_status="in_progress", request_counts=None
+        )
+        with pytest.raises(BatchResultError, match="no complete request count"):
+            ProviderBatchClient(cell, sdk_client=sdk).attach_ambiguous_batch(
+                state_path=state_path,
+                batch_id="existing-batch",
+                operator_note="Candidate found in provider console.",
+            )
 
     @staticmethod
     def _requests():

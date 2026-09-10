@@ -211,6 +211,25 @@ class ChoiceCollector:
         _, requests = self._batch_jobs_and_requests()
         return batch_client.request_hash(requests)
 
+    def batch_request_evidence(
+        self, batch_client: ProviderBatchClient
+    ) -> Dict[str, Any]:
+        """Return canonical request bodies and their observation mapping."""
+        jobs, requests = self._batch_jobs_and_requests()
+        return {
+            "request_hash": batch_client.request_hash(requests),
+            "requests": batch_client.render_requests(requests),
+            "mapping": [
+                {
+                    "custom_id": request.custom_id,
+                    "problem_id": problem["id"],
+                    "presentation_id": presentation["presentation_id"],
+                    "item_order": list(presentation["order"]),
+                }
+                for request, (problem, presentation) in zip(requests, jobs)
+            ],
+        }
+
     def _batch_jobs_and_requests(self):
         jobs = [
             (problem, presentation)

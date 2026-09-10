@@ -333,6 +333,10 @@ class SEUSensitivityStudyConfig:
     max_assessment_tokens: int = 400
     cache_dir: Optional[str] = None
     collection_mode: str = "synchronous"
+    batch_choice_budget_usd: float = 31.0
+    batch_choice_reservation_per_request_usd: float = 31.0 / 10_080
+    batch_wave_id: Optional[str] = None
+    batch_wave_cell_ids: List[str] = field(default_factory=list)
 
     # Storage
     results_dir: Optional[str] = None
@@ -358,6 +362,24 @@ class SEUSensitivityStudyConfig:
             )
         if self.collection_mode not in {"synchronous", "batch"}:
             raise ValueError("collection_mode must be 'synchronous' or 'batch'")
+        if self.batch_choice_budget_usd <= 0:
+            raise ValueError("batch_choice_budget_usd must be positive")
+        if self.batch_choice_reservation_per_request_usd <= 0:
+            raise ValueError(
+                "batch_choice_reservation_per_request_usd must be positive"
+            )
+        if bool(self.batch_wave_id) != bool(self.batch_wave_cell_ids):
+            raise ValueError(
+                "batch_wave_id and batch_wave_cell_ids must be configured together"
+            )
+        known_cell_ids = {cell.cell_id for cell in self.cells}
+        if len(set(self.batch_wave_cell_ids)) != len(self.batch_wave_cell_ids):
+            raise ValueError("batch_wave_cell_ids must not contain duplicates")
+        unknown_wave_cells = set(self.batch_wave_cell_ids) - known_cell_ids
+        if unknown_wave_cells:
+            raise ValueError(
+                f"batch_wave_cell_ids contains unknown cells: {sorted(unknown_wave_cells)}"
+            )
         if not 0 < self.primary_utility_middle < 1:
             raise ValueError("primary_utility_middle must be strictly between 0 and 1")
         if self.primary_utility_middle not in self.utility_middle_values:
@@ -456,6 +478,12 @@ class SEUSensitivityStudyConfig:
             "max_choice_tokens": self.max_choice_tokens,
             "max_assessment_tokens": self.max_assessment_tokens,
             "collection_mode": self.collection_mode,
+            "batch_choice_budget_usd": self.batch_choice_budget_usd,
+            "batch_choice_reservation_per_request_usd": (
+                self.batch_choice_reservation_per_request_usd
+            ),
+            "batch_wave_id": self.batch_wave_id,
+            "batch_wave_cell_ids": list(self.batch_wave_cell_ids),
             "stan_model": self.stan_model,
             "primary_utility_middle": self.primary_utility_middle,
             "utility_middle_values": list(self.utility_middle_values),

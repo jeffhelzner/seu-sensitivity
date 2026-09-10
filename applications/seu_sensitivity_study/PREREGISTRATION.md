@@ -97,6 +97,23 @@ providing a 25% contingency. Stan compute is scheduled as six serial fits for
 two pools across the 0.35/0.50/0.65 utility grid. The observed conservative
 envelope is 50.0 serial hours, subject to the 12-hour stop on every fit.
 
+Before each provider Batch submission, the runner must durably reserve that
+attempt's request count at `$31 / 10,080` per request in an append-only ledger.
+Reservations are keyed by the durable submission intent and are never silently
+released after failure, ambiguity, or completion. The planned 10,080-request
+campaign therefore reserves the full approved $31 ceiling. Any retry,
+replacement batch, or additional request requires separate authorization and a
+corresponding ceiling amendment. A malformed or truncated reservation ledger
+blocks submission rather than being ignored.
+
+Every Batch submission must also belong to a named wave whose configuration
+explicitly allowlists the cell ID. The checked-in production configuration has
+no wave name and an empty allowlist, so it cannot submit merely by running the
+choices phase. Enabling a wave is a separate authorization action and may cover
+only the cells approved for that launch. A replacement attempt requires a new
+authorization and budget amendment; it is never inferred from unused estimated
+cost or a failed prior batch.
+
 ## Reporting restrictions
 
 - Smoke estimates are feasibility evidence, not confirmatory results.

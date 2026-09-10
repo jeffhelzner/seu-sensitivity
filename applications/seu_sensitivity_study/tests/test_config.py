@@ -81,6 +81,41 @@ class TestStudyConfig:
         with pytest.raises(ValueError, match="strictly between"):
             cfg.SEUSensitivityStudyConfig(utility_middle_values=[0.0, 0.5, 0.65])
 
+    def test_batch_budget_policy_is_machine_readable(self):
+        config = cfg.SEUSensitivityStudyConfig()
+        assert config.batch_choice_budget_usd == 31.0
+        assert config.batch_choice_reservation_per_request_usd * 10_080 == pytest.approx(
+            31.0
+        )
+        serialized = config.to_dict()
+        assert serialized["batch_choice_budget_usd"] == 31.0
+        assert serialized["batch_choice_reservation_per_request_usd"] == pytest.approx(
+            31.0 / 10_080
+        )
+
+    @pytest.mark.parametrize(
+        "field",
+        ["batch_choice_budget_usd", "batch_choice_reservation_per_request_usd"],
+    )
+    def test_batch_budget_policy_must_be_positive(self, field):
+        with pytest.raises(ValueError, match=f"{field} must be positive"):
+            cfg.SEUSensitivityStudyConfig(**{field: 0})
+
+    def test_batch_wave_requires_a_named_cell_allowlist(self):
+        with pytest.raises(ValueError, match="must be configured together"):
+            cfg.SEUSensitivityStudyConfig(batch_wave_id="wave-1")
+        with pytest.raises(ValueError, match="unknown cells"):
+            cfg.SEUSensitivityStudyConfig(
+                batch_wave_id="wave-1", batch_wave_cell_ids=["unknown-cell"]
+            )
+
+        cell_id = cfg.SEUSensitivityStudyConfig().cells[0].cell_id
+        config = cfg.SEUSensitivityStudyConfig(
+            batch_wave_id="wave-1", batch_wave_cell_ids=[cell_id]
+        )
+        assert config.to_dict()["batch_wave_id"] == "wave-1"
+        assert config.to_dict()["batch_wave_cell_ids"] == [cell_id]
+
     def test_expected_choice_calls_matches_the_plan(self):
         """Two pools x 18 cells x 140 menus x two presentations."""
         config = cfg.SEUSensitivityStudyConfig()

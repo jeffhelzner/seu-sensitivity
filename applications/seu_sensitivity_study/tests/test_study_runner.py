@@ -369,6 +369,122 @@ class TestFullPipeline:
         assert all(event["collection_mode"] == "synchronous" for event in after)
         assert all("usage" in event and "artifact" in event for event in after)
 
+    def test_batch_budget_reservation_is_idempotent_and_enforces_ceiling(self, runner):
+        cell = runner.config.cells_for_pool(POOL_ID)[0]
+        second_cell = runner.config.cells_for_pool(POOL_ID)[1]
+        runner.config.batch_wave_id = "test-wave"
+        runner.config.batch_wave_cell_ids = [cell.cell_id, second_cell.cell_id]
+        runner.config.batch_choice_reservation_per_request_usd = 0.5
+        runner.config.batch_choice_budget_usd = 1.0
+        state = {
+            "submission_id": "submission-1",
+            "request_hash": "hash-1",
+            "request_count": 2,
+        }
+        runner._reserve_batch_budget(state, cell)
+        runner._reserve_batch_budget(state, cell)
+
+        path = runner.results_dir / "batch_budget_reservations.jsonl"
+        records = [json.loads(line) for line in path.read_text().splitlines()]
+        assert len(records) == 1
+        assert records[0]["reservation_usd"] == 1.0
+
+        with pytest.raises(RuntimeError, match="already reserved for cell"):
+            runner._reserve_batch_budget(
+                {**state, "submission_id": "submission-2"}, cell
+            )
+        assert len(path.read_text().splitlines()) == 1
+
+        with pytest.raises(RuntimeError, match="budget exceeded before submission"):
+            runner._reserve_batch_budget(
+                {**state, "submission_id": "submission-3"}, second_cell
+            )
+        assert len(path.read_text().splitlines()) == 1
+
+    def test_truncated_batch_budget_ledger_blocks_reservation(self, runner):
+        cell = runner.config.cells_for_pool(POOL_ID)[0]
+        runner.config.batch_wave_id = "test-wave"
+        runner.config.batch_wave_cell_ids = [cell.cell_id]
+        path = runner.results_dir / "batch_budget_reservations.jsonl"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text('{"submission_id": "incomplete"')
+
+        with pytest.raises(RuntimeError, match="Invalid or truncated budget ledger"):
+            runner._reserve_batch_budget(
+                {
+                    "submission_id": "submission-2",
+                    "request_hash": "hash-2",
+                    "request_count": 1,
+                },
+                cell,
+            )
+
+        path.write_text(json.dumps({"submission_id": "partial"}) + "\n")
+        with pytest.raises(RuntimeError, match="Invalid or truncated budget ledger"):
+            runner._reserve_batch_budget(
+                {
+                    "submission_id": "submission-3",
+                    "request_hash": "hash-3",
+                    "request_count": 1,
+                },
+                cell,
+            )
+
+    def test_batch_budget_report_keeps_missing_actual_cost_unresolved(self, runner):
+        cells = runner.config.cells_for_pool(POOL_ID)[:2]
+        runner.config.batch_wave_id = "test-wave"
+        runner.config.batch_wave_cell_ids = [cell.cell_id for cell in cells]
+        runner.config.batch_choice_reservation_per_request_usd = 0.1
+        runner.config.batch_choice_budget_usd = 1.0
+        for index, cell in enumerate(cells, start=1):
+            runner._reserve_batch_budget(
+                {
+                    "submission_id": f"submission-{index}",
+                    "request_hash": f"hash-{index}",
+                    "request_count": 1,
+                },
+                cell,
+            )
+
+        state_path = (
+            runner.checkpoint_dir / POOL_ID / "batches" / f"{cells[0].cell_id}.json"
+        )
+        runner._write_json(
+            state_path,
+            {
+                "submission_id": "submission-1",
+                "status": "completed",
+                "batch_id": "batch-1",
+                "usage": {"estimated_cost_usd": 0.04},
+            },
+        )
+        runner._write_batch_budget_report()
+
+        report = json.loads(
+            (runner.results_dir / "batch_budget_report.json").read_text()
+        )
+        assert report["reserved_total_usd"] == pytest.approx(0.2)
+        assert report["known_usage_estimated_total_usd"] == pytest.approx(0.04)
+        assert report["usage_cost_complete"] is False
+        assert report["unresolved_submission_ids"] == ["submission-2"]
+        assert report["attempts"][1]["usage_estimated_cost_usd"] is None
+
+    def test_batch_budget_requires_explicit_cell_wave_authorization(self, runner):
+        cells = runner.config.cells_for_pool(POOL_ID)[:2]
+        state = {
+            "submission_id": "submission-1",
+            "request_hash": "hash-1",
+            "request_count": 1,
+        }
+        with pytest.raises(RuntimeError, match="batch_wave_id is unset"):
+            runner._reserve_batch_budget(state, cells[0])
+
+        runner.config.batch_wave_id = "test-wave"
+        runner.config.batch_wave_cell_ids = [cells[1].cell_id]
+        with pytest.raises(RuntimeError, match="not authorized in wave"):
+            runner._reserve_batch_budget(state, cells[0])
+        assert not (runner.results_dir / "batch_budget_reservations.jsonl").exists()
+
     def test_rerun_is_idempotent(self, runner):
         self._run_all(runner)
         summary = runner.run(phases=["choices"], force=True)
@@ -385,7 +501,7 @@ class TestFullPipeline:
             path.write_text(json.dumps(payload))
 
         class FakeBatchClient:
-            def __init__(self, cell):
+            def __init__(self, cell, **kwargs):
                 pass
 
             def request_hash(self, requests):

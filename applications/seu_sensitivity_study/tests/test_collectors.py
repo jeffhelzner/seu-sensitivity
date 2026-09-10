@@ -15,7 +15,7 @@ import pytest
 from applications.seu_sensitivity_study import problem_generation as pg
 from applications.seu_sensitivity_study import schemas
 from applications.seu_sensitivity_study.assessment_collection import AssessmentCollector
-from applications.seu_sensitivity_study.batch_client import BatchOutcome
+from applications.seu_sensitivity_study.batch_client import BatchOutcome, BatchResultError
 from applications.seu_sensitivity_study.choice_collection import ChoiceCollector
 from applications.seu_sensitivity_study.config import CellSpec
 
@@ -268,6 +268,36 @@ class TestChoiceCollector:
                 state_path=tmp_path / "batch.json",
                 checkpoint_path=checkpoint,
             )
+
+    def test_terminal_batch_salvages_successful_rows_before_reraising(
+        self, cell, design, prompt_set, assessments, mock_client_factory, tmp_path
+    ):
+        class BatchClient:
+            def request_hash(self, requests):
+                return "effective-request-hash"
+
+            def process(self, requests, *, state_path):
+                raise BatchResultError("terminal failure")
+
+            def recover_partial_responses(self, state_path, *, expected_request_hash):
+                assert expected_request_hash == "effective-request-hash"
+                return {"request-00000": "ANSWER: 1"}
+
+        collector = self._collector(
+            cell, design, prompt_set, assessments, mock_client_factory(default="unused")
+        )
+        checkpoint = tmp_path / "choices.partial.json"
+        with pytest.raises(BatchResultError, match="terminal failure"):
+            collector.collect_batch(
+                batch_client=BatchClient(),
+                state_path=tmp_path / "batch.json",
+                checkpoint_path=checkpoint,
+            )
+
+        salvaged = json.loads(checkpoint.read_text())
+        assert salvaged["request_hash"] == "effective-request-hash"
+        assert len(salvaged["choices"]) == 1
+        assert salvaged["choices"][0]["problem_id"] == design["problems"][0]["id"]
 
     def test_assessments_are_inserted_in_presentation_order(
         self, cell, design, prompt_set, assessments, mock_client_factory

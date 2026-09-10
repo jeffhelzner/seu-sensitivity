@@ -5,12 +5,15 @@ Tests for the resilient client layer and the provenance manifest
 
 from __future__ import annotations
 
+import fcntl
 import json
+import os
+import socket
 from types import SimpleNamespace
 
 import pytest
 
-from applications.seu_sensitivity_study import provenance, schemas
+from applications.seu_sensitivity_study import batch_client, provenance, schemas
 from applications.seu_sensitivity_study.client import ResilientClient, is_rate_limit_error
 from applications.seu_sensitivity_study.batch_client import (
     BatchPrompt,
@@ -52,6 +55,11 @@ class _FakeOpenAIBatchSDK:
         self.status = "in_progress"
         self.input_lines = []
         self.output = ""
+        self.error_output = ""
+        self.batch_errors = None
+        self.batch_usage = None
+        self.request_counts = None
+        self.listed_batches = []
         outer = self
 
         class Files:
@@ -61,8 +69,10 @@ class _FakeOpenAIBatchSDK:
                 return SimpleNamespace(id="file-input")
 
             def content(self, file_id):
-                assert file_id == "file-output"
-                return SimpleNamespace(text=outer.output)
+                assert file_id in {"file-output", "file-error"}
+                return SimpleNamespace(
+                    text=outer.output if file_id == "file-output" else outer.error_output
+                )
 
         class Batches:
             def create(self, **kwargs):
@@ -70,11 +80,18 @@ class _FakeOpenAIBatchSDK:
                 return SimpleNamespace(id="batch-1")
 
             def retrieve(self, batch_id):
-                assert batch_id == "batch-1"
+                assert batch_id in {"batch-1", "batch-recovered"}
                 return SimpleNamespace(
                     status=outer.status,
                     output_file_id="file-output" if outer.status == "completed" else None,
+                    error_file_id="file-error" if outer.error_output else None,
+                    errors=outer.batch_errors,
+                    usage=outer.batch_usage,
+                    request_counts=outer.request_counts,
                 )
+
+            def list(self):
+                return iter(outer.listed_batches)
 
         self.files = Files()
         self.batches = Batches()
@@ -109,6 +126,11 @@ class TestProviderBatchClient:
         assert client.process(self._requests(), state_path=state) is None
         assert json.loads(state.read_text())["batch_id"] == "batch-1"
         assert sdk.create_kwargs["endpoint"] == "/v1/chat/completions"
+        assert sdk.create_kwargs["metadata"] == {
+            "cell_id": self._cell().cell_id,
+            "request_hash": client.request_hash(self._requests()),
+            "submission_id": json.loads(state.read_text())["submission_id"],
+        }
         assert [line["custom_id"] for line in sdk.input_lines] == [
             "request-00000",
             "request-00001",
@@ -151,6 +173,47 @@ class TestProviderBatchClient:
         recovered = ProviderBatchClient(self._cell(), sdk_client=sdk).recover_usage(state)
         assert recovered == outcome.usage
 
+    def test_reservation_is_durable_before_provider_submission(self, tmp_path):
+        sdk = _FakeOpenAIBatchSDK()
+        observed = []
+
+        def reserve(state):
+            assert not hasattr(sdk, "create_kwargs")
+            observed.append(dict(state))
+
+        client = ProviderBatchClient(
+            self._cell(), sdk_client=sdk, submission_reserver=reserve
+        )
+        state = tmp_path / "batch.json"
+        assert client.process(self._requests(), state_path=state) is None
+        assert observed[0]["status"] == "reserving"
+        assert observed[0]["submission_id"]
+
+    def test_failed_reservation_never_calls_provider_and_can_resume(self, tmp_path):
+        sdk = _FakeOpenAIBatchSDK()
+        calls = 0
+
+        def reserve(state):
+            nonlocal calls
+            calls += 1
+            if calls == 1:
+                raise RuntimeError("budget exceeded")
+
+        client = ProviderBatchClient(
+            self._cell(), sdk_client=sdk, submission_reserver=reserve
+        )
+        state = tmp_path / "batch.json"
+        with pytest.raises(RuntimeError, match="budget exceeded"):
+            client.process(self._requests(), state_path=state)
+        assert not hasattr(sdk, "create_kwargs")
+        assert json.loads(state.read_text())["status"] == "reserving"
+
+        assert client.process(self._requests(), state_path=state) is None
+        assert calls == 2
+        assert sdk.create_kwargs["metadata"]["submission_id"] == json.loads(
+            state.read_text()
+        )["submission_id"]
+
     def test_request_change_after_submission_is_rejected(self, tmp_path):
         client = ProviderBatchClient(self._cell(), sdk_client=_FakeOpenAIBatchSDK())
         state = tmp_path / "batch.json"
@@ -158,6 +221,16 @@ class TestProviderBatchClient:
         changed = [BatchPrompt("request-00000", "changed", "system", 0.0, 64)]
         with pytest.raises(BatchResultError, match="changed after submission"):
             client.process(changed, state_path=state)
+
+    def test_request_count_change_after_submission_is_rejected(self, tmp_path):
+        client = ProviderBatchClient(self._cell(), sdk_client=_FakeOpenAIBatchSDK())
+        state = tmp_path / "batch.json"
+        client.process(self._requests(), state_path=state)
+        persisted = json.loads(state.read_text())
+        persisted["request_count"] = 1
+        state.write_text(json.dumps(persisted))
+        with pytest.raises(BatchResultError, match="request count"):
+            client.process(self._requests(), state_path=state)
 
     def test_incomplete_output_is_rejected(self, tmp_path):
         sdk = _FakeOpenAIBatchSDK()
@@ -212,6 +285,79 @@ class TestProviderBatchClient:
             "request-00000"
         ]
 
+    def test_terminal_error_file_is_persisted_before_failure(self, tmp_path):
+        sdk = _FakeOpenAIBatchSDK()
+        client = ProviderBatchClient(self._cell(), sdk_client=sdk)
+        state = tmp_path / "batch.json"
+        client.process(self._requests(), state_path=state)
+        sdk.status = "failed"
+        sdk.batch_usage = SimpleNamespace(
+            input_tokens=100,
+            output_tokens=20,
+            input_tokens_details=SimpleNamespace(cached_tokens=10),
+            output_tokens_details=SimpleNamespace(reasoning_tokens=5),
+        )
+        sdk.request_counts = SimpleNamespace(total=2, completed=0, failed=2)
+        sdk.error_output = json.dumps(
+            {
+                "custom_id": "request-00000",
+                "response": None,
+                "error": {"code": "invalid_request", "message": "bad request"},
+            }
+        )
+
+        with pytest.raises(BatchResultError, match="failed request"):
+            client.process(self._requests(), state_path=state)
+        persisted = json.loads(state.read_text())
+        assert persisted["status"] == "failed"
+        assert persisted["failed_custom_ids"] == ["request-00000"]
+        assert persisted["result_records"][0]["error"]["code"] == "invalid_request"
+        assert persisted["usage"]["calls"] == 2
+        assert persisted["usage"]["input_tokens"] == 100
+        assert persisted["usage"]["reasoning_tokens"] == 5
+
+    def test_batch_level_errors_are_persisted_before_failure(self, tmp_path):
+        sdk = _FakeOpenAIBatchSDK()
+        client = ProviderBatchClient(self._cell(), sdk_client=sdk)
+        state = tmp_path / "batch.json"
+        client.process(self._requests(), state_path=state)
+        sdk.status = "failed"
+        sdk.batch_errors = SimpleNamespace(
+            data=[SimpleNamespace(code="invalid_file", line=1, message="bad JSONL", param=None)]
+        )
+
+        with pytest.raises(BatchResultError, match="provider_errors"):
+            client.process(self._requests(), state_path=state)
+        assert json.loads(state.read_text())["provider_errors"] == [
+            {"code": "invalid_file", "line": 1, "message": "bad JSONL"}
+        ]
+
+    def test_partial_response_recovery_is_identity_bound_and_excludes_blocked_ids(
+        self, tmp_path
+    ):
+        client = ProviderBatchClient(self._cell(), sdk_client=_FakeOpenAIBatchSDK())
+        state = tmp_path / "batch.json"
+        state.write_text(
+            json.dumps(
+                {
+                    "request_hash": "expected",
+                    "responses": {
+                        "request-00000": "ANSWER: 1",
+                        "request-00001": "ANSWER: 2",
+                    },
+                    "failed_custom_ids": [],
+                    "duplicate_custom_ids": ["request-00001"],
+                }
+            )
+        )
+        assert client.recover_partial_responses(
+            state, expected_request_hash="expected"
+        ) == {"request-00000": "ANSWER: 1"}
+        with pytest.raises(BatchResultError, match="identity does not match"):
+            client.recover_partial_responses(
+                state, expected_request_hash="changed"
+            )
+
     def test_effective_reasoning_reserve_is_part_of_request_hash(self, tmp_path):
         state = tmp_path / "batch.json"
         first = ProviderBatchClient(
@@ -248,8 +394,144 @@ class TestProviderBatchClient:
         with pytest.raises(RuntimeError, match="connection lost"):
             client.process(self._requests(), state_path=state)
         assert json.loads(state.read_text())["status"] == "submission_ambiguous"
-        with pytest.raises(BatchResultError, match="reconcile"):
+        with pytest.raises(BatchResultError, match="exactly one OpenAI batch"):
             client.process(self._requests(), state_path=state)
+
+    def test_anthropic_ambiguous_submission_remains_fail_closed(self, tmp_path):
+        cell = self._cell(
+            cell_id="claude_neutral_testpool",
+            model_name="claude-haiku-4-5",
+            provider="anthropic",
+            endpoint_id="claude-haiku-4-5-20251001",
+        )
+        client = ProviderBatchClient(cell, sdk_client=SimpleNamespace())
+        state = tmp_path / "batch.json"
+        state.write_text(
+            json.dumps(
+                {
+                    "request_hash": client.request_hash(self._requests()),
+                    "request_count": len(self._requests()),
+                    "submission_id": "ambiguous-intent",
+                    "status": "submission_ambiguous",
+                }
+            )
+        )
+        with pytest.raises(BatchResultError, match="unavailable for Anthropic"):
+            client.process(self._requests(), state_path=state)
+
+    def test_ambiguous_submission_reconciles_unique_request_bound_batch(self, tmp_path):
+        sdk = _FakeOpenAIBatchSDK()
+        client = ProviderBatchClient(self._cell(), sdk_client=sdk)
+        state = tmp_path / "batch.json"
+        sdk.batches.create = lambda **kwargs: (_ for _ in ()).throw(
+            RuntimeError("connection lost")
+        )
+        with pytest.raises(RuntimeError, match="connection lost"):
+            client.process(self._requests(), state_path=state)
+
+        persisted = json.loads(state.read_text())
+        sdk.listed_batches = [
+            SimpleNamespace(
+                id="batch-old-identical",
+                metadata={
+                    "cell_id": self._cell().cell_id,
+                    "request_hash": persisted["request_hash"],
+                    "submission_id": "older-intent",
+                },
+            ),
+            SimpleNamespace(
+                id="batch-recovered",
+                metadata={
+                    "cell_id": self._cell().cell_id,
+                    "request_hash": persisted["request_hash"],
+                    "submission_id": persisted["submission_id"],
+                },
+            ),
+        ]
+        assert client.process(self._requests(), state_path=state) is None
+        recovered = json.loads(state.read_text())
+        assert recovered["batch_id"] == "batch-recovered"
+        assert recovered["reconciled_from_provider"] is True
+
+    def test_post_acceptance_state_write_failure_is_reconciled(
+        self, tmp_path, monkeypatch
+    ):
+        sdk = _FakeOpenAIBatchSDK()
+        client = ProviderBatchClient(self._cell(), sdk_client=sdk)
+        state = tmp_path / "batch.json"
+        real_write_json = batch_client._write_json
+
+        def fail_after_acceptance(path, payload):
+            if payload.get("batch_id"):
+                raise OSError("disk unavailable")
+            real_write_json(path, payload)
+
+        monkeypatch.setattr(batch_client, "_write_json", fail_after_acceptance)
+        with pytest.raises(OSError, match="disk unavailable"):
+            client.process(self._requests(), state_path=state)
+
+        persisted = json.loads(state.read_text())
+        assert persisted["status"] == "submitting"
+        sdk.listed_batches = [
+            SimpleNamespace(id="batch-recovered", metadata=sdk.create_kwargs["metadata"])
+        ]
+        monkeypatch.setattr(batch_client, "_write_json", real_write_json)
+        assert client.process(self._requests(), state_path=state) is None
+        assert json.loads(state.read_text())["batch_id"] == "batch-recovered"
+
+    def test_ambiguous_submission_rejects_multiple_request_bound_batches(self, tmp_path):
+        sdk = _FakeOpenAIBatchSDK()
+        client = ProviderBatchClient(self._cell(), sdk_client=sdk)
+        state = tmp_path / "batch.json"
+        request_hash = client.request_hash(self._requests())
+        submission_id = "submission-intent"
+        state.write_text(
+            json.dumps(
+                {
+                    "request_hash": request_hash,
+                    "request_count": len(self._requests()),
+                    "status": "submission_ambiguous",
+                    "submission_id": submission_id,
+                }
+            )
+        )
+        sdk.listed_batches = [
+            SimpleNamespace(
+                id=f"batch-{index}",
+                metadata={
+                    "cell_id": self._cell().cell_id,
+                    "request_hash": request_hash,
+                    "submission_id": submission_id,
+                },
+            )
+            for index in range(2)
+        ]
+        with pytest.raises(BatchResultError, match="found 2"):
+            client.process(self._requests(), state_path=state)
+
+    def test_dead_same_host_lock_is_reclaimed(self, tmp_path):
+        client = ProviderBatchClient(self._cell(), sdk_client=_FakeOpenAIBatchSDK())
+        state = tmp_path / "batch.json"
+        lock = state.with_suffix(".json.lock")
+        lock.write_text(json.dumps({"hostname": socket.gethostname(), "pid": 99999999}))
+
+        assert client.process(self._requests(), state_path=state) is None
+        owner = json.loads(lock.read_text())
+        assert owner == {"hostname": socket.gethostname(), "pid": os.getpid()}
+
+    def test_live_lock_remains_fail_closed(self, tmp_path):
+        client = ProviderBatchClient(self._cell(), sdk_client=_FakeOpenAIBatchSDK())
+        state = tmp_path / "batch.json"
+        lock = state.with_suffix(".json.lock")
+        descriptor = os.open(lock, os.O_CREAT | os.O_RDWR, 0o600)
+        fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        try:
+            with pytest.raises(BatchResultError, match="already being modified"):
+                client.process(self._requests(), state_path=state)
+            assert lock.exists()
+        finally:
+            os.close(descriptor)
+            lock.unlink(missing_ok=True)
 
     def test_anthropic_thinking_request_uses_pinned_budget(self):
         cell = self._cell(

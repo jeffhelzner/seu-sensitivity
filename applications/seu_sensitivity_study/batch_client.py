@@ -2,14 +2,17 @@
 
 from __future__ import annotations
 
+import fcntl
 import hashlib
 import io
 import json
 import os
+import socket
+import uuid
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Mapping, Optional, Sequence
+from typing import Any, Callable, Dict, Mapping, Optional, Sequence
 
 from .config import CellSpec
 from .llm_extensions import pricing_for
@@ -31,6 +34,7 @@ class BatchOutcome:
     failed_custom_ids: tuple[str, ...] = ()
     duplicate_custom_ids: tuple[str, ...] = ()
     result_records: tuple[Dict[str, Any], ...] = ()
+    provider_errors: tuple[Dict[str, Any], ...] = ()
 
 
 class BatchPending(RuntimeError):
@@ -44,13 +48,20 @@ class BatchResultError(RuntimeError):
 class ProviderBatchClient:
     """Submit once, then retrieve on a later invocation using durable state."""
 
-    def __init__(self, cell: CellSpec, *, sdk_client: Any = None):
+    def __init__(
+        self,
+        cell: CellSpec,
+        *,
+        sdk_client: Any = None,
+        submission_reserver: Optional[Callable[[Mapping[str, Any]], None]] = None,
+    ):
         self.cell = cell
         self.provider = cell.provider
         self.model = cell.endpoint
         self.request_params = dict(cell.request_params or {})
         self.reasoning_reserve = cell.reasoning_token_reserve
         self._sdk_client = sdk_client or self._new_sdk_client()
+        self._submission_reserver = submission_reserver
         self.last_usage: Dict[str, Any] = {}
 
     def process(
@@ -65,18 +76,11 @@ class ProviderBatchClient:
                     "model": self.model,
                     "request_hash": request_hash,
                     "request_count": len(requests),
-                    "status": "submitting",
+                    "status": "reserving",
+                    "submission_id": uuid.uuid4().hex,
                 }
                 _write_json(state_path, state)
-                try:
-                    batch_id = self._submit(requests, state_path)
-                except Exception as error:
-                    state["status"] = "submission_ambiguous"
-                    state["submission_error"] = f"{type(error).__name__}: {error}"
-                    _write_json(state_path, state)
-                    raise
-                state.update(batch_id=batch_id, status="submitted")
-                _write_json(state_path, state)
+                self._start_submission(requests, state_path, state)
                 return None
 
             state = json.loads(state_path.read_text())
@@ -85,11 +89,21 @@ class ProviderBatchClient:
                     f"Batch request changed after submission for {state_path}; "
                     "refusing to attach existing results"
                 )
-            if not state.get("batch_id"):
+            if state.get("request_count") != len(requests):
                 raise BatchResultError(
-                    f"Batch submission state for {state_path} is ambiguous; reconcile "
-                    "with the provider before retrying"
+                    f"Batch request count does not match durable state for {state_path}"
                 )
+            if not state.get("batch_id"):
+                if state.get("status") == "reserving":
+                    self._start_submission(requests, state_path, state)
+                    return None
+                batch_id = self._reconcile_submission(state)
+                state.update(
+                    batch_id=batch_id,
+                    status="submitted",
+                    reconciled_from_provider=True,
+                )
+                _write_json(state_path, state)
 
             outcome, status = self._retrieve(state["batch_id"])
             state["status"] = status
@@ -100,6 +114,7 @@ class ProviderBatchClient:
                 state["failed_custom_ids"] = list(outcome.failed_custom_ids)
                 state["duplicate_custom_ids"] = list(outcome.duplicate_custom_ids)
                 state["result_records"] = list(outcome.result_records)
+                state["provider_errors"] = list(outcome.provider_errors)
                 _write_json(state_path, state)
 
                 if outcome.duplicate_custom_ids:
@@ -111,6 +126,11 @@ class ProviderBatchClient:
                     raise BatchResultError(
                         f"Batch {state['batch_id']} has failed request(s): "
                         f"{list(outcome.failed_custom_ids)}"
+                    )
+                if outcome.provider_errors or status != "completed":
+                    raise BatchResultError(
+                        f"Batch {state['batch_id']} ended with status {status}; "
+                        f"provider_errors={list(outcome.provider_errors)}"
                     )
                 expected = {request.custom_id for request in requests}
                 received = set(outcome.responses)
@@ -124,6 +144,31 @@ class ProviderBatchClient:
             else:
                 _write_json(state_path, state)
             return outcome
+
+    def _start_submission(
+        self,
+        requests: Sequence[BatchPrompt],
+        state_path: Path,
+        state: Dict[str, Any],
+    ) -> None:
+        if self._submission_reserver is not None:
+            self._submission_reserver(state)
+        state["status"] = "submitting"
+        _write_json(state_path, state)
+        try:
+            batch_id = self._submit(
+                requests,
+                state_path,
+                state["request_hash"],
+                state["submission_id"],
+            )
+        except Exception as error:
+            state["status"] = "submission_ambiguous"
+            state["submission_error"] = f"{type(error).__name__}: {error}"
+            _write_json(state_path, state)
+            raise
+        state.update(batch_id=batch_id, status="submitted")
+        _write_json(state_path, state)
 
     def request_hash(self, requests: Sequence[BatchPrompt]) -> str:
         """Hash the exact provider request bodies that would be transmitted."""
@@ -147,6 +192,26 @@ class ProviderBatchClient:
         self.last_usage = usage
         return usage
 
+    def recover_partial_responses(
+        self, state_path: Path, *, expected_request_hash: str
+    ) -> Dict[str, str]:
+        """Return only successful, unambiguous responses from durable state."""
+        if not state_path.exists():
+            return {}
+        state = json.loads(state_path.read_text())
+        if state.get("request_hash") != expected_request_hash:
+            raise BatchResultError(
+                f"Batch request identity does not match partial state {state_path}"
+            )
+        blocked = set(state.get("failed_custom_ids") or ()) | set(
+            state.get("duplicate_custom_ids") or ()
+        )
+        return {
+            str(custom_id): str(response)
+            for custom_id, response in (state.get("responses") or {}).items()
+            if custom_id not in blocked
+        }
+
     def _new_sdk_client(self) -> Any:
         if self.provider == "openai":
             import openai
@@ -158,7 +223,13 @@ class ProviderBatchClient:
             return anthropic.Anthropic()
         raise ValueError(f"Unknown provider: {self.provider}")
 
-    def _submit(self, requests: Sequence[BatchPrompt], state_path: Path) -> str:
+    def _submit(
+        self,
+        requests: Sequence[BatchPrompt],
+        state_path: Path,
+        request_hash: str,
+        submission_id: str,
+    ) -> str:
         if self.provider == "openai":
             lines = [json.dumps(self._openai_request(request)) for request in requests]
             payload = io.BytesIO(("\n".join(lines) + "\n").encode("utf-8"))
@@ -168,7 +239,11 @@ class ProviderBatchClient:
                 input_file_id=uploaded.id,
                 endpoint="/v1/chat/completions",
                 completion_window="24h",
-                metadata={"cell_id": self.cell.cell_id},
+                metadata={
+                    "cell_id": self.cell.cell_id,
+                    "request_hash": request_hash,
+                    "submission_id": submission_id,
+                },
             )
             return batch.id
 
@@ -176,6 +251,29 @@ class ProviderBatchClient:
             requests=[self._anthropic_request(request) for request in requests]
         )
         return batch.id
+
+    def _reconcile_submission(self, state: Mapping[str, Any]) -> str:
+        if self.provider != "openai":
+            raise BatchResultError(
+                "Provider-side reconciliation is unavailable for Anthropic batches "
+                "because they do not carry request-bound metadata"
+            )
+
+        candidates = []
+        for batch in self._sdk_client.batches.list():
+            metadata = getattr(batch, "metadata", None) or {}
+            if (
+                metadata.get("cell_id") == self.cell.cell_id
+                and metadata.get("request_hash") == state.get("request_hash")
+                and metadata.get("submission_id") == state.get("submission_id")
+            ):
+                candidates.append(str(batch.id))
+        if len(candidates) != 1:
+            raise BatchResultError(
+                "Provider-side reconciliation requires exactly one OpenAI batch "
+                f"matching cell and request hash; found {len(candidates)}"
+            )
+        return candidates[0]
 
     def _retrieve(self, batch_id: str) -> tuple[Optional[BatchOutcome], str]:
         if self.provider == "openai":
@@ -189,21 +287,39 @@ class ProviderBatchClient:
         status = str(batch.status)
         if status in {"validating", "in_progress", "finalizing", "cancelling"}:
             return None, status
-        if status != "completed":
-            raise BatchResultError(f"OpenAI batch {batch_id} ended with status {status}")
-        if not batch.output_file_id:
-            raise BatchResultError(f"OpenAI batch {batch_id} has no output file")
+        if status not in {"completed", "failed", "expired", "cancelled"}:
+            raise BatchResultError(f"OpenAI batch {batch_id} has unknown status {status}")
 
-        content = self._sdk_client.files.content(batch.output_file_id).text
         responses: Dict[str, str] = {}
         usages = []
         failures = []
         duplicates = []
         records = []
-        for line in content.splitlines():
-            result = json.loads(line)
-            records.append(result)
-            custom_id = result["custom_id"]
+        batch_errors = getattr(batch, "errors", None)
+        provider_errors = [
+            _openai_error_record(error)
+            for error in (_object_value(batch_errors, "data", []) or [])
+        ]
+        file_ids = [
+            file_id
+            for file_id in (
+                getattr(batch, "output_file_id", None),
+                getattr(batch, "error_file_id", None),
+            )
+            if file_id
+        ]
+        for file_id in dict.fromkeys(file_ids):
+            content = self._sdk_client.files.content(file_id).text
+            records.extend(json.loads(line) for line in content.splitlines() if line)
+        if not records and not provider_errors:
+            provider_errors.append(
+                {"status": status, "message": "Batch supplied no output or error evidence"}
+            )
+        for result in records:
+            custom_id = result.get("custom_id")
+            if not custom_id:
+                provider_errors.append(result)
+                continue
             if custom_id in responses or custom_id in failures:
                 duplicates.append(custom_id)
                 continue
@@ -214,12 +330,20 @@ class ProviderBatchClient:
             body = response["body"]
             responses[custom_id] = body["choices"][0]["message"]["content"].strip()
             usages.append(_openai_usage(body.get("usage") or {}))
+        batch_usage = getattr(batch, "usage", None)
+        if batch_usage is not None:
+            usages = [_openai_batch_usage(batch_usage)]
+        usage_summary = self._usage_summary(usages)
+        request_counts = getattr(batch, "request_counts", None)
+        if request_counts is not None:
+            usage_summary["calls"] = int(_object_value(request_counts, "total", 0))
         return BatchOutcome(
             responses,
-            self._usage_summary(usages),
+            usage_summary,
             tuple(sorted(set(failures))),
             tuple(sorted(set(duplicates))),
             tuple(records),
+            tuple(provider_errors),
         ), status
 
     def _retrieve_anthropic(
@@ -342,6 +466,37 @@ def _openai_usage(usage: Mapping[str, Any]) -> Dict[str, int]:
     }
 
 
+def _openai_batch_usage(usage: Any) -> Dict[str, int]:
+    input_details = _object_value(usage, "input_tokens_details", {}) or {}
+    output_details = _object_value(usage, "output_tokens_details", {}) or {}
+    return {
+        "input_tokens": int(_object_value(usage, "input_tokens", 0) or 0),
+        "output_tokens": int(_object_value(usage, "output_tokens", 0) or 0),
+        "cached_input_tokens": int(_object_value(input_details, "cached_tokens", 0) or 0),
+        "reasoning_tokens": int(
+            _object_value(output_details, "reasoning_tokens", 0) or 0
+        ),
+    }
+
+
+def _object_value(value: Any, key: str, default: Any) -> Any:
+    if isinstance(value, Mapping):
+        return value.get(key, default)
+    return getattr(value, key, default)
+
+
+def _openai_error_record(error: Any) -> Dict[str, Any]:
+    if isinstance(error, Mapping):
+        return dict(error)
+    if hasattr(error, "model_dump"):
+        return dict(error.model_dump())
+    return {
+        key: getattr(error, key)
+        for key in ("code", "line", "message", "param")
+        if getattr(error, key, None) is not None
+    }
+
+
 def _anthropic_usage(usage: Any) -> Dict[str, int]:
     return {
         "input_tokens": int(getattr(usage, "input_tokens", 0) or 0),
@@ -366,14 +521,19 @@ def _write_json(path: Path, payload: Mapping[str, Any]) -> None:
 def _single_writer(state_path: Path):
     state_path.parent.mkdir(parents=True, exist_ok=True)
     lock_path = state_path.with_suffix(state_path.suffix + ".lock")
+    descriptor = os.open(lock_path, os.O_CREAT | os.O_RDWR, 0o600)
     try:
-        descriptor = os.open(lock_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
-    except FileExistsError as error:
-        raise BatchResultError(
-            f"Batch state is already being modified: {state_path}"
-        ) from error
-    try:
-        os.close(descriptor)
+        try:
+            fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError as error:
+            raise BatchResultError(
+                f"Batch state is already being modified: {state_path}"
+            ) from error
+        owner = json.dumps({"hostname": socket.gethostname(), "pid": os.getpid()})
+        os.ftruncate(descriptor, 0)
+        os.lseek(descriptor, 0, os.SEEK_SET)
+        os.write(descriptor, owner.encode("utf-8"))
+        os.fsync(descriptor)
         yield
     finally:
-        lock_path.unlink(missing_ok=True)
+        os.close(descriptor)

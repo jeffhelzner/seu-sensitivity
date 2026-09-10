@@ -36,9 +36,11 @@ Layout under ``results/``::
 
 from __future__ import annotations
 
+import fcntl
 import hashlib
 import json
 import logging
+import math
 import os
 from dataclasses import asdict
 from datetime import datetime, timezone
@@ -395,7 +397,12 @@ class SEUSensitivityStudyRunner:
             )
             batch_client = None
             if self.config.collection_mode == "batch":
-                batch_client = ProviderBatchClient(cell)
+                batch_client = ProviderBatchClient(
+                    cell,
+                    submission_reserver=lambda state, cell=cell: self._reserve_batch_budget(
+                        state, cell
+                    ),
+                )
 
             if target.exists():
                 cached = json.loads(target.read_text())
@@ -424,11 +431,14 @@ class SEUSensitivityStudyRunner:
                     / "batches"
                     / f"{cell.cell_id}.json"
                 )
-                payload = collector.collect_batch(
-                    batch_client=batch_client,
-                    state_path=batch_state_path,
-                    checkpoint_path=checkpoint_path,
-                )
+                try:
+                    payload = collector.collect_batch(
+                        batch_client=batch_client,
+                        state_path=batch_state_path,
+                        checkpoint_path=checkpoint_path,
+                    )
+                finally:
+                    self._write_batch_budget_report()
                 if payload is None:
                     collected[cell.cell_id] = "batch_pending"
                     continue
@@ -859,6 +869,185 @@ class SEUSensitivityStudyRunner:
             os.fsync(descriptor)
         finally:
             os.close(descriptor)
+
+    def _reserve_batch_budget(
+        self, state: Mapping[str, Any], cell: Any
+    ) -> None:
+        if not self.config.batch_wave_id:
+            raise RuntimeError(
+                "Batch submission is not authorized: batch_wave_id is unset"
+            )
+        if cell.cell_id not in self.config.batch_wave_cell_ids:
+            raise RuntimeError(
+                f"Batch cell {cell.cell_id} is not authorized in wave "
+                f"{self.config.batch_wave_id}"
+            )
+        path = self.results_dir / "batch_budget_reservations.jsonl"
+        lock_path = path.with_suffix(path.suffix + ".lock")
+        path.parent.mkdir(parents=True, exist_ok=True)
+        descriptor = os.open(lock_path, os.O_CREAT | os.O_RDWR, 0o600)
+        try:
+            try:
+                fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError as error:
+                raise RuntimeError(
+                    f"Batch budget ledger is already being modified: {path}"
+                ) from error
+            records = self._load_batch_budget_records(path)
+            cell_ids = {record["cell_id"] for record in records}
+
+            submission_id = str(state["submission_id"])
+            reservation_usd = (
+                int(state["request_count"])
+                * self.config.batch_choice_reservation_per_request_usd
+            )
+            existing = [
+                record
+                for record in records
+                if record.get("submission_id") == submission_id
+            ]
+            if existing:
+                if not math.isclose(
+                    existing[0]["reservation_usd"],
+                    reservation_usd,
+                    rel_tol=0.0,
+                    abs_tol=1e-12,
+                ):
+                    raise RuntimeError(
+                        f"Conflicting Batch budget reservation for {submission_id}"
+                    )
+                return
+
+            if cell.cell_id in cell_ids:
+                raise RuntimeError(
+                    f"Batch budget already reserved for cell {cell.cell_id}; "
+                    "replacement attempts require amended authorization"
+                )
+
+            reserved_usd = sum(
+                float(record.get("reservation_usd", 0.0)) for record in records
+            )
+            if reserved_usd + reservation_usd > self.config.batch_choice_budget_usd + 1e-12:
+                raise RuntimeError(
+                    "Batch choice budget exceeded before submission: "
+                    f"reserved=${reserved_usd:.6f}, requested=${reservation_usd:.6f}, "
+                    f"ceiling=${self.config.batch_choice_budget_usd:.2f}"
+                )
+            record = {
+                "submission_id": submission_id,
+                "wave_id": self.config.batch_wave_id,
+                "request_hash": state["request_hash"],
+                "request_count": int(state["request_count"]),
+                "reservation_usd": reservation_usd,
+                "budget_ceiling_usd": self.config.batch_choice_budget_usd,
+                "reservation_rate_usd": (
+                    self.config.batch_choice_reservation_per_request_usd
+                ),
+                "cell_id": cell.cell_id,
+                "provider": cell.provider,
+                "model": cell.endpoint,
+                "recorded_at": datetime.now(timezone.utc).isoformat(),
+            }
+            line = json.dumps(record, sort_keys=True) + "\n"
+            ledger = os.open(path, os.O_APPEND | os.O_CREAT | os.O_WRONLY, 0o600)
+            try:
+                os.write(ledger, line.encode("utf-8"))
+                os.fsync(ledger)
+            finally:
+                os.close(ledger)
+        finally:
+            os.close(descriptor)
+
+    @staticmethod
+    def _load_batch_budget_records(path: Path) -> List[Dict[str, Any]]:
+        records = []
+        submission_ids = set()
+        cell_ids = set()
+        if not path.exists():
+            return records
+        with open(path) as handle:
+            for line_number, line in enumerate(handle, start=1):
+                if not line.strip():
+                    continue
+                try:
+                    record = json.loads(line)
+                except json.JSONDecodeError as error:
+                    raise RuntimeError(
+                        f"Invalid or truncated budget ledger at line {line_number}: {path}"
+                    ) from error
+                submission_id = record.get("submission_id")
+                reservation = record.get("reservation_usd")
+                cell_id = record.get("cell_id")
+                if (
+                    not isinstance(submission_id, str)
+                    or not submission_id
+                    or not isinstance(cell_id, str)
+                    or not cell_id
+                    or isinstance(reservation, bool)
+                    or not isinstance(reservation, (int, float))
+                    or not math.isfinite(reservation)
+                    or reservation <= 0
+                    or submission_id in submission_ids
+                    or cell_id in cell_ids
+                ):
+                    raise RuntimeError(
+                        f"Invalid or truncated budget ledger at line {line_number}: {path}"
+                    )
+                submission_ids.add(submission_id)
+                cell_ids.add(cell_id)
+                records.append(record)
+        return records
+
+    def _write_batch_budget_report(self) -> None:
+        ledger_path = self.results_dir / "batch_budget_reservations.jsonl"
+        reservations = self._load_batch_budget_records(ledger_path)
+        states = {}
+        for state_path in sorted(self.checkpoint_dir.glob("*/batches/*.json")):
+            state = json.loads(state_path.read_text())
+            submission_id = state.get("submission_id")
+            if submission_id:
+                states[submission_id] = (state_path, state)
+
+        attempts = []
+        usage_estimated_costs = []
+        for reservation in reservations:
+            state_entry = states.get(reservation["submission_id"])
+            state_path, state = state_entry if state_entry else (None, {})
+            usage = state.get("usage") or {}
+            usage_estimated_cost = usage.get("estimated_cost_usd")
+            if isinstance(usage_estimated_cost, (int, float)) and math.isfinite(
+                usage_estimated_cost
+            ):
+                usage_estimated_costs.append(float(usage_estimated_cost))
+            else:
+                usage_estimated_cost = None
+            attempts.append(
+                {
+                    **reservation,
+                    "batch_state": str(state_path) if state_path else None,
+                    "status": state.get("status", "state_missing"),
+                    "batch_id": state.get("batch_id"),
+                    "usage_estimated_cost_usd": usage_estimated_cost,
+                    "usage_cost_known": usage_estimated_cost is not None,
+                }
+            )
+
+        reserved_total = sum(float(item["reservation_usd"]) for item in reservations)
+        report = {
+            "budget_ceiling_usd": self.config.batch_choice_budget_usd,
+            "reserved_total_usd": reserved_total,
+            "reservation_headroom_usd": self.config.batch_choice_budget_usd
+            - reserved_total,
+            "known_usage_estimated_total_usd": sum(usage_estimated_costs),
+            "usage_cost_complete": len(usage_estimated_costs) == len(reservations),
+            "unresolved_submission_ids": [
+                attempt["submission_id"]
+                for attempt in attempts
+                if not attempt["usage_cost_known"]
+            ],
+            "attempts": attempts,
+        }
+        self._write_json(self.results_dir / "batch_budget_report.json", report)
 
 
 def _json_default(value: Any) -> Any:

@@ -161,7 +161,7 @@ the Monte Carlo standard error of nominal 90% coverage is 0.047; the observed
 contrast coverages are consistent with that target at this resolution. The RQ5
 simulation/recovery gate is complete; final contrast-table reporting remains.
 
-All maintained application tests pass (498 tests). Repository-wide pytest last
+All maintained application tests pass (519 tests). Repository-wide pytest last
 passed 475 tests but reported three unrelated collection errors from the legacy
 executable `scripts/test_m1_model.py`, whose helper functions are named
 `test_*` but require command-line arguments rather than pytest fixtures.
@@ -181,6 +181,48 @@ invocation submits once and returns `batch_pending`; later invocations retrieve
 that same batch. Prompt or model drift after submission is rejected rather than
 silently attaching old paid results to a changed design.
 
+OpenAI submissions also carry a durable random submission-intent ID and the
+full request digest in provider metadata. If local persistence fails after
+provider acceptance, a later invocation lists provider batches and attaches
+only when exactly one batch matches the cell, request digest, and intent ID;
+zero or multiple matches remain fail-closed. Older batches with identical
+request content cannot satisfy the intent match. Batch-state writers use a
+nonblocking OS advisory lock, which is released automatically if its owner
+process exits; stale lock files are therefore safely reusable while a live
+owner still blocks concurrent mutation. Anthropic ambiguous submissions remain
+manual reconciliation cases because Message Batches expose no equivalent
+request-bound listing metadata.
+
+The approved `$31` choice ceiling and a `$31 / 10,080` per-request reservation
+rate are machine-readable configuration. Before the provider call begins, each
+new submission intent is fsynced to a separately locked append-only reservation
+ledger. Duplicate reservation of the same intent is idempotent; a conflicting
+intent, an over-ceiling request, or malformed/truncated ledger input stops before
+submission. Reservations remain charged after failed, ambiguous, and completed
+attempts, so the full planned campaign leaves no unauthorized retry capacity.
+
+For OpenAI terminal statuses, the retriever reads both `output_file_id` and
+`error_file_id`, combines their per-request records, captures batch-level
+errors, and prefers provider aggregate Batch usage and request counts when
+available. Responses, failed and duplicate IDs, raw records, provider errors,
+and usage are written to durable batch state before an integrity exception.
+Successful, non-duplicate rows from a partially failed cell are then resolved
+through the normal choice parser and written to a request-bound checkpoint
+before the exception is re-raised. No replacement submission is automatic.
+
+After every Batch poll or exception, `batch_budget_report.json` joins each
+reservation to its durable provider state. It reports total reserved dollars,
+known usage-estimated cost, remaining reservation headroom, per-attempt status,
+and the submission IDs whose usage cost is not yet known. Missing usage remains
+explicitly unresolved and is never counted as zero or treated as invoice data.
+
+Reservation additionally requires a nonempty `batch_wave_id` and explicit
+membership of the cell in `batch_wave_cell_ids`. The preregistered production
+YAML pins these to `null` and an empty list, respectively, so the repository is
+no-spend by default. A separately reviewed config change must name and allowlist
+each production wave before any provider submission can pass the reservation
+boundary.
+
 Results are joined through deterministic `custom_id` values, never provider
 output order. Terminal batch failures, per-request failures, incomplete result
 sets, and unexpected result IDs stop collection explicitly. Successful results
@@ -195,9 +237,13 @@ when exposed by the provider, plus the provider, model, request count, Batch
 discount, and estimated cost. Later phase summaries cannot overwrite them.
 
 Mocked contract tests cover submit/resume behavior, request-digest mismatch,
-OpenAI request JSONL, Anthropic extended-thinking request parameters,
-out-of-order results, incomplete output, usage aggregation, collector
-presentation mapping, and preservation of the synchronous path.
+unique OpenAI provider reconciliation, post-acceptance state-write failure,
+advisory-lock contention and stale-file recovery, OpenAI request JSONL,
+Anthropic extended-thinking request parameters, out-of-order results,
+incomplete output, terminal error-file persistence, aggregate failed-Batch
+usage, partial-success checkpoint salvage, hard-ceiling reservation,
+truncated-ledger rejection, collector presentation mapping, and preservation
+of the synchronous path.
 
 ## Live provider Batch probe
 

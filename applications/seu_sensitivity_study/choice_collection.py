@@ -26,7 +26,7 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Mapping, Optional
 
 from . import schemas
-from .batch_client import BatchPrompt, ProviderBatchClient
+from .batch_client import BatchPrompt, BatchResultError, ProviderBatchClient
 from .config import CellSpec
 from .parsing import parse_choice_response
 from .prompts import PromptSet
@@ -153,7 +153,30 @@ class ChoiceCollector:
         ]
 
         if requests:
-            outcome = batch_client.process(requests, state_path=state_path)
+            try:
+                outcome = batch_client.process(requests, state_path=state_path)
+            except BatchResultError:
+                responses = batch_client.recover_partial_responses(
+                    state_path, expected_request_hash=request_hash
+                )
+                if checkpoint_path is not None and responses:
+                    salvaged = []
+                    for index, (problem, presentation) in enumerate(jobs):
+                        key = (problem["id"], presentation["presentation_id"])
+                        if key in done:
+                            salvaged.append(done[key])
+                            continue
+                        custom_id = f"request-{index:05d}"
+                        if custom_id in responses:
+                            salvaged.append(
+                                self._record_response(
+                                    problem, presentation, responses[custom_id]
+                                )
+                            )
+                    _write_checkpoint(
+                        checkpoint_path, salvaged, request_hash=request_hash
+                    )
+                raise
             if outcome is None:
                 return None
             responses = outcome.responses

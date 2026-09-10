@@ -222,10 +222,39 @@ paired menus per task. Its rank-14 design contains additive model and prompt
 effects, a hiring-task indicator, and five model-by-task terms; these identify
 six within-model hiring-minus-procurement contrasts. Cross-pool differences
 between primary venture and hiring fits remain supporting evidence, not a
-substitute. The dedicated fit remains unavailable for inference until its
-production-dimensional simulation and recovery checks pass.
+substitute. Its production-dimensional validation and 40-dataset recovery
+campaign have passed the prespecified sampler gates.
 
 The pipeline writes this policy as `analysis_contract.json` beside each pool's
 Stan data. After whole-cell NA exclusion, every anchored primary and utility-grid
 payload must retain full rank in its intercept-plus-design matrix. Failure stops
 analysis rather than silently changing the confirmatory family.
+
+## Amendment 4: presentation dependence and calibration
+
+Amended: 2026-09-10, before production choice collection.
+
+The primary analysis retains both frozen presentations of every menu. To assess
+dependence induced by presenting the same alternatives twice, each primary
+`u=0.50` fit will be repeated on two deterministic subsets: presentation 1 only
+and presentation 2 only. Each subset contains at most one observation per menu
+and removes within-menu duplication without conditioning on whether the two
+observed choices agree. This sensitivity applies to both pool-specific fits and
+the dedicated matched-item RQ5 fit. The utility-scale grid remains a full-data
+sensitivity and is not crossed with the presentation sensitivity.
+
+Every primary contrast and `gamma_size` will be compared across the full-data,
+presentation-1-only, and presentation-2-only fits. Any change in sign, central
+90% interval decision, or substantive interpretation will be reported. The
+previously specified position-stable subset remains a separate robustness
+analysis and is not treated as a dependence correction because it conditions on
+observed agreement.
+
+No new formal SBC campaign will be run for the assessment-anchored model. The
+decision rests on direct production-geometry calibration: separate 40-dataset
+recovery campaigns for venture, hiring, and matched RQ5 passed all sampler gates
+after deterministic longer reruns, and their central 90% coverages were
+consistent with nominal coverage at the available Monte Carlo resolution. This
+decision does not transfer the original latent-belief model's SBC evidence to
+the anchored model; it prioritizes direct recovery of the actual anchored
+estimands and geometry.

@@ -116,7 +116,19 @@ def test_manifest_freezes_approved_rules_and_pending_estimands(design):
     assert manifest["rq3"]["status"] == "secondary_descriptive_existing_fit"
     assert manifest["rq3"]["separate_saturated_fit"] is False
     assert manifest["rq4"]["status"] == "descriptive"
-    assert manifest["rq5"]["status"] == (
-        "confirmatory_preparation_implemented_validation_pending"
-    )
+    assert manifest["rq5"]["status"] == "confirmatory_fit_validated"
+    assert manifest["presentation_dependence_sensitivity"] == {
+        "status": "required_post_collection",
+        "primary_analysis": "both frozen presentations",
+        "sensitivity_analyses": ["presentation_1_only", "presentation_2_only"],
+        "utility_middle": 0.5,
+        "outcome_conditioning": False,
+        "report_disagreement_in": [
+            "sign",
+            "interval_decision",
+            "substantive_interpretation",
+        ],
+    }
+    assert manifest["formal_sbc"]["decision"] == "not_run"
+    assert "repeated-menu dependence" in manifest["formal_sbc"]["scope_limitation"]
     assert manifest["rq5"]["representation"] == "assessment_anchored_no_pca"

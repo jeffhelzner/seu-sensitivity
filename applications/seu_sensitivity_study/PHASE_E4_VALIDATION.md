@@ -37,11 +37,10 @@ The full application test suite passes with 460 tests.
 
 ## Reopened-gate progress (2026-09-07)
 
-The assessment-anchored inference and simulation models now compile. A seeded
-fixed-eta smoke recovery completed end to end with zero divergences and
-satisfactory treedepth and E-BFMI. This establishes plumbing only: it does not
-replace production-dimensional recovery, prior calibration against the observed
-assessment spread, prior predictive checks, or the pending SBC decision.
+The assessment-anchored inference and simulation models compile. Subsequent
+production-dimensional validation and 40-dataset recovery campaigns for
+venture, hiring, and matched RQ5 completed successfully, and prior predictive
+checks against the observed assessment spread calibrated the size-slope prior.
 
 The preregistered utility sensitivity grid is executable: the runner emits the
 primary `u=0.50` Stan data and separate `u=0.35` and `u=0.65` inputs. Batch
@@ -116,8 +115,9 @@ At nominal 90% coverage, the Monte Carlo standard error from 40 datasets is
 0.047. The observed `gamma_size` coverages are therefore consistent with the
 nominal target at this resolution. Total recorded fit time was 5.57 hours for
 venture and 5.79 hours for hiring. The repeated-recovery requirement is
-complete; the decision on formal SBC and the dependence-aware presentation
-sensitivity remain open.
+complete. Amendment 4 declines a separate formal SBC campaign in favor of
+these direct production-geometry recovery results and requires deterministic
+presentation-1-only and presentation-2-only fits after collection.
 
 The confirmatory contract now verifies RQ3 against the exact production design.
 The additive intercept-plus-design matrix has rank 8; the 10 model-by-prompt
@@ -161,15 +161,14 @@ the Monte Carlo standard error of nominal 90% coverage is 0.047; the observed
 contrast coverages are consistent with that target at this resolution. The RQ5
 simulation/recovery gate is complete; final contrast-table reporting remains.
 
-All maintained application tests pass (496 tests). Repository-wide pytest last
+All maintained application tests pass (498 tests). Repository-wide pytest last
 passed 475 tests but reported three unrelated collection errors from the legacy
 executable `scripts/test_m1_model.py`, whose helper functions are named
 `test_*` but require command-line arguments rather than pytest fixtures.
 
 The detailed status of every independent-review finding is tracked in
 `REVIEW_DISPOSITION.md`. Open Batch reconciliation, all-attempt budget control,
-production-root preflight, confirmatory analysis rules, and scientific
-calibration continue to block a GO.
+and production-root preflight continue to block a GO.
 
 ## Batch and usage-persistence gate
 

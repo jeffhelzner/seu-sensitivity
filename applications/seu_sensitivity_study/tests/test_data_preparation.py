@@ -191,6 +191,26 @@ class TestStanDataAssembly:
         assert sum(stan_data["s"]) == pytest.approx(0.0)
         assert report["mean_menu_size"] == pytest.approx(3.0)
 
+    def test_one_presentation_sensitivity_keeps_one_row_per_menu(self, embeddings):
+        first, first_report = self._build(
+            embeddings, include_menu_size=True, presentation_id=1
+        )
+        second, second_report = self._build(
+            embeddings, include_menu_size=True, presentation_id=2
+        )
+
+        assert first["M_total"] == second["M_total"] == 2
+        assert first["M_per_cell"] == second["M_per_cell"] == [2]
+        assert first["I"] == second["I"]
+        assert sum(first["s"]) == pytest.approx(0.0)
+        assert sum(second["s"]) == pytest.approx(0.0)
+        assert first_report["presentation_id"] == 1
+        assert second_report["presentation_id"] == 2
+
+    def test_unknown_presentation_sensitivity_is_rejected(self, embeddings):
+        with pytest.raises(ValueError, match="not in the problem design"):
+            self._build(embeddings, presentation_id=3)
+
     def test_size_covariate_absent_by_default(self, embeddings):
         stan_data, _ = self._build(embeddings)
         assert "s" not in stan_data

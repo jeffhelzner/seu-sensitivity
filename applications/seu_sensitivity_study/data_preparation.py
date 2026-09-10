@@ -237,6 +237,7 @@ def build_stan_data(
     cell_model_names: Optional[Sequence[str]] = None,
     utility_values: Optional[Sequence[float]] = None,
     design_column_names: Optional[Sequence[str]] = None,
+    presentation_id: Optional[int] = None,
     validate: bool = True,
 ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
     """
@@ -258,6 +259,10 @@ def build_stan_data(
     design_column_names:
         When supplied, require the retained intercept-plus-design matrix to
         remain full rank after whole-cell NA exclusions.
+    presentation_id:
+        When supplied, retain only that frozen presentation index. This creates
+        a one-observation-per-menu sensitivity payload without conditioning on
+        whether the two observed choices agree.
 
     Returns
     -------
@@ -276,6 +281,15 @@ def build_stan_data(
         for problem in problem_set["problems"]
         for presentation in problem["presentations"]
     }
+    available_presentations = {
+        presentation["presentation_id"]
+        for problem in problem_set["problems"]
+        for presentation in problem["presentations"]
+    }
+    if presentation_id is not None and presentation_id not in available_presentations:
+        raise ValueError(
+            f"presentation_id {presentation_id!r} is not in the problem design"
+        )
 
     stacked_I: List[List[int]] = []
     stacked_cell: List[int] = []
@@ -293,7 +307,17 @@ def build_stan_data(
                 f"No choice set supplied for cell {cell_id!r}; every cell in the "
                 f"design matrix must contribute observations"
             )
-        resolved, na_log = filter_resolved_choices(choice_sets[cell_id])
+        choice_set = choice_sets[cell_id]
+        if presentation_id is not None:
+            choice_set = {
+                **choice_set,
+                "choices": [
+                    record
+                    for record in choice_set["choices"]
+                    if record["presentation_id"] == presentation_id
+                ],
+            }
+        resolved, na_log = filter_resolved_choices(choice_set)
         na_logs[cell_id] = na_log
         if na_log["na_rate"] > 0.30:
             excluded_cells.append(cell_id)
@@ -423,6 +447,7 @@ def build_stan_data(
         "item_ids": item_ids,
         "mean_menu_size": mean_menu_size,
         "menu_sizes": menu_sizes,
+        "presentation_id": presentation_id,
         "na_logs": na_logs,
         "overall_na_rate": _overall_na_rate(na_logs),
     }
@@ -453,6 +478,7 @@ def build_matched_rq5_stan_data(
     design_column_names: Sequence[str],
     utility_values: Sequence[float],
     K: int,
+    presentation_id: Optional[int] = None,
 ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
     """Build the dedicated assessment-anchored matched RQ5 re-slice."""
     family_by_pool = {"venture": "procurement", "hiring": "matched"}
@@ -539,6 +565,7 @@ def build_matched_rq5_stan_data(
         cell_model_names=cell_model_names,
         utility_values=utility_values,
         design_column_names=design_column_names,
+        presentation_id=presentation_id,
     )
     report.update(
         {

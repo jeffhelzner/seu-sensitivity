@@ -551,6 +551,31 @@ class SEUSensitivityStudyRunner:
                 sensitivity_files.append(filename)
             outputs["utility_sensitivity_files"] = sensitivity_files
 
+            presentation_files = []
+            for presentation_id in (1, 2):
+                stan_data, report = data_preparation.build_stan_data(
+                    pool=pool,
+                    problem_set=problem_set,
+                    choice_sets=choice_sets,
+                    reduced_embeddings=reduced,
+                    design_matrix=design_matrix,
+                    cell_ids=cell_ids,
+                    K=self.config.K,
+                    include_menu_size=True,
+                    assessment_probabilities=assessment_probabilities,
+                    cell_model_names=cell_model_names,
+                    utility_values=[0.0, self.config.primary_utility_middle, 1.0],
+                    design_column_names=column_names,
+                    presentation_id=presentation_id,
+                )
+                filename = f"stan_data_size_presentation_{presentation_id}.json"
+                self._write_json(pool_dir / filename, stan_data)
+                presentation_files.append(filename)
+                outputs[f"presentation_{presentation_id}_design_rank"] = report[
+                    "confirmatory_design_rank"
+                ]
+            outputs["presentation_sensitivity_files"] = presentation_files
+
         subset, retention = diagnostics.size_balanced_stability_subset(
             choice_sets, seed=self.config.seed
         )
@@ -616,11 +641,23 @@ class SEUSensitivityStudyRunner:
             self._write_json(output_dir / filename, stan_data)
             files.append(filename)
 
+        presentation_files = []
+        for presentation_id in (1, 2):
+            stan_data, report = data_preparation.build_matched_rq5_stan_data(
+                **common,
+                utility_values=[0.0, self.config.primary_utility_middle, 1.0],
+                presentation_id=presentation_id,
+            )
+            filename = f"stan_data_size_presentation_{presentation_id}.json"
+            self._write_json(output_dir / filename, stan_data)
+            presentation_files.append(filename)
+
         assert primary_report is not None
         self._write_json(output_dir / "assembly_report.json", primary_report)
         return {
             "analysis_contract": "analysis_contract.json",
             "stan_data_files": files,
+            "presentation_sensitivity_files": presentation_files,
             "matched_item_pairs": primary_report["matched_item_pairs"],
             "paired_menus_per_task": primary_report["paired_menus_per_task"],
             "M_total": sum(primary_report["na_logs"][cell_id]["resolved"] for cell_id in cell_ids),

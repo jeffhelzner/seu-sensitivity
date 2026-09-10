@@ -239,7 +239,7 @@ def matched_rq5_contract(cells: Sequence[Any]) -> Dict[str, Any]:
             ).to_dict()
         )
     return {
-        "status": "confirmatory_fit_validation_pending",
+        "status": "confirmatory_fit_validated",
         "representation": "assessment_anchored_no_pca",
         "n_cells": int(design.shape[0]),
         "design_columns": list(columns),
@@ -275,7 +275,7 @@ def contract_manifest(
         },
         "rq4": {"status": "descriptive"},
         "rq5": {
-            "status": "confirmatory_preparation_implemented_validation_pending",
+            "status": "confirmatory_fit_validated",
             "estimand": "within-model hiring-minus-procurement contrast in a dedicated matched-item fit",
             "representation": "assessment_anchored_no_pca",
             "artifact_directory": "matched_rq5",
@@ -284,6 +284,23 @@ def contract_manifest(
         "rq6": {
             "parameter": "gamma_size",
             "decision_rule": "central 90% interval excludes zero and posterior median exceeds the menu-size ROPE",
+        },
+        "presentation_dependence_sensitivity": {
+            "status": "required_post_collection",
+            "primary_analysis": "both frozen presentations",
+            "sensitivity_analyses": ["presentation_1_only", "presentation_2_only"],
+            "utility_middle": 0.5,
+            "outcome_conditioning": False,
+            "report_disagreement_in": [
+                "sign",
+                "interval_decision",
+                "substantive_interpretation",
+            ],
+        },
+        "formal_sbc": {
+            "decision": "not_run",
+            "reason": "Exact production-geometry recovery directly calibrated the anchored estimands across 40 datasets for each primary fit geometry.",
+            "scope_limitation": "SBC under the fitted independent-observation model would not test misspecification from repeated-menu dependence.",
         },
         "multiplicity": {
             "adjustment": "none",

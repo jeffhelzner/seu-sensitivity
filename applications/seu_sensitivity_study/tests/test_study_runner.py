@@ -307,20 +307,30 @@ class TestFullPipeline:
         assert sized["utility_values"] == [0.0, 0.5, 1.0]
         low = json.loads((pool_dir / "stan_data_size_u035.json").read_text())
         high = json.loads((pool_dir / "stan_data_size_u065.json").read_text())
+        presentation_1 = json.loads(
+            (pool_dir / "stan_data_size_presentation_1.json").read_text()
+        )
+        presentation_2 = json.loads(
+            (pool_dir / "stan_data_size_presentation_2.json").read_text()
+        )
         assert low["utility_values"] == [0.0, 0.35, 1.0]
         assert high["utility_values"] == [0.0, 0.65, 1.0]
+        assert presentation_1["M_total"] == presentation_2["M_total"] == 18 * 8
+        assert presentation_1["I"] == presentation_2["I"]
         assert schemas.validate_stan_data(
             sized, model="h_m01_size_assessment_anchored"
         ) == []
         stan_summary = summary["pools"][POOL_ID]["stan_data"]
         assert stan_summary["confirmatory_design_rank"] == 8
         assert stan_summary["confirmatory_design_required_rank"] == 8
+        assert stan_summary["presentation_sensitivity_files"] == [
+            "stan_data_size_presentation_1.json",
+            "stan_data_size_presentation_2.json",
+        ]
         assert stan_summary["analysis_contract"] == "analysis_contract.json"
         contract = json.loads((pool_dir / "analysis_contract.json").read_text())
         assert contract["primary_decisions_per_pool"] == 9
-        assert contract["rq5"]["status"] == (
-            "confirmatory_preparation_implemented_validation_pending"
-        )
+        assert contract["rq5"]["status"] == "confirmatory_fit_validated"
 
     def test_design_matrix_rows_align_with_cells(self, runner):
         self._run_all(runner)

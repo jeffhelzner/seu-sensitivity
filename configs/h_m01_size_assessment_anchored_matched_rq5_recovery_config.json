@@ -1,0 +1,10 @@
+{
+  "_comment": [
+    "Forty-dataset exact-geometry matched-item RQ5 recovery campaign.",
+    "The one-dataset validation passed all sampler gates in 257 fit-seconds.",
+    "At 90% coverage, n=40 gives Monte Carlo SE approximately 0.047."
+  ],
+  "base_config_path": "configs/h_m01_size_assessment_anchored_matched_rq5_validation_config.json",
+  "output_dir": "results/parameter_recovery/h_m01_size_assessment_anchored_matched_rq5_recovery",
+  "n_iterations": 40
+}

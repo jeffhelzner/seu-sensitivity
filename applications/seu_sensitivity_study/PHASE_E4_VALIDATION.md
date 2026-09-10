@@ -137,10 +137,31 @@ expected utilities rather than embeddings, the former joint-PCA requirement is
 obsolete. Primary and `u=0.35/0.65` sensitivity payloads are emitted under
 `matched_rq5/`. The recovery harness can reconstruct the exact generated design
 and fixed `eta` from that payload and scores all six named task contrasts from
-joint posterior draws. The production-dimensional validation fit and repeated
-recovery campaign have not been run and remain required before inference.
+joint posterior draws. A deterministic preproduction builder removes any
+dependency on uncollected choice outcomes: placeholder choices encode only the
+frozen menus and presentations, while the simulator supplies `y` for recovery.
 
-All maintained application tests pass (495 tests). Repository-wide pytest last
+The exact 36-cell validation fit used 2,880 observations, four chains, 500
+warmup draws, and 500 retained draws. It completed in 257 fit-seconds and passed
+all sampler gates: maximum R-hat 1.00608, minimum structural bulk/tail ESS
+1,045.5/1,092.6, minimum E-BFMI 0.714, zero divergences, and zero treedepth
+saturation (maximum depth 8 of 12). All six true RQ5 contrasts fell inside their
+joint-draw central 90% intervals.
+
+The repeated RQ5 recovery campaign used 40 deterministic datasets. Ten initial
+500-warmup/500-retained fits missed an R-hat or ESS gate and were replaced by
+1,000/1,000 fits of the same datasets; archived-versus-replacement hashes match
+for every simulated truth. The final campaign passed all gates for 40/40
+datasets: maximum R-hat 1.00996, minimum structural bulk/tail ESS 442.6/562.3,
+minimum E-BFMI 0.657, zero divergences, and zero treedepth saturation. Across
+the six within-model hiring-minus-procurement contrasts, absolute bias ranged
+from 0.0177 to 0.0414, RMSE from 0.1820 to 0.2573, central 90% coverage from
+0.850 to 0.950, and mean interval width from 0.5430 to 0.8174. With 40 datasets,
+the Monte Carlo standard error of nominal 90% coverage is 0.047; the observed
+contrast coverages are consistent with that target at this resolution. The RQ5
+simulation/recovery gate is complete; final contrast-table reporting remains.
+
+All maintained application tests pass (496 tests). Repository-wide pytest last
 passed 475 tests but reported three unrelated collection errors from the legacy
 executable `scripts/test_m1_model.py`, whose helper functions are named
 `test_*` but require command-line arguments rather than pytest fixtures.

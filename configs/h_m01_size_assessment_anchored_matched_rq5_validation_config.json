@@ -36,10 +36,10 @@
     "gamma_size_sd": 0.2
   },
   "fixed_eta_config": {
-    "stan_data_template_path": "applications/seu_sensitivity_study/results/matched_rq5/stan_data_size.json"
+    "stan_data_template_path": "results/validation_inputs/matched_rq5/stan_data_size.json"
   },
   "study_design_config": {
-    "stan_data_template_path": "applications/seu_sensitivity_study/results/matched_rq5/stan_data_size.json",
+    "stan_data_template_path": "results/validation_inputs/matched_rq5/stan_data_size.json",
     "design_name": "matched_rq5_exact_assessment_anchored_validation"
   }
 }

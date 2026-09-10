@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from applications.seu_sensitivity_study import config as study_config
 from analysis.assessment_anchored_prior_predictive import (
     _menu_metrics,
     _prior_predictive,
@@ -22,6 +23,7 @@ from scripts.run_hierarchical_parameter_recovery import (
     _build_study_design,
     _load_config,
 )
+from scripts.build_matched_rq5_validation_template import _placeholder_choice_sets
 from utils.cmdstan_artifacts import gzip_csv_files
 
 
@@ -30,6 +32,35 @@ BASE_MODEL = ROOT / "models" / "h_m01_size.stan"
 PINNED_MODEL = ROOT / "models" / "h_m01_size_pinned.stan"
 ANCHORED_MODEL = ROOT / "models" / "h_m01_size_assessment_anchored.stan"
 ANCHORED_SIM_MODEL = ROOT / "models" / "h_m01_size_assessment_anchored_sim.stan"
+
+
+def test_rq5_validation_template_uses_every_menu_presentation():
+    cells = [
+        cell
+        for cell in study_config.build_cells(["venture"])
+        if cell.model_name == "gpt-4o"
+    ]
+    problem_set = {
+        "problems": [
+            {
+                "id": "P1",
+                "menu_size": 2,
+                "difficulty_stratum": "strong",
+                "family": "procurement",
+                "presentations": [
+                    {"presentation_id": "a", "order": ["v1", "v2"]},
+                    {"presentation_id": "b", "order": ["v2", "v1"]},
+                ],
+            }
+        ]
+    }
+
+    choices = _placeholder_choice_sets("venture", problem_set, cells)
+
+    assert len(choices) == 3
+    for payload in choices.values():
+        assert [row["presentation_id"] for row in payload["choices"]] == ["a", "b"]
+        assert [row["chosen_item_id"] for row in payload["choices"]] == ["v1", "v2"]
 
 
 def test_linear_contrast_summary_uses_joint_draws():

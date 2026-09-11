@@ -46,6 +46,51 @@ class RateLimitError(Exception):
     status_code = 429
 
 
+@pytest.mark.parametrize("provider,model", [("openai", "gpt-4o"), ("anthropic", "claude-sonnet-4-5")])
+def test_batch_sdk_does_not_retry_lost_create_response(provider, model, monkeypatch):
+    import httpx
+    import openai
+    import anthropic
+
+    attempts = []
+
+    def handler(request):
+        attempts.append(request)
+        raise httpx.ReadTimeout("Response lost after acceptance", request=request)
+
+    module, constructor = (openai, "OpenAI") if provider == "openai" else (anthropic, "Anthropic")
+    real_constructor = getattr(module, constructor)
+    transport = httpx.Client(transport=httpx.MockTransport(handler))
+    monkeypatch.setattr(module, constructor, lambda **kwargs: real_constructor(
+        api_key="offline-test", http_client=transport, **kwargs
+    ))
+    cell = next(cell for cell in SEUSensitivityStudyConfig().cells if cell.model_name == model)
+    client = ProviderBatchClient(cell)
+    with pytest.raises((openai.APITimeoutError, anthropic.APITimeoutError)):
+        if provider == "openai":
+            client._sdk_client.batches.create(input_file_id="offline", endpoint="/v1/chat/completions", completion_window="24h")
+        else:
+            client._sdk_client.messages.batches.create(requests=[])
+    assert len(attempts) == 1
+    transport.close()
+
+
+def test_batch_state_flushes_file_and_directory(tmp_path, monkeypatch):
+    flushed = []
+    real_fsync = os.fsync
+
+    def fsync(descriptor):
+        flushed.append(os.fstat(descriptor).st_mode)
+        real_fsync(descriptor)
+
+    monkeypatch.setattr(batch_client.os, "fsync", fsync)
+    batch_client._write_json(tmp_path / "state.json", {"status": "submitting"})
+    import stat
+    assert len(flushed) == 2
+    assert stat.S_ISREG(flushed[0])
+    assert stat.S_ISDIR(flushed[1])
+
+
 class FatalError(Exception):
     status_code = 400
 
@@ -101,6 +146,8 @@ class _FakeAnthropicBatchSDK:
     def __init__(self, request_count=2):
         outer = self
         self.created = 0
+        self.status = "in_progress"
+        self.result_items = []
 
         class Batches:
             def create(self, **kwargs):
@@ -110,9 +157,13 @@ class _FakeAnthropicBatchSDK:
             def retrieve(self, batch_id):
                 assert batch_id == "existing-batch"
                 return SimpleNamespace(
-                    processing_status="in_progress",
+                    processing_status=outer.status,
                     request_counts=SimpleNamespace(total=request_count),
                 )
+
+            def results(self, batch_id):
+                assert batch_id == "existing-batch"
+                return iter(outer.result_items)
 
         self.messages = SimpleNamespace(batches=Batches())
 
@@ -222,6 +273,87 @@ class TestProviderBatchClient:
                 operator_note="Candidate found in provider console.",
             )
 
+    def test_anthropic_ended_batch_is_persisted_as_completed(self, tmp_path):
+        cell = self._cell(
+            cell_id="claude_neutral_testpool",
+            model_name="claude-sonnet-4-5",
+            provider="anthropic",
+        )
+        sdk = _FakeAnthropicBatchSDK(request_count=2)
+        sdk.status = "ended"
+        sdk.result_items = [
+            SimpleNamespace(
+                custom_id=custom_id,
+                result=SimpleNamespace(
+                    type="succeeded",
+                    message=SimpleNamespace(
+                        content=[SimpleNamespace(type="text", text=answer)],
+                        usage=SimpleNamespace(
+                            input_tokens=10,
+                            output_tokens=4,
+                            cache_creation_input_tokens=0,
+                            cache_read_input_tokens=0,
+                        ),
+                    ),
+                ),
+            )
+            for custom_id, answer in [
+                ("request-00001", "ANSWER: 2"),
+                ("request-00000", "ANSWER: 1"),
+            ]
+        ]
+        client = ProviderBatchClient(cell, sdk_client=sdk)
+        state_path = tmp_path / "batch.json"
+        state_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 2,
+                    "provider": "anthropic",
+                    "model": cell.endpoint,
+                    "request_hash": client.request_hash(self._requests()),
+                    "request_count": 2,
+                    "status": "in_progress",
+                    "submission_id": "intent-1",
+                    "batch_id": "existing-batch",
+                }
+            )
+        )
+
+        outcome = client.process(self._requests(), state_path=state_path)
+
+        assert outcome.responses == {
+            "request-00000": "ANSWER: 1",
+            "request-00001": "ANSWER: 2",
+        }
+        assert json.loads(state_path.read_text())["status"] == "completed"
+        saved = json.loads(state_path.read_text())
+        assert saved["result_records"][0]["result"]["message"]["usage"]["input_tokens"] == 10
+        assert saved["usage"]["usage_complete"] is True
+
+        sdk.result_items[0].result.message.usage = None
+        partial, status = client._retrieve_anthropic("existing-batch")
+        assert status == "completed"
+        assert partial.usage["usage_complete"] is False
+        assert partial.usage["calls"] == 2
+        assert partial.usage["input_tokens"] == 10
+
+    def test_anthropic_error_evidence_is_retained(self, tmp_path):
+        cell = self._cell(model_name="claude-sonnet-4-5", provider="anthropic")
+        sdk = _FakeAnthropicBatchSDK(request_count=2)
+        sdk.status = "ended"
+        sdk.result_items = [SimpleNamespace(custom_id="request-00000", result=SimpleNamespace(
+            type="errored", error=SimpleNamespace(type="overloaded_error", message="Try later")
+        ))]
+        client = ProviderBatchClient(cell, sdk_client=sdk)
+        path = tmp_path / "state.json"
+        path.write_text(json.dumps({"request_hash": client.request_hash(self._requests()),
+                                   "request_count": 2, "batch_id": "existing-batch"}))
+        with pytest.raises(BatchResultError, match="failed request"):
+            client.process(self._requests(), state_path=path)
+        saved = json.loads(path.read_text())
+        assert saved["result_records"][0]["result"]["error"]["message"] == "Try later"
+        assert saved["usage"]["usage_complete"] is False
+
     @staticmethod
     def _requests():
         return [
@@ -283,6 +415,15 @@ class TestProviderBatchClient:
         assert outcome.usage["batch_discount"] == 0.5
         recovered = ProviderBatchClient(self._cell(), sdk_client=sdk).recover_usage(state)
         assert recovered == outcome.usage
+
+        records = [json.loads(line) for line in sdk.output.splitlines()]
+        records[0]["response"]["body"].pop("usage")
+        sdk.output = "\n".join(json.dumps(record) for record in records)
+        partial, status = client._retrieve_openai("batch-1")
+        assert status == "completed"
+        assert partial.usage["usage_complete"] is False
+        assert partial.usage["calls"] == 2
+        assert partial.usage["input_tokens"] == 10
 
     def test_reservation_is_durable_before_provider_submission(self, tmp_path):
         sdk = _FakeOpenAIBatchSDK()

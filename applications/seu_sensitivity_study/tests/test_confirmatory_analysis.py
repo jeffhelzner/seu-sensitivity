@@ -110,7 +110,12 @@ def test_manifest_freezes_approved_rules_and_pending_estimands(design):
     assert manifest["interval_quantiles"] == [0.05, 0.95]
     assert manifest["bulk_ess_minimum"] == 400
     assert manifest["tail_ess_minimum"] == 400
-    assert manifest["primary_decisions_per_pool"] == 9
+    assert manifest["rq1_rq2_decisions_per_pool"] == 9
+    assert manifest["primary_decisions_per_pool"] == 10
+    assert manifest["matched_rq5_primary_decisions"] == 6
+    assert manifest["primary_decision_count"] == 26
+    assert "sensitivity only" in manifest["rq6"]["primary_scope"]
+    assert manifest["rq3"]["residuals_orthogonally_projected"] is False
     assert manifest["multiplicity"]["adjustment"] == "none"
     assert manifest["multiplicity"]["report_full_family"] is True
     assert manifest["rq3"]["status"] == "secondary_descriptive_existing_fit"

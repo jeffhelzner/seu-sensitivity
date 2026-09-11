@@ -66,13 +66,23 @@ def _summarize_sampler_diagnostics(output_dir: Path) -> dict:
     for diagnostics_path in sorted(output_dir.glob("iteration_*/diagnostics.json")):
         with diagnostics_path.open() as handle:
             diagnostics = json.load(handle)
+        summary_path = diagnostics_path.parent / "posterior_summary.csv"
+        tail_ess = diagnostics.get("min_ess_tail")
+        if summary_path.exists():
+            posterior = pd.read_csv(summary_path, index_col=0)
+            structural = [name for name in posterior.index if name in (
+                "gamma0", "gamma_size", "sigma_cell"
+            ) or name.startswith(("gamma[", "z_alpha[", "beta["))]
+            if structural and "ESS_tail" in posterior:
+                values = posterior.loc[structural, "ESS_tail"].to_numpy(dtype=float)
+                tail_ess = float(values.min()) if np.all(np.isfinite(values)) else None
         records.append(
             {
                 "iteration": int(diagnostics_path.parent.name.split("_")[-1]),
                 "seconds": diagnostics["seconds"],
                 "max_rhat": diagnostics["max_rhat"],
                 "min_ess_bulk": diagnostics["min_ess_bulk"],
-                "min_ess_tail": diagnostics["min_ess_tail"],
+                "min_ess_tail": tail_ess,
                 "min_ebfmi": diagnostics["min_ebfmi"],
                 "divergences": diagnostics["divergences"],
                 "treedepth_saturated_share": diagnostics[
@@ -93,7 +103,11 @@ def _summarize_sampler_diagnostics(output_dir: Path) -> dict:
     }
     for record in records:
         record["passes"] = (
-            record["max_rhat"] < thresholds["max_rhat"]
+            all(record[key] is not None and np.isfinite(record[key]) for key in (
+                "max_rhat", "min_ess_bulk", "min_ess_tail", "min_ebfmi",
+                "divergences", "treedepth_saturated_share"
+            ))
+            and record["max_rhat"] < thresholds["max_rhat"]
             and record["min_ess_bulk"] >= thresholds["min_ess_bulk"]
             and record["min_ess_tail"] >= thresholds["min_ess_tail"]
             and record["min_ebfmi"] >= thresholds["min_ebfmi"]

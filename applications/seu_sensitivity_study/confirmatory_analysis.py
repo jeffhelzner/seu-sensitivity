@@ -4,12 +4,13 @@ from __future__ import annotations
 
 import math
 from dataclasses import asdict, dataclass
+from itertools import combinations
 from typing import Any, Dict, Mapping, Sequence, Tuple
 
 import numpy as np
 
 from .config import MODELS, PROMPT_CONDITIONS, REFERENCE_MODEL, REFERENCE_PROMPT
-from .config import get_model_spec
+from .config import build_cells, get_model_spec
 
 __all__ = [
     "BULK_ESS_MINIMUM",
@@ -42,6 +43,8 @@ LOG_ALPHA_ROPE = math.log(1.25)
 MENU_SIZE_ROPE = math.log(1.05)
 BULK_ESS_MINIMUM = 400
 TAIL_ESS_MINIMUM = 400
+_CROSS_POOL_COMBINATION_CAP = 100_000
+_CROSS_POOL_SEED = 20260911
 
 
 @dataclass(frozen=True)
@@ -153,7 +156,11 @@ def classify_interval(
 
 
 def assert_sampler_gates(diagnostics: Mapping[str, Any]) -> Dict[str, Any]:
-    """Require the frozen sampler gates before confirmatory reporting."""
+    """Require the frozen sampler gates before confirmatory reporting.
+
+    Complete finite diagnostic evidence is validated by the report loader;
+    these threshold checks do not replace that artifact-level validation.
+    """
     required = {
         "max_rhat",
         "min_ess_bulk",
@@ -268,11 +275,56 @@ def rq3_descriptive_report(
     z_alpha = np.asarray(z_alpha_draws, dtype=float)
     if z_alpha.shape != (len(sigma), len(cell_ids)):
         raise ValueError("z_alpha draws must have one column per cell ID")
+    if len(set(cell_ids)) != len(cell_ids):
+        raise ValueError("RQ3 cell IDs must be unique")
     residuals = sigma[:, None] * z_alpha
+    cell_indices = {cell_id: index for index, cell_id in enumerate(cell_ids)}
+    canonical_cells = build_cells()
+    pool_ids = sorted({
+        cell.pool_id for cell in canonical_cells if cell.cell_id in cell_indices
+    })
+    canonical_ids = {
+        (cell.pool_id, cell.model_name, cell.prompt_condition): cell.cell_id
+        for cell in canonical_cells
+    }
+    did_rows = []
+    for pool_id in pool_ids:
+        for model in MODELS:
+            if model.name == REFERENCE_MODEL:
+                continue
+            for prompt in PROMPT_CONDITIONS:
+                if prompt == REFERENCE_PROMPT:
+                    continue
+                required_ids = [
+                    canonical_ids[pool_id, model.name, prompt],
+                    canonical_ids[pool_id, model.name, REFERENCE_PROMPT],
+                    canonical_ids[pool_id, REFERENCE_MODEL, prompt],
+                    canonical_ids[pool_id, REFERENCE_MODEL, REFERENCE_PROMPT],
+                ]
+                missing_ids = [cell_id for cell_id in required_ids if cell_id not in cell_indices]
+                row = {
+                    "contrast_id": f"rq3_{pool_id}_{model.slug}_x_{prompt}",
+                    "pool_id": pool_id,
+                    "model": model.name,
+                    "reference_model": REFERENCE_MODEL,
+                    "prompt": prompt,
+                    "reference_prompt": REFERENCE_PROMPT,
+                    "cell_ids": required_ids,
+                    "coefficients": [1.0, -1.0, -1.0, 1.0],
+                    "status": "unavailable" if missing_ids else "descriptive",
+                    "missing_cell_ids": missing_ids,
+                }
+                if not missing_ids:
+                    indices = [cell_indices[cell_id] for cell_id in required_ids]
+                    row.update(summarize_draws(residuals[:, indices] @ np.array([1.0, -1.0, -1.0, 1.0])))
+                did_rows.append(row)
     return {
         "status": "descriptive",
         "sampler_gates": gate,
         "sigma_cell": summarize_draws(sigma),
+        "residual_definition": "ordinary raw sigma_cell * z_alpha; not orthogonally projected",
+        "did_definition": "(model,prompt) - (model,reference_prompt) - (reference_model,prompt) + (reference_model,reference_prompt), within each posterior draw",
+        "model_by_prompt_dids": did_rows,
         "cell_residuals": [
             {"cell_id": cell_id, **summarize_draws(residuals[:, index])}
             for index, cell_id in enumerate(cell_ids)
@@ -287,37 +339,107 @@ def cross_pool_descriptive_report(
     venture_diagnostics: Mapping[str, Any],
     hiring_diagnostics: Mapping[str, Any],
 ) -> Dict[str, Any]:
-    """Describe fixed-domain contrast differences without a variance claim."""
+    """Describe independent fixed-domain posteriors without new decisions.
+
+    Use the exact empirical Cartesian posterior up to 100,000 combinations;
+    otherwise independently resample whole draw indices with replacement using
+    a fixed seed. Reuse indices for every estimand to preserve full-vector joint
+    dependence within each pool. Summarize one scalar contrast at a time to
+    bound working memory independently of the posterior Cartesian product.
+    """
     assert_sampler_gates(venture_diagnostics)
     assert_sampler_gates(hiring_diagnostics)
     venture = np.asarray(venture_gamma_draws, dtype=float)
     hiring = np.asarray(hiring_gamma_draws, dtype=float)
     if venture.ndim != 2 or hiring.ndim != 2 or venture.shape[1] != hiring.shape[1]:
         raise ValueError("Cross-pool gamma draws must have the same parameter columns")
-    rows = []
-    for contrast in contrasts:
-        weights = np.asarray(contrast.coefficients, dtype=float)
+    if not len(venture) or not len(hiring) or not np.all(np.isfinite(venture)) or not np.all(np.isfinite(hiring)):
+        raise ValueError("Cross-pool gamma draws must be nonempty and finite")
+    columns = contrasts[0].column_names if contrasts else ()
+    if any(contrast.column_names != columns or len(contrast.coefficients) != venture.shape[1]
+           or len(contrast.column_names) != venture.shape[1] for contrast in contrasts):
+        raise ValueError("Cross-pool contrasts must share the gamma column schema")
+    combination_count = len(venture) * len(hiring)
+    if combination_count <= _CROSS_POOL_COMBINATION_CAP:
+        venture_indices = np.repeat(np.arange(len(venture)), len(hiring))
+        hiring_indices = np.tile(np.arange(len(hiring)), len(venture))
+        method = "exact_cartesian"
+    else:
+        generator = np.random.default_rng(_CROSS_POOL_SEED)
+        venture_indices = generator.integers(len(venture), size=_CROSS_POOL_COMBINATION_CAP)
+        hiring_indices = generator.integers(len(hiring), size=_CROSS_POOL_COMBINATION_CAP)
+        method = "independent_resampling_with_replacement"
+
+    def describe(weights):
         venture_values = venture @ weights
         hiring_values = hiring @ weights
         venture_summary = summarize_draws(venture_values)
         hiring_summary = summarize_draws(hiring_values)
+        return {
+            "venture": venture_summary,
+            "hiring": hiring_summary,
+            "median_difference_hiring_minus_venture": (
+                hiring_summary["median"] - venture_summary["median"]
+            ),
+            "hiring_minus_venture": summarize_draws(
+                hiring_values[hiring_indices] - venture_values[venture_indices]
+            ),
+            "median_sign_agrees": venture_summary["median_sign"] == hiring_summary["median_sign"],
+            "posterior_probability_same_sign": float(
+                np.mean(venture_values > 0) * np.mean(hiring_values > 0)
+                + np.mean(venture_values < 0) * np.mean(hiring_values < 0)
+            ),
+        }
+
+    rows = []
+    for contrast in contrasts:
+        weights = np.asarray(contrast.coefficients, dtype=float)
         rows.append(
             {
                 "contrast_id": contrast.contrast_id,
-                "venture": venture_summary,
-                "hiring": hiring_summary,
-                "median_difference_hiring_minus_venture": (
-                    hiring_summary["median"] - venture_summary["median"]
-                ),
-                "median_sign_agrees": venture_summary["median_sign"]
-                == hiring_summary["median_sign"],
+                **describe(weights),
             }
         )
+    canonical_columns = {
+        _model_column(model.name) for model in MODELS if model.name != REFERENCE_MODEL
+    } | {f"prompt_{prompt}" for prompt in PROMPT_CONDITIONS if prompt != REFERENCE_PROMPT}
+    model_orderings = []
+    if set(columns) == canonical_columns and len(columns) == len(canonical_columns):
+        for first_model, second_model in combinations(MODELS, 2):
+            weights = np.asarray(_coefficient_vector(columns, {
+                _model_column(model.name): coefficient
+                for model, coefficient in ((first_model, 1.0), (second_model, -1.0))
+                if model.name != REFERENCE_MODEL
+            }))
+            row = {
+                "first_model": first_model.name,
+                "second_model": second_model.name,
+                "contrast_id": f"rq4_{first_model.slug}_minus_{second_model.slug}",
+                **describe(weights),
+            }
+            for pool_id, gamma in (("venture", venture), ("hiring", hiring)):
+                values = gamma @ weights
+                row[pool_id].update({
+                    "probability_first_model_greater": float(np.mean(values > 0)),
+                    "probability_second_model_greater": float(np.mean(values < 0)),
+                    "probability_tie": float(np.mean(values == 0)),
+                })
+            model_orderings.append(row)
     return {
         "status": "descriptive_two_fixed_domains",
         "population_variance_claim": False,
         "sigma_cell_used_as_cross_pool_variance": False,
         "cross_pool_draw_pairing": False,
+        "independent_posterior_combination": {
+            "method": method,
+            "combination_count": len(venture_indices),
+            "combination_cap": _CROSS_POOL_COMBINATION_CAP,
+            "seed": _CROSS_POOL_SEED if method != "exact_cartesian" else None,
+            "shared_whole_draw_indices_across_estimands": True,
+            "policy": "Exact Cartesian product up to cap; otherwise independent whole-draw resampling with replacement. No aligned-chain or matched-row pairing across pools.",
+        },
+        "same_sign_policy": "Exact product of independent marginal positive/negative probabilities; zeros excluded.",
+        "model_orderings": model_orderings,
         "rows": rows,
     }
 
@@ -411,6 +533,7 @@ def posterior_fit_report(
     decision_rows = list(contrast_report["rows"]) + [rq6]
     return {
         "sampler_gates": contrast_report["sampler_gates"],
+        "decision_count": len(decision_rows),
         "contrast_decisions": contrast_report,
         "rq3": rq3_descriptive_report(
             sigma_cell_draws, z_alpha_draws, cell_ids, diagnostics
@@ -438,7 +561,7 @@ def complete_confirmatory_report(
     pool_reports = {}
     for pool_id, variants in pool_variants.items():
         if set(variants) != required_variants:
-            raise ValueError(f"Pool {pool_id} must supply all three fit variants")
+            raise ValueError(f"Pool {pool_id} must supply all five fit variants")
         reports = {
             name: posterior_fit_report(
                 contrasts=pool_contrasts[pool_id], **payload
@@ -468,11 +591,15 @@ def complete_confirmatory_report(
     )
 
     if set(matched_variants) != required_variants:
-        raise ValueError("Matched RQ5 report must supply all three fit variants")
+        raise ValueError("Matched RQ5 report must supply all five fit variants")
     matched_reports = {
         name: posterior_fit_report(contrasts=matched_contrasts, **payload)
         for name, payload in matched_variants.items()
     }
+    for report in matched_reports.values():
+        report["rq6"]["status"] = "matched_menu_size_sensitivity"
+        report["rq6"]["included_in_primary_family"] = False
+        report["primary_decision_count"] = report["contrast_decisions"]["decision_count"]
     matched_reports["presentation_sensitivity"] = compare_presentation_reports(
         matched_reports["primary"],
         matched_reports["presentation_1_only"],
@@ -483,6 +610,11 @@ def complete_confirmatory_report(
         matched_reports["utility_035"],
         matched_reports["utility_065"],
     )
+    pool_decision_counts = {
+        pool_id: reports["primary"]["decision_count"]
+        for pool_id, reports in pool_reports.items()
+    }
+    matched_decision_count = matched_reports["primary"]["primary_decision_count"]
     return {
         "schema_version": 1,
         "central_interval_mass": CENTRAL_INTERVAL_MASS,
@@ -493,6 +625,11 @@ def complete_confirmatory_report(
             "adjustment": "none",
             "full_family_reported": True,
             "selection_from_family": False,
+            "primary_decisions_by_pool": pool_decision_counts,
+            "matched_rq5_primary_decisions": matched_decision_count,
+            "primary_decision_count": sum(pool_decision_counts.values()) + matched_decision_count,
+            "expected_primary_decision_count": 26,
+            "family_definition": "Nine RQ1/RQ2 contrasts plus one RQ6 slope per pool; six matched RQ5 contrasts. Matched menu-size slope is sensitivity only, not an additional RQ6 primary family. RQ3 and RQ4 are descriptive.",
         },
     }
 
@@ -620,10 +757,14 @@ def contract_manifest(
         "bulk_ess_minimum": BULK_ESS_MINIMUM,
         "tail_ess_minimum": TAIL_ESS_MINIMUM,
         "primary_contrasts": [contrast.to_dict() for contrast in contrasts],
-        "primary_decisions_per_pool": len(contrasts),
+        "rq1_rq2_decisions_per_pool": len(contrasts),
+        "primary_decisions_per_pool": len(contrasts) + 1,
+        "matched_rq5_primary_decisions": len(MODELS),
+        "primary_decision_count": 2 * (len(contrasts) + 1) + len(MODELS),
         "rq3": {
             "status": "secondary_descriptive_existing_fit",
-            "estimand": "sigma_cell and sigma_cell * z_alpha cell residuals",
+            "estimand": "sigma_cell, ordinary raw sigma_cell * z_alpha cell residuals, and draw-wise model-by-prompt difference-in-differences",
+            "residuals_orthogonally_projected": False,
             "separate_saturated_fit": False,
             "reason": "The full interaction exactly spans the additive residual cell space and adds no likelihood information.",
             "aliasing": interaction_aliasing_report(design_matrix, column_names),
@@ -639,6 +780,7 @@ def contract_manifest(
         "rq6": {
             "parameter": "gamma_size",
             "decision_rule": "central 90% interval excludes zero and posterior median exceeds the menu-size ROPE",
+            "primary_scope": "one slope per primary pool; matched slope is sensitivity only, not an extra RQ6 primary family",
         },
         "presentation_dependence_sensitivity": {
             "status": "required_post_collection",

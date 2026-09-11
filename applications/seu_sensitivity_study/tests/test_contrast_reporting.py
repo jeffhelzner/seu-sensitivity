@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 
 from applications.seu_sensitivity_study import confirmatory_analysis as ca
+from applications.seu_sensitivity_study import config
 
 
 DIAGNOSTICS = {
@@ -60,6 +61,46 @@ def test_rq3_reports_sigma_and_residuals_without_a_null_decision():
     assert report["status"] == "descriptive"
     assert "decision" not in report["sigma_cell"]
     assert report["cell_residuals"][0]["median"] == pytest.approx(0.2)
+    assert report["model_by_prompt_dids"] == []
+
+
+@pytest.mark.parametrize("interaction", [0.0, 0.7, -0.7])
+def test_rq3_dids_cancel_drawwise_additive_effects_and_preserve_sign(interaction):
+    cells = config.build_cells(["venture"])
+    target_model = config.MODELS[1].name
+    target_prompt = config.PROMPT_CONDITIONS[1]
+    shared = np.linspace(-2.0, 3.0, 101)
+    residuals = np.column_stack([
+        shared + 2 * shared * (cell.model_name == target_model)
+        - shared * (cell.prompt_condition == target_prompt)
+        + interaction * (cell.model_name == target_model and cell.prompt_condition == target_prompt)
+        for cell in cells
+    ])
+    report = ca.rq3_descriptive_report(
+        np.ones(101), residuals, [cell.cell_id for cell in cells], DIAGNOSTICS
+    )
+    assert len(report["model_by_prompt_dids"]) == 10
+    row = next(row for row in report["model_by_prompt_dids"]
+               if row["model"] == target_model and row["prompt"] == target_prompt)
+    for key in ("lower_90", "median", "upper_90"):
+        assert row[key] == pytest.approx(interaction, abs=1e-14)
+    assert "decision" not in row
+    assert report["cell_residuals"][0]["median"] == pytest.approx(0.5)
+    assert "not orthogonally projected" in report["residual_definition"]
+
+
+def test_rq3_missing_canonical_cell_marks_only_affected_dids_unavailable():
+    cells = config.build_cells(["venture"])
+    removed = cells.pop(4)
+    report = ca.rq3_descriptive_report(
+        np.ones(20), np.zeros((20, len(cells))),
+        [cell.cell_id for cell in cells], DIAGNOSTICS,
+    )
+    unavailable = [row for row in report["model_by_prompt_dids"] if row["status"] == "unavailable"]
+    assert len(unavailable) == 1
+    assert unavailable[0]["missing_cell_ids"] == [removed.cell_id]
+    assert "median" not in unavailable[0]
+    assert len(report["model_by_prompt_dids"]) == 10
 
 
 def test_rq4_compares_fixed_domain_effects_without_using_sigma_cell():
@@ -86,6 +127,64 @@ def test_menu_size_report_uses_frozen_rope():
         rope_half_width=ca.MENU_SIZE_ROPE,
     )
     assert report["decision"] == "detected_positive"
+
+
+def test_rq4_uncertainty_is_independent_cartesian_not_aligned_draws():
+    venture = np.column_stack([[-2.0, 0.0, 3.0], np.zeros(3)])
+    hiring = np.column_stack([[-1.0, 4.0], np.zeros(2)])
+    report = ca.cross_pool_descriptive_report(
+        venture, hiring, [_contrast()], DIAGNOSTICS, DIAGNOSTICS
+    )
+    expected = ca.summarize_draws((hiring[:, 0, None] - venture[:, 0]).ravel())
+    row = report["rows"][0]
+    assert row["hiring_minus_venture"] == expected
+    assert row["posterior_probability_same_sign"] == pytest.approx(1 / 3)
+    assert report["independent_posterior_combination"]["method"] == "exact_cartesian"
+    assert report["model_orderings"] == []
+    assert "decision" not in row["hiring_minus_venture"]
+
+
+def test_rq4_all_model_orderings_use_joint_gamma_posterior():
+    _, columns, _ = config.SEUSensitivityStudyConfig().design_matrix_for_pool("venture")
+    gamma = np.zeros((4, len(columns)))
+    first_column = columns.index(f"model_{config.MODELS[1].slug}")
+    second_column = columns.index(f"model_{config.MODELS[2].slug}")
+    gamma[:, first_column] = [-2, -1, 1, 2]
+    gamma[:, second_column] = gamma[:, first_column] - 0.5
+    report = ca.cross_pool_descriptive_report(
+        gamma, gamma, ca.primary_contrasts(columns), DIAGNOSTICS, DIAGNOSTICS
+    )
+    assert len(report["model_orderings"]) == 15
+    assert len({row["contrast_id"] for row in report["model_orderings"]}) == 15
+    row = next(row for row in report["model_orderings"]
+               if row["first_model"] == config.MODELS[1].name
+               and row["second_model"] == config.MODELS[2].name)
+    assert row["venture"]["lower_90"] == pytest.approx(0.5)
+    assert row["venture"]["upper_90"] == pytest.approx(0.5)
+    assert row["venture"]["probability_first_model_greater"] == 1.0
+    assert row["posterior_probability_same_sign"] == 1.0
+    reference_row = report["model_orderings"][0]
+    assert reference_row["venture"]["probability_first_model_greater"] == 0.5
+    assert reference_row["posterior_probability_same_sign"] == 0.5
+    assert report["sigma_cell_used_as_cross_pool_variance"] is False
+
+
+def test_rq4_large_posterior_resampling_is_bounded_repeatable_and_independent(monkeypatch):
+    monkeypatch.setattr(ca, "_CROSS_POOL_COMBINATION_CAP", 2000)
+    values = np.linspace(-1, 1, 100)
+    gamma = np.column_stack([values, values - 0.25])
+    contrasts = [_contrast(), ca.ContrastSpec("first", "RQ1", "First", (1.0, 0.0), ("a", "b"))]
+    report = ca.cross_pool_descriptive_report(gamma, gamma, contrasts, DIAGNOSTICS, DIAGNOSTICS)
+    repeated = ca.cross_pool_descriptive_report(gamma, gamma, contrasts, DIAGNOSTICS, DIAGNOSTICS)
+    assert report == repeated
+    policy = report["independent_posterior_combination"]
+    assert policy["method"] == "independent_resampling_with_replacement"
+    assert policy["combination_count"] == 2000
+    assert policy["shared_whole_draw_indices_across_estimands"] is True
+    assert report["rows"][0]["hiring_minus_venture"]["upper_90"] == pytest.approx(0.0)
+    difference = report["rows"][1]["hiring_minus_venture"]
+    assert difference["lower_90"] < -1.0
+    assert difference["upper_90"] > 1.0
 
 
 def test_presentation_report_flags_sign_decision_and_interpretation_changes():
@@ -148,3 +247,48 @@ def test_complete_report_requires_and_emits_all_frozen_sections():
         "utility_scale"
     )
     assert report["multiplicity"]["full_family_reported"] is True
+    assert report["multiplicity"]["primary_decision_count"] == 5
+    assert report["matched_rq5"]["primary"]["rq6"]["included_in_primary_family"] is False
+
+
+def test_complete_canonical_family_counts_primary_decisions_not_sensitivities():
+    _, columns, _ = config.SEUSensitivityStudyConfig().design_matrix_for_pool("venture")
+    contrasts = ca.primary_contrasts(columns)
+    cells = config.build_cells(["venture", "hiring"])
+    matched_contract = ca.matched_rq5_contract(cells)
+    matched_contrasts = [ca.ContrastSpec(**row) for row in matched_contract["contrasts"]]
+
+    def variants(column_count, selected_cells):
+        payload = {
+            "gamma_draws": np.zeros((10, column_count)),
+            "gamma_size_draws": np.zeros(10),
+            "sigma_cell_draws": np.ones(10),
+            "z_alpha_draws": np.zeros((10, len(selected_cells))),
+            "cell_ids": [cell.cell_id for cell in selected_cells],
+            "diagnostics": DIAGNOSTICS,
+        }
+        return {name: payload for name in (
+            "primary", "presentation_1_only", "presentation_2_only", "utility_035", "utility_065"
+        )}
+
+    report = ca.complete_confirmatory_report(
+        pool_variants={pool_id: variants(len(columns), config.build_cells([pool_id]))
+                       for pool_id in ("venture", "hiring")},
+        pool_contrasts={pool_id: contrasts for pool_id in ("venture", "hiring")},
+        matched_variants=variants(len(matched_contract["design_columns"]), cells),
+        matched_contrasts=matched_contrasts,
+    )
+    counts = report["multiplicity"]
+    assert counts["primary_decisions_by_pool"] == {"venture": 10, "hiring": 10}
+    assert counts["matched_rq5_primary_decisions"] == 6
+    assert counts["primary_decision_count"] == counts["expected_primary_decision_count"] == 26
+    assert len(report["rq4"]["model_orderings"]) == 15
+    assert len(report["matched_rq5"]["primary"]["rq3"]["model_by_prompt_dids"]) == 20
+
+
+@pytest.mark.parametrize("diagnostic", [
+    "max_rhat", "min_ess_bulk", "min_ess_tail", "min_ebfmi", "treedepth_saturated_share",
+])
+def test_sampler_thresholds_already_reject_nan(diagnostic):
+    with pytest.raises(ValueError, match="Sampler gates failed"):
+        ca.assert_sampler_gates({**DIAGNOSTICS, diagnostic: float("nan")})

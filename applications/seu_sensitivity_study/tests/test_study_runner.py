@@ -24,6 +24,23 @@ from applications.seu_sensitivity_study.study_runner import SEUSensitivityStudyR
 POOL_ID = "tinypool"
 
 
+def _budget_request_archive(state, cell):
+    requests = []
+    for index in range(state["request_count"]):
+        params = {
+            "model": cell.endpoint,
+            "max_tokens": 100,
+            "messages": [{"role": "user", "content": "prompt"}],
+        }
+        request = {"custom_id": f"request-{index}"}
+        if cell.provider == "openai":
+            request.update(method="POST", url="/v1/chat/completions", body=params)
+        else:
+            request["params"] = params
+        requests.append(request)
+    return {"request_hash": state["request_hash"], "requests": requests}
+
+
 class FakeEmbeddingClient:
     """Deterministic pseudo-embeddings; no network."""
 
@@ -329,7 +346,13 @@ class TestFullPipeline:
         ]
         assert stan_summary["analysis_contract"] == "analysis_contract.json"
         contract = json.loads((pool_dir / "analysis_contract.json").read_text())
-        assert contract["primary_decisions_per_pool"] == 9
+        assert contract["primary_decisions_per_pool"] == 10
+        for suffix, presentation in (("", None), ("_u035", None), ("_u065", None),
+                                     ("_presentation_1", 1), ("_presentation_2", 2)):
+            assembly = json.loads((pool_dir / f"stan_data_size{suffix}_assembly_report.json").read_text())
+            assert assembly["design_columns"] == stan_summary["design_columns"]
+            assert len(assembly["cell_ids"]) == 18
+            assert assembly["presentation_id"] == presentation
         assert contract["rq5"]["status"] == "confirmatory_fit_validated"
 
     def test_design_matrix_rows_align_with_cells(self, runner):
@@ -369,6 +392,131 @@ class TestFullPipeline:
         assert all(event["collection_mode"] == "synchronous" for event in after)
         assert all("usage" in event and "artifact" in event for event in after)
 
+    def test_batch_liability_uses_utf8_bytes_and_exact_rendered_cap(self, runner):
+        cell = next(cell for cell in runner.config.cells if cell.provider == "openai")
+        archive = {"requests": [{
+            "custom_id": "request-1", "method": "POST", "url": "/v1/chat/completions",
+            "body": {"model": cell.endpoint, "max_completion_tokens": 9000,
+                     "reasoning_effort": "high", "messages": [
+                         {"role": "system", "content": "system"},
+                         {"role": "user", "content": "\u00e9"},
+                     ]},
+        }]}
+        estimate = runner._batch_request_liability(archive, cell)
+        pricing = study_runner.pricing_for(cell.endpoint, cell.provider)
+        expected = 0.5 * ((8 + 3 * 1024) * pricing["input"] + 9000 * pricing["output"]) / 1_000_000
+        assert estimate["token_liability_usd"] == pytest.approx(expected)
+        assert estimate["reservation_usd"] >= expected
+        assert estimate["requests"][0]["content_utf8_bytes"] == 8
+        assert estimate["requests"][0]["output_token_cap"] == 9000
+
+    @pytest.mark.parametrize("change", [
+        {"tools": []}, {"n": 2}, {"response_format": {"type": "json_object"}},
+        {"max_tokens": None}, {"max_tokens": True}, {"max_tokens": 0},
+        {"max_tokens": 1.5}, {"max_completion_tokens": 100},
+        {"messages": [{"role": "user", "content": [{"type": "image_url"}]}]},
+        {"messages": [{"role": "tool", "content": "text"}]},
+    ])
+    def test_batch_liability_rejects_unsupported_requests(self, runner, change):
+        cell = next(cell for cell in runner.config.cells if cell.provider == "openai")
+        archive = {"requests": [{
+            "custom_id": "request-1", "method": "POST", "url": "/v1/chat/completions",
+            "body": {"model": cell.endpoint, "max_tokens": 100,
+                     "messages": [{"role": "user", "content": "prompt"}], **change},
+        }]}
+        with pytest.raises(RuntimeError, match="Unsupported|output token cap"):
+            runner._batch_request_liability(archive, cell)
+
+    def test_batch_liability_prices_all_rendered_model_arms(self, runner):
+        from applications.seu_sensitivity_study.batch_client import BatchPrompt, ProviderBatchClient
+
+        for cell in runner.config.cells_for_pool(POOL_ID):
+            client = ProviderBatchClient(cell, sdk_client=object())
+            requests = client.render_requests([
+                BatchPrompt(custom_id="request-1", prompt="prompt", system_prompt="system", max_tokens=100, temperature=0.0)
+            ])
+            estimate = runner._batch_request_liability({"requests": requests}, cell)
+            params = requests[0]["body" if cell.provider == "openai" else "params"]
+            cap = params.get("max_completion_tokens", params.get("max_tokens"))
+            pricing = study_runner.pricing_for(cell.endpoint, cell.provider)
+            assert estimate["requests"][0]["input_token_bound"] == 12 + 3 * 1024
+            assert estimate["requests"][0]["output_token_cap"] == cap
+            assert estimate["token_liability_usd"] == pytest.approx(
+                0.5 * ((12 + 3 * 1024) * pricing["input"] + cap * pricing["output"]) / 1_000_000
+            )
+
+    def test_batch_liability_rejects_missing_cap_and_unpriced_endpoint(self, runner, monkeypatch):
+        cell = runner.config.cells_for_pool(POOL_ID)[0]
+        state = {"request_count": 1, "request_hash": "hash"}
+        archive = _budget_request_archive(state, cell)
+        params = archive["requests"][0]["body" if cell.provider == "openai" else "params"]
+        del params["max_tokens"]
+        with pytest.raises(RuntimeError, match="exactly one output token cap"):
+            runner._batch_request_liability(archive, cell)
+        params["max_tokens"] = 100
+        monkeypatch.setattr(study_runner, "pricing_for", lambda *args: {"input": 0.0, "output": 0.0})
+        with pytest.raises(RuntimeError, match="Unpriced"):
+            runner._batch_request_liability(archive, cell)
+
+    @pytest.mark.parametrize("change", [
+        {"system": [{"type": "text", "text": "system"}]},
+        {"tools": []}, {"thinking": {"type": "adaptive"}},
+        {"thinking": {"type": "enabled", "budget_tokens": 200}},
+        {"messages": [{"role": "user", "content": "text", "cache_control": {"type": "ephemeral"}}]},
+    ])
+    def test_batch_liability_rejects_unsupported_anthropic_requests(self, runner, change):
+        cell = next(cell for cell in runner.config.cells if cell.provider == "anthropic")
+        archive = _budget_request_archive({"request_count": 1, "request_hash": "hash"}, cell)
+        archive["requests"][0]["params"].update(change)
+        with pytest.raises(RuntimeError, match="Unsupported"):
+            runner._batch_request_liability(archive, cell)
+
+    def test_batch_budget_blocks_token_overrun_with_unchanged_ceiling(self, runner, monkeypatch):
+        cell = runner.config.cells_for_pool(POOL_ID)[0]
+        runner.config.batch_wave_id = "test-wave"
+        runner.config.batch_wave_cell_ids = [cell.cell_id]
+        assert runner.config.batch_choice_budget_usd == 31
+        state = {"submission_id": "submission-1", "request_count": 1, "request_hash": "hash"}
+        archive = _budget_request_archive(state, cell)
+        params = archive["requests"][0]["body" if cell.provider == "openai" else "params"]
+        params["max_tokens"] = 100_000_000
+        monkeypatch.setattr(runner, "_assert_production_preflight", lambda *args: archive)
+        assert runner.config.batch_choice_reservation_per_request_usd < 31
+        assert runner._batch_request_liability(archive, cell)["token_liability_usd"] > 31
+        with pytest.raises(RuntimeError, match="budget exceeded before submission"):
+            runner._reserve_batch_budget(state, cell)
+        assert not (runner.results_dir / "batch_budget_reservations.jsonl").exists()
+
+    def test_batch_budget_existing_reservation_must_cover_liability(self, runner, monkeypatch):
+        cell = runner.config.cells_for_pool(POOL_ID)[0]
+        runner.config.batch_wave_id = "test-wave"
+        runner.config.batch_wave_cell_ids = [cell.cell_id]
+        state = {"submission_id": "submission-1", "request_count": 1, "request_hash": "hash"}
+        archive = _budget_request_archive(state, cell)
+        monkeypatch.setattr(runner, "_assert_production_preflight", lambda *args: archive)
+        runner._reserve_batch_budget(state, cell)
+        path = runner.results_dir / "batch_budget_reservations.jsonl"
+        record = json.loads(path.read_text())
+        assert record["liability"] == runner._batch_request_liability(archive, cell)
+        record["reservation_usd"] *= 2
+        record.pop("liability")
+        path.write_text(json.dumps(record) + "\n")
+        before = path.read_bytes()
+        runner._reserve_batch_budget(state, cell)
+        runner._write_batch_budget_report()
+        assert path.read_bytes() == before
+        report = json.loads((runner.results_dir / "batch_budget_report.json").read_text())
+        assert report["reserved_total_usd"] == record["reservation_usd"]
+        assert report["liability_assumptions"]["input_overhead_tokens_per_message"] == 1024
+        with pytest.raises(RuntimeError, match="Conflicting Batch budget reservation"):
+            runner._reserve_batch_budget({**state, "request_hash": "changed"}, cell)
+        record["reservation_usd"] /= 4
+        path.write_text(json.dumps(record) + "\n")
+        before = path.read_bytes()
+        with pytest.raises(RuntimeError, match="Conflicting Batch budget reservation"):
+            runner._reserve_batch_budget(state, cell)
+        assert path.read_bytes() == before
+
     def test_batch_budget_reservation_is_idempotent_and_enforces_ceiling(
         self, runner, monkeypatch
     ):
@@ -378,7 +526,7 @@ class TestFullPipeline:
         runner.config.batch_wave_cell_ids = [cell.cell_id, second_cell.cell_id]
         runner.config.batch_choice_reservation_per_request_usd = 0.5
         runner.config.batch_choice_budget_usd = 1.0
-        monkeypatch.setattr(runner, "_assert_production_preflight", lambda *args: None)
+        monkeypatch.setattr(runner, "_assert_production_preflight", _budget_request_archive)
         state = {
             "submission_id": "submission-1",
             "request_hash": "hash-1",
@@ -410,7 +558,7 @@ class TestFullPipeline:
         cell = runner.config.cells_for_pool(POOL_ID)[0]
         runner.config.batch_wave_id = "test-wave"
         runner.config.batch_wave_cell_ids = [cell.cell_id]
-        monkeypatch.setattr(runner, "_assert_production_preflight", lambda *args: None)
+        monkeypatch.setattr(runner, "_assert_production_preflight", _budget_request_archive)
         path = runner.results_dir / "batch_budget_reservations.jsonl"
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text('{"submission_id": "incomplete"')
@@ -442,7 +590,7 @@ class TestFullPipeline:
         cells = runner.config.cells_for_pool(POOL_ID)[:2]
         runner.config.batch_wave_id = "test-wave"
         runner.config.batch_wave_cell_ids = [cell.cell_id for cell in cells]
-        monkeypatch.setattr(runner, "_assert_production_preflight", lambda *args: None)
+        monkeypatch.setattr(runner, "_assert_production_preflight", _budget_request_archive)
         runner.config.batch_choice_reservation_per_request_usd = 0.1
         runner.config.batch_choice_budget_usd = 1.0
         for index, cell in enumerate(cells, start=1):
@@ -477,6 +625,18 @@ class TestFullPipeline:
         assert report["usage_cost_complete"] is False
         assert report["unresolved_submission_ids"] == ["submission-2"]
         assert report["attempts"][1]["usage_estimated_cost_usd"] is None
+
+        runner._write_json(
+            runner.checkpoint_dir / POOL_ID / "batches" / f"{cells[1].cell_id}.json",
+            {"submission_id": "submission-2", "status": "completed",
+             "usage": {"estimated_cost_usd": 0.02, "usage_complete": False}},
+        )
+        runner._write_batch_budget_report()
+        report = json.loads((runner.results_dir / "batch_budget_report.json").read_text())
+        assert report["known_usage_estimated_total_usd"] == pytest.approx(0.06)
+        assert report["usage_cost_complete"] is False
+        assert report["unresolved_submission_ids"] == ["submission-2"]
+        assert report["attempts"][1]["usage_cost_known"] is True
 
     def test_batch_budget_requires_explicit_cell_wave_authorization(self, runner):
         cells = runner.config.cells_for_pool(POOL_ID)[:2]
@@ -540,7 +700,8 @@ class TestFullPipeline:
             "request_count": len(request_archive["requests"]),
             "submission_id": "submission-1",
         }
-        runner._assert_production_preflight(state, cell)
+        assert runner._assert_production_preflight(state, cell) == request_archive
+        assert evidence["batch_budget"]["cells"][cell.cell_id] == runner._batch_request_liability(request_archive, cell)
         with pytest.raises(RuntimeError, match="request count does not match"):
             runner._assert_production_preflight({**state, "request_count": 1}, cell)
         with pytest.raises(RuntimeError, match="Production stage already exists"):
@@ -579,6 +740,45 @@ class TestFullPipeline:
         source_problem.write_text(source_problem.read_text() + "\n")
         with pytest.raises(RuntimeError, match="artifact hash does not match"):
             runner._assert_production_preflight(state, cell)
+
+    @pytest.mark.parametrize("existing_reserved", [0.0, 30.999999])
+    def test_production_preflight_blocks_wave_liability_before_staging(
+        self, runner, monkeypatch, existing_reserved
+    ):
+        self._run_all(runner)
+        repository_root = study_runner.Path(study_runner.__file__).resolve().parents[2]
+        monkeypatch.setattr(study_runner, "_clean_repository_identity", lambda: (repository_root, "test-commit"))
+        cells = runner.config.cells_for_pool(POOL_ID)[:2]
+        runner.config.collection_mode = "batch"
+        runner.config.batch_wave_id = "test-wave"
+        runner.config.batch_wave_cell_ids = [cell.cell_id for cell in cells]
+        assert runner.config.batch_choice_budget_usd == 31
+        gate = {"pool_id": POOL_ID, "status": "passed", "passed": True}
+        runner._write_json(runner._pool_dir(POOL_ID) / "gate_report.json", gate)
+        monkeypatch.setattr(runner, "_phase_validate", lambda pool_id: gate)
+        original_evidence = study_runner.ChoiceCollector.batch_request_evidence
+
+        def request_evidence(collector, client):
+            archive = original_evidence(collector, client)
+            if not existing_reserved:
+                for request in archive["requests"]:
+                    params = request["body" if collector.cell.provider == "openai" else "params"]
+                    cap_key = "max_completion_tokens" if "max_completion_tokens" in params else "max_tokens"
+                    params[cap_key] = 100_000_000
+            return archive
+
+        monkeypatch.setattr(study_runner.ChoiceCollector, "batch_request_evidence", request_evidence)
+        ledger_path = runner.results_dir / "batch_budget_reservations.jsonl"
+        if existing_reserved:
+            ledger_path.write_text(json.dumps({
+                "submission_id": "prior-submission", "cell_id": "prior-cell",
+                "reservation_usd": existing_reserved,
+            }) + "\n")
+        before = ledger_path.read_bytes() if ledger_path.exists() else None
+        with pytest.raises(RuntimeError, match="budget exceeded before production staging"):
+            runner.run_production_preflight()
+        assert not (runner.results_dir / "production_stages").exists()
+        assert (ledger_path.read_bytes() if ledger_path.exists() else None) == before
 
     def test_production_preflight_rejects_failed_fresh_gate(self, runner, monkeypatch):
         runner.run(phases=["design", "embed", "assess"])

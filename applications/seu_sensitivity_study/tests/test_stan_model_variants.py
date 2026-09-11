@@ -337,8 +337,27 @@ def test_sampler_summary_applies_campaign_thresholds(tmp_path):
     assert summary["total_fit_seconds"] == 20
 
 
+def test_sampler_summary_recovers_tail_evidence_and_rejects_missing(tmp_path):
+    directory = tmp_path / "iteration_1"
+    directory.mkdir()
+    (directory / "diagnostics.json").write_text(json.dumps({
+        "seconds": 1, "max_rhat": 1.005, "min_ess_bulk": 425,
+        "min_ebfmi": 0.8, "divergences": 0,
+        "treedepth_saturated_share": 0, "nonfinite_proposals_total": 0,
+    }))
+    assert not _summarize_sampler_diagnostics(tmp_path)["all_passed"]
+    (directory / "posterior_summary.csv").write_text(
+        ",ESS_tail\nsigma_cell,310.525\ngamma0,800\n"
+    )
+    report = _summarize_sampler_diagnostics(tmp_path)
+    assert report["iterations"][0]["min_ess_tail"] == 310.525
+    assert not report["all_passed"]
+
+
 def test_fit_diagnostics_covers_parameters_and_excludes_observation_arrays():
     class FakeFit:
+        metadata = type("Metadata", (), {"cmdstan_config": {"model": "h_m01_size_pinned"}})()
+
         def summary(self):
             return pd.DataFrame(
                 {
@@ -371,3 +390,10 @@ def test_fit_diagnostics_covers_parameters_and_excludes_observation_arrays():
     assert "beta[1,1,1]" in diagnostics["ess_bulk"]
     assert "eta[1]" not in diagnostics["ess_bulk"]
     assert "delta[1]" not in diagnostics["ess_bulk"]
+
+    FakeFit.metadata.cmdstan_config["model"] = "h_m01_size"
+    invalid = fit_diagnostics(FakeFit(), seconds=200.0, max_treedepth=12)
+    assert invalid["invalid_diagnostic_parameters"] == ["delta[1]"]
+    assert invalid["min_ess_bulk"] is None
+    assert invalid["min_ess_tail"] is None
+    assert invalid["max_rhat"] is None

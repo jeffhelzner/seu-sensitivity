@@ -445,6 +445,7 @@ def build_stan_data(
         "confirmatory_design_rank": design_rank,
         "confirmatory_design_required_rank": required_design_rank,
         "item_ids": item_ids,
+        "design_columns": list(design_column_names) if design_column_names is not None else None,
         "mean_menu_size": mean_menu_size,
         "menu_sizes": menu_sizes,
         "presentation_id": presentation_id,

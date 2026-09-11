@@ -59,10 +59,24 @@ from .batch_client import ProviderBatchClient
 from .choice_collection import ChoiceCollector
 from .client import build_client
 from .config import MODELS, CellSpec, SEUSensitivityStudyConfig, get_model_spec
+from .llm_extensions import pricing_for
 
 logger = logging.getLogger(__name__)
 
 __all__ = ["SEUSensitivityStudyRunner", "PHASES"]
+
+
+_BATCH_LIABILITY_ASSUMPTIONS = {
+    "method": "text_utf8_bytes_and_output_cap_v1",
+    "input_tokens_per_utf8_byte": 1,
+    "input_overhead_tokens_per_message": 1024,
+    "input_overhead_tokens_per_request": 1024,
+    "batch_price_multiplier": 0.5,
+    "formula": "max(legacy_floor, 0.5 * (input_bound * input_rate + output_cap * output_rate) / 1000000)",
+    "scope": "Text-only OpenAI chat completions and Anthropic messages; system counts as a message; output cap includes reasoning/thinking; rates are USD per million tokens.",
+    "exclusions": "No tools, images, audio, caching directives, multiple completions, or unknown request parameters.",
+    "reservation_policy": "Reservations are never released; this bound grants no additional spending authorization.",
+}
 
 
 #: ``assess`` runs *before* ``validate`` on purpose.  The R3 predictive-validity
@@ -527,6 +541,8 @@ class SEUSensitivityStudyRunner:
                 **anchored_kwargs,
             )
             self._write_json(pool_dir / filename, stan_data)
+            if anchored and include_size:
+                self._write_json(pool_dir / f"{Path(filename).stem}_assembly_report.json", report)
             if not include_size:
                 outputs["M_total"] = stan_data["M_total"]
                 outputs["overall_na_rate"] = report["overall_na_rate"]
@@ -543,7 +559,7 @@ class SEUSensitivityStudyRunner:
             for middle in self.config.utility_middle_values:
                 if middle == self.config.primary_utility_middle:
                     continue
-                stan_data, _ = data_preparation.build_stan_data(
+                stan_data, report = data_preparation.build_stan_data(
                     pool=pool,
                     problem_set=problem_set,
                     choice_sets=choice_sets,
@@ -560,6 +576,7 @@ class SEUSensitivityStudyRunner:
                 label = f"{round(middle * 100):03d}"
                 filename = f"stan_data_size_u{label}.json"
                 self._write_json(pool_dir / filename, stan_data)
+                self._write_json(pool_dir / f"{Path(filename).stem}_assembly_report.json", report)
                 sensitivity_files.append(filename)
             outputs["utility_sensitivity_files"] = sensitivity_files
 
@@ -582,6 +599,7 @@ class SEUSensitivityStudyRunner:
                 )
                 filename = f"stan_data_size_presentation_{presentation_id}.json"
                 self._write_json(pool_dir / filename, stan_data)
+                self._write_json(pool_dir / f"{Path(filename).stem}_assembly_report.json", report)
                 presentation_files.append(filename)
                 outputs[f"presentation_{presentation_id}_design_rank"] = report[
                     "confirmatory_design_rank"
@@ -651,6 +669,7 @@ class SEUSensitivityStudyRunner:
             else:
                 filename = f"stan_data_size_u{round(middle * 100):03d}.json"
             self._write_json(output_dir / filename, stan_data)
+            self._write_json(output_dir / f"{Path(filename).stem}_assembly_report.json", report)
             files.append(filename)
 
         presentation_files = []
@@ -662,6 +681,7 @@ class SEUSensitivityStudyRunner:
             )
             filename = f"stan_data_size_presentation_{presentation_id}.json"
             self._write_json(output_dir / filename, stan_data)
+            self._write_json(output_dir / f"{Path(filename).stem}_assembly_report.json", report)
             presentation_files.append(filename)
 
         assert primary_report is not None
@@ -757,6 +777,7 @@ class SEUSensitivityStudyRunner:
             pca_info=pca_info,
             **kwargs,
         )
+        manifest["batch_liability_assumptions"] = dict(_BATCH_LIABILITY_ASSUMPTIONS)
         self._write_json(self.results_dir / "run_manifest.json", manifest)
         return manifest
 
@@ -844,6 +865,49 @@ class SEUSensitivityStudyRunner:
             request_hashes[cell.cell_id] = cell_evidence["request_hash"]
             request_evidence[cell.cell_id] = cell_evidence
 
+        liabilities = {
+            cell.cell_id: self._batch_request_liability(request_evidence[cell.cell_id], cell)
+            for cell in cells
+        }
+        reservations = self._load_batch_budget_records(
+            self.results_dir / "batch_budget_reservations.jsonl"
+        )
+        reserved_total = math.fsum(record["reservation_usd"] for record in reservations)
+        reserved_cells = {record["cell_id"]: record for record in reservations}
+        additional_liability = 0.0
+        for cell in cells:
+            liability = liabilities[cell.cell_id]["reservation_usd"]
+            existing = reserved_cells.get(cell.cell_id)
+            if existing is not None:
+                if (
+                    existing.get("wave_id") != self.config.batch_wave_id
+                    or existing.get("request_hash") != request_hashes[cell.cell_id]
+                    or existing.get("request_count") != liabilities[cell.cell_id]["request_count"]
+                    or existing["reservation_usd"] < liability
+                ):
+                    raise RuntimeError(
+                        f"Conflicting Batch budget reservation for {cell.cell_id}; "
+                        "replacement attempts require amended authorization"
+                    )
+            else:
+                additional_liability += liability
+        headroom = self.config.batch_choice_budget_usd - reserved_total
+        if additional_liability > headroom:
+            raise RuntimeError(
+                "Batch choice budget exceeded before production staging: "
+                f"reserved=${reserved_total:.6f}, requested=${additional_liability:.6f}, "
+                f"ceiling=${self.config.batch_choice_budget_usd:.2f}"
+            )
+        budget_evidence = {
+            "assumptions": dict(_BATCH_LIABILITY_ASSUMPTIONS),
+            "budget_ceiling_usd": self.config.batch_choice_budget_usd,
+            "reserved_total_usd": reserved_total,
+            "reservation_headroom_usd": headroom,
+            "wave_reservation_usd": math.fsum(item["reservation_usd"] for item in liabilities.values()),
+            "additional_reservation_usd": additional_liability,
+            "cells": liabilities,
+        }
+
         generated_artifacts = {
             "preflight_config.json": self.config.to_dict(),
             **{
@@ -869,6 +933,7 @@ class SEUSensitivityStudyRunner:
             "prompt_hashes": prompt_hashes,
             "gate_hashes": gate_hashes,
             "request_hashes": request_hashes,
+            "batch_budget": budget_evidence,
             "created_at": datetime.now(timezone.utc).isoformat(),
         }
         evidence["aggregate_hash"] = _sha256_json(evidence)
@@ -1015,6 +1080,127 @@ class SEUSensitivityStudyRunner:
         finally:
             os.close(descriptor)
 
+    def _batch_request_liability(
+        self, request_archive: Mapping[str, Any], cell: Any
+    ) -> Dict[str, Any]:
+        requests = request_archive.get("requests")
+        if not isinstance(requests, list) or not requests:
+            raise RuntimeError("Batch liability requires a nonempty rendered request archive")
+        if cell.provider not in {"openai", "anthropic"}:
+            raise RuntimeError("Unsupported Batch liability provider")
+        pricing = pricing_for(cell.endpoint, cell.provider)
+        if any(
+            isinstance(pricing.get(kind), bool)
+            or not isinstance(pricing.get(kind), (int, float))
+            or not math.isfinite(pricing[kind])
+            or pricing[kind] <= 0
+            for kind in ("input", "output")
+        ):
+            raise RuntimeError(f"Unpriced Batch liability endpoint: {cell.endpoint}")
+        per_request = []
+        custom_ids = set()
+        for request in requests:
+            if not isinstance(request, dict):
+                raise RuntimeError("Unsupported rendered Batch request structure")
+            custom_id = request.get("custom_id")
+            if not isinstance(custom_id, str) or not custom_id or custom_id in custom_ids:
+                raise RuntimeError("Invalid or duplicate rendered Batch custom_id")
+            custom_ids.add(custom_id)
+            if cell.provider == "openai":
+                if (
+                    set(request) != {"custom_id", "method", "url", "body"}
+                    or request["method"] != "POST"
+                    or request["url"] != "/v1/chat/completions"
+                ):
+                    raise RuntimeError("Unsupported OpenAI Batch request structure")
+                params = request["body"]
+                allowed = {"model", "messages", "max_tokens", "max_completion_tokens", "temperature", "reasoning_effort"}
+                cap_keys = {"max_tokens", "max_completion_tokens"}
+                roles = {"system", "developer", "user", "assistant"}
+            else:
+                if set(request) != {"custom_id", "params"}:
+                    raise RuntimeError("Unsupported Anthropic Batch request structure")
+                params = request["params"]
+                allowed = {"model", "messages", "max_tokens", "temperature", "system", "thinking"}
+                cap_keys = {"max_tokens"}
+                roles = {"user", "assistant"}
+            if not isinstance(params, dict) or set(params) - allowed:
+                raise RuntimeError("Unsupported Batch liability request parameters")
+            if params.get("model") != cell.endpoint:
+                raise RuntimeError("Batch liability endpoint does not match cell")
+            caps = cap_keys.intersection(params)
+            if len(caps) != 1:
+                raise RuntimeError("Batch liability requires exactly one output token cap")
+            output_cap = params[next(iter(caps))]
+            if isinstance(output_cap, bool) or not isinstance(output_cap, int) or output_cap <= 0:
+                raise RuntimeError("Batch liability requires a positive integer output token cap")
+            if "temperature" in params and (
+                isinstance(params["temperature"], bool)
+                or not isinstance(params["temperature"], (int, float))
+                or not math.isfinite(params["temperature"])
+                or not 0 <= params["temperature"] <= (2 if cell.provider == "openai" else 1)
+            ):
+                raise RuntimeError("Unsupported Batch liability temperature")
+            if "reasoning_effort" in params and (
+                params["reasoning_effort"] not in ("low", "medium", "high")
+                or "max_completion_tokens" not in params
+            ):
+                raise RuntimeError("Unsupported Batch liability reasoning parameters")
+            if "thinking" in params:
+                thinking = params["thinking"]
+                if (
+                    not isinstance(thinking, dict)
+                    or set(thinking) != {"type", "budget_tokens"}
+                    or thinking["type"] != "enabled"
+                    or isinstance(thinking["budget_tokens"], bool)
+                    or not isinstance(thinking["budget_tokens"], int)
+                    or not 0 < thinking["budget_tokens"] < output_cap
+                ):
+                    raise RuntimeError("Unsupported Batch liability thinking parameters")
+            messages = params.get("messages")
+            if not isinstance(messages, list) or not messages:
+                raise RuntimeError("Unsupported Batch liability messages")
+            contents = []
+            for message in messages:
+                if (
+                    not isinstance(message, dict)
+                    or set(message) != {"role", "content"}
+                    or not isinstance(message["role"], str)
+                    or message["role"] not in roles
+                    or not isinstance(message["content"], str)
+                ):
+                    raise RuntimeError("Unsupported Batch liability text-only message structure")
+                contents.append(message["content"])
+            if "system" in params:
+                if not isinstance(params["system"], str):
+                    raise RuntimeError("Unsupported Batch liability text-only system content")
+                contents.append(params["system"])
+            content_bytes = sum(len(content.encode("utf-8")) for content in contents)
+            input_bound = content_bytes + 1024 * len(contents) + 1024
+            liability_usd = 0.5 * (
+                input_bound * pricing["input"] + output_cap * pricing["output"]
+            ) / 1_000_000
+            per_request.append({
+                "custom_id": custom_id,
+                "content_utf8_bytes": content_bytes,
+                "message_count": len(contents),
+                "input_token_bound": input_bound,
+                "output_token_cap": output_cap,
+                "token_liability_usd": liability_usd,
+                "reservation_usd": max(liability_usd, self.config.batch_choice_reservation_per_request_usd),
+            })
+        return {
+            "assumptions": dict(_BATCH_LIABILITY_ASSUMPTIONS),
+            "provider": cell.provider,
+            "model": cell.endpoint,
+            "pricing_per_million_tokens_usd": dict(pricing),
+            "legacy_floor_per_request_usd": self.config.batch_choice_reservation_per_request_usd,
+            "request_count": len(requests),
+            "token_liability_usd": math.fsum(item["token_liability_usd"] for item in per_request),
+            "reservation_usd": math.fsum(item["reservation_usd"] for item in per_request),
+            "requests": per_request,
+        }
+
     def _reserve_batch_budget(
         self, state: Mapping[str, Any], cell: Any
     ) -> None:
@@ -1027,7 +1213,8 @@ class SEUSensitivityStudyRunner:
                 f"Batch cell {cell.cell_id} is not authorized in wave "
                 f"{self.config.batch_wave_id}"
             )
-        self._assert_production_preflight(state, cell)
+        request_archive = self._assert_production_preflight(state, cell)
+        liability = self._batch_request_liability(request_archive, cell)
         path = self.results_dir / "batch_budget_reservations.jsonl"
         lock_path = path.with_suffix(path.suffix + ".lock")
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -1043,21 +1230,26 @@ class SEUSensitivityStudyRunner:
             cell_ids = {record["cell_id"] for record in records}
 
             submission_id = str(state["submission_id"])
-            reservation_usd = (
-                int(state["request_count"])
-                * self.config.batch_choice_reservation_per_request_usd
-            )
+            reservation_usd = liability["reservation_usd"]
+            reserved_usd = math.fsum(record["reservation_usd"] for record in records)
+            if reserved_usd > self.config.batch_choice_budget_usd:
+                raise RuntimeError("Batch choice budget exceeded before submission: existing reservations exceed ceiling")
             existing = [
                 record
                 for record in records
                 if record.get("submission_id") == submission_id
             ]
             if existing:
-                if not math.isclose(
-                    existing[0]["reservation_usd"],
-                    reservation_usd,
-                    rel_tol=0.0,
-                    abs_tol=1e-12,
+                if (
+                    existing[0]["reservation_usd"] < reservation_usd
+                    or any(existing[0].get(key) != value for key, value in {
+                        "cell_id": cell.cell_id,
+                        "wave_id": self.config.batch_wave_id,
+                        "request_hash": state["request_hash"],
+                        "request_count": liability["request_count"],
+                        "provider": cell.provider,
+                        "model": cell.endpoint,
+                    }.items())
                 ):
                     raise RuntimeError(
                         f"Conflicting Batch budget reservation for {submission_id}"
@@ -1070,10 +1262,7 @@ class SEUSensitivityStudyRunner:
                     "replacement attempts require amended authorization"
                 )
 
-            reserved_usd = sum(
-                float(record.get("reservation_usd", 0.0)) for record in records
-            )
-            if reserved_usd + reservation_usd > self.config.batch_choice_budget_usd + 1e-12:
+            if reserved_usd + reservation_usd > self.config.batch_choice_budget_usd:
                 raise RuntimeError(
                     "Batch choice budget exceeded before submission: "
                     f"reserved=${reserved_usd:.6f}, requested=${reservation_usd:.6f}, "
@@ -1085,6 +1274,7 @@ class SEUSensitivityStudyRunner:
                 "request_hash": state["request_hash"],
                 "request_count": int(state["request_count"]),
                 "reservation_usd": reservation_usd,
+                "liability": liability,
                 "budget_ceiling_usd": self.config.batch_choice_budget_usd,
                 "reservation_rate_usd": (
                     self.config.batch_choice_reservation_per_request_usd
@@ -1106,7 +1296,7 @@ class SEUSensitivityStudyRunner:
 
     def _assert_production_preflight(
         self, state: Mapping[str, Any], cell: Any
-    ) -> None:
+    ) -> Dict[str, Any]:
         wave_id = self.config.batch_wave_id
         if not wave_id:
             raise RuntimeError("Batch submission is not authorized: batch_wave_id is unset")
@@ -1194,6 +1384,8 @@ class SEUSensitivityStudyRunner:
             raise RuntimeError(
                 "Batch request count does not match production staged request archive"
             )
+        if request_archive.get("request_hash") != state.get("request_hash"):
+            raise RuntimeError("Rendered Batch request archive hash does not match production preflight")
         for relative_path, expected_hash in manifest.get("source_hashes", {}).items():
             if not relative_path.startswith(f"pools/{cell.pool_id}/"):
                 continue
@@ -1207,6 +1399,7 @@ class SEUSensitivityStudyRunner:
                 raise RuntimeError(
                     f"Production staged artifact hash does not match: {relative_path}"
                 )
+        return request_archive
 
     @staticmethod
     def _load_batch_budget_records(path: Path) -> List[Dict[str, Any]]:
@@ -1279,21 +1472,27 @@ class SEUSensitivityStudyRunner:
                     "batch_id": state.get("batch_id"),
                     "usage_estimated_cost_usd": usage_estimated_cost,
                     "usage_cost_known": usage_estimated_cost is not None,
+                    "usage_complete": usage_estimated_cost is not None
+                    and usage.get("usage_complete", state.get("status") == "completed")
+                    and not any(state.get(key) for key in (
+                        "failed_custom_ids", "duplicate_custom_ids", "provider_errors"
+                    )),
                 }
             )
 
         reserved_total = sum(float(item["reservation_usd"]) for item in reservations)
         report = {
+            "liability_assumptions": dict(_BATCH_LIABILITY_ASSUMPTIONS),
             "budget_ceiling_usd": self.config.batch_choice_budget_usd,
             "reserved_total_usd": reserved_total,
             "reservation_headroom_usd": self.config.batch_choice_budget_usd
             - reserved_total,
             "known_usage_estimated_total_usd": sum(usage_estimated_costs),
-            "usage_cost_complete": len(usage_estimated_costs) == len(reservations),
+            "usage_cost_complete": all(attempt["usage_complete"] for attempt in attempts),
             "unresolved_submission_ids": [
                 attempt["submission_id"]
                 for attempt in attempts
-                if not attempt["usage_cost_known"]
+                if not attempt["usage_complete"]
             ],
             "attempts": attempts,
         }

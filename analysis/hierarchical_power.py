@@ -64,9 +64,15 @@ DIAGNOSTIC_EXCLUDE_PREFIXES = (
 def fit_diagnostics(fit: Any, *, seconds: float, max_treedepth: int) -> Dict[str, Any]:
     """Return all-parameter mixing diagnostics, excluding per-observation arrays."""
     summary = fit.summary()
+    model = getattr(getattr(fit, "metadata", None), "cmdstan_config", {}).get("model")
+    fixed_utility = model in {
+        "h_m01_size_pinned", "h_m01_size_pinned_model",
+        "h_m01_size_assessment_anchored", "h_m01_size_assessment_anchored_model",
+    }
     parameters = [
         name for name in summary.index
         if not name.startswith(DIAGNOSTIC_EXCLUDE_PREFIXES)
+        and not (fixed_utility and name.startswith(("delta[", "upsilon[")))
     ]
     bulk_columns = [
         column for column in summary.columns
@@ -86,9 +92,13 @@ def fit_diagnostics(fit: Any, *, seconds: float, max_treedepth: int) -> Dict[str
         {name: float(summary.loc[name, rhat_columns[0]]) for name in parameters}
         if rhat_columns else {}
     )
-    bulk = {name: value for name, value in bulk.items() if np.isfinite(value)}
-    tail = {name: value for name, value in tail.items() if np.isfinite(value)}
-    rhat = {name: value for name, value in rhat.items() if np.isfinite(value)}
+    invalid = sorted({
+        name for values in (bulk, tail, rhat) for name in parameters
+        if name not in values or not np.isfinite(values[name])
+    })
+    bulk = {name: value if np.isfinite(value) else None for name, value in bulk.items()}
+    tail = {name: value if np.isfinite(value) else None for name, value in tail.items()}
+    rhat = {name: value if np.isfinite(value) else None for name, value in rhat.items()}
 
     method_variables = fit.method_variables()
     treedepth = np.asarray(method_variables["treedepth__"])
@@ -105,9 +115,8 @@ def fit_diagnostics(fit: Any, *, seconds: float, max_treedepth: int) -> Dict[str
                 float(np.mean(np.diff(chain_energy) ** 2) / variance)
                 if variance > 0 else float("nan")
             )
-    finite_ebfmi = [value for value in ebfmi if np.isfinite(value)]
-    minimum_bulk = min(bulk.values()) if bulk else None
-    minimum_tail = min(tail.values()) if tail else None
+    minimum_bulk = min(bulk.values()) if bulk and not invalid else None
+    minimum_tail = min(tail.values()) if tail and not invalid else None
     return {
         "seconds": seconds,
         "mean_treedepth": float(treedepth.mean()),
@@ -115,20 +124,21 @@ def fit_diagnostics(fit: Any, *, seconds: float, max_treedepth: int) -> Dict[str
         "treedepth_saturated_share": float((treedepth >= max_treedepth).mean()),
         "divergences": int(divergent.sum()),
         "ebfmi_by_chain": ebfmi,
-        "min_ebfmi": min(finite_ebfmi) if finite_ebfmi else None,
+        "min_ebfmi": min(ebfmi) if ebfmi and np.all(np.isfinite(ebfmi)) else None,
+        "invalid_diagnostic_parameters": invalid,
         "ess_bulk": bulk,
         "ess_tail": tail,
         "rhat": rhat,
         "min_ess_bulk": minimum_bulk,
         "min_ess_tail": minimum_tail,
-        "max_rhat": max(rhat.values()) if rhat else None,
+        "max_rhat": max(rhat.values()) if rhat and not invalid else None,
         "ess_bulk_per_1000_seconds": (
             minimum_bulk / (seconds / 1000.0)
             if minimum_bulk is not None and seconds > 0 else None
         ),
-        "worst_ess": sorted(bulk.items(), key=lambda item: item[1])[:12],
-        "worst_tail_ess": sorted(tail.items(), key=lambda item: item[1])[:12],
-        "worst_rhat": sorted(rhat.items(), key=lambda item: -item[1])[:12],
+        "worst_ess": sorted(bulk.items(), key=lambda item: item[1] if item[1] is not None else -np.inf)[:12],
+        "worst_tail_ess": sorted(tail.items(), key=lambda item: item[1] if item[1] is not None else -np.inf)[:12],
+        "worst_rhat": sorted(rhat.items(), key=lambda item: -item[1] if item[1] is not None else -np.inf)[:12],
     }
 
 

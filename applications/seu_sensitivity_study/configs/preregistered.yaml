@@ -24,7 +24,7 @@ retry_delay: 2.0
 max_choice_tokens: 64
 max_assessment_tokens: 400
 collection_mode: batch
-batch_choice_budget_usd: 31.0
+batch_choice_budget_usd: 122.78
 batch_choice_reservation_per_request_usd: 0.0030753968253968253
 batch_wave_id: null
 batch_wave_cell_ids: []

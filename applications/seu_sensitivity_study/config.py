@@ -19,6 +19,7 @@ and copied into the run manifest (§6.5).
 from __future__ import annotations
 
 import logging
+import math
 import re
 from dataclasses import dataclass, field, replace
 from pathlib import Path
@@ -363,12 +364,18 @@ class SEUSensitivityStudyConfig:
             )
         if self.collection_mode not in {"synchronous", "batch"}:
             raise ValueError("collection_mode must be 'synchronous' or 'batch'")
-        if self.batch_choice_budget_usd <= 0:
-            raise ValueError("batch_choice_budget_usd must be positive")
-        if self.batch_choice_reservation_per_request_usd <= 0:
-            raise ValueError(
-                "batch_choice_reservation_per_request_usd must be positive"
-            )
+        for name in (
+            "batch_choice_budget_usd",
+            "batch_choice_reservation_per_request_usd",
+        ):
+            value = getattr(self, name)
+            if (
+                isinstance(value, bool)
+                or not isinstance(value, (int, float))
+                or not math.isfinite(value)
+                or value <= 0
+            ):
+                raise ValueError(f"{name} must be positive and finite")
         if bool(self.batch_wave_id) != bool(self.batch_wave_cell_ids):
             raise ValueError(
                 "batch_wave_id and batch_wave_cell_ids must be configured together"

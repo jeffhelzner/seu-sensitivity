@@ -13,7 +13,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Callable, Dict, Mapping, Optional, Sequence
+from typing import Any, Callable, Dict, List, Mapping, Optional, Sequence
 
 from .config import CellSpec
 from .llm_extensions import pricing_for
@@ -270,11 +270,11 @@ class ProviderBatchClient:
         if self.provider == "openai":
             import openai
 
-            return openai.OpenAI()
+            return openai.OpenAI(max_retries=0)
         if self.provider == "anthropic":
             import anthropic
 
-            return anthropic.Anthropic()
+            return anthropic.Anthropic(max_retries=0)
         raise ValueError(f"Unknown provider: {self.provider}")
 
     def _submit(
@@ -383,16 +383,25 @@ class ProviderBatchClient:
                 continue
             body = response["body"]
             responses[custom_id] = body["choices"][0]["message"]["content"].strip()
-            usages.append(_openai_usage(body.get("usage") or {}))
+            if _has_token_usage(body.get("usage"), "prompt_tokens", "completion_tokens"):
+                usages.append(_openai_usage(body["usage"]))
+        usage_complete = len(usages) == len(responses)
         batch_usage = getattr(batch, "usage", None)
-        if batch_usage is not None:
+        if _has_token_usage(batch_usage, "input_tokens", "output_tokens"):
             usages = [_openai_batch_usage(batch_usage)]
+            usage_complete = True
         usage_summary = self._usage_summary(usages)
+        usage_summary["usage_complete"] = (
+            usage_complete and status == "completed"
+            and not failures and not duplicates and not provider_errors
+        )
+        usage_summary["calls"] = len(responses) + len(failures)
         request_counts = getattr(batch, "request_counts", None)
         if request_counts is not None:
             remote_total = _object_value(request_counts, "total", None)
             if remote_total is None:
                 usage_summary["calls"] = None
+                usage_summary["usage_complete"] = False
                 provider_errors.append(
                     {
                         "status": status,
@@ -401,6 +410,7 @@ class ProviderBatchClient:
                 )
             else:
                 usage_summary["calls"] = int(remote_total)
+                usage_summary["usage_complete"] &= int(remote_total) == len(responses)
         return BatchOutcome(
             responses,
             usage_summary,
@@ -427,7 +437,8 @@ class ProviderBatchClient:
             result = item.result
             custom_id = item.custom_id
             result_type = str(result.type)
-            records.append({"custom_id": custom_id, "result_type": result_type})
+            records.append({"custom_id": custom_id, "result_type": result_type,
+                            "result": _provider_json(result)})
             if custom_id in responses or custom_id in failures:
                 duplicates.append(custom_id)
                 continue
@@ -439,14 +450,22 @@ class ProviderBatchClient:
                 (block.text for block in message.content if block.type == "text"), ""
             )
             responses[custom_id] = text.strip()
-            usages.append(_anthropic_usage(message.usage))
+            if _has_token_usage(getattr(message, "usage", None), "input_tokens", "output_tokens"):
+                usages.append(_anthropic_usage(message.usage))
+        usage_summary = self._usage_summary(usages)
+        usage_summary["usage_complete"] = len(usages) == len(responses) and not failures and not duplicates
+        usage_summary["calls"] = len(responses) + len(failures)
+        remote_count = _anthropic_request_count(getattr(batch, "request_counts", None))
+        if remote_count is not None:
+            usage_summary["calls"] = remote_count
+            usage_summary["usage_complete"] &= remote_count == len(usages)
         return BatchOutcome(
             responses,
-            self._usage_summary(usages),
+            usage_summary,
             tuple(sorted(set(failures))),
             tuple(sorted(set(duplicates))),
             tuple(records),
-        ), status
+        ), "completed"
 
     def _openai_request(self, request: BatchPrompt) -> Dict[str, Any]:
         messages = []
@@ -515,6 +534,14 @@ class ProviderBatchClient:
             / 1_000_000,
         )
         return totals
+
+
+def _has_token_usage(usage: Any, *fields: str) -> bool:
+    return all(
+        type(_object_value(usage, field, None)) is int
+        and _object_value(usage, field, None) >= 0
+        for field in fields
+    )
 
 
 def _openai_usage(usage: Mapping[str, Any]) -> Dict[str, int]:
@@ -587,11 +614,31 @@ def _anthropic_usage(usage: Any) -> Dict[str, int]:
     }
 
 
+def _provider_json(value: Any) -> Any:
+    if hasattr(value, "model_dump"):
+        return value.model_dump(mode="json")
+    if isinstance(value, Mapping):
+        return {key: _provider_json(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_provider_json(item) for item in value]
+    if hasattr(value, "__dict__"):
+        return _provider_json(vars(value))
+    return value
+
+
 def _write_json(path: Path, payload: Mapping[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_suffix(path.suffix + ".tmp")
-    temporary.write_text(json.dumps(payload, indent=2, sort_keys=True))
+    with temporary.open("w") as handle:
+        json.dump(payload, handle, indent=2, sort_keys=True)
+        handle.flush()
+        os.fsync(handle.fileno())
     temporary.replace(path)
+    descriptor = os.open(path.parent, os.O_RDONLY)
+    try:
+        os.fsync(descriptor)
+    finally:
+        os.close(descriptor)
 
 
 @contextmanager

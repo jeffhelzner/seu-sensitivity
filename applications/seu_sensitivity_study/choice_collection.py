@@ -230,6 +230,10 @@ class ChoiceCollector:
             ],
         }
 
+    def batch_jobs_and_requests(self):
+        """Return the frozen ordered observation mapping and logical requests."""
+        return self._batch_jobs_and_requests()
+
     def _batch_jobs_and_requests(self):
         jobs = [
             (problem, presentation)

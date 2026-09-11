@@ -9,8 +9,10 @@ The executable design is
 ## Scope and design
 
 - Estimation pools: venture and hiring. Insurance is excluded because its
-  embedding-based predictive-validity R3 was 0.052, below the frozen 0.30
-  threshold, so alpha is not identified there.
+  embedding-based predictive-validity R-squared was 0.052, below the frozen 0.30
+  threshold. This is a failed screening criterion, not proof that alpha is
+  structurally unidentified; the latent eta/alpha invariance is a separate
+  identification issue addressed by Amendment 1.
 - No third pool will be authored for this study.
 - Each pool has 100 primary-family and 40 matched-family menus.
 - Menu sizes are balanced over `{2,4,6,8}` and each menu is presented twice,
@@ -80,28 +82,49 @@ qualitative evidence, not precise final power estimates.
 ## Model-arm interpretation
 
 The Anthropic flagship and reasoning arms use the same Sonnet 4.5 endpoint,
-without and with extended thinking. The OpenAI flagship/reasoning comparison
+without and with extended thinking. The reasoning arm uses a 4,096-token
+thinking budget, a 4,160-token total output cap, and temperature 1; the
+thinking-off baseline uses temperature 0. This contrast is a treatment bundle,
+not a pure causal effect of thinking. The OpenAI flagship/reasoning comparison
 uses different endpoints. These vendor-specific reasoning contrasts are
 different estimands and will not be pooled.
 
 ## Collection budget
 
 Production choice collection will use provider Batch APIs only after an E4
-provider-specific dry run passes. The approved Batch ceiling is $31. The
+provider-specific dry run passes. The approved Batch ceiling is $122.78. The
 synchronous fallback ceiling is $61 and requires separate approval before use.
 API usage records, including input, output, cached, and thinking tokens, must be
 persisted separately from the phase-local `run_summary.json`.
 
-The expected choice cost is $24.17 at Batch rates, with the approved ceiling
-providing a 25% contingency. Stan compute is scheduled as six serial fits for
-two pools across the 0.35/0.50/0.65 utility grid. The observed conservative
-envelope is 50.0 serial hours, subject to the 12-hour stop on every fit.
+The historical expected choice cost was $24.17 at Batch rates, with a stated
+25% contingency; this estimate is not a maximum-liability calculation. The
+original six-fit schedule and 50.0-serial-hour envelope do not cover the amended
+campaign. There are now 15 mandatory fits: venture, hiring, and matched RQ5,
+each with primary, presentation-1-only, presentation-2-only, and full-data
+0.35/0.65 utility variants. The position-stable subset remains a separate
+preregistered robustness analysis. No updated total compute envelope is claimed;
+the 12-hour stop applies to every fit.
 
 Before each provider Batch submission, the runner must durably reserve that
-attempt's request count at `$31 / 10,080` per request in an append-only ledger.
+attempt's conservative liability in an append-only ledger. For each rendered
+request, the input allowance is its UTF-8 message-content byte count plus 1,024
+per message plus 1,024 request overhead; the output allowance uses the exact
+provider output cap, including reasoning where applicable. Input and output
+allowances are priced at the pinned model rates with the 0.5 Batch multiplier.
+The `$31 / 10,080` per-request amount is only a reservation floor, not the
+liability estimate. This conservative allowance is a conditional bound under
+the stated pricing and protocol assumptions, not an absolute provider billing
+guarantee. The verified 2026-09-11 offline audit rendered all 10,080 requests:
+the actual reservation total is $122.7729167015873 ($118.18225175 before the
+floor), and the maximum output-only amount is $61.867008, not a forecast of
+actual spend. Exact inputs, per-arm caps, pinned rates, and reservations are
+recorded in [the E4 offline audit](PHASE_E4_VALIDATION.md#verified-offline-audit-2026-09-11).
 Reservations are keyed by the durable submission intent and are never silently
-released after failure, ambiguity, or completion. The planned 10,080-request
-campaign therefore reserves the full approved $31 ceiling. Any retry,
+released after failure, ambiguity, or completion. Both audited amounts exceeded
+the historical $31 ceiling. The 2026-09-11 budget approval below resolves that
+blocker under the current conditional liability assumptions without changing
+the token limits or design; the audit itself authorized no spending. Any retry,
 replacement batch, or additional request requires separate authorization and a
 corresponding ceiling amendment. A malformed or truncated reservation ledger
 blocks submission rather than being ignored.
@@ -123,6 +146,37 @@ aggregate hash. The reservation callback re-verifies the manifest, staged and
 source artifacts, prompts, configuration, and the current cell request hash.
 Any mismatch blocks before the budget ledger or provider is touched. A wave ID
 is single-use and must be a path-safe identifier.
+
+The ridge leave-one-out formula now includes the unpenalized intercept. The
+2026-09-11 pure `item_validation.run_gate` recomputation used saved inputs and
+fresh sibling summaries in memory: pooled LOO R-squared is 0.8232 (venture)
+and 0.6986 (hiring), worst cross-size gaps are 0.0906 and 0.0484, and the
+cross-pool gap is 0.0601. Both pass the frozen 0.30 R-squared and 0.25 gap
+thresholds, with LDA fallback in both pools and zero assessment parse failures.
+This is verified offline evidence, not production preflight. Saved historical
+gate reports remain stale; fresh production staging, its manifest, and
+production-wave preflight remain pending. No production wave is authorized;
+status is **NOT READY**. These documentation corrections involved no provider
+calls, environment creation, or production staging/preflight. The preceding
+offline audit involved no new fits; the separately authorized venture
+iteration-16 rerun completed on 2026-09-11 is recorded in Amendment 4 below.
+
+### Budget approval (2026-09-11)
+
+The user said: "ok, i give my approval on the budget. let's continue".
+The current `configs/preregistered.yaml` sets `batch_choice_budget_usd` to
+**122.78**, up from the historical 31: the calculated $122.7729167015873
+reservation rounded up to cents for the frozen **10,080-request campaign**.
+The budget blocker is resolved under the current conditional pricing/protocol
+liability assumptions, not as a provider billing guarantee or authorization
+for replacement attempts. The flat per-request floor remains
+`0.0030753968253968253`; design and token limits are unchanged.
+`batch_wave_id: null` and `batch_wave_cell_ids: []` remain unchanged.
+No calls were launched for this approval update. The worktree is dirty and
+the user has not authorized a Git commit. A clean committed revision, fresh
+production staging and manifest, separately authorized preflight, and explicit
+wave and production launch authorization remain pending. Status remains
+**NOT READY**; budget approval alone does not authorize collection.
 
 ## Reporting restrictions
 
@@ -223,6 +277,10 @@ the sign reversal of the GPT-4o-mini-versus-GPT-4o coefficient; both are retaine
 because the approved family includes both the model-coded and directly stated
 within-vendor hypotheses.
 
+Including one RQ6 decision per pool and six matched RQ5 decisions, the total
+primary decision count is `2 * (9 + 1) + 6 = 26`. Sensitivity results and
+descriptive RQ3/RQ4 summaries do not create additional confirmatory hypotheses.
+
 There is no multiplicity adjustment. Hierarchical shrinkage and the ROPE are
 the predeclared mitigation. Every family member, interval, decision, and the
 total decision count will be reported; selecting a detected contrast for
@@ -234,12 +292,17 @@ exactly equal to the 10 cell dimensions left after the rank-8 additive design.
 The full interaction and the additive model's cell residuals therefore span the
 same likelihood space. A separate saturated interaction fit would change only
 the prior parameterization, not add information. RQ3 will instead report
-`sigma_cell`, the `sigma_cell * z_alpha` cell residuals, and derived prompt
-difference-in-differences from the existing anchored fit, without a confirmatory
+`sigma_cell`, the raw `sigma_cell * z_alpha` cell residuals, and derived
+model-by-prompt difference-in-differences from the existing anchored fit, without a confirmatory
 interaction decision. The generated analysis contract records and verifies the
 rank identity against the production design matrix.
 
-RQ4 remains descriptive. The confirmatory RQ5 estimand is the within-model
+RQ4 remains descriptive: posterior differences use independent pool posteriors,
+not index-paired chain draws. Reports include all 15 model-pair rankings and
+same-sign probabilities across the two pools, without adding confirmatory
+hypotheses or treating `sigma_cell` as cross-pool variance.
+
+The confirmatory RQ5 estimand is the within-model
 hiring-minus-procurement contrast from a dedicated 36-cell matched-item fit.
 The earlier joint-PCA requirement is superseded by the assessment-anchored
 model: this fit consumes fixed assessment-derived expected utilities and has no
@@ -253,9 +316,17 @@ substitute. Its production-dimensional validation and 40-dataset recovery
 campaign have passed the prespecified sampler gates.
 
 The pipeline writes this policy as `analysis_contract.json` beside each pool's
-Stan data. After whole-cell NA exclusion, every anchored primary and utility-grid
-payload must retain full rank in its intercept-plus-design matrix. Failure stops
-analysis rather than silently changing the confirmatory family.
+Stan data. After whole-cell NA exclusion, every anchored payload, including
+presentation-only and matched RQ5 variants, must retain full rank in its
+intercept-plus-design matrix. Failure stops analysis rather than silently
+changing the confirmatory family. Each variant has its own assembly report
+recording retained `cell_ids`, `design_columns`, `rank`, and `presentation_id`.
+Reporting requires the strict schema-version-1, 15-entry fit manifest documented
+in `PHASE_E4_VALIDATION.md`, all four chain hashes per fit, and hash-bound Stan
+data, preparation report, and analysis contract. It checks finite structural
+values, actual four-chain/treedepth-12 metadata, posterior consistency, and
+posterior predictive summaries. These bindings declare the inputs associated
+with a fit; they do not prove that CmdStan executed with those inputs.
 
 ## Amendment 4: presentation dependence and calibration
 
@@ -279,9 +350,35 @@ observed agreement.
 
 No new formal SBC campaign will be run for the assessment-anchored model. The
 decision rests on direct production-geometry calibration: separate 40-dataset
-recovery campaigns for venture, hiring, and matched RQ5 passed all sampler gates
-after deterministic longer reruns, and their central 90% coverages were
-consistent with nominal coverage at the available Monte Carlo resolution. This
-decision does not transfer the original latent-belief model's SBC evidence to
-the anchored model; it prioritizes direct recovery of the actual anchored
-estimands and geometry.
+recovery campaigns for venture, hiring, and matched RQ5 completed with
+deterministic longer reruns. The historical before-rerun saved-summary audit
+on 2026-09-11 found 39/40 venture, 40/40 hiring, and 40/40 matched RQ5:
+venture iteration 16 had `sigma_cell` tail ESS 310.525, below 400. That
+119/120 result was genuine, and the earlier all-pass claim was false at that
+checkpoint. Runtime CSV headers sampled in each group verified the actual
+`h_m01_size_assessment_anchored_model` name and maximum depth 12. All 120
+fits then had zero divergences and no treedepth saturation. The central 90%
+coverage results recorded in E4 are historical before-rerun results,
+consistent with nominal coverage at the available Monte Carlo resolution;
+they have not been recomputed for this update.
+
+Update 2026-09-11: the separately authorized venture iteration-16 rerun
+completed with four chains, 1,000 warmup and 1,000 retained sampling draws per
+chain, and maximum treedepth 12 using the existing
+`configs/h_m01_size_assessment_anchored_venture_recovery_rerun_config.json`.
+Verified `_summarize_sampler_diagnostics` results now give **40/40 venture,
+40/40 hiring, and 40/40 matched RQ5: 120/120 pass all frozen sampler gates**.
+This closes the recovery shortfall. The rerun's minimum structural tail ESS
+is 1,960.77; full diagnostics, timing, archived originals, and numerical-truth
+and unchanged-artifact checks are recorded in the
+[dated E4 completion record](PHASE_E4_VALIDATION.md#authorized-venture-iteration-16-rerun-completed-2026-09-11).
+This adds no SBC or power claim and does not transfer the original
+latent-belief model's SBC evidence to the anchored model; the decision
+continues to prioritize direct recovery of the actual anchored estimands and
+geometry. The 2026-09-11 approval of the $122.78 ceiling resolves the budget
+blocker for the frozen campaign under the current conditional liability
+assumptions. Status remains **NOT READY**: fresh staging and its manifest,
+preflight from a clean committed revision, and explicit wave and production
+launch authorization remain pending. The worktree is dirty and a Git commit
+is not yet authorized; neither the recovery rerun nor budget approval
+authorizes those remaining actions.

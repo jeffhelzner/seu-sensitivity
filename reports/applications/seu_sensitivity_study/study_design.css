@@ -1,0 +1,31 @@
+main table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+main td, main th {
+  overflow-wrap: anywhere;
+}
+
+main pre:not(.mermaid) {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+main .math.display {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+main mjx-container[display="true"] {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+main svg[id^="mermaid-"] {
+  max-width: 100%;
+  height: auto;
+}

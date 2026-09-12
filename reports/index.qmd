@@ -14,7 +14,7 @@ The core methodological results in this project have been consolidated, revised,
 
 > **[Sensitivity to Subjective Expected Utility Maximization: A Methodological Study, with an Illustrative Application to LLM Decision-Making](https://arxiv.org/abs/2607.11920)** (arXiv) — Jeff Helzner
 
-The working paper is the **canonical reference** for this work. It consolidates and supersedes the foundational reports on `m_0` and `m_1` (Reports 1–6) and the application reports below; where a technical report and the paper differ, the paper reflects our current, more considered view.
+The working paper is the **canonical methodological reference** for this work. It consolidates and supersedes the foundational reports on `m_0` and `m_1` (Reports 1–6) and the earlier temperature, Ellsberg, and factorial application reports below; where those reports and the paper differ, the paper reflects our current, more considered view. The SEU Sensitivity Study design report is subsequent companion work and specifies its own assessment-anchored study protocol.
 
 The technical reports are retained as a more detailed, work-in-progress record of the analyses that fed into the paper — useful for implementation specifics, intermediate results, and provenance, but rougher and not always current. The reports on generalization (`m_2`/`m_3`, Report 7) and the hierarchical model (Reports 8–14) explore directions not yet incorporated into the paper.
 :::
@@ -41,6 +41,10 @@ These reports establish the theoretical and methodological foundations:
 14. **[Does m_1 Identify δ?](foundations/14_does_m1_identify_delta.qmd)** — Matched-design recovery testing whether adding risky choices delivers the δ-identification gain predicted by Report 5
 
 ### Application Reports
+
+#### SEU Sensitivity Study
+
+1. **[Study Design and Pre-Collection Review](applications/seu_sensitivity_study/01_study_design.qmd)**: Scientific motivation, frozen materials and procedures, research questions, analysis rules, and preparation evidence for the six-arm, three-prompt, two-domain study.
 
 #### Temperature Study
 

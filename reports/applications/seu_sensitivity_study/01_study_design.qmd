@@ -1,0 +1,393 @@
+---
+title: "SEU Sensitivity Study: Motivation, Design, and Pre-Collection Review"
+subtitle: "Six Model Arms, Three Prompt Conditions, and Two Fixed Decision Domains"
+description: "Scientific rationale, frozen procedures, analysis contract, and preparation evidence for the assessment-anchored SEU sensitivity study."
+date: 2026-09-12
+shift-heading-level-by: -1
+crossref:
+  chapters: false
+categories: [applications, study-design, SEU-sensitivity]
+format:
+  html:
+    css: study_design.css
+execute:
+  enabled: false
+---
+
+## Purpose of This Review
+
+This report describes a study of how language-model choices respond to subjective expected utility (SEU), and how that responsiveness varies with model arm, prompt condition, decision context, and menu size. It is a **pre-collection design report**: its empirical material concerns preparation, not the substantive results of production collection. The purpose is to make the proposed experiment sufficiently explicit that a scientifically minded reader can review its assumptions, comparisons, and limitations before collection begins.
+
+The design crosses six model arms with three prompt conditions in each of two fixed pools, venture and hiring. Each pool supplies 140 menus, each presented in two opposite orders. This yields 36 cells and 10,080 planned choice requests. Those requests are not 10,080 independent items, agents, or replications of a decision domain. The repeated use of items and menus is central to both the comparisons and their limitations.
+
+The methodological reference is [Helzner's published working paper, version 1](https://arxiv.org/abs/2607.11920v1) [@helzner2026methodology]. The current study builds on that paper but changes its measurement implementation: expected utilities are anchored to saved model assessments rather than inferred through a latent belief map from the same choices.
+
+The evidence cutoff is September 12, 2026. The study specification and staged requests described here are bound to commit `2194432`, including the four dated preregistration amendments. Later amendments control where the original preregistration text differs. The evidence appendix distinguishes staged requests, completed preparation checks, simulated datasets, and planned production analyses. No production effect estimates appear in this report.
+
+## Why Study SEU Sensitivity? {#sec-motivation}
+
+### Decision Quality Without a Correct-Choice Key
+
+A decision can be evaluated against an external answer key: which investment an expert recommends, which applicant an adjudicator would advance, or which action eventually produces the best outcome. This approach is valuable when the key is credible and relevant. It becomes difficult when expert judgments are costly, reasonable judges disagree, or consequences are observed only for the chosen option. An outcome-based key introduces a further problem: a good decision can end badly, while an inadequately supported decision can succeed through luck.
+
+The methodological paper develops a complementary approach. Instead of asking whether a choice agrees with a labeled answer, it asks how the choice relates to probabilities and values under a stated consistency standard. Here that standard is subjective expected utility maximization. An alternative is evaluated by weighting the utility of each possible consequence by its subjective probability, then summing. A choice conforms exactly when it selects an alternative with maximal expected utility. The standard does not require a unique best option; ties can leave several choices admissible [@savage1954; @vonneumann1947].
+
+Calling this an internal standard does not assert that a language model internally computes expected utilities. "Internal" concerns the relation among the represented commitments and observable choices, not access to cognition. The analyst specifies a behavioral benchmark and measures conformity to it. Neither the paper nor this study establishes SEU as the uniquely correct normative theory. The interpretation is conditional: if SEU is the benchmark, the resulting measure describes one particular dimension of performance against it.
+
+That distinction is important in hiring and investment. A high sensitivity estimate does not establish sound beliefs, appropriate objectives, fairness, profitability, or suitability for deployment. An agent can pursue poorly grounded probabilities consistently. It can also reject the analyst's utility assignment for coherent reasons. The study is not a practical validation of automated hiring or capital allocation. Its controlled synthetic materials are instruments for examining choice behavior, not operational recommendations about real applicants or businesses.
+
+### Commitment, Performance, and a Graded Measure
+
+The conceptual separation between commitment to a standard and performance relative to it is useful here [@levi1980]. Someone can endorse arithmetic while occasionally calculating incorrectly. Similarly, endorsement or explicit prompting of an expected-utility rule need not produce choices that reliably track that rule. The study asks whether naming the standard changes observed conformity, and whether a generic request to deliberate has the same effect. It does not infer sincere endorsement from a model's language or settle whether apparent departures are failures of performance rather than different commitments.
+
+A binary classification would discard substantial information. Two agents may both sometimes select an alternative below the assessed maximum, yet differ in how strongly their choices favor larger expected-utility advantages. Counting maximizers alone also confounds responsiveness with the difficulty and size of the menus: choosing the best of two close options is different from choosing the best of eight widely separated ones. A choice model incorporates the expected utilities of all available alternatives, rather than treating every success or failure as interchangeable.
+
+Let $\mathcal A_m$ be the available alternatives in menu $m$, and let $\eta_r$ be the expected utility assigned to alternative $r$. The softmax specification is
+
+$$
+\Pr(Y_m=r\mid\alpha,\boldsymbol\eta)
+=\frac{\exp(\alpha\eta_r)}{\sum_{t\in\mathcal A_m}\exp(\alpha\eta_t)}.
+$$ {#eq-choice}
+
+The sensitivity $\alpha$ controls how strongly probability responds to value differences. As $\alpha$ approaches zero, choices approach the uniform distribution on the available menu. As it grows, probability concentrates on the maximal alternatives, becoming deterministic only when the maximizer is unique. For two available alternatives,
+
+$$
+\log\frac{\Pr(Y_m=r)}{\Pr(Y_m=t)}=\alpha(\eta_r-\eta_t).
+$$ {#eq-logodds}
+
+This log-odds relation explains the measurement scale. With values fixed, increasing $\alpha$ shifts pairwise odds toward the higher-valued alternative. The total probability of selecting a maximizer increases when menu values are not all equal. It is not necessary, or generally true, that every individual nonmaximizer's probability decreases at every value of $\alpha$. The softmax form follows a familiar discrete-choice tradition but remains a substantive modeling assumption [@luce1959; @mcfadden1974; @train2009].
+
+The illustrative curves in @fig-illustrative-softmax use invented values solely to explain this mechanism. Statistical inverse temperature is not the provider's sampling-temperature control. The latter changes text generation; $\alpha$ is inferred from the relationship between recorded choices and an analyst-specified expected-utility scale. Equating the two would mistake a decoding setting for a behavioral estimate.
+
+### What the Earlier Application Motivates
+
+The paper's illustrative application crossed two language models with two task families and varied sampling temperature. It showed that the workflow could register comparative patterns while leaving other comparisons inconclusive. It did not establish universal model rankings or a portable effect of temperature. Both assessments and choices varied with the treatment, so an estimated difference could arise at more than one stage of the composed system.
+
+The present study follows three natural questions raised there. First, do comparative sensitivity patterns extend to a broader set of model configurations and deliberately varied instructions? Second, what happens when prompt siblings share the same saved assessments, so the measurement anchor does not move with the choice instruction? Third, does responsiveness change across menus larger than the pairwise choices common in classic decision experiments? Sections 7.7 and 8.5 of the paper explicitly motivate hierarchical and menu-size extensions. The current design takes up those directions without claiming to implement a population-level study of all decision domains.
+
+## From the Paper to the Measurement Model {#sec-measurement}
+
+### What Is Fixed and What Is Estimated
+
+The paper distinguishes sensitivity, beliefs, and utilities conceptually. Its latent-belief implementation predicts probability vectors from embeddings of assessment text and infers the belief-map parameters from choices. That is not the primary implementation here. This study first elicits a probability vector $\boldsymbol q_{a,p,r}$ for each model arm $a$, pool $p$, and item $r$. The three entries correspond to the pool's ordered consequences. These saved probabilities are then treated as data.
+
+The primary utility vector is $(0,0.5,1)$, giving the fixed index
+
+$$
+\eta_{a,p,r}(u)=q_{a,p,r,2}\,u+q_{a,p,r,3},\qquad u=0.5.
+$$ {#eq-anchor}
+
+The same $\eta$ is used in all three prompt conditions for that arm and pool. Choices inform the hierarchy of sensitivities and the menu-size slope. They do not revise the probabilities, estimate the intermediate utility, or fit an embedding-to-belief coefficient matrix. Utility sensitivity analyses recompute every $\eta$ with $u=0.35$ and $u=0.65$ before refitting. They are changes in a maintained measurement assumption, not newly collected preferences.
+
+This distinction also separates two roles for text representations. Embeddings remain part of material screening and menu-quality diagnostics. They are not inputs to the anchored primary likelihood. A predictive-validity gate for an embedding axis can be relevant to the way menus were built without constituting proof that the observed probabilities are accurate beliefs or that the softmax model adequately explains future choices.
+
+### Identification Is Conditional, Precision Is Empirical
+
+Proposition 3.1 of the paper identifies $\alpha$ when $\boldsymbol\eta$ is fixed and at least one positive-probability menu has nonconstant expected utilities. Equation @eq-logodds gives the intuition: a known nonzero value gap turns observable log-odds into a unique sensitivity. If all alternatives in every menu have equal expected utility, changing $\alpha$ changes no choice probability and the choices supply no information about it.
+
+The word *fixed* carries the argument. When expected-utility differences can themselves change through an unknown belief map, a wider difference can compensate for a smaller sensitivity. Fixing the best and worst utilities removes an affine scaling indeterminacy, but does not automatically resolve every tradeoff between sensitivity and the unknown ingredients of expected utility. The move to assessment anchoring addresses this issue by conditioning on measured probability vectors rather than inferring them through the same choices. It changes what is being estimated, not merely the sampler settings.
+
+This conditional identification result does not guarantee useful precision in 280 observations per cell. Information depends on the actual value gaps, menu composition, sensitivity range, and realized choices. Very large gaps with almost exclusively maximizing choices can provide little upper bound on $\alpha$. Very small gaps can make distinct sensitivities difficult to distinguish. Proper priors stabilize inference, but a stable finite posterior is not evidence that the likelihood has sharply located the parameter. Recovery, interval width, prior influence, and posterior predictive behavior must therefore be examined separately.
+
+There are also two levels of identification in the hierarchy. The choice likelihood concerns realized cell sensitivities and their variation with size. The decomposition of those cell values into additive effects and residual deviations is governed by the hierarchical model and its priors. A well-behaved likelihood for cell sensitivities does not make that decomposition a prior-free fact. This matters particularly for interpretations of model-by-prompt interactions and residual heterogeneity.
+
+### The Substantive Cost of Anchoring
+
+The probability statement is an elicited report. It may be rounded, inconsistent with the prose assessment, sensitive to the elicitation format, or different from the information effectively used during choice. Holding it fixed across prompt siblings removes variation in the saved anchor, but cannot prevent the model from reinterpreting the assessment or implicitly valuing outcomes differently when instructed to choose. The appropriate RQ2 interpretation is a change in responsiveness to the *same stated-assessment benchmark*, not proof that the treatment affects action while leaving every internal belief unchanged.
+
+Likewise, setting utilities to $(0,0.5,1)$ does more than choose units. Fixing the endpoints selects the zero and unit; putting the middle consequence halfway between them imposes a particular spacing. The prompts describe consequences and refer to their value, but do not instruct the models to perform the numerical calculation in @eq-anchor using an explicitly supplied midpoint of 0.5. Divergence from that calculation can therefore reflect utility disagreement as well as imperfect sensitivity. The two alternative midpoints test a limited but important part of this dependence; they do not identify the model's actual utility function.
+
+Cross-arm comparisons condition on different elicited probabilities: each arm assesses its own items. Shared utilities and materials therefore do not imply identical measurement inputs. Across venture and hiring, even the consequence descriptions differ. Neither comparison supports an unrestricted rationality ranking.
+
+## Research Questions and Estimands {#sec-questions}
+
+The table maps scientific questions to estimands; the appendix supplies the complete decision family and coefficient vectors.
+
+| Question | Scientific comparison | Primary quantity | Status |
+|:--|:--|:--|:--|
+| RQ1 | Differences among model configurations | Seven additive model contrasts per pool | Confirmatory |
+| RQ2 | Explicit SEU instruction and generic deliberation versus neutral | Two additive prompt contrasts per pool | Confirmatory |
+| RQ3 | Variation in prompt effects across models | Cell residuals and draw-wise differences-in-differences | Descriptive |
+| RQ4 | Stability of model comparisons across the two domains | Independent-posterior contrast differences and ordering agreement | Descriptive |
+| RQ5 | Hiring versus procurement with matched merit structure | Six within-model task contrasts in a matched fit | Confirmatory |
+| RQ6 | Responsiveness as the menu grows | Log-sensitivity slope per added alternative, separately by pool | Confirmatory |
+
+### RQ1: Model Configuration
+
+RQ1 asks whether the choice systems differ in their responsiveness to the expected-utility benchmark. Five nonreference arms are compared with GPT-4o, and two explicitly named within-vendor comparisons contrast flagship with small models. The OpenAI flagship-minus-small contrast is the sign reversal of the GPT-4o-mini-minus-GPT-4o coefficient. Both remain in the declared reporting family; they are not independent pieces of evidence. The within-vendor flagship-minus-small hypotheses have an expected positive direction, but both positive and negative detections remain reportable under the frozen rule.
+
+The six arms are a purposeful selection of accessible configurations, not a probability sample of models, training approaches, or parameter counts. A flagship-versus-small difference cannot isolate scale from training, deployment, or other architectural differences. Likewise, the OpenAI reasoning comparison changes endpoints, while the Anthropic reasoning comparison changes thinking and decoding settings on the same Sonnet endpoint. These vendor-specific contrasts should be interpreted separately rather than combined into one causal estimate of "reasoning capability."
+
+### RQ2: Choice Instructions
+
+RQ2 distinguishes explicitly naming the objective from requesting additional thought. The SEU-maximizing instruction mentions assessed likelihoods and outcome values; the deliberative instruction says to think carefully and reason step by step. Each is contrasted with the domain's neutral choice instruction. Because assessment text, probabilities, menu membership, and presentation orders are shared across prompt siblings, differences are not attributable to collecting a different assessment set for each instruction.
+
+The additive prompt coefficients summarize differences across model arms under the hierarchy. They do not establish that every arm responds identically. A positive SEU instruction effect would support greater conformity to the anchored benchmark under that wording. A deliberative effect would describe the result of that prompt at the frozen output budget, not the effect of unlimited reasoning. A null interval decision would leave effects within the study's uncertainty unresolved, rather than demonstrate that the instruction is behaviorally inert.
+
+### RQ3: Model-by-Prompt Heterogeneity
+
+An average instruction effect can conceal different reactions across models. RQ3 therefore reports the residual heterogeneity scale, individual cell deviations, and differences-in-differences of realized log sensitivities. For example, it compares the SEU-minus-neutral change in one model with the corresponding change in GPT-4o. These quantities are computed within each posterior draw so the dependence among cell estimates is retained.
+
+There is no separate confirmatory interaction fit. In the complete 18-cell factorial, the intercept and seven additive columns have rank eight. The ten remaining cell dimensions coincide with the residualized span of the ten model-by-prompt interaction columns. Saturating the regression with interactions would reparameterize that space and change its priors, not create additional likelihood information. Reporting interactions from the existing fit keeps this limitation visible. A positive continuous residual scale is not itself a test rejecting a point null of exactly zero heterogeneity.
+
+### RQ4: Two Fixed Domains
+
+RQ4 asks whether model comparisons point in similar directions in venture and hiring. The report will show differences between corresponding model-effect contrasts, uncertainty intervals, all 15 unordered model-pair comparisons, and probabilities that pairwise orderings have the same sign. These summaries combine independently fitted pool posteriors, not arbitrary matching of their chain iteration numbers.
+
+Two deliberately selected domains do not support a well-identified population distribution of domain effects. The within-pool residual scale is not a between-domain variance component. Agreement would establish consistency in these two material sets, not generalization to all decisions under uncertainty; disagreement would identify a context dependence worth describing, not by itself reveal its cause. The descriptive status is an explicit amendment to the original proposal, not an unreported retreat after seeing production outcomes.
+
+### RQ5: Matched Task Context
+
+The matched comparison places parallel merit structures in procurement and hiring contexts. Twenty-four merit keys map vendor profiles to corresponding candidate profiles. Forty menus per task share the same merit-key compositions. The dedicated fit combines the matched observations from all model and prompt cells, estimating one hiring-minus-procurement contrast for each model. It is not a subtraction of the two full-pool estimates: the startup and ordinary candidate menus would introduce different materials and defeat the matching.
+
+Matching gives this comparison a more controlled interpretation than RQ4. Technical proposals correspond to work samples, delivery records to project histories, and review-board evaluations to structured interviews. Nevertheless, wording, role, consequences, and independently elicited assessments differ. A task contrast could be consistent with different responses to normatively salient context, but does not identify a fairness preference, moral override, or particular decision mechanism. The profiles avoid demographic framing; there is no manipulated protected characteristic whose causal effect could be estimated.
+
+### RQ6: Menu Size
+
+RQ6 estimates how log sensitivity changes per additional alternative across sizes 2, 4, 6, and 8. The outcome is not simply whether maximizer selection becomes less frequent as menus grow. That frequency can decline mechanically because more alternatives enter the denominator of @eq-choice, even at constant $\alpha$. The size coefficient instead changes $\alpha$ itself after accounting for the available expected utilities.
+
+A larger menu might increase difficulty, encourage different comparison strategies, or alter attention to weak alternatives. A cognitive-load interpretation is a hypothesis, not an observed mechanism. The design attempts to stabilize the contender structure as fillers are added, but the slope remains conditional on this menu recipe and a linear effect on log sensitivity. Its sign is left open. Positive, negative, and unresolved findings all answer the predeclared question without requiring a story about why the model behaved that way.
+
+## Materials, Treatments, and a Worked Trial {#sec-procedure}
+
+### Synthetic Decision Materials
+
+Each pool contains 60 frozen alternatives: 36 primary-family items and 24 matched-family items. The venture pool combines startup investment and procurement profiles; hiring combines primary candidate profiles and the matched candidate set. Primary items comprise ten strong, ten ambiguous, and sixteen weak profiles. Matched items comprise six strong, six ambiguous, and twelve weak profiles. These construction labels govern sampling and screening. They are not correct-choice labels supplied to the likelihood.
+
+The profiles use a structured merit lattice with job- or task-relevant attributes and deliberately mixed evidence. A startup can have an experienced team but little traction; a candidate can have an adequate work sample but weak reference evidence. Consistent templates and explicit reservations make the manipulated information inspectable, while neutral identifiers and coarse experience bands limit incidental framing. The design's controlled vocabulary is a strength for comparison and a limitation for ecological validity: real dossiers are longer, less standardized, and contain missing or contradictory evidence.
+
+The consequence space has three ordered categories in both pools. Venture assessments use loss, break-even, and high return, including for procurement. Hiring uses underperformance, meeting expectations, and exceeding expectations. Sharing three ordered categories supports the common endpoint utility convention, but does not make the economic or evaluative meaning of those categories identical. In particular, "break-even" is not mathematically guaranteed to be halfway between loss and substantial gain in anyone's preferences.
+
+### Model Arms and Effective Settings
+
+The arms are GPT-4o, GPT-4o-mini, o3-mini, Claude Sonnet 4.5, Claude Haiku 4.5, and Claude Sonnet 4.5 with extended thinking. The exact staged endpoint strings and request settings appear in @sec-evidence-settings. The distinction between arm label and endpoint matters: both Sonnet arms call the dated Sonnet endpoint, but one enables a 4,096-token thinking budget, raises the total cap to 4,160, and uses temperature one rather than zero.
+
+The OpenAI reasoning arm uses medium reasoning effort and a 2,112-token completion cap without a temperature argument. Nonreasoning choices have a nominal 64-token cap and temperature zero. The visible answer must come first, which makes a short cap less likely to censor the selected option. It also constrains the meaning of the deliberative treatment: requesting step-by-step thought does not ensure that a long rationale is generated or that any particular hidden procedure occurs. Provider controls are recorded as part of the treatment, not assumed equivalent across vendors.
+
+### Assess Once, Then Vary the Instruction
+
+For each arm, a neutral assessment request asks for a brief appraisal and a three-entry probability vector for each item. Across six arms and 120 items, the saved materials contain 720 probability vectors. The choice step presents numbered assessments, including their probability lines, rather than a fresh copy of each original dossier. The three choice conditions change the instruction while holding those numbered assessments fixed within a presentation.
+
+For startup choices, neutral says "Choose which venture to fund." The SEU condition says to choose the venture maximizing subjective expected return given assessed likelihoods and outcome values. The deliberative condition says "Think carefully and reason step by step before choosing." Domain-specific nouns and objectives change in the other families. The complete frozen templates are in @sec-evidence-templates; preserving their exact language allows readers to judge whether the proposed interpretations are warranted.
+
+```{mermaid}
+flowchart TD
+  items["Frozen synthetic items and consequence descriptions"] --> assess["Neutral assessment for each model arm and item"]
+  assess --> text["Saved assessment text and probabilities"]
+  text --> choices["Choice requests: three instructions, shared menus, reversed orders"]
+  text --> anchor["Fixed expected utilities at midpoint 0.50"]
+  choices --> parse["Record answer position, item identity, missingness, and usage"]
+  parse --> inference["Anchored hierarchical sensitivity analysis"]
+  anchor --> inference
+  inference --> report["26 declared decisions, descriptive comparisons, and sensitivity fits"]
+```
+
+### An Actual Menu, With No Invented Response
+
+The staged startup menu `VEN0018` presents `V012` and `V015` in that order. `V012` describes health-data infrastructure at pre-seed stage, with a strong team record, several paid pilots, a stable product, positive unit economics, and no reported usage or revenue. `V015` describes industrial software at Series A, with no documented comparable team delivery, early usage below plan, several paid pilots, a stable product, and positive unit economics. The full profiles and actual GPT-4o assessment text are preserved in @sec-example-venture-startup.
+
+GPT-4o's saved probabilities are $(0.4,0.3,0.3)$ for `V012` and $(0.4,0.35,0.25)$ for `V015`. At the primary midpoint these yield $0.3(0.5)+0.3=0.450$ and $0.35(0.5)+0.25=0.425$. The expected-utility gap is 0.025. For illustration only, at $\alpha=20$ the two-option probability of selecting `V012` would be $1/(1+\exp(-20\times0.025))\approx0.622$. Neither that sensitivity nor a corresponding answer is an observed production result.
+
+If a response begins `ANSWER: 1`, the parser maps that position to `V012`. In the reversed presentation, the same item occupies position two; stable item choice would therefore produce `ANSWER: 2`. The analysis must use item identity rather than compare raw answer numbers. The worked calculation also shows why a lower-valued selection is not automatically a data error: under a finite-sensitivity model it has positive probability, and the model evaluates its frequency relative to the gap.
+
+### The Matched Example
+
+The appendix pairs procurement menu `VEN0126` with hiring menu `HIR0126` through their merit keys, not their array positions. In the procurement example, vendor `P001` has a thorough technical proposal, a sustained successful delivery history, top-band evaluation, detailed positive references, and complete scope coverage. Its candidate counterpart carries the corresponding work-sample, project-history, interview, reference, and role-coverage evidence. The same menu also includes weaker profiles, so matching concerns the entire available comparison set rather than only a favored option.
+
+The probability judgments need not match across tasks, and the anchored model does not force them to. RQ5 asks how choices respond to each task's assessments under a shared structural design. It would be incorrect to describe the materials as literally identical, to equate matched merit with equal expected utility, or to call them embedding-matched. These distinctions are especially important when interpreting a difference as context-sensitive conformity rather than a response to changed assessed prospects.
+
+## Menu Design and Sample Rationale {#sec-menus}
+
+### Contenders, Fillers, and Balance
+
+The frozen variant-D recipe uses two contenders in every menu. In the stratum named *strong*, they are drawn from strong and ambiguous item tiers; in *ambiguous*, both are strong; in *weak*, both are ambiguous. Any additional alternatives are weak fillers. The stratum names are design labels, not promises about the probabilities elicited from every model. A particular model may judge two nominal contenders equal or assign a filler greater value than expected from its author-assigned tier.
+
+Keeping two contenders is intended to limit changes in the best-versus-runner-up comparison when a menu expands. With only one designated contender, adding more alternatives can substantially alter which item becomes runner-up. With two, the same type of comparison remains present at sizes two through eight. This rationale motivates the recipe; it does not make larger menus exchangeable with smaller ones. Adding weak alternatives still changes the softmax denominator, the amount of text, and the opportunity for distraction or reinterpretation.
+
+Allocation balances menu size before distributing menus across difficulty strata, avoiding concentration of integer remainders in a single size. Each pool has 100 primary-family menus and 40 matched-family menus: 25 primary and 10 matched menus at each size, for 35 per size. Within a menu, items are drawn without replacement according to the tier recipe. Across menus, items recur. The frozen menu records, rather than a count of nominal slots, define the actual design and any repeated compositions.
+
+Matched menus are paired across procurement and hiring by their merit-key sets. Forty paired menu records do not imply forty independent samples of contexts or forty disjoint sets of items. Their inferential value comes from the controlled correspondence of available alternatives. The matched fit uses 80 observations in each of 36 task-specific cells, totaling 2,880 observations if all requests resolve. These are already part of the 10,080 planned production calls; no additional matched-task collection is hidden in the analysis plan.
+
+| Design component | Venture | Hiring | Interpretation |
+|:--|--:|--:|:--|
+| Frozen alternatives | 60 | 60 | Reused across menus and prompt cells |
+| Primary-family menus | 100 | 100 | Startup or ordinary candidate family |
+| Matched-family menus | 40 | 40 | Procurement or matched candidate family |
+| Menus at each size | 35 | 35 | Sizes 2, 4, 6, 8 |
+| Presentations per menu | 2 | 2 | Opposite orders, not new items |
+| Model-by-prompt cells | 18 | 18 | Six arms times three instructions |
+| Planned choice requests | 5,040 | 5,040 | Before parsing and exclusions |
+
+### What Reversal Controls
+
+Every menu is presented twice, with the second order reversed. This moves each item away from its original numbered position and makes disagreement under reversal observable. It permits a direct diagnostic of whether selection is stable in item identity, a relevant concern for a language-model interface that requires a numbered answer. It does not eliminate all position effects or counterbalance every item over every position in menus larger than two.
+
+The paired requests share their content and may be highly dependent, especially with deterministic or nearly deterministic decoding. Treating the second presentation as equivalent to another independently authored menu would overstate the design's breadth. The primary likelihood retains both presentations, so sensitivity to duplication is examined with response-independent presentation-only fits. Repeated items across distinct menus remain shared even in those fits. No fixed effective-sample-size discount, such as counting each pair as one and a half observations, is justified without an explicit dependence model.
+
+### Screening and Sample-Size Evidence
+
+Material screening uses the frozen embedding-based quality axis. Its checks include quality separation, predictive validity against construction merit, assessment parsing, and cross-size and cross-pool gap comparisons. An LDA fallback is allowed by the screening procedure when the initial unsupervised direction is inadequate. The saved reports should be read as outputs of that full screening procedure, not described as pure first-principal-component validation. Both retained pools use the fallback in their saved gate evidence.
+
+The predictive-validity threshold is $R^2\geq0.30$ per pool. The refreshed venture and hiring values are approximately 0.8232 and 0.6986. Insurance failed the earlier screen at 0.052 and was excluded; no third pool is being substituted. These are screening results against the constructed merit targets, not probabilities of a correct choice and not evidence of ecological validity. In particular, failing this screen is not a mathematical proof that $\alpha$ is unidentified.
+
+The frozen gap limits are 0.25 in pool-standardized quality-score units, not Cohen's $d$. Recorded cross-size differences are about 0.0906 for venture and 0.0484 for hiring, and the cross-pool difference is about 0.0601. Those numbers describe the embedding-axis construction check. The assessed expected-utility gaps in @fig-assessed-eta-gaps are a different quantity, computed directly from saved probabilities and the imposed midpoint. The latter can contain ties even when the former passes. Reporting both prevents a design screen from being mistaken for direct measurement of the likelihood's information.
+
+The allocation represents a compromise among factorial coverage, informative comparisons, and feasible collection cost. Historical power analyses helped explore that compromise, but their model and sampler conditions differ from the final assessment-anchored analysis. Phase-D fits at maximum treedepth ten encountered truncation in the 18-cell geometry; their comparisons are retained as qualitative historical evidence, not precise final power estimates. Earlier null-calibration and SBC runs likewise cannot be transferred without regard to which parameters were fixed, which values were simulated, and which design was used.
+
+The strongest directly relevant preparation evidence is recovery on the actual production geometry, reported below. It measures estimator behavior over its simulated parameter settings, not necessarily power for every scientifically interesting alternative to every RQ. This report therefore makes no blanket claim that all 26 decisions have 80% power. A defensible reading of a future non-detection must use its interval, prior influence, and sensitivity results. If precise exclusion of a particular small effect is essential to the scientific purpose, that requirement remains a review question rather than something guaranteed by the request count.
+
+## Statistical Analysis and Safeguards {#sec-analysis}
+
+### Hierarchical Specification
+
+The primary fits are separate for venture and hiring. Let $c$ index a model-by-prompt cell, $m$ an observation, and $s_m$ its menu size centered over the retained observations. The anchored model is
+
+$$
+\begin{aligned}
+\ell_c &= \gamma_0+\boldsymbol X_c\boldsymbol\gamma+\sigma_{\mathrm{cell}}z_c,\\
+\log\alpha_m &= \ell_{c[m]}+\gamma_{\mathrm{size}}s_m,\\
+Y_m &\sim \operatorname{Categorical}\!\left(\operatorname{softmax}\bigl(\alpha_m\boldsymbol\eta_{c[m],\mathcal A_m}\bigr)\right).
+\end{aligned}
+$$ {#eq-hierarchy}
+
+Here $\boldsymbol X$ contains five model indicators and two prompt indicators, with GPT-4o and neutral as references. There are 18 cell sensitivities, but only seven additive coefficients. The residual term allows each cell to depart from the additive prediction. Exponentiating a log-sensitivity contrast yields a multiplicative ratio of sensitivities. It does not yield the ratio of maximizer-selection rates, which also depend on the full menu's expected utilities.
+
+| Parameter | Prior | Meaning |
+|:--|:--|:--|
+| $\gamma_0$ | $\mathcal N(2.5,0.5)$ | Reference additive log sensitivity |
+| Each component of $\boldsymbol\gamma$ | $\mathcal N(0,0.5)$ | Model or prompt contrast |
+| $\gamma_{\mathrm{size}}$ | $\mathcal N(0,0.2)$ | Log-sensitivity change per alternative |
+| $\sigma_{\mathrm{cell}}$ | Half-normal with scale 0.3 | Residual cell heterogeneity |
+| Each $z_c$ | $\mathcal N(0,1)$ | Standardized residual deviation |
+
+Normal distributions in this table use standard deviations, not variances. The intercept prior alone has median sensitivity $\exp(2.5)\approx12.18$; it is not the entire marginal prior for every cell after adding effects and residuals. The size prior implies a central 90% range of approximately 0.14 to 7.2 for the size-eight versus size-two sensitivity ratio, analytically calculated as $\exp(6\gamma_{\mathrm{size}})$. The earlier saved simulation approximation was 0.14 to 7.35. This is substantial permitted variation, not a prior that nearly fixes size invariance.
+
+The size-prior amendment reduced its standard deviation from 0.5 to 0.2 because the former placed excessive probability on extreme size ratios and produced nonfinite-logit proposal rejections in smoke fitting. An even narrower 0.1 was rejected in light of earlier pilot behavior. This was an evidence-informed preproduction calibration, not a claim that priors were selected without examining any pilot outcomes. The distinction matters for judging how much of the design was learned during preparation.
+
+### Matched Analysis and Descriptive Contrasts
+
+The matched RQ5 fit has 36 cells and an intercept-plus-design rank of 14. Its 13 design columns include additive model and prompt effects, a hiring-task indicator, and five model-by-task terms. The task indicator supplies the reference model's hiring-minus-procurement contrast; adding each corresponding interaction gives that contrast for another model. The analysis conditions on task-specific assessments for the 48 item representations associated with 24 merit keys.
+
+The 26 primary decisions comprise seven RQ1 model contrasts and two RQ2 prompt contrasts in each pool, one RQ6 slope in each pool, and six RQ5 task contrasts. Thus the count is $2(7+2+1)+6=26$. The matched model's size slope is reported and checked for sensitivity, but it does not add a 27th primary decision. Descriptive RQ3 interactions and RQ4 ordering summaries similarly do not enlarge the confirmatory family.
+
+The RQ4 comparison uses independent draws from the two pool posteriors. For small posterior products the implementation can use all pairings; for large ones it uses deterministic resampling of complete coefficient vectors. Keeping whole vectors preserves within-pool dependence across contrasts, while avoiding a scientifically meaningless dependence introduced by pairing equal chain indices across separately fitted pools. This is a method of propagating the assumed independent posterior uncertainty, not evidence that the materials or model-selection process were independent in a population-sampling sense.
+
+### Decisions, Uncertainty, and Multiplicity
+
+For a contrast $\theta$, let $L$, $M$, and $U$ be the 5th percentile, median, and 95th percentile of its posterior. Detection requires
+
+$$
+\bigl(L>0\ \text{or}\ U<0\bigr)\quad\text{and}\quad |M|>\rho.
+$$ {#eq-decision}
+
+For log-sensitivity contrasts, $\rho=\log(1.25)$. For the size slope, $\rho=\log(1.05)$ per alternative. The latter corresponds to about a 1.34 ratio across sizes two and eight. The direction of a detected effect follows the posterior median. All estimates, intervals, and classifications are reported, including opposite-to-expected directions and non-detections.
+
+This rule combines sign resolution with a practical-magnitude threshold. It does **not** require the whole interval to lie outside the region of practical equivalence (ROPE). A contrast can pass when its lower bound is positive but smaller than the threshold, provided its median clears the threshold. Conversely, a large median with an interval spanning zero does not pass. "Not detected" therefore pools several kinds of uncertainty and must not be translated into "equivalent" or "no effect."
+
+The family has no multiplicity adjustment. Hierarchical shrinkage and the ROPE are the predeclared mitigations, but neither establishes frequentist familywise error control. Reporting all family members, including the sign-reversed OpenAI duplicate, is essential to preventing selective presentation. The thresholds define the study's chosen practical resolution; they are not universal constants of decision theory. A reader can reasonably question whether a 25% sensitivity ratio or a 5% per-alternative change is substantively important in these materials.
+
+### Parsing, Exclusion, and Fit Validity
+
+Each choice is requested as `ANSWER: n`, with an integer in the available range. Collection retains the response and resolution path so that direct token parsing, fallback parsing, and unresolved records can be distinguished. An unresolved response is not silently replaced by a default alternative. Position is mapped to item identity, then to the active-set index expected by Stan; this mapping is necessary for the reversed presentations to describe the same alternatives consistently.
+
+Missingness is evaluated within cell. A rate above 10% is flagged and above 30% excludes the whole cell, with an explicit caveat. Unresolved observations are omitted from the choice likelihood, not treated as evidence for any available alternative. The preparation reports retain cell identifiers, design columns, rank, and presentation membership. After exclusions, the intercept-plus-design matrix must still have full rank. A rank failure stops the analysis rather than quietly changing the hypotheses to fit whatever cells remain.
+
+These rules make processing reproducible but do not make missingness ignorable. Refusal, truncation, parsing failure, and provider failure can have different substantive meanings. Their distribution by model, prompt, difficulty, size, and resolution path should accompany the estimates. More granular explanatory attributions are post hoc unless already specified. If difficult or large menus fail selectively, conditioning on resolved choices can change the target comparison even below the whole-cell exclusion threshold.
+
+Final fits use four chains and maximum treedepth 12. Structural parameters must have finite diagnostics, $\widehat R<1.01$, bulk and tail effective sample sizes of at least 400, and chain energy diagnostics meeting E-BFMI of at least 0.3. Divergences and treedepth saturation must be zero. These criteria concern reliable numerical exploration of the posterior. They do not certify that the choice model is true, that the prior is appropriate, or that the data are informative. The frozen operational policy also provides a 12-hour wall-clock stop rule for each fit launch.
+
+The reporting manifest binds each of the 15 fits to four chain hashes, Stan data, its preparation report, and the analysis contract. It checks the actual chain and sampler metadata and consistency of generated quantities. This supports traceability and catches mismatched artifacts, but declared input bindings are not cryptographic proof of execution with those inputs. Posterior predictive summaries and weak-information diagnostics remain necessary interpretive checks, with results reported by pool and cell rather than reduced to a blanket numerical approval.
+
+### Required Sensitivity Analyses
+
+| Variant | Presentations | Utility midpoint | Purpose |
+|:--|:--|--:|:--|
+| Primary | Both | 0.50 | Frozen headline analysis |
+| Presentation 1 only | First | 0.50 | Remove within-menu duplication without selecting on agreement |
+| Presentation 2 only | Reversed | 0.50 | Complementary order-specific check |
+| Utility 0.35 | Both | 0.35 | Lower intermediate consequence value |
+| Utility 0.65 | Both | 0.65 | Higher intermediate consequence value |
+
+Each row is fitted for venture, hiring, and matched RQ5, yielding 15 mandatory fits. The utility and presentation grids are not crossed. Every primary contrast and size slope is compared for changes in sign, interval decision, and substantive interpretation. A result that changes materially is labeled sensitive rather than selecting the preferred fit as the definitive answer. Fewer observations in a presentation-only fit can widen intervals even without a large median shift; that uncertainty is part of the comparison.
+
+The position-stable subset is a different, outcome-selected robustness analysis. A menu qualifies only if its tested presentations agree in chosen item across the supplied cells, with flipped or untested menus excluded. The algorithm then balances sizes by downsampling every size to the smallest eligible count under seed 42. If one size has no retained menus, the balanced set is empty; dropping that size and fitting anyway would change the intended check. Retention by size must be reported alongside any resulting re-estimation.
+
+This subset can reveal whether the size relationship persists among consistently chosen menus, but it is not a correction for dependence. Agreement is itself an observed outcome, potentially related to sensitivity and difficulty. The subset is specified separately from the mandatory 15-fit manifest. Its availability and retained geometry must be checked on production choices; no precollection statement can guarantee sufficient stable menus. The response-independent presentation checks are therefore the principal safeguard against treating duplicated menus as independent information.
+
+## What Preparation Has Established {#sec-preparation}
+
+### Recovery on the Production Geometry
+
+The Bayesian workflow distinguishes predictions under the prior, recovery from simulated truths, and fit to observed behavior [@gelman2020; @carpenter2017]. Prior predictive analysis asks what choices the model permits before production data. Recovery asks whether the estimation procedure can recover known parameters when data are generated under its own assumptions. Posterior predictive analysis asks whether the fitted model reproduces relevant features of actual choices. These are complementary checks, not interchangeable labels for validation.
+
+Three production-geometry recovery campaigns contain forty datasets each: venture, hiring, and matched RQ5. The current saved diagnostics pass all gates in 120 of 120 fits. The earlier claim of complete passage was corrected when venture iteration 16 was found to have tail ESS below 400. Its separately authorized longer rerun now passes, and the report's evidence extraction uses the current saved summaries. The earlier failure and rerun are part of the audit trail, not erased by the final count.
+
+The current worst R-hat values are about 1.00925, 1.00939, and 1.00996 for venture, hiring, and matched recovery. Minimum tail ESS values are approximately 631.7, 409.3, and 562.3. All meet the declared thresholds, although hiring's minimum is close to 400. The recovery figure displays the replicate-level diagnostics rather than allowing the aggregate pass rate to hide how close some fits are to a boundary. Actual chain headers show mixed schedules: venture and hiring each retain 35 original 500-warmup/500-sampling fits and five longer 1,000/1,000 replacements; matched recovery retains 30 originals and ten replacements. The final pass count therefore describes the completed campaign including remediation, not the first-attempt success rate of one common schedule.
+
+The evidence bundle also recomputes interval coverage, bias, RMSE, and mean interval width from current saved truths and posterior summaries. For the menu-size slope, central-90% interval coverage is 36/40 for venture, 37/40 for hiring, and 34/40 for matched RQ5. The full parameter table is in @sec-evidence-recovery. These finite simulation proportions should not be read as exact calibration probabilities: at forty replicates, one additional missed interval changes coverage by 2.5 percentage points. Their value is in exposing estimator behavior at the actual design, including uncertainty and potential weaknesses.
+
+Recovering parameters when the simulator uses the fitted model does not validate the behavioral assumptions for language models. In particular, independently generated synthetic choices need not reproduce response dependence or assessment inconsistency in production. Nor does aggregate coverage guarantee equal performance at every sensitivity value. Recovery precision should be read together with the underlying truth range and the possibility of weak upper-tail information when almost every observed choice is maximizing.
+
+### Calibration Limits and Historical Evidence
+
+No new formal simulation-based calibration campaign was run for the assessment-anchored model. Amendment 4 explicitly chose production-geometry recovery instead. Earlier SBC work on different model variants remains relevant history, but is not reported as calibration of this likelihood, utility treatment, and prior combination. The paper's distinction between calibration and informativeness applies directly: even a correctly calibrated posterior can remain too broad to answer a substantive question [@talts2018; @helzner2026methodology, sections 4.4 and 8.3].
+
+The report does not present a newly reconstructed prior-predictive coverage plot as if it were a saved final-design campaign. Its illustrative softmax plot explains the link, while the numerical prior table and size-ratio calculation make important prior implications explicit. The amendment history records the prior-predictive motivation for narrowing the size prior. Claims about older simulation regimes remain attached to their original scope. No additional simulation or fit was run to create this report.
+
+### Collection Readiness Is Not a Scientific Result
+
+Offline preflight passed for the staged wave `production-20260911-wave01`, binding exact requests, prerequisites, source, and configuration to commit `2194432`. The wave contains 36 request sets of 280 choices. Its calculated reservation is approximately $122.772917 against an approved ceiling of $122.78. That is a conditional conservative liability calculation under pinned pricing and request-cap assumptions, not an expected-spend forecast, actual expenditure, or an unconditional guarantee about provider billing.
+
+Earlier live probes established that the reasoning configurations could complete the required answer workflow. Their very small number of trials demonstrates plumbing, not comparative effectiveness, production-level reliability, or absence of every possible remote-duplication failure. Collection safeguards preserve durable state and usage evidence and require reconciliation when remote status is ambiguous. Scientific inclusion depends on the recorded choices and declared rules, not on interpreting a provider's completed status as evidence that every row is usable.
+
+The staged snapshot is distinct from authorization to submit it. This report introduces another human scientific review before collection; it does not itself authorize spending or launch. Editing the repository prevents the clean-revision guard from passing, and committing the report changes the revision bound by the old manifest. After review and any approved commit, a new preflight snapshot will be required for launch. The existing read-only snapshot remains a provenance record and should not be overwritten or made acceptable by weakening that guard.
+
+## Limitations and Final Review {#sec-review}
+
+The primary estimand is deliberately narrower than a claim about decision quality in the world. It concerns responsiveness to fixed, elicited probabilities and imposed utility spacings under a softmax choice model. That narrowing makes the measurement operational, but creates a construct-validity burden: prose and probabilities can disagree; the choice stage can reinterpret them; and different agents can attach different values to the three named consequences. Utility-grid robustness addresses only part of this burden, while anchoring does not propagate uncertainty in the assessment vectors.
+
+The model also has functional-form commitments. At a fixed size and sensitivity, pairwise odds depend only on the two alternatives' expected utilities, reflecting the softmax independence-of-irrelevant-alternatives structure. The size covariate allows a specified dependence on set size, but not arbitrary composition effects, attraction effects, or changes in the value functional. If those features drive choices, sensitivity can absorb misspecification. A low estimate is therefore not a diagnosis of irrationality, and a high one is not a certificate that the represented probabilities or objectives are appropriate.
+
+Internal validity is strongest for comparisons sharing the same saved assessments and menus, but even there the output budget and decoding configuration constrain interpretation. External validity is limited by synthetic profiles, controlled lexical structure, two screened domains, six selected model configurations, and provider behavior at collection time. The dated Anthropic endpoints improve specificity; undated endpoint aliases and service changes still require careful recording. Repeating this study at another time is a replication of a configured system, not necessarily a measurement of an unchanged agent.
+
+The results report must retain wide intervals, non-detections, diagnostic failures, and sensitivity disagreements instead of treating them as obstacles to a preferred ranking.
+
+### Questions Before Collection
+
+1. **Construct:** Is responsiveness to a fixed stated-assessment benchmark the intended scientific object, and are the limits of calling it SEU sensitivity acceptable?
+2. **Utilities:** Are the equal-spaced primary utilities and the 0.35/0.65 grid adequate for the substantive consequences, particularly break-even and meeting expectations?
+3. **Treatments:** Do the actual prompts and decoding settings support the proposed interpretations of explicit optimization, generic deliberation, and reasoning configurations?
+4. **Materials:** Is the controlled merit lattice useful for the questions, despite its distance from natural dossiers and the deliberate exclusion of a failed domain?
+5. **Comparisons:** Does the matched hiring-procurement design control enough to make its task contrast scientifically informative without attributing a particular moral mechanism?
+6. **Information:** Are the available recovery precision and interval behavior sufficient for the study's aims, given that exact-design power for every threshold effect is not established here?
+7. **Dependence:** Are the presentation-only analyses and explicit item-reuse limitations sufficient, or does the scientific purpose require a different dependence model before collection?
+8. **Decisions:** Are the central-90%-interval-plus-median rule, declared effect thresholds, and full unadjusted family acceptable, with non-detection never interpreted as equivalence?
+9. **Failure handling:** Is it clear that missingness, rank loss, empty stable-size strata, failed sampler gates, and conflicting sensitivities must be reported rather than resolved by discretionary selection?
+
+These questions are an invitation to review the planned inference, not a new set of numerical gates. Any resulting change to the scientific protocol should be documented before production outcomes can influence it. If the current specification is accepted, the next operational step is separately authorized preparation against the final reviewed revision, followed by collection under the existing safeguards. The later results report should answer the six RQs in their declared scope, including cases where the experiment leaves the answer uncertain.
+
+## Technical Appendices {#sec-appendices}
+
+### Protocol Evolution
+
+| Amendment | Date | Current consequence |
+|:--|:--|:--|
+| 1 | September 7 | Assessment-derived fixed expected utilities replace the latent belief map; RQ4 becomes descriptive across two fixed pools |
+| 2 | September 7 | Size-slope prior SD changes from 0.5 to 0.2 with documented calibration rationale |
+| 3 | September 9 | Exact contrast family, central intervals, median-based ROPE decision, matched task design, and fit bindings are frozen |
+| 4 | September 10, updated September 11 | Response-independent presentation sensitivities and no-new-SBC policy; recovery audit and authorized rerun are recorded |
+
+The original protocol's pinned-model and between-pool-variance wording is historical. The report follows these controlling amendments and the staged implementation. The evidence bundle records source-relative hashes so numerical summaries can be traced to their underlying artifacts rather than to the prose of an intermediate review.
+
+### Reading the Evidence
+
+The following appendix is generated by the explicit offline evidence exporter. Its default mode checks the portable bundle; refresh requires access to the saved local source artifacts and is never part of rendering. The linked YAML stores figure inputs, item texts, probabilities, menu records, settings, contrast coefficients, recovery summaries, and source hashes. It does not contain raw model thinking, credentials, or provider batch identifiers. The full raw request and chain archives remain separate; a source hash supports integrity checking but does not make an otherwise unavailable artifact publicly retrievable.
+
+The standard HTML build uses only this report, the generated appendix, the portable bundle, three static figures, and the site's ordinary resources. It makes no provider calls, runs no sampler, and does not depend on a hidden cache of production outcomes. Long exact prompt examples are retained to make the intervention auditable; their role is documentary rather than a recommendation to use these prompts in consequential settings.
+
+{{< include _evidence.qmd >}}
+
+## References {.unnumbered}
+
+::: {#refs}
+:::

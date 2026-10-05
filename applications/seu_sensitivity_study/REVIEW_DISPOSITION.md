@@ -1,5 +1,8 @@
 # Independent Review Disposition
 
+> This is the September review record. The current October review and remaining
+> launch conditions are tracked in [the October disposition](REVIEW_DISPOSITION_20261005.md).
+
 Date: 2026-09-07
 
 Source review: `local/seu_sensitivity_frontier_model_review.md`

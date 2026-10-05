@@ -3,14 +3,14 @@
 from __future__ import annotations
 
 import math
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from itertools import combinations
 from typing import Any, Dict, Mapping, Sequence, Tuple
 
 import numpy as np
 
 from .config import MODELS, PROMPT_CONDITIONS, REFERENCE_MODEL, REFERENCE_PROMPT
-from .config import build_cells, get_model_spec
+from .config import SEUSensitivityStudyConfig, build_cells, get_model_spec
 
 __all__ = [
     "BULK_ESS_MINIMUM",
@@ -45,11 +45,12 @@ BULK_ESS_MINIMUM = 400
 TAIL_ESS_MINIMUM = 400
 _CROSS_POOL_COMBINATION_CAP = 100_000
 _CROSS_POOL_SEED = 20260911
+ESTIMAND_VERSION = "amendment5_realized_log_sensitivity_v1"
 
 
 @dataclass(frozen=True)
 class ContrastSpec:
-    """One predeclared linear contrast of primary regression coefficients."""
+    """Legacy gamma weights and explicit realized-cell weights for one name."""
 
     contrast_id: str
     research_question: str
@@ -58,6 +59,8 @@ class ContrastSpec:
     column_names: Tuple[str, ...]
     rope_half_width: float = LOG_ALPHA_ROPE
     expected_direction: str = "two_sided"
+    coefficient_estimand: str = "additive_gamma"
+    realized_cell_weights: Mapping[str, Mapping[str, float]] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -76,6 +79,13 @@ def _model_column(model_name: str) -> str:
     return f"model_{get_model_spec(model_name).slug}"
 
 
+def _model_cell_weights(pool_id: str, model_weights: Mapping[str, float]) -> Dict[str, float]:
+    return {
+        cell.cell_id: model_weights[cell.model_name] / len(PROMPT_CONDITIONS)
+        for cell in build_cells([pool_id]) if cell.model_name in model_weights
+    }
+
+
 def primary_contrasts(column_names: Sequence[str]) -> Tuple[ContrastSpec, ...]:
     """Return the approved seven RQ1 and two RQ2 contrasts for one pool."""
     names = tuple(column_names)
@@ -92,6 +102,10 @@ def primary_contrasts(column_names: Sequence[str]) -> Tuple[ContrastSpec, ...]:
                 label=f"{model.name} minus {REFERENCE_MODEL}",
                 coefficients=_coefficient_vector(names, {column: 1.0}),
                 column_names=names,
+                realized_cell_weights={
+                    pool: _model_cell_weights(pool, {model.name: 1.0, REFERENCE_MODEL: -1.0})
+                    for pool in ("venture", "hiring")
+                },
             )
         )
 
@@ -117,6 +131,10 @@ def primary_contrasts(column_names: Sequence[str]) -> Tuple[ContrastSpec, ...]:
                 coefficients=_coefficient_vector(names, weights),
                 column_names=names,
                 expected_direction="positive",
+                realized_cell_weights={
+                    pool: _model_cell_weights(pool, {flagship.name: 1.0, small.name: -1.0})
+                    for pool in ("venture", "hiring")
+                },
             )
         )
 
@@ -135,6 +153,14 @@ def primary_contrasts(column_names: Sequence[str]) -> Tuple[ContrastSpec, ...]:
                 expected_direction=(
                     "positive" if prompt == "seu_maximizing" else "two_sided"
                 ),
+                realized_cell_weights={
+                    pool: {
+                        cell.cell_id: (1.0 if cell.prompt_condition == prompt else -1.0) / len(MODELS)
+                        for cell in build_cells([pool])
+                        if cell.prompt_condition in (prompt, REFERENCE_PROMPT)
+                    }
+                    for pool in ("venture", "hiring")
+                },
             )
         )
     return tuple(contrasts)
@@ -227,8 +253,8 @@ def linear_contrast_report(
     """Apply named contrasts draw by draw, preserving posterior covariance."""
     gate = assert_sampler_gates(diagnostics)
     gamma = np.asarray(gamma_draws, dtype=float)
-    if gamma.ndim != 2 or not np.all(np.isfinite(gamma)):
-        raise ValueError("gamma_draws must be a finite two-dimensional array")
+    if gamma.ndim != 2 or not gamma.size or not np.all(np.isfinite(gamma)):
+        raise ValueError("gamma_draws must be a nonempty finite two-dimensional array")
     rows = []
     for contrast in contrasts:
         weights = np.asarray(contrast.coefficients, dtype=float)
@@ -240,12 +266,104 @@ def linear_contrast_report(
         rows.append(
             {
                 **contrast.to_dict(),
+                "estimand": "additive_gamma",
                 **summarize_draws(
                     gamma @ weights, rope_half_width=contrast.rope_half_width
                 ),
             }
         )
-    return {"sampler_gates": gate, "decision_count": len(rows), "rows": rows}
+    return {"estimand": "additive_gamma", "sampler_gates": gate, "decision_count": len(rows), "rows": rows}
+
+
+def _realized_fit_values(gamma_draws, sigma_cell_draws, z_alpha_draws, contrasts, cell_ids):
+    gamma = np.asarray(gamma_draws, dtype=float)
+    sigma = np.asarray(sigma_cell_draws, dtype=float)
+    residual = np.asarray(z_alpha_draws, dtype=float)
+    if not contrasts:
+        raise ValueError("Realized reporting requires contrast specifications")
+    columns = tuple(contrasts[0].column_names)
+    if (not columns or len(set(columns)) != len(columns)
+            or any(tuple(contrast.column_names) != columns for contrast in contrasts)):
+        raise ValueError("Contrasts must share unique design columns")
+    if gamma.ndim != 2 or not gamma.size or gamma.shape[1] != len(columns) or not np.all(np.isfinite(gamma)):
+        raise ValueError("gamma_draws must be nonempty, finite and match design columns")
+    if sigma.shape != (len(gamma),) or not np.all(np.isfinite(sigma)) or np.any(sigma < 0):
+        raise ValueError("sigma_cell_draws must be finite, nonnegative and match draw count")
+    if not len(cell_ids) or len(set(cell_ids)) != len(cell_ids):
+        raise ValueError("cell_ids must be nonempty and unique")
+    if residual.shape != (len(gamma), len(cell_ids)) or not np.all(np.isfinite(residual)):
+        raise ValueError("z_alpha_draws must be finite with one column per cell ID and match draw count")
+    canonical_cells = {cell.cell_id: cell for cell in build_cells(["venture", "hiring"])}
+    if any(cell_id not in canonical_cells for cell_id in cell_ids):
+        raise ValueError("Realized reporting requires canonical cell IDs")
+    pools = {canonical_cells[cell_id].pool_id for cell_id in cell_ids}
+    if "task_hiring" in columns:
+        group = "matched_rq5"
+        cells = build_cells(["venture", "hiring"])
+        design, canonical_columns = matched_rq5_design(cells)
+        canonical_ids = [cell.cell_id for cell in cells]
+    else:
+        if len(pools) != 1:
+            raise ValueError("Primary realized reporting requires exactly one pool")
+        group = next(iter(pools))
+        design, canonical_columns, canonical_ids = SEUSensitivityStudyConfig().design_matrix_for_pool(group)
+    if set(columns) != set(canonical_columns):
+        raise ValueError("Realized reporting requires canonical design columns")
+    indices = [canonical_ids.index(cell_id) for cell_id in cell_ids]
+    design = design[indices][:, [list(canonical_columns).index(column) for column in columns]]
+    if np.linalg.matrix_rank(np.column_stack([np.ones(len(cell_ids)), design])) != len(columns) + 1:
+        raise ValueError("Retained design rank must be unchanged and full with intercept")
+    values = gamma @ design.T + sigma[:, None] * residual
+    if not np.all(np.isfinite(values)):
+        raise ValueError("Reconstructed realized log sensitivities must be finite")
+    return values, group
+
+
+def _cell_contrast_values(values, cell_ids, weights):
+    coefficients = np.asarray(list(weights.values()), dtype=float)
+    if (coefficients.ndim != 1 or not coefficients.size or not np.all(np.isfinite(coefficients))
+            or not np.any(coefficients > 0) or not np.any(coefficients < 0)
+            or not np.isclose(coefficients.sum(), 0.0, atol=1e-12, rtol=0)):
+        raise ValueError("Realized cell weights must be finite, nonempty and sum to zero")
+    missing = sorted(set(weights) - set(cell_ids))
+    if missing:
+        return None, missing
+    indices = {cell_id: index for index, cell_id in enumerate(cell_ids)}
+    result = values[:, [indices[cell_id] for cell_id in weights]] @ coefficients
+    if not np.all(np.isfinite(result)):
+        raise ValueError("Realized contrast draws must be finite")
+    return result, []
+
+
+def _realized_contrast_report(values, cell_ids, contrasts, group, diagnostics):
+    rows = []
+    for contrast in contrasts:
+        if group not in contrast.realized_cell_weights:
+            raise ValueError(f"Contrast {contrast.contrast_id} lacks realized cell weights for {group}; gamma fallback is prohibited")
+        weights = contrast.realized_cell_weights[group]
+        draws, missing = _cell_contrast_values(values, cell_ids, weights)
+        row = {
+            **contrast.to_dict(),
+            "estimand": "realized_log_sensitivity",
+            "estimand_version": ESTIMAND_VERSION,
+            "cell_weights": dict(weights),
+            "included_in_primary_family": True,
+            "status": "unavailable" if missing else "available",
+            "missing_cell_ids": missing,
+        }
+        if draws is None:
+            row["reason"] = "Required cells are missing; no renormalization, imputation or gamma fallback"
+        else:
+            row.update(summarize_draws(draws, rope_half_width=contrast.rope_half_width))
+        rows.append(row)
+    available = sum(row["status"] == "available" for row in rows)
+    return {
+        "sampler_gates": assert_sampler_gates(diagnostics),
+        "decision_count": len(rows),
+        "available_decision_count": available,
+        "unavailable_decision_count": len(rows) - available,
+        "rows": rows,
+    }
 
 
 def parameter_report(
@@ -338,6 +456,13 @@ def cross_pool_descriptive_report(
     contrasts: Sequence[ContrastSpec],
     venture_diagnostics: Mapping[str, Any],
     hiring_diagnostics: Mapping[str, Any],
+    *,
+    venture_sigma_cell_draws: Sequence[float] | None = None,
+    venture_z_alpha_draws: Sequence[Sequence[float]] | None = None,
+    venture_cell_ids: Sequence[str] | None = None,
+    hiring_sigma_cell_draws: Sequence[float] | None = None,
+    hiring_z_alpha_draws: Sequence[Sequence[float]] | None = None,
+    hiring_cell_ids: Sequence[str] | None = None,
 ) -> Dict[str, Any]:
     """Describe independent fixed-domain posteriors without new decisions.
 
@@ -349,16 +474,19 @@ def cross_pool_descriptive_report(
     """
     assert_sampler_gates(venture_diagnostics)
     assert_sampler_gates(hiring_diagnostics)
-    venture = np.asarray(venture_gamma_draws, dtype=float)
-    hiring = np.asarray(hiring_gamma_draws, dtype=float)
-    if venture.ndim != 2 or hiring.ndim != 2 or venture.shape[1] != hiring.shape[1]:
-        raise ValueError("Cross-pool gamma draws must have the same parameter columns")
-    if not len(venture) or not len(hiring) or not np.all(np.isfinite(venture)) or not np.all(np.isfinite(hiring)):
-        raise ValueError("Cross-pool gamma draws must be nonempty and finite")
-    columns = contrasts[0].column_names if contrasts else ()
-    if any(contrast.column_names != columns or len(contrast.coefficients) != venture.shape[1]
-           or len(contrast.column_names) != venture.shape[1] for contrast in contrasts):
-        raise ValueError("Cross-pool contrasts must share the gamma column schema")
+    if any(value is None for value in (
+        venture_sigma_cell_draws, venture_z_alpha_draws, venture_cell_ids,
+        hiring_sigma_cell_draws, hiring_z_alpha_draws, hiring_cell_ids,
+    )):
+        raise ValueError("RQ4 requires realized cell information; gamma fallback is prohibited")
+    venture, venture_group = _realized_fit_values(
+        venture_gamma_draws, venture_sigma_cell_draws, venture_z_alpha_draws, contrasts, venture_cell_ids
+    )
+    hiring, hiring_group = _realized_fit_values(
+        hiring_gamma_draws, hiring_sigma_cell_draws, hiring_z_alpha_draws, contrasts, hiring_cell_ids
+    )
+    if (venture_group, hiring_group) != ("venture", "hiring"):
+        raise ValueError("RQ4 requires venture and hiring primary pool designs")
     combination_count = len(venture) * len(hiring)
     if combination_count <= _CROSS_POOL_COMBINATION_CAP:
         venture_indices = np.repeat(np.arange(len(venture)), len(hiring))
@@ -370,12 +498,11 @@ def cross_pool_descriptive_report(
         hiring_indices = generator.integers(len(hiring), size=_CROSS_POOL_COMBINATION_CAP)
         method = "independent_resampling_with_replacement"
 
-    def describe(weights):
-        venture_values = venture @ weights
-        hiring_values = hiring @ weights
+    def describe(venture_values, hiring_values):
         venture_summary = summarize_draws(venture_values)
         hiring_summary = summarize_draws(hiring_values)
         return {
+            "status": "descriptive",
             "venture": venture_summary,
             "hiring": hiring_summary,
             "median_difference_hiring_minus_venture": (
@@ -391,41 +518,49 @@ def cross_pool_descriptive_report(
             ),
         }
 
-    rows = []
-    for contrast in contrasts:
-        weights = np.asarray(contrast.coefficients, dtype=float)
-        rows.append(
-            {
-                "contrast_id": contrast.contrast_id,
-                **describe(weights),
-            }
-        )
-    canonical_columns = {
-        _model_column(model.name) for model in MODELS if model.name != REFERENCE_MODEL
-    } | {f"prompt_{prompt}" for prompt in PROMPT_CONDITIONS if prompt != REFERENCE_PROMPT}
-    model_orderings = []
-    if set(columns) == canonical_columns and len(columns) == len(canonical_columns):
-        for first_model, second_model in combinations(MODELS, 2):
-            weights = np.asarray(_coefficient_vector(columns, {
-                _model_column(model.name): coefficient
-                for model, coefficient in ((first_model, 1.0), (second_model, -1.0))
-                if model.name != REFERENCE_MODEL
-            }))
-            row = {
-                "first_model": first_model.name,
-                "second_model": second_model.name,
-                "contrast_id": f"rq4_{first_model.slug}_minus_{second_model.slug}",
-                **describe(weights),
-            }
-            for pool_id, gamma in (("venture", venture), ("hiring", hiring)):
-                values = gamma @ weights
-                row[pool_id].update({
+    def describe_cells(weights_by_pool, *, ordering=False):
+        if set(weights_by_pool) != {"venture", "hiring"}:
+            raise ValueError("RQ4 contrasts require explicit realized weights for both pools")
+        venture_values, venture_missing = _cell_contrast_values(venture, venture_cell_ids, weights_by_pool["venture"])
+        hiring_values, hiring_missing = _cell_contrast_values(hiring, hiring_cell_ids, weights_by_pool["hiring"])
+        result = {
+            "estimand": "realized_log_sensitivity",
+            "cell_weights_by_pool": {pool: dict(weights) for pool, weights in weights_by_pool.items()},
+            "missing_cell_ids_by_pool": {"venture": venture_missing, "hiring": hiring_missing},
+        }
+        if venture_values is None or hiring_values is None:
+            result.update(status="unavailable", reason="Required cells are missing; no renormalization, imputation or gamma fallback")
+            return result
+        result.update(describe(venture_values, hiring_values))
+        if ordering:
+            for pool_id, values in (("venture", venture_values), ("hiring", hiring_values)):
+                result[pool_id].update({
                     "probability_first_model_greater": float(np.mean(values > 0)),
                     "probability_second_model_greater": float(np.mean(values < 0)),
                     "probability_tie": float(np.mean(values == 0)),
                 })
-            model_orderings.append(row)
+        return result
+
+    rows = [
+        {"contrast_id": contrast.contrast_id, **describe_cells(contrast.realized_cell_weights)}
+        for contrast in contrasts
+    ]
+    model_orderings = []
+    for first_model, second_model in combinations(MODELS, 2):
+        weights = {
+            pool: _model_cell_weights(pool, {first_model.name: 1.0, second_model.name: -1.0})
+            for pool in ("venture", "hiring")
+        }
+        model_orderings.append({
+            "first_model": first_model.name,
+            "second_model": second_model.name,
+            "contrast_id": f"rq4_{first_model.slug}_minus_{second_model.slug}",
+            **describe_cells(weights, ordering=True),
+        })
     return {
+        "estimand_version": ESTIMAND_VERSION,
+        "estimand": "equally_weighted_realized_log_sensitivity_contrasts",
+        "decision_count": 0,
         "status": "descriptive_two_fixed_domains",
         "population_variance_claim": False,
         "sigma_cell_used_as_cross_pool_variance": False,
@@ -485,6 +620,19 @@ def _compare_reports(
     rows = []
     for contrast_id in sorted(contrast_ids):
         values = {name: report[contrast_id] for name, report in indexed.items()}
+        unavailable = [name for name, row in values.items() if row.get("status") == "unavailable"]
+        if unavailable:
+            rows.append({
+                "contrast_id": contrast_id,
+                "status": "unavailable",
+                "reason": "Required contrast unavailable in one or more fit variants",
+                "unavailable_variants": unavailable,
+                "sign_changed": None,
+                "interval_decision_changed": None,
+                "substantive_interpretation_changed": None,
+                "estimates": values,
+            })
+            continue
         signs = {row["median_sign"] for row in values.values()}
         decisions = {row["decision"] for row in values.values()}
         interpretations = {
@@ -502,6 +650,7 @@ def _compare_reports(
     return {
         "sensitivity": sensitivity,
         "selection_conditioned_on_outcomes": False,
+        "all_estimands_comparable": all(row.get("status") != "unavailable" for row in rows),
         "any_disagreement": any(
             row["sign_changed"]
             or row["interval_decision_changed"]
@@ -523,7 +672,25 @@ def posterior_fit_report(
     diagnostics: Mapping[str, Any],
 ) -> Dict[str, Any]:
     """Build all report sections supplied by one anchored posterior fit."""
-    contrast_report = linear_contrast_report(gamma_draws, contrasts, diagnostics)
+    values, group = _realized_fit_values(
+        gamma_draws, sigma_cell_draws, z_alpha_draws, contrasts, cell_ids
+    )
+    if np.asarray(gamma_size_draws).shape != (len(values),):
+        raise ValueError("gamma_size_draws must match draw count")
+    contrast_report = _realized_contrast_report(values, cell_ids, contrasts, group, diagnostics)
+    gamma = np.asarray(gamma_draws, dtype=float)
+    companion_rows = []
+    for contrast in contrasts:
+        coefficients = np.asarray(contrast.coefficients, dtype=float)
+        if coefficients.shape != (gamma.shape[1],) or not np.all(np.isfinite(coefficients)):
+            raise ValueError("Gamma companion weights must be finite and match design columns")
+        companion_rows.append({
+            **contrast.to_dict(),
+            "estimand": "additive_gamma",
+            "status": "descriptive",
+            "included_in_primary_family": False,
+            **summarize_draws(gamma @ coefficients),
+        })
     rq6 = parameter_report(
         "rq6_gamma_size",
         gamma_size_draws,
@@ -532,9 +699,16 @@ def posterior_fit_report(
     )
     decision_rows = list(contrast_report["rows"]) + [rq6]
     return {
+        "estimand_version": ESTIMAND_VERSION,
         "sampler_gates": contrast_report["sampler_gates"],
         "decision_count": len(decision_rows),
         "contrast_decisions": contrast_report,
+        "gamma_companion": {
+            "status": "descriptive",
+            "included_in_primary_family": False,
+            "decision_count": 0,
+            "rows": companion_rows,
+        },
         "rq3": rq3_descriptive_report(
             sigma_cell_draws, z_alpha_draws, cell_ids, diagnostics
         ),
@@ -588,6 +762,12 @@ def complete_confirmatory_report(
         pool_contrasts["venture"],
         venture_primary["diagnostics"],
         hiring_primary["diagnostics"],
+        venture_sigma_cell_draws=venture_primary["sigma_cell_draws"],
+        venture_z_alpha_draws=venture_primary["z_alpha_draws"],
+        venture_cell_ids=venture_primary["cell_ids"],
+        hiring_sigma_cell_draws=hiring_primary["sigma_cell_draws"],
+        hiring_z_alpha_draws=hiring_primary["z_alpha_draws"],
+        hiring_cell_ids=hiring_primary["cell_ids"],
     )
 
     if set(matched_variants) != required_variants:
@@ -615,8 +795,14 @@ def complete_confirmatory_report(
         for pool_id, reports in pool_reports.items()
     }
     matched_decision_count = matched_reports["primary"]["primary_decision_count"]
+    unavailable_decisions = sum(
+        reports["primary"]["contrast_decisions"]["unavailable_decision_count"]
+        for reports in pool_reports.values()
+    ) + matched_reports["primary"]["contrast_decisions"]["unavailable_decision_count"]
+    primary_decision_count = sum(pool_decision_counts.values()) + matched_decision_count
     return {
-        "schema_version": 1,
+        "schema_version": 2,
+        "estimand_contract": _estimand_contract(),
         "central_interval_mass": CENTRAL_INTERVAL_MASS,
         "pools": pool_reports,
         "rq4": rq4,
@@ -627,8 +813,13 @@ def complete_confirmatory_report(
             "selection_from_family": False,
             "primary_decisions_by_pool": pool_decision_counts,
             "matched_rq5_primary_decisions": matched_decision_count,
-            "primary_decision_count": sum(pool_decision_counts.values()) + matched_decision_count,
+            "primary_decision_count": primary_decision_count,
+            "available_primary_decision_count": primary_decision_count - unavailable_decisions,
+            "unavailable_primary_decision_count": unavailable_decisions,
+            "decision_count_policy": "Counts retain all named primary decisions, including explicitly unavailable contrasts",
             "expected_primary_decision_count": 26,
+            "distinct_primary_decisions_up_to_sign": 24,
+            "gamma_companion_primary_decision_count": 0,
             "family_definition": "Nine RQ1/RQ2 contrasts plus one RQ6 slope per pool; six matched RQ5 contrasts. Matched menu-size slope is sensitivity only, not an additional RQ6 primary family. RQ3 and RQ4 are descriptive.",
         },
     }
@@ -728,9 +919,17 @@ def matched_rq5_contract(cells: Sequence[Any]) -> Dict[str, Any]:
                 label=f"{model.name}: hiring minus procurement",
                 coefficients=tuple(coefficients),
                 column_names=columns,
+                realized_cell_weights={
+                    "matched_rq5": {
+                        cell.cell_id: (1.0 if cell.pool_id == "hiring" else -1.0) / len(PROMPT_CONDITIONS)
+                        for cell in build_cells(["venture", "hiring"])
+                        if cell.model_name == model.name
+                    }
+                },
             ).to_dict()
         )
     return {
+        "estimand_contract": _estimand_contract(),
         "status": "confirmatory_fit_validated",
         "representation": "assessment_anchored_no_pca",
         "n_cells": int(design.shape[0]),
@@ -744,12 +943,40 @@ def matched_rq5_contract(cells: Sequence[Any]) -> Dict[str, Any]:
     }
 
 
+def _estimand_contract() -> Dict[str, Any]:
+    return {
+        "version": ESTIMAND_VERSION,
+        "amendment": 5,
+        "primary_estimand": "equally_weighted_realized_log_sensitivity_contrasts",
+        "reconstruction": "X @ gamma + sigma_cell * z_alpha; shared gamma0 cancels",
+        "size_reference": "common menu size across all cells in each contrast; shared gamma_size term cancels",
+        "observation_count_weighting": False,
+        "rq1_weights": "mean of three prompt cells per model minus comparator mean",
+        "rq2_weights": "mean over six models of prompt minus neutral",
+        "rq5_weights": "within-model mean of three hiring prompts minus mean of three procurement prompts in matched fit",
+        "rq4_estimand": "same realized model averages as RQ1; descriptive independent fixed-domain comparison",
+        "gamma_companion": {
+            "estimand": "additive_gamma",
+            "coefficient_fields": ["coefficients", "column_names"],
+            "status": "descriptive",
+            "included_in_primary_family": False,
+            "decision_count": 0,
+        },
+        "missing_cell_policy": "affected contrasts unavailable with explicit missing cell IDs; no renormalization, imputation or gamma fallback",
+        "global_rank_check": "retained design must remain full rank with intercept",
+        "primary_decision_count": 26,
+        "distinct_primary_decisions_up_to_sign": 24,
+        "fit_count": 15,
+    }
+
+
 def contract_manifest(
     column_names: Sequence[str], design_matrix: Sequence[Sequence[float]]
 ) -> Dict[str, Any]:
     """Return the complete machine-readable policy frozen before collection."""
     contrasts = primary_contrasts(column_names)
     return {
+        "estimand_contract": _estimand_contract(),
         "central_interval_mass": CENTRAL_INTERVAL_MASS,
         "interval_quantiles": [0.05, 0.95],
         "log_alpha_rope_half_width": LOG_ALPHA_ROPE,
@@ -769,10 +996,10 @@ def contract_manifest(
             "reason": "The full interaction exactly spans the additive residual cell space and adds no likelihood information.",
             "aliasing": interaction_aliasing_report(design_matrix, column_names),
         },
-        "rq4": {"status": "descriptive"},
+        "rq4": {"status": "descriptive", "estimand": "equally_weighted_realized_model_log_sensitivity_contrasts"},
         "rq5": {
             "status": "confirmatory_fit_validated",
-            "estimand": "within-model hiring-minus-procurement contrast in a dedicated matched-item fit",
+            "estimand": "within-model equally weighted realized log-sensitivity hiring-minus-procurement contrast in a dedicated matched-item fit",
             "representation": "assessment_anchored_no_pca",
             "artifact_directory": "matched_rq5",
             "cross_pool_difference_in_differences": "supporting",
@@ -796,7 +1023,8 @@ def contract_manifest(
         },
         "formal_sbc": {
             "decision": "not_run",
-            "reason": "Exact production-geometry recovery directly calibrated the anchored estimands across 40 datasets for each primary fit geometry.",
+            "reason": "Historical production-geometry recovery evaluated the anchored model and additive estimands across 40 datasets per fit geometry; it does not validate all Amendment 5 realized-cell contrasts.",
+            "amended_contrast_validation": "pending saved-draw verification, including realized-cell RQ5; no new coverage or power claim",
             "scope_limitation": "SBC under the fitted independent-observation model would not test misspecification from repeated-menu dependence.",
         },
         "multiplicity": {

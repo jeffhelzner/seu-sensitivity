@@ -2,6 +2,15 @@
 
 Frozen: 2026-09-06
 
+> Current interpretation (2026-10-05): read the dated amendments before using
+> the historical body below. Amendment 1 replaces the latent-belief primary
+> model and the RQ4 variance-component interpretation. Amendment 2 changes the
+> size-slope prior. Amendments 3 and 4 specify the decision contract and required
+> sensitivity fits. Amendment 5 makes realized-cell contrasts primary for
+> RQ1/RQ2/RQ5 and retains additive coefficients as descriptive companions.
+> The fixed midpoint is a substantive utility assumption, not merely a choice
+> of units. Further independent-review conditions remain open; **NOT READY**.
+
 This document freezes the production design and confirmatory decision rules.
 The executable design is
 `applications/seu_sensitivity_study/configs/preregistered.yaml`.
@@ -382,3 +391,86 @@ preflight from a clean committed revision, and explicit wave and production
 launch authorization remain pending. The worktree is dirty and a Git commit
 is not yet authorized; neither the recovery rerun nor budget approval
 authorizes those remaining actions.
+
+## Amendment 5: realized-cell primary estimands
+
+Amended: 2026-10-05, before production choice collection, following the
+independent review of report revision `db145fe` and the author's approval of
+realized-cell primary contrasts with additive-coefficient companions.
+
+This amendment changes the estimand, not the Stan likelihood, priors, menus,
+assessed probabilities, utility grid, or collection plan. The reason is that
+the scientific questions concern the particular arms, prompts, and tasks in
+this fixed design, rather than only their hierarchical additive components.
+Narrower intervals are not the scientific justification for this choice.
+
+Let `ell[a,p,d]` be the realized log sensitivity for model arm `a`, prompt `p`,
+and domain `d` at a common centered menu size. In each posterior draw it equals
+`gamma0 + X[cell] gamma + sigma_cell z_alpha[cell]`. All averaging is of these
+log sensitivities, within each draw, before summarizing the posterior:
+
+- RQ1: `mean_p ell[a,p,d] - mean_p ell[b,p,d]`, with weight 1/3 on each
+  of the three prompt conditions for each model. Retain the seven named model
+  comparisons in each pool.
+- RQ2: `mean_a (ell[a,p,d] - ell[a,neutral,d])`, with weight 1/6 on each
+  of the six model arms. Retain the two non-neutral prompt comparisons.
+- RQ5: `mean_p (ell[a,p,hiring] - ell[a,p,procurement])`, with weight
+  1/3 on each prompt, using only the dedicated matched fit. Retain six models.
+- RQ4: use the same realized model averages as RQ1 in independent-posterior
+  domain comparisons and all 15 pairwise model orderings; remain descriptive.
+- RQ3 and RQ6 retain their existing estimands and status.
+
+Exponentiating these contrasts yields ratios of geometric mean sensitivities,
+not ratios of arithmetic means or maximizer-selection rates. Equal weights do
+not change with observation counts, missingness, or posterior precision. The
+common intercept and common menu-size contribution cancel in these zero-sum
+contrasts; the implementation may therefore reconstruct them without the
+intercept from the validated design and residual draws.
+
+The previous gamma-based contrasts remain descriptive companions, with
+posterior summaries but no additional primary decisions. The central-90%
+interval-plus-median rule, practical thresholds, and multiplicity policy are
+unchanged. There are still 26 named primary decisions, representing 24 distinct
+comparisons up to sign because the OpenAI duplicate occurs in each pool.
+Presentation-only and utility-grid comparisons use the new primary estimands.
+
+Cell weights are bound to explicit canonical IDs. A required cell excluded
+from a fit makes the affected contrast unavailable, with the missing IDs
+reported. Do not renormalize over remaining cells, impute a missing realized
+cell, or substitute the additive coefficient. The existing full-rank check
+still applies to each retained design. All 26 named slots remain in reporting,
+with separate counts of available and unavailable decisions; unavailable is
+not a non-detection.
+
+The generated contract records version `amendment5_realized_log_sensitivity_v1`,
+the primary cell weights, and descriptive companion status. Report output uses
+schema version 2; the 15-entry artifact manifest retains input schema version
+1. Historical contracts do not match the new contract and must not be silently
+accepted by changing or weakening hash checks. This amendment requires no new
+fits for its arithmetic, but reuse of saved fits still requires verified
+design, cell-order, and artifact provenance.
+
+The September 12 evidence bundle remains an unchanged historical snapshot of
+the previous additive-primary contract. Its recovery summaries are not new
+validation of all amended estimands. In particular, the review's saved-draw
+script did not compute realized-cell RQ5 coverage. Verification of the review's
+operating-characteristic calculations, including the shared simulation truths,
+and evaluation of realized-cell RQ5 remain outstanding; no new coverage or
+power claim is made by this amendment.
+
+### Remaining independent-review conditions
+
+The author approved a descriptive treatment of assessment scale alongside the
+primary analysis. Its exact normalization, draw-transformation versus refit
+choice, and reporting rules remain to be specified and tested before launch.
+It is a different measurement scale, not a correction proving which stated
+probabilities are appropriate. Ceiling/prior-sensitivity diagnostics and
+size/stratum/filler/item/presentation predictive checks also remain open.
+Their implementation and interpretation rules must be settled before
+production; this amendment does not invent numeric thresholds for them.
+
+The dated [October review disposition](REVIEW_DISPOSITION_20261005.md) records
+accepted findings, qualifications, and remaining work. No pilot fit, production
+preflight, provider call, commit, or collection is authorized by this amendment.
+Status remains **NOT READY** pending review remediation, a final committed
+revision, fresh preflight, and explicit launch authorization.

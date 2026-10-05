@@ -135,5 +135,7 @@ def test_manifest_freezes_approved_rules_and_pending_estimands(design):
         ],
     }
     assert manifest["formal_sbc"]["decision"] == "not_run"
+    assert "does not validate all Amendment 5" in manifest["formal_sbc"]["reason"]
+    assert "pending" in manifest["formal_sbc"]["amended_contrast_validation"]
     assert "repeated-menu dependence" in manifest["formal_sbc"]["scope_limitation"]
     assert manifest["rq5"]["representation"] == "assessment_anchored_no_pca"

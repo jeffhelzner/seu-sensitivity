@@ -19,7 +19,7 @@ def test_legacy_manifest_requires_explicit_input_evidence():
 
 
 class FakeFit:
-    def __init__(self, gamma_columns, data=None, data_path=None):
+    def __init__(self, gamma_columns, data=None, data_path=None, residuals=None):
         self.gamma_columns = gamma_columns
         self.chains = 4
         self.metadata = SimpleNamespace(cmdstan_config={"max_depth": 12, "model": f"{reporting.MODEL_NAME}_model"})
@@ -33,9 +33,15 @@ class FakeFit:
             "sigma_cell": np.full(500, 0.2),
             "z_alpha": np.zeros((500, cell_count)),
         }
+        if residuals is not None:
+            self.variables["z_alpha"] = np.tile(np.asarray(residuals) / 0.2, (500, 1))
         if data:
             cell = np.asarray(data["cell"]) - 1
-            log_alpha = self.variables["gamma0"][:, None] + self.variables["gamma"] @ np.asarray(data["X"]).T
+            log_alpha = (
+                self.variables["gamma0"][:, None]
+                + self.variables["gamma"] @ np.asarray(data["X"]).T
+                + self.variables["sigma_cell"][:, None] * self.variables["z_alpha"]
+            )
             alpha_obs = np.exp(log_alpha[:, cell] + self.variables["gamma_size"][:, None] * data["s"])
             self.variables.update(
                 alpha_cell=np.exp(log_alpha), alpha_obs=alpha_obs,
@@ -149,6 +155,16 @@ def test_build_report_from_saved_fit_manifest(artifacts, tmp_path):
         "decision_count"
     ] == 6
     assert len(report["fit_artifact_hashes"]) == 15
+    assert report["schema_version"] == 2
+    assert report["estimand_contract"]["amendment"] == 5
+    assert report["multiplicity"]["primary_decision_count"] == 26
+    assert report["multiplicity"]["available_primary_decision_count"] == 26
+    assert report["multiplicity"]["unavailable_primary_decision_count"] == 0
+    assert report["multiplicity"]["distinct_primary_decisions_up_to_sign"] == 24
+    assert report["multiplicity"]["gamma_companion_primary_decision_count"] == 0
+    companion = report["pools"]["venture"]["primary"]["gamma_companion"]
+    assert companion["decision_count"] == 0
+    assert all("decision" not in row for row in companion["rows"])
     provenance = report["fit_provenance"]["venture"]["primary"]
     assert provenance["binding"] == "declared_input_binding"
     assert provenance["cryptographic_execution_proof"] is False
@@ -158,6 +174,58 @@ def test_build_report_from_saved_fit_manifest(artifacts, tmp_path):
     assert provenance["max_treedepth"] == 12
     reporting.write_report(tmp_path / "report.json", report)
     json.dumps(report, allow_nan=False)
+
+
+def test_saved_fit_residuals_use_cell_weights_not_observation_counts(artifacts):
+    entry = artifacts["fits"]["venture"]["primary"]
+
+    def unbalance_observations(data):
+        data["M_total"] += 1
+        data["M_per_cell"][0] += 1
+        for field in ("cell", "I", "y"):
+            data[field].append(data[field][0])
+        sizes = np.asarray(data["I"]).sum(axis=1)
+        data["s"] = (sizes - sizes.mean()).tolist()
+
+    replace_json(entry, "stan_data", unbalance_observations)
+
+    def load_residual_fit(paths):
+        data_path = Path(paths[0]).parent.parent / "stan_data_size.json"
+        data = json.loads(data_path.read_text())
+        residuals = np.arange(data["J"]) / 10
+        return FakeFit(data["P"], data, data_path, residuals=residuals)
+
+    report = reporting.build_report_from_manifest(artifacts, fit_loader=load_residual_fit)
+    primary = report["pools"]["venture"]["primary"]
+    assert primary["contrast_decisions"]["rows"][0]["median"] == pytest.approx(0.6)
+    assert primary["gamma_companion"]["rows"][0]["median"] == pytest.approx(0.3)
+    assert primary["contrast_decisions"]["rows"][7]["median"] == pytest.approx(0.4)
+    assert report["rq4"]["rows"][0]["venture"]["median"] == pytest.approx(0.6)
+    matched = report["matched_rq5"]["primary"]
+    assert matched["contrast_decisions"]["rows"][0]["median"] == pytest.approx(2.1)
+    assert matched["gamma_companion"]["rows"][0]["median"] == pytest.approx(0.3)
+    assert len(report["fit_artifact_hashes"]) == 15
+
+
+@pytest.mark.parametrize("group", ["venture", "matched_rq5"])
+def test_historical_gamma_contract_is_not_amendment5(artifacts, group):
+    entry = artifacts["fits"][group]["primary"]
+
+    def historical_contract(contract):
+        contract.pop("estimand_contract")
+        for row in contract["contrasts" if group == "matched_rq5" else "primary_contrasts"]:
+            row.pop("coefficient_estimand")
+            row.pop("realized_cell_weights")
+
+    replace_json(entry, "analysis_contract", historical_contract)
+
+    def forbidden_loader(paths):
+        if Path(paths[0]).parent.parent.parent.name == group:
+            pytest.fail("Historical contract must be rejected before its fit is loaded")
+        return load_fit(paths)
+
+    with pytest.raises(ValueError, match="analysis_contract differs"):
+        reporting.build_report_from_manifest(artifacts, fit_loader=forbidden_loader)
 
 
 def test_fit_payload_rejects_wrong_parameter_dimensions():
@@ -197,6 +265,19 @@ def test_retained_seventeen_cell_design(artifacts):
     assert [cell["cell_id"] for cell in cells] == retained
     assert len(cells) == 17
     assert len(report["posterior_predictive_checks"]["venture"]["primary"]["cells"]) == 17
+    primary = report["pools"]["venture"]["primary"]
+    missing = reporting.build_cells(["venture"])[-1].cell_id
+    for row in primary["contrast_decisions"]["rows"]:
+        if missing in row["cell_weights"]:
+            assert row["status"] == "unavailable"
+            assert row["missing_cell_ids"] == [missing]
+            assert "decision" not in row
+        else:
+            assert row["status"] == "available"
+    assert report["multiplicity"]["primary_decision_count"] == 26
+    assert report["multiplicity"]["unavailable_primary_decision_count"] == 2
+    assert report["multiplicity"]["available_primary_decision_count"] == 24
+    assert report["pools"]["venture"]["presentation_sensitivity"]["all_estimands_comparable"] is False
 
 
 @pytest.mark.parametrize("name,transform,message", [

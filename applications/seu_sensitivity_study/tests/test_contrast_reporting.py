@@ -1,4 +1,5 @@
 import math
+from dataclasses import replace
 
 import numpy as np
 import pytest
@@ -27,6 +28,38 @@ def _contrast(contrast_id="effect"):
     )
 
 
+def _rq4_report(venture, hiring, contrasts, venture_diagnostics, hiring_diagnostics):
+    _, columns, _ = config.SEUSensitivityStudyConfig().design_matrix_for_pool("venture")
+    if tuple(contrasts[0].column_names) == ("a", "b"):
+        venture = np.pad(venture, ((0, 0), (0, len(columns) - 2)))
+        hiring = np.pad(hiring, ((0, 0), (0, len(columns) - 2)))
+        contrasts = [replace(
+            contrast,
+            column_names=tuple(columns),
+            coefficients=contrast.coefficients + (0.0,) * (len(columns) - 2),
+            realized_cell_weights={
+                pool: {
+                    cell.cell_id: weight / 3
+                    for cell in config.build_cells([pool])
+                    for model, weight in (
+                        (config.MODELS[1].name, contrast.coefficients[0]),
+                        (config.MODELS[2].name, contrast.coefficients[1]),
+                        (config.REFERENCE_MODEL, -sum(contrast.coefficients)),
+                    ) if cell.model_name == model and weight != 0
+                } for pool in ("venture", "hiring")
+            },
+        ) for contrast in contrasts]
+    return ca.cross_pool_descriptive_report(
+        venture.tolist(), hiring.tolist(), contrasts, venture_diagnostics, hiring_diagnostics,
+        venture_sigma_cell_draws=np.ones(len(venture)).tolist(),
+        venture_z_alpha_draws=np.zeros((len(venture), 18)).tolist(),
+        venture_cell_ids=[cell.cell_id for cell in config.build_cells(["venture"])],
+        hiring_sigma_cell_draws=np.ones(len(hiring)).tolist(),
+        hiring_z_alpha_draws=np.zeros((len(hiring), 18)).tolist(),
+        hiring_cell_ids=[cell.cell_id for cell in config.build_cells(["hiring"])],
+    )
+
+
 def test_linear_contrasts_preserve_draw_covariance_and_apply_decision_rule():
     base = np.linspace(0.3, 0.5, 1000)
     gamma = np.column_stack([base, base - 0.3])
@@ -36,6 +69,32 @@ def test_linear_contrasts_preserve_draw_covariance_and_apply_decision_rule():
     assert row["median"] == pytest.approx(0.3)
     assert row["lower_90"] == pytest.approx(0.3)
     assert row["decision"] == "detected_positive"
+
+
+def test_primary_realized_contrast_includes_residual_model_average():
+    _, columns, cell_ids = config.SEUSensitivityStudyConfig().design_matrix_for_pool("venture")
+    cells = config.build_cells(["venture"])
+    residuals = np.array([
+        0.6 if cell.model_name == config.MODELS[1].name else 0.0
+        for cell in cells
+    ])
+    report = ca.posterior_fit_report(
+        gamma_draws=np.zeros((20, len(columns))),
+        gamma_size_draws=np.zeros(20),
+        sigma_cell_draws=np.ones(20),
+        z_alpha_draws=np.tile(residuals, (20, 1)),
+        contrasts=ca.primary_contrasts(columns),
+        cell_ids=cell_ids,
+        diagnostics=DIAGNOSTICS,
+    )
+    row = report["contrast_decisions"]["rows"][0]
+    assert row["median"] == pytest.approx(0.6)
+    assert row["decision"] == "detected_positive"
+    companion = report["gamma_companion"]
+    assert companion["decision_count"] == 0
+    assert companion["rows"][0]["median"] == 0.0
+    assert "decision" not in companion["rows"][0]
+    assert report["decision_count"] == 10
 
 
 def test_reporting_fails_closed_on_tail_ess():
@@ -103,10 +162,10 @@ def test_rq3_missing_canonical_cell_marks_only_affected_dids_unavailable():
     assert len(report["model_by_prompt_dids"]) == 10
 
 
-def test_rq4_compares_fixed_domain_effects_without_using_sigma_cell():
+def test_rq4_compares_fixed_domain_effects_without_cross_pool_variance_claim():
     venture = np.column_stack([np.full(100, 0.4), np.zeros(100)])
     hiring = np.column_stack([np.full(80, -0.4), np.zeros(80)])
-    report = ca.cross_pool_descriptive_report(
+    report = _rq4_report(
         venture, hiring, [_contrast()], DIAGNOSTICS, DIAGNOSTICS
     )
 
@@ -132,7 +191,7 @@ def test_menu_size_report_uses_frozen_rope():
 def test_rq4_uncertainty_is_independent_cartesian_not_aligned_draws():
     venture = np.column_stack([[-2.0, 0.0, 3.0], np.zeros(3)])
     hiring = np.column_stack([[-1.0, 4.0], np.zeros(2)])
-    report = ca.cross_pool_descriptive_report(
+    report = _rq4_report(
         venture, hiring, [_contrast()], DIAGNOSTICS, DIAGNOSTICS
     )
     expected = ca.summarize_draws((hiring[:, 0, None] - venture[:, 0]).ravel())
@@ -140,7 +199,7 @@ def test_rq4_uncertainty_is_independent_cartesian_not_aligned_draws():
     assert row["hiring_minus_venture"] == expected
     assert row["posterior_probability_same_sign"] == pytest.approx(1 / 3)
     assert report["independent_posterior_combination"]["method"] == "exact_cartesian"
-    assert report["model_orderings"] == []
+    assert len(report["model_orderings"]) == 15
     assert "decision" not in row["hiring_minus_venture"]
 
 
@@ -151,7 +210,7 @@ def test_rq4_all_model_orderings_use_joint_gamma_posterior():
     second_column = columns.index(f"model_{config.MODELS[2].slug}")
     gamma[:, first_column] = [-2, -1, 1, 2]
     gamma[:, second_column] = gamma[:, first_column] - 0.5
-    report = ca.cross_pool_descriptive_report(
+    report = _rq4_report(
         gamma, gamma, ca.primary_contrasts(columns), DIAGNOSTICS, DIAGNOSTICS
     )
     assert len(report["model_orderings"]) == 15
@@ -174,8 +233,8 @@ def test_rq4_large_posterior_resampling_is_bounded_repeatable_and_independent(mo
     values = np.linspace(-1, 1, 100)
     gamma = np.column_stack([values, values - 0.25])
     contrasts = [_contrast(), ca.ContrastSpec("first", "RQ1", "First", (1.0, 0.0), ("a", "b"))]
-    report = ca.cross_pool_descriptive_report(gamma, gamma, contrasts, DIAGNOSTICS, DIAGNOSTICS)
-    repeated = ca.cross_pool_descriptive_report(gamma, gamma, contrasts, DIAGNOSTICS, DIAGNOSTICS)
+    report = _rq4_report(gamma, gamma, contrasts, DIAGNOSTICS, DIAGNOSTICS)
+    repeated = _rq4_report(gamma, gamma, contrasts, DIAGNOSTICS, DIAGNOSTICS)
     assert report == repeated
     policy = report["independent_posterior_combination"]
     assert policy["method"] == "independent_resampling_with_replacement"
@@ -208,38 +267,44 @@ def test_presentation_report_flags_sign_decision_and_interpretation_changes():
 
 
 def test_complete_report_requires_and_emits_all_frozen_sections():
-    contrast = _contrast()
+    _, columns, _ = config.SEUSensitivityStudyConfig().design_matrix_for_pool("venture")
+    contrasts = ca.primary_contrasts(columns)
+    matched_cells = config.build_cells(["venture", "hiring"])
+    matched = ca.matched_rq5_contract(matched_cells)
+    matched_contrasts = [ca.ContrastSpec(**row) for row in matched["contrasts"]]
 
-    def payload(value, n_cells=2):
-        gamma = np.column_stack([np.full(100, value), np.zeros(100)])
+    def payload(value, selected_cells, column_count):
+        gamma = np.full((100, column_count), value)
         return {
             "gamma_draws": gamma,
             "gamma_size_draws": np.full(100, math.log(1.06)),
             "sigma_cell_draws": np.full(100, 0.2),
-            "z_alpha_draws": np.zeros((100, n_cells)),
-            "cell_ids": [f"cell-{index}" for index in range(n_cells)],
+            "z_alpha_draws": np.zeros((100, len(selected_cells))),
+            "cell_ids": [cell.cell_id for cell in selected_cells],
             "diagnostics": DIAGNOSTICS,
         }
 
-    variants = {
-        "primary": payload(0.4),
-        "presentation_1_only": payload(0.35),
-        "presentation_2_only": payload(-0.4),
-        "utility_035": payload(0.3),
-        "utility_065": payload(0.5),
-    }
+    def variants(selected_cells, column_count):
+        return {
+            name: payload(value, selected_cells, column_count)
+            for name, value in (
+                ("primary", 0.4), ("presentation_1_only", 0.35),
+                ("presentation_2_only", -0.4), ("utility_035", 0.3), ("utility_065", 0.5),
+            )
+        }
+
     report = ca.complete_confirmatory_report(
-        pool_variants={"venture": variants, "hiring": variants},
-        pool_contrasts={"venture": [contrast], "hiring": [contrast]},
-        matched_variants=variants,
-        matched_contrasts=[contrast],
+        pool_variants={pool: variants(config.build_cells([pool]), len(columns)) for pool in ("venture", "hiring")},
+        pool_contrasts={"venture": contrasts, "hiring": contrasts},
+        matched_variants=variants(matched_cells, len(matched["design_columns"])),
+        matched_contrasts=matched_contrasts,
     )
 
     assert set(report["pools"]) == {"venture", "hiring"}
     assert report["rq4"]["status"] == "descriptive_two_fixed_domains"
     assert report["matched_rq5"]["primary"]["contrast_decisions"][
         "decision_count"
-    ] == 1
+    ] == 6
     assert report["matched_rq5"]["presentation_sensitivity"][
         "any_disagreement"
     ] is True
@@ -247,7 +312,7 @@ def test_complete_report_requires_and_emits_all_frozen_sections():
         "utility_scale"
     )
     assert report["multiplicity"]["full_family_reported"] is True
-    assert report["multiplicity"]["primary_decision_count"] == 5
+    assert report["multiplicity"]["primary_decision_count"] == 26
     assert report["matched_rq5"]["primary"]["rq6"]["included_in_primary_family"] is False
 
 

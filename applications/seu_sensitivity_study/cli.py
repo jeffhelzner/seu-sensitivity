@@ -190,6 +190,11 @@ def main() -> None:
     p_preflight.add_argument("--config", type=str, default=None)
     p_preflight.add_argument("--output-dir", type=str, default=None)
 
+    for command in ("fit-plan", "fit-manifest"):
+        offline = subparsers.add_parser(command, help="Write offline A3 fit artifacts; never sample")
+        offline.add_argument("--results-dir", type=Path, required=True)
+        offline.add_argument("--output", type=Path, required=True)
+
     args = parser.parse_args()
     _setup_logging(args.verbose)
 
@@ -201,6 +206,13 @@ def main() -> None:
         cmd_manifest(args)
     elif args.command == "preflight":
         cmd_preflight(args)
+    elif args.command in ("fit-plan", "fit-manifest"):
+        from .ceiling_prior import fit_manifest, fit_plan
+        from .confirmatory_reporting import write_report
+
+        builder = fit_plan if args.command == "fit-plan" else fit_manifest
+        write_report(args.output, builder(args.results_dir.resolve()))
+        print(str(args.output))
     else:
         parser.print_help()
         sys.exit(1)

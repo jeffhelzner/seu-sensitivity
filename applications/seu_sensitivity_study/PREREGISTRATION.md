@@ -2,7 +2,7 @@
 
 Frozen: 2026-09-06
 
-> Current interpretation (2026-10-05): read the dated amendments before using
+> Current interpretation (2026-10-06): read the dated amendments before using
 > the historical body below. Amendment 1 replaces the latent-belief primary
 > model and the RQ4 variance-component interpretation. Amendment 2 changes the
 > size-slope prior. Amendments 3 and 4 specify the decision contract and required
@@ -10,6 +10,8 @@ Frozen: 2026-09-06
 > RQ1/RQ2/RQ5 and retains additive coefficients as descriptive companions.
 > Amendment 6 specifies descriptive assessment-scale transformations without
 > refitting or adding confirmatory decisions.
+> Amendment 7 adds ceiling diagnostics and nine prior-sensitivity fits, for
+> 24 planned fits; the primary priors and 26 named decisions remain unchanged.
 > The fixed midpoint is a substantive utility assumption, not merely a choice
 > of units. Further independent-review conditions remain open; **NOT READY**.
 
@@ -569,3 +571,124 @@ This amendment resolves the A2 implementation specification only. Prior and
 ceiling diagnostics, expanded predictive checks, and verification of amended
 recovery evidence remain open. Status remains **NOT READY**. No fits, provider
 calls, preflight, commits, or production launch are authorized here.
+
+## Amendment 7: ceiling diagnostics and prior sensitivity
+
+Amended: 2026-10-06, before production choice collection, with author approval.
+The complete approved specification is
+[A3 ceiling and prior policy](A3_CEILING_PRIOR_PROPOSAL_20261006.md).
+This amendment supersedes earlier statements that the A3 procedure is
+unspecified or that 15 fits exhaust the required plan. It does not supersede
+the primary likelihood, priors, estimands, or decision thresholds.
+
+### Diagnostics and interpretation
+
+For each retained cell in the three full-data midpoint-0.5 datasets, report
+observation and distinct-menu counts, presentation/size breakdowns, exclusions,
+exact maximizer and tie counts, separately labeled near-tie counts (absolute
+eta tolerance 1e-12, relative tolerance zero), and individual choice regrets
+and top-two gaps with size summaries. Use canonical production eta arithmetic.
+Do not modify eta to manufacture ties or treat top-two gaps as sufficient
+information about the whole menu.
+
+Evaluate prior-free, full-menu conditional likelihood slices in cell log
+sensitivity at the primary posterior size-slope 5th, 50th and 95th percentiles.
+The approved specification fixes the 401-point grid, added posterior-quantile
+locations, refinement, and numerical-failure reporting. These are not profile
+likelihoods, calibrated confidence sets, or a joint identification test.
+At any fixed finite slope, entirely equal-utility menus give constant
+likelihood; all-maximizer choices on at least one unequal menu give a supremum
+only at infinite sensitivity; any strictly nonmaximizing choice gives eventual
+upper-tail decay. Eventual decay alone does not establish useful precision.
+Report continuous likelihood changes and analytic limits, not an arbitrary
+maximizer-rate or flatness gate.
+
+### Prior variants and fit scope
+
+Normal parameters are mean and SD; HN denotes a positive half-normal scale.
+Every residual z retains its standard-normal prior and all coding is unchanged.
+
+| Variant | gamma0 | Each gamma | sigma_cell | gamma_size |
+|---|---|---|---|---|
+| Primary | N(2.5, 0.5) | N(0, 0.5) | HN(0.3) | N(0, 0.2) |
+| L | N(2.5, 1.0) | N(0, 0.5) | HN(0.3) | N(0, 0.2) |
+| H | N(2.5, 0.5) | N(0, 1.0) | HN(0.6) | N(0, 0.2) |
+| S | N(2.5, 0.5) | N(0, 0.5) | HN(0.3) | N(0, 0.4) |
+
+L widens the common level, H relaxes both sources of between-cell shrinkage,
+and S widens the size slope. These are specified stress checks, not an
+exhaustive robustness envelope or a correction for coding asymmetries.
+Run each for venture, hiring, and matched RQ5 on exactly the corresponding
+primary data, adding nine fits to the existing 15. Do not select fits by
+maximizer rate or cross these priors with utility/presentation variants.
+The original primary Stan model is unchanged; a parameterized sibling supplies
+the alternatives with validated prior fields and saved setting echoes.
+
+Show cell log-sensitivity and sensitivity quantiles through the 99th percentile,
+realized-contrast medians and central 90% intervals, sign probabilities,
+median/endpoint shifts and width ratios. Apply the original decision rule to
+alternative summaries only as sensitivity annotations. A changed decision is
+labeled prior-sensitive under these checks; unchanged decisions do not imply
+unchanged magnitudes. Preserve the 26 named primary decisions, 24 distinct up
+to sign. RQ3 stays descriptive and RQ4 combines independent pool posteriors
+within each prior variant, including all 15 model-pair orderings. Do not pair
+draws across priors. Amendment 6 standardized outputs remain primary-prior only.
+
+Finite posterior upper quantiles for cells with a supremum at infinity reflect
+prior regularization and hierarchical pooling, not likelihood-only upper
+bounds. Do not automatically suppress those cells' contrasts. Incomplete or
+sampler-invalid checks remain explicitly incomplete, never evidence of
+robustness. Prediction stability does not establish parameter precision or A4
+adequacy. No replacement primary prior or automatic launch gate is introduced.
+
+### Provenance and compatibility
+
+Policy version is `amendment7_ceiling_prior_v1`. A3 fit manifests use schema 2
+and reports use schema 3. Observation evidence uses version 2 and binds the
+frozen menu/presentation order separately from Amendment 6 geometry. The full
+eligible observation-key universe must equal the disjoint retained and excluded
+sets, with canonical membership, chosen-item/order checks, complete NA audits,
+and reconciled whole-cell exclusions. Missing collection records fail closed;
+they are not fabricated NA outcomes. Reduced smoke preparation cannot establish
+A3 completeness.
+
+Prior inputs must equal the primary input apart from their exact declared prior
+fields. Reports validate preparation identity, prior contracts, model-source
+hashes, and saved prior-setting echoes. Hashes bind supplied artifacts, not
+cryptographic proof of execution. Old preparation reports must be rebuilt for
+A3 schema-2 loading. Historical schema-1 loading remains readable with A3
+absence explicitly marked; it cannot establish completion of the amended plan.
+Missing or empty optional-prior chain directories remain visible as missing;
+malformed supplied provenance is an error.
+
+The offline `fit-plan` and `fit-manifest` CLI commands prepare the plan and
+bindings but do not execute fits. Resource authorization remains separate:
+benchmark one authorized posterior fit before scheduling the remainder, keep
+durable chains, and retain the existing sampler gates. A fit count is not a
+runtime estimate.
+
+### Offline validation and remaining conditions
+
+The reproducible prior-predictive check uses 10,000 draws per group/prior,
+seed 20261006, actual frozen neutral probabilities and menus, primary and
+matched coding, and sizes 2/4/6/8. It reads no collected choices and runs no
+Stan sampler. Source hashes and summaries are recorded in
+[the A3 prior evidence](../../reports/applications/seu_sensitivity_study/data/a3_prior_predictive.json).
+Regenerate and verify it with
+`python -m applications.seu_sensitivity_study.a3_prior_predictive --check`
+using the project interpreter and the recorded local frozen inputs.
+
+All prior summaries are finite. H approximately doubles realized-contrast
+90% interval widths; L broadens common levels without directly broadening
+zero-sum contrasts; S broadens size effects. These are induced-prior checks,
+not posterior robustness or recovery evidence. No approved prior values were
+changed following inspection.
+
+The application suite passed 841 tests, including likelihood limits, tiny
+regrets, mappings, missing records, frozen presentation orders, exact production
+eta arithmetic, prior identity, incomplete fits and unchanged primary results.
+The sibling Stan model passed syntax validation without posterior sampling.
+A3 specification and offline implementation validation are complete; posterior
+checks and runtime/mixing remain unmeasured. A4, amended recovery verification,
+and other review conditions remain open. Status is **NOT READY**. No posterior
+fit, provider call, preflight, commit, push, or collection is authorized here.

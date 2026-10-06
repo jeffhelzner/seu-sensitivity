@@ -221,6 +221,29 @@ def assessment_expected_utilities(
     return expected_utilities
 
 
+def build_observation_reference(scale_reference, problems):
+    """Bind complete frozen presentation orders independently of collected choices."""
+    reference_menus = {menu["id"]: menu for menu in scale_reference["menus"]}
+    menus = []
+    for problem in problems:
+        reference = reference_menus.get(problem["id"])
+        presentations = problem.get("presentations", [])
+        if (reference is None or sorted(problem["item_ids"]) != reference["item_ids"]
+                or len(presentations) != 2
+                or {row["presentation_id"] for row in presentations} != {1, 2}
+                or any(sorted(row["order"]) != reference["item_ids"] for row in presentations)
+                or presentations[0]["order"] == presentations[1]["order"]
+                or problem.get("difficulty_stratum") not in ("strong", "weak", "ambiguous")):
+            raise ValueError("A3 requires complete frozen menu/presentation mapping")
+        menus.append({**reference, "difficulty_stratum": problem["difficulty_stratum"],
+                      "presentations": sorted(
+                          [{"presentation_id": row["presentation_id"], "order": list(row["order"])}
+                           for row in presentations], key=lambda row: row["presentation_id"])})
+    if len(menus) != len(reference_menus) or {menu["id"] for menu in menus} != set(reference_menus):
+        raise ValueError("A3 requires complete frozen menu/presentation mapping")
+    return {"version": 1, "menus": sorted(menus, key=lambda menu: menu["id"])}
+
+
 def build_stan_data(
     *,
     pool: Mapping[str, Any],
@@ -272,6 +295,7 @@ def build_stan_data(
         trace any observation back to its menu.
     """
     scale_reference = None
+    observation_reference = None
     if include_assessment_scale_reference:
         from .assessment_scale import build_reference
 
@@ -279,6 +303,13 @@ def build_stan_data(
             group=problem_set["pool_id"], items=pool["items"],
             problems=problem_set["problems"], probabilities=assessment_probabilities,
         )
+        observation_reference = build_observation_reference(scale_reference, problem_set["problems"])
+        from .config import build_cells
+
+        pool_ids = ["venture", "hiring"] if problem_set["pool_id"] == "matched_rq5" else [problem_set["pool_id"]]
+        canonical_cells = {cell.cell_id: cell for cell in build_cells(pool_ids)}
+        if len(cell_ids) != len(canonical_cells) or set(cell_ids) != set(canonical_cells):
+            raise ValueError("A3 requires the full canonical eligible cell universe")
     item_ids = sorted(reduced_embeddings)
     item_index = {item_id: position for position, item_id in enumerate(item_ids)}
     R = len(item_ids)
@@ -306,6 +337,8 @@ def build_stan_data(
     menu_sizes: List[int] = []
     M_per_cell: List[int] = []
     na_logs: Dict[str, Any] = {}
+    observations: List[Dict[str, Any]] = []
+    exclusions: List[Dict[str, Any]] = []
 
     resolved_by_cell: Dict[str, List[Dict[str, Any]]] = {}
     retained_indices: List[int] = []
@@ -326,8 +359,33 @@ def build_stan_data(
                     if record["presentation_id"] == presentation_id
                 ],
             }
+        if observation_reference is not None:
+            expected_keys = {
+                (menu["id"], row["presentation_id"])
+                for menu in observation_reference["menus"]
+                if menu["pool_id"] == canonical_cells[cell_id].pool_id
+                for row in menu["presentations"]
+                if presentation_id is None or row["presentation_id"] == presentation_id
+            }
+            supplied_keys = [(row["problem_id"], row["presentation_id"]) for row in choice_set["choices"]]
+            if len(supplied_keys) != len(expected_keys) or set(supplied_keys) != expected_keys:
+                raise ValueError(f"A3 missing or unexpected collection records for {cell_id}; complete frozen keys required")
+            if choice_set["cell_id"] != cell_id or choice_set["pool_id"] != problem_set["pool_id"]:
+                raise ValueError("A3 collection cell/pool identity mismatch")
         resolved, na_log = filter_resolved_choices(choice_set)
         na_logs[cell_id] = na_log
+        for record in choice_set["choices"]:
+            if record["chosen_position"] is None or na_log["na_rate"] > 0.30:
+                exclusions.append({
+                    "cell_id": cell_id, "problem_id": record["problem_id"],
+                    "presentation_id": record["presentation_id"],
+                    "menu_size": record["menu_size"],
+                    "item_order": list(presentation_orders[record["problem_id"], record["presentation_id"]]),
+                    "chosen_position": record["chosen_position"], "chosen_item_id": record["chosen_item_id"],
+                    "difficulty_stratum": record["difficulty_stratum"],
+                    "resolution_path": record["resolution_path"], "raw_response": record.get("raw_response"),
+                    "reason": "cell_na_exclusion" if na_log["na_rate"] > 0.30 else "unresolved_choice",
+                })
         if na_log["na_rate"] > 0.30:
             excluded_cells.append(cell_id)
             logger.warning(
@@ -380,6 +438,10 @@ def build_stan_data(
             order = presentation_orders.get(key)
             if order is None:
                 raise KeyError(f"Observation {key} is not in the problem design")
+            if (len(order) != record["menu_size"] or len(set(order)) != len(order)
+                    or record["chosen_position"] not in range(1, len(order) + 1)
+                    or order[record["chosen_position"] - 1] != record["chosen_item_id"]):
+                raise ValueError("Choice item/position or menu size differs from presentation mapping")
 
             indicator = [0] * R
             active = []
@@ -395,6 +457,13 @@ def build_stan_data(
             stacked_I.append(indicator)
             stacked_cell.append(position)
             menu_sizes.append(record["menu_size"])
+            observations.append({
+                "cell_id": cell_id, "problem_id": record["problem_id"],
+                "presentation_id": record["presentation_id"], "menu_size": len(order),
+                "item_order": list(order), "chosen_item_id": record["chosen_item_id"],
+                "chosen_position": record["chosen_position"],
+                "difficulty_stratum": record["difficulty_stratum"], "resolution_path": record["resolution_path"],
+            })
 
         M_per_cell.append(len(resolved))
 
@@ -459,12 +528,17 @@ def build_stan_data(
         "menu_sizes": menu_sizes,
         "presentation_id": presentation_id,
         "na_logs": na_logs,
+        "observation_metadata_version": 1,
+        "observations": observations,
+        "exclusions": exclusions,
         "overall_na_rate": _overall_na_rate(na_logs),
     }
     if scale_reference is not None:
         from .assessment_scale import validate_retained_data
 
         report["assessment_scale_reference"] = scale_reference
+        report["observation_metadata_version"] = 2
+        report["frozen_observation_reference"] = observation_reference
         validate_retained_data(scale_reference, stan_data, report, group=problem_set["pool_id"])
     logger.info(
         "Built Stan data for pool %r: J=%d, R=%d, D=%s, M_total=%d (overall NA %.1f%%)",

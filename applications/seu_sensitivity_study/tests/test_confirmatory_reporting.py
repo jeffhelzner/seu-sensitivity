@@ -172,7 +172,7 @@ def test_build_report_from_saved_fit_manifest(artifacts, tmp_path):
         "decision_count"
     ] == 6
     assert len(report["fit_artifact_hashes"]) == 15
-    assert report["schema_version"] == 2
+    assert report["schema_version"] == 3
     assert report["estimand_contract"]["amendment"] == 5
     assert report["multiplicity"]["primary_decision_count"] == 26
     assert report["multiplicity"]["available_primary_decision_count"] == 26
@@ -267,6 +267,32 @@ def test_normal_runner_preparation_to_all_fifteen_bound_reports(tmp_path, monkey
     assert len(report["rq4"]["model_orderings"]) == 15
     assert all("assessment_scale" in row for row in report["rq4"]["model_orderings"])
     json.dumps(report, allow_nan=False)
+
+    from applications.seu_sensitivity_study import ceiling_prior
+
+    for group in ("venture", "hiring", "matched_rq5"):
+        directory = tmp_path / "matched_rq5" if group == "matched_rq5" else tmp_path / "pools" / group
+        for variant in ceiling_prior.PRIOR_VARIANTS:
+            chains = directory / variant / "chains"
+            chains.mkdir(parents=True)
+            for chain in range(4):
+                (chains / f"chain-{chain}.csv").write_text(f"offline A3 {group} {variant} {chain}")
+            suffixes[variant] = f"_{variant}"
+
+    def a3_loader(paths):
+        fit = loader(paths)
+        variant = Path(paths[0]).parent.parent.name
+        if variant in ceiling_prior.PRIOR_VARIANTS:
+            fit.metadata.cmdstan_config["model"] = ceiling_prior.SENSITIVITY_MODEL
+            fit.variables["prior_settings"] = np.tile(list(ceiling_prior.prior_fields(variant).values()), (500, 1))
+        return fit
+
+    a3_report = reporting.build_report_from_manifest(ceiling_prior.fit_manifest(tmp_path), fit_loader=a3_loader)
+    assert len(a3_report["fit_artifact_hashes"]) == 24
+    assert a3_report["multiplicity"] == report["multiplicity"]
+    assert a3_report["pools"] == report["pools"]
+    assert a3_report["ceiling_prior_sensitivity"]["complete_fit_count"] == 9
+    assert len(a3_report["ceiling_diagnostics"]["matched_rq5"]["cells"]) == 36
 
 
 @pytest.mark.parametrize("mutation", [

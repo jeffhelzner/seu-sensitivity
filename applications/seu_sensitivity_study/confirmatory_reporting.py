@@ -12,6 +12,7 @@ import numpy as np
 from analysis.hierarchical_power import fit_diagnostics
 
 from . import confirmatory_analysis
+from . import ceiling_prior, ceiling_diagnostics
 from .config import SEUSensitivityStudyConfig, build_cells
 
 REQUIRED_VARIANTS = (
@@ -24,13 +25,17 @@ REQUIRED_VARIANTS = (
 MODEL_NAME = "h_m01_size_assessment_anchored"
 
 
+class SamplerFailure(ValueError):
+    """Computationally invalid diagnostics, distinct from malformed bindings."""
+
+
 def _draws(fit: Any, name: str) -> np.ndarray:
     try:
         values = np.asarray(fit.stan_variable(name), dtype=float)
     except (KeyError, ValueError) as error:
         raise ValueError(f"Fit must contain {name} draws") from error
     if values.size == 0 or not np.all(np.isfinite(values)):
-        raise ValueError(f"{name} draws must be nonempty and finite")
+        raise SamplerFailure(f"{name} draws must be nonempty and finite")
     return values
 
 
@@ -40,9 +45,27 @@ def fit_payload(
     gamma_columns: int,
     *,
     max_treedepth: int = 12,
+    prior_variant: str = "primary",
 ) -> Dict[str, Any]:
     """Extract the anchored parameters and frozen diagnostics from one fit."""
+    metadata = getattr(getattr(fit, "metadata", None), "cmdstan_config", {})
+    if max_treedepth != 12 or metadata.get("max_depth") != 12:
+        raise ValueError("Fit metadata must establish the frozen TD12 configuration")
+    model_name = ceiling_prior.prior_contract(prior_variant)["model"]
+    if metadata.get("model") not in {model_name, f"{model_name}_model"}:
+        raise ValueError(f"Fit metadata must establish model {model_name}")
+    if prior_variant != "primary":
+        try:
+            settings = np.asarray(fit.stan_variable("prior_settings"), dtype=float)
+        except (KeyError, ValueError) as error:
+            raise ValueError("Fit must contain prior_settings draws") from error
+        expected = np.asarray(list(ceiling_prior.prior_fields(prior_variant).values()))
+        if (settings.ndim != 2 or not len(settings) or settings.shape[1] != 5
+                or not np.array_equal(settings, np.broadcast_to(expected, settings.shape))):
+            raise ValueError("Saved prior_settings disagree with the declared prior contract")
     gamma = _draws(fit, "gamma")
+    if prior_variant != "primary" and len(settings) != len(gamma):
+        raise ValueError("Prior settings draw count differs from posterior")
     gamma0 = _draws(fit, "gamma0")
     gamma_size = _draws(fit, "gamma_size")
     sigma_cell = _draws(fit, "sigma_cell")
@@ -61,11 +84,6 @@ def fit_payload(
         raise ValueError("Posterior parameter arrays have inconsistent draw counts")
     if np.any(sigma_cell < 0):
         raise ValueError("sigma_cell draws must be nonnegative")
-    metadata = getattr(getattr(fit, "metadata", None), "cmdstan_config", {})
-    if max_treedepth != 12 or metadata.get("max_depth") != 12:
-        raise ValueError("Fit metadata must establish the frozen TD12 configuration")
-    if metadata.get("model") not in {MODEL_NAME, f"{MODEL_NAME}_model"}:
-        raise ValueError(f"Fit metadata must establish model {MODEL_NAME}")
     methods = fit.method_variables()
     if getattr(fit, "chains", None) != 4 or any(
         name not in methods
@@ -77,7 +95,7 @@ def fit_payload(
     for name in ("treedepth__", "divergent__", "energy__"):
         values = np.asarray(methods[name], dtype=float)
         if values.size != len(gamma) or not np.all(np.isfinite(values)):
-            raise ValueError(f"{name} must contain finite diagnostics for every draw")
+            raise SamplerFailure(f"{name} must contain finite diagnostics for every draw")
     required_parameters = ["gamma0", "gamma_size", "sigma_cell"]
     required_parameters += [f"gamma[{index}]" for index in range(1, gamma_columns + 1)]
     required_parameters += [f"z_alpha[{index}]" for index in range(1, len(cell_ids) + 1)]
@@ -90,14 +108,14 @@ def fit_payload(
         raise ValueError("Fit summary missing expected structural parameter diagnostics")
     structural = summary.loc[required_parameters, ["ESS_bulk", "ESS_tail", "R_hat"]]
     if not np.all(np.isfinite(structural.to_numpy(dtype=float))):
-        raise ValueError("Structural parameter diagnostics must be finite")
+        raise SamplerFailure("Structural parameter diagnostics must be finite")
     diagnostics = fit_diagnostics(fit, seconds=0.0, max_treedepth=max_treedepth)
     gate_fields = ("max_rhat", "min_ess_bulk", "min_ess_tail", "min_ebfmi", "divergences", "treedepth_saturated_share")
     if any(diagnostics.get(name) is None or not np.isfinite(float(diagnostics[name])) for name in gate_fields):
-        raise ValueError("Fit diagnostics must be finite")
+        raise SamplerFailure("Fit diagnostics must be finite")
     ebfmi = np.asarray(diagnostics.get("ebfmi_by_chain", []), dtype=float)
     if ebfmi.shape != (4,) or not np.all(np.isfinite(ebfmi)):
-        raise ValueError("Every chain must have finite E-BFMI diagnostics")
+        raise SamplerFailure("Every chain must have finite E-BFMI diagnostics")
     diagnostics.update(
         max_rhat=max(float(diagnostics["max_rhat"]), float(structural["R_hat"].max())),
         min_ess_bulk=min(float(diagnostics["min_ess_bulk"]), float(structural["ESS_bulk"].min())),
@@ -116,16 +134,19 @@ def fit_payload(
 def build_report_from_manifest(
     manifest: Mapping[str, Any], *, fit_loader: Any = None
 ) -> Dict[str, Any]:
-    """Load schema-v1 artifact bindings, validate evidence, and report saved fits.
+    """Load historical v1 or A3 v2 bindings and report saved fits.
 
     Each fits[group][variant] requires chain_path, chain_sha256 (basename to
     digest), and stan_data/preparation_report/analysis_contract objects with
     path and sha256. Preparation reports require cell_ids, design_columns,
     pool_id, presentation_id and both confirmatory design-rank fields.
     Hashes attest supplied bytes, not which inputs were used in execution.
+    V2 prior fits additionally bind prior_contract and model_source. Missing
+    prior variants or explicit status/reason entries remain incomplete, while
+    primary fits and malformed provenance fail closed.
     """
-    if type(manifest.get("schema_version")) is not int or manifest["schema_version"] != 1:
-        raise ValueError("Fit manifest must declare schema_version 1; legacy paths are unsupported")
+    if type(manifest.get("schema_version")) is not int or manifest["schema_version"] not in (1, 2):
+        raise ValueError("Fit manifest must declare schema_version 1 or 2; legacy paths are unsupported")
     if set(manifest) != {"schema_version", "max_treedepth", "fits"}:
         raise ValueError("Fit manifest requires schema_version, max_treedepth and fits only")
     if manifest["max_treedepth"] != 12:
@@ -146,6 +167,8 @@ def build_report_from_manifest(
     artifact_hashes = {}
     provenance = {}
     predictive_checks = {}
+    prior_fits = {}
+    ceiling_reports = {}
     used_chains: set[str] = set()
     for pool_id in ("venture", "hiring"):
         design, columns, cell_ids = config.design_matrix_for_pool(pool_id)
@@ -163,6 +186,7 @@ def build_report_from_manifest(
             provenance=provenance,
             predictive_checks=predictive_checks,
             used_chains=used_chains,
+            a3=manifest["schema_version"] == 2, prior_fits=prior_fits, ceiling_reports=ceiling_reports,
         )
 
     matched_cells = build_cells(["venture", "hiring"])
@@ -183,17 +207,21 @@ def build_report_from_manifest(
         provenance=provenance,
         predictive_checks=predictive_checks,
         used_chains=used_chains,
+        a3=manifest["schema_version"] == 2, prior_fits=prior_fits, ceiling_reports=ceiling_reports,
     )
     report = confirmatory_analysis.complete_confirmatory_report(
         pool_variants=pool_variants,
         pool_contrasts=pool_contrasts,
         matched_variants=matched_variants,
         matched_contrasts=matched_contrasts,
+        prior_sensitivity_fits=prior_fits,
     )
     report["fit_artifact_hashes"] = artifact_hashes
     report["fit_provenance"] = provenance
     report["posterior_predictive_checks"] = predictive_checks
     report["assessment_scale"] = confirmatory_analysis.assessment_scale.policy()
+    report["ceiling_diagnostics"] = ceiling_reports
+    report["input_manifest_schema_version"] = manifest["schema_version"]
     return report
 
 
@@ -211,20 +239,55 @@ def _load_variants(
     provenance: Dict[str, Any],
     predictive_checks: Dict[str, Any],
     used_chains: set[str],
+    a3: bool = False,
+    prior_fits: Dict[str, Any] | None = None,
+    ceiling_reports: Dict[str, Any] | None = None,
 ) -> Dict[str, Any]:
-    if not isinstance(paths, Mapping) or set(paths) != set(REQUIRED_VARIANTS):
+    allowed = set(REQUIRED_VARIANTS) | (set(ceiling_prior.PRIOR_VARIANTS) if a3 else set())
+    if not isinstance(paths, Mapping) or not set(REQUIRED_VARIANTS) <= set(paths) or set(paths) - allowed:
         raise ValueError(f"Fit group must contain exactly {list(REQUIRED_VARIANTS)}")
+    prior_fits = {} if prior_fits is None else prior_fits
+    ceiling_reports = {} if ceiling_reports is None else ceiling_reports
+    prior_fits[group] = {}
     variants = {}
     provenance[group] = {}
     predictive_checks[group] = {}
-    for variant in REQUIRED_VARIANTS:
-        entry = paths[variant]
+    for variant in (*REQUIRED_VARIANTS, *ceiling_prior.PRIOR_VARIANTS):
+        is_prior = variant in ceiling_prior.PRIOR_VARIANTS
+        entry = paths.get(variant)
+        if is_prior and entry is None:
+            prior_fits[group][variant] = {"status": "missing", "reason": "Prior fit not supplied"}
+            continue
+        if is_prior and isinstance(entry, Mapping) and set(entry) == {"status", "reason"}:
+            if entry["status"] not in {"missing", "failed"} or not isinstance(entry["reason"], str) or not entry["reason"]:
+                raise ValueError("Invalid incomplete prior fit declaration")
+            prior_fits[group][variant] = dict(entry)
+            continue
         required = {"chain_path", "chain_sha256", "stan_data", "preparation_report", "analysis_contract"}
+        if is_prior:
+            required |= {"prior_contract", "model_source"}
         if not isinstance(entry, Mapping) or set(entry) != required:
             raise ValueError(f"{group}/{variant} requires explicit artifact bindings: {sorted(required)}")
         data, data_path = _load_json_binding(entry["stan_data"], "stan_data")
         preparation, _ = _load_json_binding(entry["preparation_report"], "preparation_report")
+        if a3 and preparation.get("observation_metadata_version") != 2:
+            raise ValueError("A3 manifests require version-2 complete frozen observation evidence for every fit")
         contract, _ = _load_json_binding(entry["analysis_contract"], "analysis_contract")
+        if is_prior:
+            declared_prior, _ = _load_json_binding(entry["prior_contract"], "prior_contract")
+            if declared_prior != ceiling_prior.prior_contract(variant):
+                raise ValueError("Prior contract is not canonical")
+            model_binding = entry["model_source"]
+            expected_model = Path(__file__).resolve().parents[2] / "models" / f"{ceiling_prior.SENSITIVITY_MODEL}.stan"
+            if (not isinstance(model_binding, Mapping) or set(model_binding) != {"path", "sha256"}
+                    or _sha256_file(_absolute_path(model_binding["path"], "model_source")) != model_binding["sha256"]
+                    or model_binding["sha256"] != _sha256_file(expected_model)):
+                raise ValueError("Model source binding differs from canonical sensitivity model")
+            ceiling_prior.validate_prior_data(data, primary_data, variant)
+            if preparation != primary_preparation:
+                raise ValueError("Prior preparation differs from primary observation/exclusion binding")
+        elif any(key.startswith("prior_") for key in data):
+            raise ValueError("Primary-model input must not contain sensitivity prior fields")
         if contract != json.loads(json.dumps(expected_contract)):
             raise ValueError(f"{group}/{variant} analysis_contract differs from the canonical contract/columns")
         cell_ids = _validate_data(
@@ -235,10 +298,19 @@ def _load_variants(
         confirmatory_analysis.assessment_scale.validate_retained_data(reference, data, preparation, group=group)
         if variant == "primary":
             primary_reference = reference
+            primary_data, primary_preparation = data, preparation
+            if a3:
+                ceiling_diagnostics.validate_observations(data, preparation)
         elif reference != primary_reference:
             raise ValueError("assessment_scale reference differs across sibling fit variants")
         path = _absolute_path(entry["chain_path"], "chain_path")
-        files = _fit_files(path)
+        try:
+            files = _fit_files(path)
+        except FileNotFoundError as error:
+            if not is_prior:
+                raise
+            prior_fits[group][variant] = {"status": "missing", "reason": str(error), "artifacts": dict(entry)}
+            continue
         if len(files) != 4:
             raise ValueError("Fit binding must identify four actual chain files")
         hashes = {file.name: _sha256_file(file) for file in files}
@@ -253,15 +325,10 @@ def _load_variants(
         artifact_hashes[str(path)] = {str(file): hashes[file.name] for file in files}
         fit = fit_loader([str(file) for file in files])
         if fit is None:
+            if is_prior:
+                prior_fits[group][variant] = {"status": "failed", "reason": f"No fit loaded from {path}", "artifacts": dict(entry)}
+                continue
             raise ValueError(f"No CmdStan fit could be loaded from {path}")
-        variants[variant] = fit_payload(
-            fit,
-            cell_ids,
-            len(columns),
-            max_treedepth=max_treedepth,
-        )
-        if variant == "primary":
-            variants[variant]["assessment_scale_reference"] = reference
         metadata = fit.metadata.cmdstan_config
         declared_paths = []
         for key in ("data_file", "data"):
@@ -272,6 +339,17 @@ def _load_variants(
                 if not isinstance(value, str) or not value or Path(value).resolve() != data_path:
                     raise ValueError("CmdStan metadata data path does not match the bound stan_data path")
                 declared_paths.append(value)
+        try:
+            payload = fit_payload(fit, cell_ids, len(columns), max_treedepth=max_treedepth,
+                                  prior_variant=variant if is_prior else "primary")
+            prediction = _predictive_checks(fit, data, cell_ids, payload)
+        except SamplerFailure as error:
+            if not is_prior:
+                raise
+            prior_fits[group][variant] = {"status": "sampler_failed", "reason": str(error), "artifacts": dict(entry)}
+            continue
+        if variant == "primary":
+            payload["assessment_scale_reference"] = reference
         provenance[group][variant] = {
             "binding": "declared_input_binding",
             "cryptographic_execution_proof": False,
@@ -285,9 +363,23 @@ def _load_variants(
             "cmdstan_data_path_check": "matched" if declared_paths else "unavailable",
             "assessment_scale_reference_binding": "preparation_report.sha256",
         }
-        predictive_checks[group][variant] = _predictive_checks(
-            fit, data, cell_ids, variants[variant]
-        )
+        predictive_checks[group][variant] = prediction
+        if variant == "primary" or is_prior:
+            levels = (_draws(fit, "gamma0")[:, None] + payload["gamma_draws"] @ np.asarray(data["X"]).T
+                      + payload["sigma_cell_draws"][:, None] * payload["z_alpha_draws"])
+            prior_fits[group][variant] = {
+                "status": "complete", "payload": payload,
+                "cell_quantiles": {cell_id: {"t": ceiling_diagnostics.quantiles(levels[:, index]),
+                                             "alpha": ceiling_diagnostics.quantiles(np.exp(levels[:, index]))}
+                                   for index, cell_id in enumerate(cell_ids)},
+                "size_slope_quantiles": ceiling_diagnostics.quantiles(payload["gamma_size_draws"]),
+            }
+            if variant == "primary":
+                ceiling_reports[group] = (ceiling_diagnostics.retained_ceiling_report(
+                    data, preparation, levels, payload["gamma_size_draws"]) if a3 else
+                    {"status": "unavailable", "reason": "Historical manifest lacks mandatory A3 observation binding"})
+        if not is_prior:
+            variants[variant] = payload
     return variants
 
 
@@ -383,6 +475,8 @@ def _validate_data(
         raise ValueError("y must index the sorted active alternatives")
     if not np.allclose(size, menu_sizes - menu_sizes.mean(), atol=1e-6, rtol=0):
         raise ValueError("s must equal centered actual menu sizes")
+    if preparation.get("observation_metadata_version") == 2:
+        ceiling_diagnostics.validate_observations(data, preparation)
     return cell_ids
 
 

@@ -148,6 +148,10 @@ def validate_retained_data(reference, data, preparation, *, group):
     from .data_preparation import assessment_expected_utilities
 
     validate_reference(reference, group=group)
+    if preparation.get("observation_metadata_version") == 2:
+        from .ceiling_diagnostics import validate_observations
+
+        validate_observations(data, preparation)
     item_ids = preparation.get("item_ids")
     if (not isinstance(item_ids, list) or len(item_ids) != data["R"]
             or len(set(item_ids)) != len(item_ids)

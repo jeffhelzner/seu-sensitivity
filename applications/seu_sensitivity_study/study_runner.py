@@ -548,6 +548,9 @@ class SEUSensitivityStudyRunner:
             self._write_json(pool_dir / filename, stan_data)
             if anchored and include_size:
                 self._write_json(pool_dir / f"{Path(filename).stem}_assembly_report.json", report)
+                from .ceiling_prior import write_prior_inputs
+
+                outputs["prior_sensitivity_files"] = write_prior_inputs(pool_dir, stan_data, report)
             if not include_size:
                 outputs["M_total"] = stan_data["M_total"]
                 outputs["overall_na_rate"] = report["overall_na_rate"]
@@ -674,6 +677,9 @@ class SEUSensitivityStudyRunner:
             if middle == self.config.primary_utility_middle:
                 filename = "stan_data_size.json"
                 primary_report = report
+                from .ceiling_prior import write_prior_inputs
+
+                prior_files = write_prior_inputs(output_dir, stan_data, report)
             else:
                 filename = f"stan_data_size_u{round(middle * 100):03d}.json"
             self._write_json(output_dir / filename, stan_data)
@@ -697,6 +703,7 @@ class SEUSensitivityStudyRunner:
         return {
             "analysis_contract": "analysis_contract.json",
             "stan_data_files": files,
+            "prior_sensitivity_files": prior_files,
             "presentation_sensitivity_files": presentation_files,
             "matched_item_pairs": primary_report["matched_item_pairs"],
             "paired_menus_per_task": primary_report["paired_menus_per_task"],

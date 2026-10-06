@@ -810,6 +810,7 @@ def complete_confirmatory_report(
     pool_contrasts: Mapping[str, Sequence[ContrastSpec]],
     matched_variants: Mapping[str, Mapping[str, Any]],
     matched_contrasts: Sequence[ContrastSpec],
+    prior_sensitivity_fits: Mapping[str, Any] | None = None,
 ) -> Dict[str, Any]:
     """Assemble the frozen primary, matched, and dependence-sensitivity report."""
     required_variants = {
@@ -891,8 +892,14 @@ def complete_confirmatory_report(
         for reports in pool_reports.values()
     ) + matched_reports["primary"]["contrast_decisions"]["unavailable_decision_count"]
     primary_decision_count = sum(pool_decision_counts.values()) + matched_decision_count
+    from .prior_sensitivity import sensitivity_report
+
     return {
-        "schema_version": 2,
+        "schema_version": 3,
+        "ceiling_prior_sensitivity": sensitivity_report(
+            {**{pool: reports["primary"] for pool, reports in pool_reports.items()},
+             "matched_rq5": matched_reports["primary"]},
+            prior_sensitivity_fits, {**pool_contrasts, "matched_rq5": matched_contrasts}),
         "estimand_contract": _estimand_contract(),
         "central_interval_mass": CENTRAL_INTERVAL_MASS,
         "pools": pool_reports,

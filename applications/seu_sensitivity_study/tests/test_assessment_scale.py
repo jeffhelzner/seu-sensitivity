@@ -227,10 +227,10 @@ def test_preparation_reference_precedes_all_observation_exclusions(change):
     inputs = fixed_inputs("venture", varied=True)
     design, columns, cell_ids = config.SEUSensitivityStudyConfig().design_matrix_for_pool("venture")
     cells = config.build_cells(["venture"])
-    records = [{"problem_id": problem["id"], "presentation_id": 1, "menu_size": len(problem["item_ids"]),
-                "difficulty_stratum": "strong", "family": problem["family"],
-                "chosen_position": 1, "chosen_item_id": problem["item_ids"][0], "resolution_path": "answer_token"}
-               for problem in inputs["problems"]]
+    records = [{"problem_id": problem["id"], "presentation_id": presentation["presentation_id"], "menu_size": len(problem["item_ids"]),
+                "difficulty_stratum": problem["difficulty_stratum"], "family": problem["family"],
+                "chosen_position": 1, "chosen_item_id": presentation["order"][0], "resolution_path": "answer_token"}
+               for problem in inputs["problems"] for presentation in problem["presentations"]]
     choices = {cell_id: {"cell_id": cell_id, "pool_id": "venture", "choices": copy.deepcopy(records)} for cell_id in cell_ids}
     common = {
         "pool": {"items": inputs["items"]}, "problem_set": {"pool_id": "venture", "problems": inputs["problems"]},
@@ -242,9 +242,13 @@ def test_preparation_reference_precedes_all_observation_exclusions(change):
     before_data, before = preparation.build_stan_data(**common)
     if change == "missing_observed_items":
         for choice_set in choices.values():
-            choice_set["choices"] = choice_set["choices"][:1]
+            for record in choice_set["choices"][:20]:
+                record.update(chosen_item_id=None, chosen_position=None, resolution_path="unresolved")
     elif change == "duplicated_observations":
         choices[cell_ids[0]]["choices"] *= 4
+        with pytest.raises(ValueError, match="missing or unexpected collection"):
+            preparation.build_stan_data(**common)
+        return
     elif change == "excluded_cell":
         for record in choices[cell_ids[-1]]["choices"]:
             record.update(chosen_item_id=None, chosen_position=None, resolution_path="unresolved")

@@ -8,6 +8,8 @@ Frozen: 2026-09-06
 > size-slope prior. Amendments 3 and 4 specify the decision contract and required
 > sensitivity fits. Amendment 5 makes realized-cell contrasts primary for
 > RQ1/RQ2/RQ5 and retains additive coefficients as descriptive companions.
+> Amendment 6 specifies descriptive assessment-scale transformations without
+> refitting or adding confirmatory decisions.
 > The fixed midpoint is a substantive utility assumption, not merely a choice
 > of units. Further independent-review conditions remain open; **NOT READY**.
 
@@ -460,10 +462,8 @@ power claim is made by this amendment.
 
 ### Remaining independent-review conditions
 
-The author approved a descriptive treatment of assessment scale alongside the
-primary analysis. Its exact normalization, draw-transformation versus refit
-choice, and reporting rules remain to be specified and tested before launch.
-It is a different measurement scale, not a correction proving which stated
+Amendment 6 below resolves the descriptive assessment-scale specification. It
+is a different measurement scale, not a correction proving which stated
 probabilities are appropriate. Ceiling/prior-sensitivity diagnostics and
 size/stratum/filler/item/presentation predictive checks also remain open.
 Their implementation and interpretation rules must be settled before
@@ -474,3 +474,98 @@ accepted findings, qualifications, and remaining work. No pilot fit, production
 preflight, provider call, commit, or collection is authorized by this amendment.
 Status remains **NOT READY** pending review remediation, a final committed
 revision, fresh preflight, and explicit launch authorization.
+
+## Amendment 6: descriptive assessment-scale transformation
+
+Amended: 2026-10-05, before production choice collection, with author approval.
+
+Use the primary full-data posterior at utility midpoint 0.5 to describe how
+realized-cell comparisons change when sensitivity is expressed per unit of
+within-reference-set variation in assessed expected utility. No additional
+fit, change of prior, or rescaling of the primary likelihood is introduced.
+The same 15 fits and 26 named primary decisions remain required.
+
+For arm `a` and domain/task `d`, let `sd[a,d]` be the finite-set standard
+deviation of expected utility, using divisor N (ddof=0), and let `mean[a,d]`
+be the corresponding mean. Define
+
+`eta_star = (eta - mean[a,d]) / sd[a,d]`
+
+`alpha_star = alpha * sd[a,d]`
+
+`log_alpha_star = log_alpha + log(sd[a,d])`.
+
+For positive SD these transformations preserve every softmax choice
+probability. Centering is conceptual: reporting adds the log-SD offset to
+existing draws without modifying Stan inputs. This preserves the fitted
+posterior, including its original prior assumptions; it is not a fit with
+unchanged numerical priors on standardized sensitivities.
+
+### Fixed reference sets and provenance
+
+- Primary venture/hiring fits: all 60 frozen items in the arm's pool.
+- Matched RQ5: the 24 procurement items and the 24 matched hiring items,
+  separately for each arm and task. Do not include off-task padded eta columns
+  or use a full-pool SD for a matched comparison.
+- Every item has equal weight, regardless of menu appearances or observed
+  choices. Build references before presentation filtering, parsing exclusions,
+  or cell exclusions. Use midpoint 0.5 in every reference, including the copy
+  accompanying another utility variant's assembly report.
+- Geometry includes full item IDs, probabilities, eta values, means and SDs,
+  plus menu IDs, individual top-two gaps, gap quantiles and tie prevalence.
+  Count every frozen menu once, retaining repeated compositions with distinct
+  IDs. Primary pools have 140 menus (100 primary-family and 40 matched-family),
+  with 25 and 10 respectively at each size 2/4/6/8; matched tasks each have
+  40 menus, 10 at each size.
+- For these descriptive geometry summaries a top-two gap within absolute
+  tolerance 1e-12 of zero is a tie (relative tolerance zero). This does not
+  change the existing posterior-predictive exact-tie definition.
+
+The runner writes `assessment_scale_reference` in the assembly report. The
+existing preparation-report SHA256 binding therefore covers its complete
+reference inputs. Reporting recomputes geometry, checks canonical item IDs and
+families, menu counts and size allocation, validates retained eta against the
+bound probabilities at the fit's utility variant, and requires identical
+references across the five sibling variants. Counts establish structural
+completeness, not independent proof of the exact frozen content: the supplied
+artifact hashes and final preflight remain essential. No unbound historical
+bundle fallback is allowed.
+
+Missing or inconsistent provenance is an error. Zero reference SD makes the
+affected standardized comparisons unavailable, without substituting epsilon;
+it does not suppress the original comparison. Missing required cells retain
+Amendment 5's unavailable policy. Reduced smoke preparation may explicitly
+omit these references, but such outputs cannot pass Amendment 6 reporting.
+
+### Descriptive reporting and interpretation
+
+Apply Amendment 5's fixed cell weights to the transformed draws. Show original
+and standardized medians and central 90% intervals with the deterministic
+offset. For an RQ1 model contrast this offset is
+`log(sd[a,d]) - log(sd[b,d])`; RQ5 uses hiring minus procurement SD offsets.
+RQ4 compares the transformed model contrasts and all 15 model-pair orderings
+using the existing independent-posterior combination, preserving whole-draw
+dependence within each pool.
+
+When SDs are positive, RQ2's within-model prompt offsets cancel exactly, and
+the RQ6 size slope is unchanged because its scale factor is constant across
+menu sizes. Report those invariances explicitly. With zero SD the standardized
+cell parameter is undefined; do not claim a valid standardized contrast merely
+because formal prompt offsets would cancel. The unchanged slope can still be
+reported as the original fitted parameter.
+
+Flag median sign reversals and changes in whether central intervals exclude
+zero as scale-dependent descriptive conclusions. Do not apply the original
+ROPE, emit new detection decisions, or treat these flags as confirmatory
+failures. This comparison concerns a different unit, not a correction of
+probability judgments, and it cannot remove ranking or distribution-shape
+differences. An actual difference in stated beliefs can legitimately contribute
+to a scale difference.
+
+The policy is recorded as `amendment6_assessment_scale_v1`; report schema 2 and
+input manifest schema 1 remain in use, with the new exact contract and required
+reference metadata. Historical contracts/references are not silently promoted.
+This amendment resolves the A2 implementation specification only. Prior and
+ceiling diagnostics, expanded predictive checks, and verification of amended
+recovery evidence remain open. Status remains **NOT READY**. No fits, provider
+calls, preflight, commits, or production launch are authorized here.

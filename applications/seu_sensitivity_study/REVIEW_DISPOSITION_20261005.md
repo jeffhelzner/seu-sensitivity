@@ -29,7 +29,7 @@ validation of the amended contract.
 | Finding | Disposition and remaining work |
 |---|---|
 | A1: additive versus realized estimands | Scientific choice accepted and implemented under Amendment 5. The current report had already distinguished additive components from realized differences, so a literal prose-code contradiction was overstated. Fixed-design questions motivate the change, not greater detection rates. Verify saved-draw operating characteristics, including realized RQ5, before claiming validation. |
-| A2: assessment scale | Accept explicit geometry reporting and a descriptive companion analysis in principle. Exact affine rescaling admits an exact inverse-alpha relationship; an SD ratio alone does not show that actual arms differ only by rescaling. Define the reference item set separately for primary and matched comparisons. Decide between transforming existing draws and refitting under new-scale priors; these are not interchangeable. No scale variant is implemented or added to the required fits yet. |
+| A2: assessment scale | Approved and implemented in Amendment 6: transform primary posterior draws using finite-set SDs over all 60 primary-pool items or each matched task's own 24. Report fixed-reference gap/tie geometry, original/standardized intervals, offsets and descriptive sign/zero-exclusion changes without ROPE decisions or refits. Hash-bound assembly references are recomputed and checked against retained eta; full menu counts and size/family allocation are enforced. Exact affine rescaling preserves choice probabilities; this does not show that different arms actually differ only by rescaling or that their stated beliefs are artifacts. |
 | A3: ceilings and prior sensitivity | Accept the need for diagnostics and a prespecified sensitivity procedure. A high maximizer fraction is a warning, not alone proof of an unidentified upper tail. Specify treatment of ties, counts, gaps, likelihood information, and prior sensitivity. No automatic 0.95 rule or doubled-prior fit is adopted without specification. Recovery under fitting priors does not guarantee computational coverage or real-data adequacy. |
 | A4: predictive adequacy for size effects | Accept the gap. Add size/stratum, filler, item-share and paired-presentation checks, with explicit statistic definitions and interpretation before production. Authored filler labels must be distinguished from assessed value ranks. A failure to reproduce relevant behavior must qualify RQ6; a numerical gate has not yet been chosen. Optional anchored E1 pilot fit requires separate authorization. |
 | B1: dependence | Retain response-independent presentation fits. Report effect and interval changes, not just a binary switch in detection. Do not automatically demand exclusion of zero in both half-sized datasets as proof of robustness. Item and paired-presentation diagnostics remain open; a menu random-effect model is not silently added. |
@@ -54,7 +54,14 @@ contrasts, reordered cells and columns, missing cells, and RQ4 independence.
 These are computational checks of estimand calculation, not new recovery,
 power, or behavioral model-adequacy evidence.
 
-Next: settle and implement A2-A4 diagnostic policies, the descriptive Sonnet
+Amendment 6 validation: 776 application tests passed, including posterior
+probability invariance, RQ2/RQ6 cancellation, matched-task support, missing
+cells, zero SD, reference tampering, fixed reference sets under exclusions,
+and rejection of truncated/deduplicated menu references. No additional fits
+or primary decisions were introduced. These tests do not verify production
+behavior or close the A3/A4 conditions.
+
+Next: settle and implement A3-A4 diagnostic policies, the descriptive Sonnet
 comparison, and associated reporting/missingness details; verify the review's
 saved-draw calculations; update the current review evidence without overwriting
 the September snapshot; test and review the amended contract as a whole.

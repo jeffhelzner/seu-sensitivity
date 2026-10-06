@@ -9,6 +9,7 @@ from typing import Any, Dict, Mapping, Sequence, Tuple
 
 import numpy as np
 
+from . import assessment_scale
 from .config import MODELS, PROMPT_CONDITIONS, REFERENCE_MODEL, REFERENCE_PROMPT
 from .config import SEUSensitivityStudyConfig, build_cells, get_model_spec
 
@@ -463,6 +464,7 @@ def cross_pool_descriptive_report(
     hiring_sigma_cell_draws: Sequence[float] | None = None,
     hiring_z_alpha_draws: Sequence[Sequence[float]] | None = None,
     hiring_cell_ids: Sequence[str] | None = None,
+    assessment_scale_references: Mapping[str, Any] | None = None,
 ) -> Dict[str, Any]:
     """Describe independent fixed-domain posteriors without new decisions.
 
@@ -487,6 +489,11 @@ def cross_pool_descriptive_report(
     )
     if (venture_group, hiring_group) != ("venture", "hiring"):
         raise ValueError("RQ4 requires venture and hiring primary pool designs")
+    if assessment_scale_references is not None:
+        if set(assessment_scale_references) != {"venture", "hiring"}:
+            raise ValueError("RQ4 assessment_scale requires both primary pool references")
+        for pool, reference in assessment_scale_references.items():
+            assessment_scale.validate_reference(reference, group=pool)
     combination_count = len(venture) * len(hiring)
     if combination_count <= _CROSS_POOL_COMBINATION_CAP:
         venture_indices = np.repeat(np.arange(len(venture)), len(hiring))
@@ -528,6 +535,40 @@ def cross_pool_descriptive_report(
             "cell_weights_by_pool": {pool: dict(weights) for pool, weights in weights_by_pool.items()},
             "missing_cell_ids_by_pool": {"venture": venture_missing, "hiring": hiring_missing},
         }
+        if assessment_scale_references is not None:
+            offsets = {}
+            comparisons = {}
+            for pool, values, missing in (("venture", venture_values, venture_missing), ("hiring", hiring_values, hiring_missing)):
+                offset, zero_cells = assessment_scale.contrast_offset(assessment_scale_references[pool], weights_by_pool[pool])
+                offsets[pool] = offset
+                comparisons[pool] = _scale_comparison(values, offset, missing=missing, zero_cells=zero_cells)
+                if ordering and values is not None:
+                    for name, shift in (("original", 0.0), ("standardized", offset)):
+                        if comparisons[pool][name] is not None:
+                            shifted = values + shift
+                            comparisons[pool][name].update({
+                                "probability_first_model_greater": float(np.mean(shifted > 0)),
+                                "probability_second_model_greater": float(np.mean(shifted < 0)),
+                                "probability_tie": float(np.mean(shifted == 0)),
+                            })
+            scale_result = {"status": "unavailable", "by_pool": comparisons}
+            if venture_values is not None and hiring_values is not None:
+                difference = hiring_values[hiring_indices] - venture_values[venture_indices]
+                difference_offset = (offsets["hiring"] - offsets["venture"]
+                                     if all(offset is not None for offset in offsets.values()) else None)
+                scale_result["hiring_minus_venture"] = _scale_comparison(
+                    difference, difference_offset,
+                    zero_cells=[cell_id for comparison in comparisons.values() for cell_id in comparison["zero_sd_cell_ids"]],
+                )
+                if difference_offset is not None:
+                    scale_result.update(status="descriptive", standardized=describe(
+                        venture_values + offsets["venture"], hiring_values + offsets["hiring"]))
+            else:
+                scale_result["hiring_minus_venture"] = _scale_comparison(
+                    None, None, missing=venture_missing + hiring_missing,
+                    zero_cells=[cell_id for comparison in comparisons.values() for cell_id in comparison["zero_sd_cell_ids"]],
+                )
+            result["assessment_scale"] = scale_result
         if venture_values is None or hiring_values is None:
             result.update(status="unavailable", reason="Required cells are missing; no renormalization, imputation or gamma fallback")
             return result
@@ -560,6 +601,7 @@ def cross_pool_descriptive_report(
     return {
         "estimand_version": ESTIMAND_VERSION,
         "estimand": "equally_weighted_realized_log_sensitivity_contrasts",
+        **({"assessment_scale": assessment_scale.policy()} if assessment_scale_references is not None else {}),
         "decision_count": 0,
         "status": "descriptive_two_fixed_domains",
         "population_variance_claim": False,
@@ -661,6 +703,47 @@ def _compare_reports(
     }
 
 
+def _scale_comparison(draws, offset, *, missing=(), zero_cells=()):
+    result = {
+        "status": "descriptive" if draws is not None and offset is not None else "unavailable",
+        "deterministic_offset": offset,
+        "missing_cell_ids": list(missing), "zero_sd_cell_ids": list(zero_cells),
+        "original": summarize_draws(draws) if draws is not None else None,
+        "standardized": None, "sign_reversal": None,
+        "interval_zero_exclusion_changed": None,
+    }
+    if result["status"] == "unavailable":
+        result["reason"] = "Required cells missing" if missing else "Zero reference SD; no epsilon"
+        return result
+    result["standardized"] = summarize_draws(draws + offset)
+    original, standardized = result["original"], result["standardized"]
+    result["sign_reversal"] = original["median"] * standardized["median"] < 0
+    result["interval_zero_exclusion_changed"] = (
+        (original["lower_90"] > 0 or original["upper_90"] < 0)
+        != (standardized["lower_90"] > 0 or standardized["upper_90"] < 0)
+    )
+    return result
+
+
+def _assessment_scale_report(values, cell_ids, contrasts, group, reference, gamma_size):
+    assessment_scale.validate_reference(reference, group=group)
+    rows = []
+    for contrast in contrasts:
+        weights = contrast.realized_cell_weights[group]
+        draws, missing = _cell_contrast_values(values, cell_ids, weights)
+        offset, zero_cells = assessment_scale.contrast_offset(reference, weights)
+        rows.append({
+            "contrast_id": contrast.contrast_id, "research_question": contrast.research_question,
+            "cell_weights": dict(weights),
+            **_scale_comparison(draws, offset, missing=missing, zero_cells=zero_cells),
+        })
+    return {
+        **assessment_scale.policy(), "reference": reference, "rows": rows,
+        "rq6": {"parameter_id": "rq6_gamma_size", "slope_unchanged": True,
+                **_scale_comparison(np.asarray(gamma_size), 0.0)},
+    }
+
+
 def posterior_fit_report(
     *,
     gamma_draws: Sequence[Sequence[float]],
@@ -670,6 +753,7 @@ def posterior_fit_report(
     contrasts: Sequence[ContrastSpec],
     cell_ids: Sequence[str],
     diagnostics: Mapping[str, Any],
+    assessment_scale_reference: Mapping[str, Any] | None = None,
 ) -> Dict[str, Any]:
     """Build all report sections supplied by one anchored posterior fit."""
     values, group = _realized_fit_values(
@@ -699,6 +783,9 @@ def posterior_fit_report(
     )
     decision_rows = list(contrast_report["rows"]) + [rq6]
     return {
+        **({"assessment_scale": _assessment_scale_report(
+            values, cell_ids, contrasts, group, assessment_scale_reference, gamma_size_draws
+        )} if assessment_scale_reference is not None else {}),
         "estimand_version": ESTIMAND_VERSION,
         "sampler_gates": contrast_report["sampler_gates"],
         "decision_count": len(decision_rows),
@@ -768,6 +855,10 @@ def complete_confirmatory_report(
         hiring_sigma_cell_draws=hiring_primary["sigma_cell_draws"],
         hiring_z_alpha_draws=hiring_primary["z_alpha_draws"],
         hiring_cell_ids=hiring_primary["cell_ids"],
+        assessment_scale_references=(
+            {"venture": venture_primary["assessment_scale_reference"], "hiring": hiring_primary["assessment_scale_reference"]}
+            if "assessment_scale_reference" in venture_primary and "assessment_scale_reference" in hiring_primary else None
+        ),
     )
 
     if set(matched_variants) != required_variants:
@@ -931,6 +1022,7 @@ def matched_rq5_contract(cells: Sequence[Any]) -> Dict[str, Any]:
     return {
         "estimand_contract": _estimand_contract(),
         "status": "confirmatory_fit_validated",
+        "assessment_scale": assessment_scale.policy(),
         "representation": "assessment_anchored_no_pca",
         "n_cells": int(design.shape[0]),
         "design_columns": list(columns),
@@ -977,6 +1069,7 @@ def contract_manifest(
     contrasts = primary_contrasts(column_names)
     return {
         "estimand_contract": _estimand_contract(),
+        "assessment_scale": assessment_scale.policy(),
         "central_interval_mass": CENTRAL_INTERVAL_MASS,
         "interval_quantiles": [0.05, 0.95],
         "log_alpha_rope_half_width": LOG_ALPHA_ROPE,

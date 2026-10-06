@@ -222,13 +222,13 @@ class TestMatchedRQ5Assembly:
         hiring_pool = pools.load_pool("hiring")
         venture_problems = problem_generation.generate_problem_set(
             venture_pool,
-            problems_per_family={"procurement": 8},
+            problems_per_family={"procurement": 40},
             families=["procurement"],
             seed=42,
         )
         hiring_problems = problem_generation.generate_problem_set(
             hiring_pool,
-            problems_per_family={"matched": 8},
+            problems_per_family={"matched": 40},
             families=["matched"],
             seed=42,
         )
@@ -285,14 +285,17 @@ class TestMatchedRQ5Assembly:
             design_column_names=columns,
             utility_values=[0.0, 0.5, 1.0],
             K=3,
+            include_assessment_scale_reference=True,
         )
 
         assert stan_data["J"] == 36
         assert stan_data["R"] == 48
         assert stan_data["P"] == 13
-        assert stan_data["M_total"] == 36 * 8 * 2
+        assert stan_data["M_total"] == 36 * 40 * 2
         assert report["matched_item_pairs"] == 24
-        assert report["paired_menus_per_task"] == 8
+        assert report["paired_menus_per_task"] == 40
+        assert all(arm["item_count"] == 24 and arm["menu_count"] == 40
+               for arm in report["assessment_scale_reference"]["arms"])
         assert report["confirmatory_design_rank"] == 14
         assert schemas.validate_stan_data(
             stan_data, model="h_m01_size_assessment_anchored"

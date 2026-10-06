@@ -302,6 +302,28 @@ The 26 named primary decisions comprise seven RQ1 model contrasts and two RQ2 pr
 
 The RQ4 comparison uses independent draws from the two pool posteriors. For small posterior products the implementation can use all pairings; for large ones it uses deterministic resampling of complete realized-cell draw vectors. Keeping whole vectors preserves within-pool dependence across contrasts, while avoiding a scientifically meaningless dependence introduced by pairing equal chain indices across separately fitted pools. This is a method of propagating the assumed independent posterior uncertainty, not evidence that the materials or model-selection process were independent in a population-sampling sense.
 
+### Descriptive Assessment-Scale Analysis {#sec-assessment-scale}
+
+Sensitivity is expressed per unit of expected utility. A model that assigns a narrower range of expected utilities may require a larger sensitivity to produce the same choice probabilities. This does not show that its stated probabilities are mistaken: the models may genuinely assess the prospects differently. Amendment 6 adds a descriptive comparison in a different unit, alongside the original estimates, without changing the primary estimands or fitting another model.
+
+For arm $a$ and domain or task $d$, let $S_{a,d}$ be the finite-set standard deviation of the fixed expected utilities, and $\bar\eta_{a,d}$ their mean. Define
+
+$$
+\eta^*_{a,d,r}=\frac{\eta_{a,d,r}-\bar\eta_{a,d}}{S_{a,d}},
+\qquad
+\alpha^*_{a,p,d}=\alpha_{a,p,d}S_{a,d}.
+$$
+
+For positive $S_{a,d}$, the scale factors cancel in the logits and centering adds the same constant to all menu alternatives. Every softmax choice probability is therefore unchanged. The original $\alpha$ measures sensitivity per unit of expected utility; $\alpha^*$ measures sensitivity per one standard deviation of expected utility across the specified reference items. Reporting computes $\log\alpha^*=\log\alpha+\log S$ within the existing primary posterior draws. It does not refit the model with numerical priors held fixed on a new scale: the original posterior and its prior assumptions are preserved.
+
+The reference sets contain all 60 frozen items per arm in each primary pool. For matched RQ5 they contain the 24 procurement items and the 24 matched hiring items separately for each arm and task, not the full primary pools or the padded off-task columns in the matched Stan data. Each item receives equal weight, and the variance uses divisor $N$, not $N-1$, because the target is this finite reference set. References use midpoint 0.5 and are fixed before choices are filtered or cells excluded. Repeated menu appearances never increase an item's weight.
+
+Using Amendment 5's cell weights, an RQ1 contrast becomes $\theta^*_{a,b,d}=\theta_{a,b,d}+\log(S_{a,d}/S_{b,d})$. RQ5 analogously adds the hiring-minus-procurement log-SD difference. RQ4's independent-posterior comparisons and all 15 model-pair orderings are also reported on the transformed scale. RQ2's offsets cancel within each arm because its prompts share expected utilities; RQ6's slope stays unchanged because the offset is constant across menu sizes. These invariances concern positive reference SDs. If an involved SD is zero, the standardized contrast is unavailable rather than stabilized with an arbitrary small denominator; the original result remains reportable. Missing cells follow Amendment 5's unavailable policy.
+
+Original and standardized medians and central 90% intervals are shown side by side with the deterministic offset. Median sign reversals and changes in whether intervals exclude zero are flagged as *scale-dependent descriptive conclusions*. The original practical-effect threshold is not applied on the new scale, and no new detection decisions are added. The offset translates the contrast distribution without changing its interval width; it does not supply new information about choices or remove differences in rankings or distribution shape.
+
+The accompanying geometry records means, SDs, item IDs, and the full menu top-two gap distributions and tie prevalence for each arm and pool or matched task. Every frozen menu counts once, including repeated compositions with different IDs: 140 menus per primary pool and 40 per matched task. For this geometry summary only, a gap within absolute tolerance $10^{-12}$ of zero counts as tied; the existing predictive checks' exact-tie rule is not altered. Assembly reports bind the complete probability and menu references through their SHA256 hashes. Reporting recomputes geometry, checks canonical item sets, full menu counts and size/family allocation, verifies retained eta values against the bound probabilities, and requires identical reference inputs across sibling variants. Missing or inconsistent reference evidence is an error, not permission to fall back to a reduced observed item set. Structural checks and hashes do not independently prove the source content; final-revision preflight remains required.
+
 ### Decisions, Uncertainty, and Multiplicity {#sec-decisions}
 
 For a contrast $\theta$, let $L$, $M$, and $U$ be the 5th percentile, median, and 95th percentile of its posterior. Detection requires
@@ -419,7 +441,7 @@ The results report must retain wide intervals, non-detections, diagnostic failur
 
 These questions are an invitation to review the planned inference, not a new set of numerical gates. Any resulting change to the scientific protocol should be documented before production outcomes can influence it. If the current specification is accepted, the next operational step is separately authorized preparation against the final reviewed revision, followed by collection under the existing safeguards. The later results report should answer the six RQs in their declared scope, including cases where the experiment leaves the answer uncertain.
 
-**Author self-review, October 5, 2026.** The study author answered yes to all nine questions above. This was self-review of the earlier specification, not independent acceptance or authorization to submit production requests. The subsequent independent review of revision `db145fe` prompted the approved Amendment 5 estimand change. Assessment-scale reporting remains descriptive; its exact method, additional predictive checks, and ceiling/prior-sensitivity procedures remain to be finalized and validated before launch. Amendment 5 alone does not close those conditions. Final-revision preflight and explicit collection authorization remain separate steps.
+**Author self-review, October 5, 2026.** The study author answered yes to all nine questions above. This was self-review of the earlier specification, not independent acceptance or authorization to submit production requests. The subsequent independent review of revision `db145fe` prompted the approved Amendment 5 estimand change and Amendment 6 descriptive assessment-scale analysis. Additional predictive checks, ceiling/prior-sensitivity procedures, and verification of amended recovery evidence remain open before launch. These two amendments alone do not close those conditions. Final-revision preflight and explicit collection authorization remain separate steps.
 
 ## Technical Appendices {#sec-appendices}
 
@@ -432,6 +454,7 @@ These questions are an invitation to review the planned inference, not a new set
 | 3 | September 9 | Exact contrast family, central intervals, median-based ROPE decision, matched task design, and fit bindings are frozen |
 | 4 | September 10, updated September 11 | Response-independent presentation sensitivities and no-new-SBC policy; recovery audit and authorized rerun are recorded |
 | 5 | October 5 | Realized-cell RQ1/RQ2/RQ5 contrasts become primary; additive companions and aligned RQ4 remain descriptive; remaining review conditions stay open |
+| 6 | October 5 | Fixed-reference assessment-scale transformations of primary posterior draws are descriptive; no refits or additional primary decisions |
 
 The original protocol's pinned-model and between-pool-variance wording is historical. Amendment 5 also supersedes the staged additive-primary reporting contract. The evidence bundle records source-relative hashes for the September snapshot; it has not been regenerated from the amended source or a new preflight. A source-hash check against the current modified protocol and code is therefore expected to detect differences. The old snapshot must not be made to appear current by weakening those checks.
 

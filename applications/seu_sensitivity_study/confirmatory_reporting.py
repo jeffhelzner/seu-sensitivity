@@ -193,6 +193,7 @@ def build_report_from_manifest(
     report["fit_artifact_hashes"] = artifact_hashes
     report["fit_provenance"] = provenance
     report["posterior_predictive_checks"] = predictive_checks
+    report["assessment_scale"] = confirmatory_analysis.assessment_scale.policy()
     return report
 
 
@@ -230,6 +231,12 @@ def _load_variants(
             data, preparation, canonical_cell_ids, canonical_design, columns,
             group=group, variant=variant,
         )
+        reference = preparation.get("assessment_scale_reference")
+        confirmatory_analysis.assessment_scale.validate_retained_data(reference, data, preparation, group=group)
+        if variant == "primary":
+            primary_reference = reference
+        elif reference != primary_reference:
+            raise ValueError("assessment_scale reference differs across sibling fit variants")
         path = _absolute_path(entry["chain_path"], "chain_path")
         files = _fit_files(path)
         if len(files) != 4:
@@ -253,6 +260,8 @@ def _load_variants(
             len(columns),
             max_treedepth=max_treedepth,
         )
+        if variant == "primary":
+            variants[variant]["assessment_scale_reference"] = reference
         metadata = fit.metadata.cmdstan_config
         declared_paths = []
         for key in ("data_file", "data"):
@@ -274,6 +283,7 @@ def _load_variants(
             "design_columns": list(columns),
             "artifacts": dict(entry),
             "cmdstan_data_path_check": "matched" if declared_paths else "unavailable",
+            "assessment_scale_reference_binding": "preparation_report.sha256",
         }
         predictive_checks[group][variant] = _predictive_checks(
             fit, data, cell_ids, variants[variant]

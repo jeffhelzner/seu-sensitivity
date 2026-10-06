@@ -238,6 +238,7 @@ def build_stan_data(
     utility_values: Optional[Sequence[float]] = None,
     design_column_names: Optional[Sequence[str]] = None,
     presentation_id: Optional[int] = None,
+    include_assessment_scale_reference: bool = False,
     validate: bool = True,
 ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
     """
@@ -270,6 +271,14 @@ def build_stan_data(
         *report* carries the per-cell NA logs and the index maps needed to
         trace any observation back to its menu.
     """
+    scale_reference = None
+    if include_assessment_scale_reference:
+        from .assessment_scale import build_reference
+
+        scale_reference = build_reference(
+            group=problem_set["pool_id"], items=pool["items"],
+            problems=problem_set["problems"], probabilities=assessment_probabilities,
+        )
     item_ids = sorted(reduced_embeddings)
     item_index = {item_id: position for position, item_id in enumerate(item_ids)}
     R = len(item_ids)
@@ -452,6 +461,11 @@ def build_stan_data(
         "na_logs": na_logs,
         "overall_na_rate": _overall_na_rate(na_logs),
     }
+    if scale_reference is not None:
+        from .assessment_scale import validate_retained_data
+
+        report["assessment_scale_reference"] = scale_reference
+        validate_retained_data(scale_reference, stan_data, report, group=problem_set["pool_id"])
     logger.info(
         "Built Stan data for pool %r: J=%d, R=%d, D=%s, M_total=%d (overall NA %.1f%%)",
         problem_set["pool_id"],
@@ -480,6 +494,7 @@ def build_matched_rq5_stan_data(
     utility_values: Sequence[float],
     K: int,
     presentation_id: Optional[int] = None,
+    include_assessment_scale_reference: bool = False,
 ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
     """Build the dedicated assessment-anchored matched RQ5 re-slice."""
     family_by_pool = {"venture": "procurement", "hiring": "matched"}
@@ -567,6 +582,7 @@ def build_matched_rq5_stan_data(
         utility_values=utility_values,
         design_column_names=design_column_names,
         presentation_id=presentation_id,
+        include_assessment_scale_reference=include_assessment_scale_reference,
     )
     report.update(
         {

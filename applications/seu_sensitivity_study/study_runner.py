@@ -488,7 +488,9 @@ class SEUSensitivityStudyRunner:
             }
         return collected
 
-    def _phase_stan_data(self, pool_id: str) -> Dict[str, Any]:
+    def _phase_stan_data(
+        self, pool_id: str, *, include_assessment_scale_reference: bool = True
+    ) -> Dict[str, Any]:
         pool = self._load_pool_artifact(pool_id)
         problem_set = self._load_problem_set(pool_id)
         reduced = self._load_reduced_embeddings(pool_id)
@@ -499,6 +501,8 @@ class SEUSensitivityStudyRunner:
         pool_dir = self._pool_dir(pool_id)
 
         anchored = self.config.stan_model == "h_m01_size_assessment_anchored"
+        if anchored and not include_assessment_scale_reference:
+            logger.warning("Omitting assessment_scale reference; outputs are not valid for A6 reporting")
         assessment_probabilities = None
         cell_model_names = None
         if anchored:
@@ -520,6 +524,7 @@ class SEUSensitivityStudyRunner:
             anchored_kwargs = {}
             if anchored and include_size:
                 anchored_kwargs = {
+                    "include_assessment_scale_reference": include_assessment_scale_reference,
                     "assessment_probabilities": assessment_probabilities,
                     "cell_model_names": cell_model_names,
                     "utility_values": [
@@ -568,6 +573,7 @@ class SEUSensitivityStudyRunner:
                     cell_ids=cell_ids,
                     K=self.config.K,
                     include_menu_size=True,
+                    include_assessment_scale_reference=include_assessment_scale_reference,
                     assessment_probabilities=assessment_probabilities,
                     cell_model_names=cell_model_names,
                     utility_values=[0.0, middle, 1.0],
@@ -591,6 +597,7 @@ class SEUSensitivityStudyRunner:
                     cell_ids=cell_ids,
                     K=self.config.K,
                     include_menu_size=True,
+                    include_assessment_scale_reference=include_assessment_scale_reference,
                     assessment_probabilities=assessment_probabilities,
                     cell_model_names=cell_model_names,
                     utility_values=[0.0, self.config.primary_utility_middle, 1.0],
@@ -655,6 +662,7 @@ class SEUSensitivityStudyRunner:
             "cell_model_names": cell_model_names,
             "design_column_names": column_names,
             "K": self.config.K,
+            "include_assessment_scale_reference": True,
         }
         files = []
         primary_report = None

@@ -108,7 +108,7 @@ def _write_prompts(tmp_path):
 
 def _responder(prompt: str, system_prompt: str | None) -> str:
     """Answer assessment prompts with a well-formed line, choices with a token."""
-    if "Outcomes:" in prompt:
+    if "Outcomes:" in prompt or "Possible outcomes:" in prompt:
         return "A short assessment.\nPROBABILITIES: 0.2, 0.5, 0.3"
     return "ANSWER: 1"
 
@@ -314,9 +314,15 @@ class TestFullPipeline:
         assert base["M_total"] == 18 * 8 * 2
 
     def test_assessment_anchored_config_writes_fixed_eta_payload(self, runner):
-        runner.config.stan_model = "h_m01_size_assessment_anchored"
-        summary = self._run_all(runner)
-        pool_dir = runner.results_dir / "pools" / POOL_ID
+        runner = SEUSensitivityStudyRunner(SEUSensitivityStudyConfig(
+            pool_ids=["venture"], problems_per_family={"venture": {"startup": 8}},
+            results_dir=str(runner.results_dir), target_dim=6,
+            stan_model="h_m01_size_assessment_anchored",
+        ))
+        with pytest.raises(ValueError, match="full fixed menus"):
+            self._run_all(runner)
+        stan_summary = runner._phase_stan_data("venture", include_assessment_scale_reference=False)
+        pool_dir = runner.results_dir / "pools" / "venture"
         sized = json.loads((pool_dir / "stan_data_size.json").read_text())
 
         assert "eta" in sized
@@ -337,7 +343,6 @@ class TestFullPipeline:
         assert schemas.validate_stan_data(
             sized, model="h_m01_size_assessment_anchored"
         ) == []
-        stan_summary = summary["pools"][POOL_ID]["stan_data"]
         assert stan_summary["confirmatory_design_rank"] == 8
         assert stan_summary["confirmatory_design_required_rank"] == 8
         assert stan_summary["presentation_sensitivity_files"] == [
@@ -353,6 +358,7 @@ class TestFullPipeline:
             assert assembly["design_columns"] == stan_summary["design_columns"]
             assert len(assembly["cell_ids"]) == 18
             assert assembly["presentation_id"] == presentation
+            assert "assessment_scale_reference" not in assembly
         assert contract["rq5"]["status"] == "confirmatory_fit_validated"
 
     def test_design_matrix_rows_align_with_cells(self, runner):

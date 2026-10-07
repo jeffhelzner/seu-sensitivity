@@ -2,7 +2,7 @@
 
 Frozen: 2026-09-06
 
-> Current interpretation (2026-10-06): read the dated amendments before using
+> Current interpretation (2026-10-07): read the dated amendments before using
 > the historical body below. Amendment 1 replaces the latent-belief primary
 > model and the RQ4 variance-component interpretation. Amendment 2 changes the
 > size-slope prior. Amendments 3 and 4 specify the decision contract and required
@@ -14,6 +14,8 @@ Frozen: 2026-09-06
 > 24 planned fits; the primary priors and 26 named decisions remain unchanged.
 > Amendment 8 expands descriptive predictive checks and RQ6 qualifications
 > using saved replicas, without adding fits or primary decisions.
+> Amendment 9 adds a descriptive Sonnet-thinking minus Sonnet comparison
+> within each primary pool, without adding fits or primary decisions.
 > The fixed midpoint is a substantive utility assumption, not merely a choice
 > of units. Further independent-review conditions remain open; **NOT READY**.
 
@@ -790,3 +792,49 @@ posterior checks have run. Amended recovery verification and other review
 conditions remain open; final-revision preflight and collection authorization
 are still required. Status remains **NOT READY**. No fits, provider calls,
 commits, pushes, or collection are authorized by this amendment.
+
+## Amendment 9: descriptive Sonnet arm comparison
+
+Amended: 2026-10-07, before production choice collection, implementing the
+accepted B3 independent-review follow-up. Policy ID:
+`B3_descriptive_postreview_2026-10-07`. This is a dated post-review descriptive
+addition, not an original primary hypothesis or a production result.
+
+Within each primary pool (venture and hiring), compute in every joint draw
+
+$$
+{\theta}_d = \frac{1}{3}\sum_{p=1}^{3}
+\left(\ell_{\mathrm{thinking},p,d}-\ell_{\mathrm{base},p,d}\right),
+\qquad \ell_{a,p,d}=\gamma_0+X_{a,p,d}\gamma+\sigma_{\mathrm{cell}}z_{a,p,d}.
+$$
+
+The canonical arms are `claude-sonnet-4-5-thinking` minus
+`claude-sonnet-4-5`. Use fixed weights +1/3 and -1/3 across the three prompts,
+not observation counts. The common intercept and menu-size term cancel at a
+common menu size; cell residuals do not. Report the posterior median, central
+90% interval, and positive/negative/exact-zero probabilities. Also summarize
+`exp(theta_d)` draw by draw: the ratio of geometric-mean sensitivities across
+prompts, not the arithmetic mean of prompt-specific sensitivity ratios.
+If any of the six required cells is missing, report the contrast as unavailable
+with missing IDs; do not reweight, impute, or fall back to gamma coefficients.
+
+This compares configured arms under their own fixed neutral assessments. Both
+use `claude-sonnet-4-5-20250929`, but request settings differ (including thinking
+budget and temperature), and their assessments can differ. It is not a pure
+causal reasoning effect, a shared-assessment comparison, or a claim that
+temperature necessarily biases sensitivity downward.
+
+The separate `sonnet_thinking_descriptive` section of `posterior_fit_report`
+applies to every supplied sampler-valid primary-pool variant: primary, both
+presentation subsets, both utility variants, and L/H/S priors. Prior variants
+retain their existing complete/missing/failed status handling. No matched-RQ5
+combined-task or new difference-in-differences contrast is added, and no
+Amendment 6 standardized variant or crossed sensitivity grid is introduced.
+There is no ROPE, detection decision, or classification for this contrast.
+The primary family remains 26 named decisions, 24 distinct up to sign; the
+fit plan remains 24. Existing gamma companions and decision rows are unchanged.
+
+Offline synthetic-draw and report-integration checks are implementation
+validation only. No numeric production results are stored. Saved-recovery
+verification and independent review remain outstanding; status is **NOT READY**.
+This amendment authorizes no fits, provider calls, preflight, or collection.

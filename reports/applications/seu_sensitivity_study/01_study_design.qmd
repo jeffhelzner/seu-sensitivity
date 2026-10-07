@@ -140,6 +140,16 @@ RQ1 asks whether the choice systems differ in their responsiveness to the expect
 
 The six arms are a purposeful selection of accessible configurations, not a probability sample of models, training approaches, or parameter counts. A flagship-versus-small difference cannot isolate scale from training, deployment, or other architectural differences. Likewise, the OpenAI reasoning comparison changes endpoints, while the Anthropic reasoning comparison changes thinking and decoding settings on the same Sonnet endpoint. These vendor-specific contrasts should be interpreted separately rather than combined into one causal estimate of "reasoning capability."
 
+**Descriptive Sonnet comparison (Amendment 9, October 7).** The accepted B3 post-review addition reports `claude-sonnet-4-5-thinking` minus `claude-sonnet-4-5` separately within venture and hiring. For each joint posterior draw,
+
+$$
+{\theta}_d=\frac{1}{3}\sum_{p=1}^{3}\left(\ell_{\mathrm{thinking},p,d}-\ell_{\mathrm{base},p,d}\right).
+$$
+
+Here $\ell=\gamma_0+X\gamma+\sigma_{\mathrm{cell}}z$ includes the realized cell deviation, at a common menu size. The fixed one-third prompt weights do not depend on retained observation counts. The report gives the median, central 90% interval, and positive/negative/exact-zero probabilities, plus a draw-wise summary of $\exp(\theta_d)$: the ratio of geometric-mean sensitivities across prompts, not an arithmetic average of ratios. Missing any required cell makes the comparison unavailable, without reweighting or additive fallback.
+
+This is a contrast of configured arms under their own fixed neutral assessments, not a pure causal reasoning effect. The endpoint is shared, but thinking and decoding settings and the assessed expected-utility benchmarks can differ. The separate `sonnet_thinking_descriptive` fit-report section covers every supplied valid primary-pool variant, including L/H/S priors, without a new matched-task or difference-in-differences contrast, assessment-scale grid, ROPE, detection decision, or classification. The family remains 26 named decisions (24 distinct up to sign), and the plan remains 24 fits. These are reporting specifications; no production Sonnet comparison has been estimated.
+
 ### RQ2: Choice Instructions {#sec-rq2}
 
 RQ2 distinguishes explicitly naming the objective from requesting additional thought. The SEU-maximizing instruction mentions assessed likelihoods and outcome values; the deliberative instruction says to think carefully and reason step by step. Each is contrasted with the domain's neutral choice instruction. Because assessment text, probabilities, menu membership, and presentation orders are shared across prompt siblings, differences are not attributable to collecting a different assessment set for each instruction.
@@ -478,6 +488,7 @@ These questions are an invitation to review the planned inference, not a new set
 | 6 | October 5 | Fixed-reference assessment-scale transformations of primary posterior draws are descriptive; no refits or additional primary decisions |
 | 7 | October 6 | Ceiling diagnostics and L/H/S prior sensitivity specified and implemented; nine additional planned fits, unchanged primary decisions, posterior checks unrun |
 | 8 | October 6 | Expanded descriptive predictive checks and RQ6 qualifications implemented using saved replicas; no added fits or primary decisions, no production adequacy claim |
+| 9 | October 7 | B3 descriptive Sonnet-thinking minus Sonnet comparison within each primary pool; fixed prompt weights and own-assessment interpretation, no new matched contrast, fits or primary decisions |
 
 The original protocol's pinned-model and between-pool-variance wording is historical. Amendment 5 also supersedes the staged additive-primary reporting contract. The evidence bundle records source-relative hashes for the September snapshot; it has not been regenerated from the amended source or a new preflight. A source-hash check against the current modified protocol and code is therefore expected to detect differences. The old snapshot must not be made to appear current by weakening those checks.
 

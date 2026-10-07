@@ -77,9 +77,94 @@ def test_rq1_rq2_are_draw_wise_equal_cell_means(pool):
         assert "decision" not in row
 
 
+@pytest.mark.parametrize("pool", ["venture", "hiring"])
+def test_sonnet_descriptive_includes_residuals_with_zero_gamma(pool):
+    payload, cells, _ = _payload(pool)
+    payload["gamma_draws"][:] = 0
+    payload["z_alpha_draws"][:] = 0
+    expected = payload["sigma_cell_draws"] * 2
+    for index, cell in enumerate(cells):
+        if cell.model_name == "claude-sonnet-4-5-thinking":
+            payload["z_alpha_draws"][:, index] = (1, 2, 6)[config.PROMPT_CONDITIONS.index(cell.prompt_condition)]
+        elif cell.model_name == "claude-sonnet-4-5":
+            payload["z_alpha_draws"][:, index] = 1
+    report = ca.posterior_fit_report(**payload)
+    row = report["sonnet_thinking_descriptive"]
+    for key, value in ca.summarize_draws(expected).items():
+        assert row[key] == pytest.approx(value) if isinstance(value, float) else row[key] == value
+    for key in ("mean", "median", "lower_90", "upper_90"):
+        assert row["geometric_mean_sensitivity_ratio"][key] == pytest.approx(ca.summarize_draws(np.exp(expected))[key])
+    assert row["probability_positive"] == 1
+    assert row["probability_negative"] == row["probability_zero"] == 0
+    assert row["included_in_primary_family"] is False
+    assert row["decision_count"] == 0
+    assert "decision" not in row and "rope_half_width" not in row
+    assert report["decision_count"] == 10
+    assert all(companion["median"] == 0 for companion in report["gamma_companion"]["rows"])
+
+
+@pytest.mark.parametrize("pool", ["venture", "hiring"])
+def test_sonnet_descriptive_matches_direct_draw_wise_formula(pool):
+    payload, cells, realized = _payload(pool)
+    thinking = [index for index, cell in enumerate(cells) if cell.model_name == "claude-sonnet-4-5-thinking"]
+    base = [index for index, cell in enumerate(cells) if cell.model_name == "claude-sonnet-4-5"]
+    expected = realized[:, thinking].mean(axis=1) - realized[:, base].mean(axis=1)
+    report = ca.posterior_fit_report(**payload)
+    row = report["sonnet_thinking_descriptive"]
+    for key in ("mean", "median", "lower_90", "upper_90"):
+        assert row[key] == pytest.approx(ca.summarize_draws(expected)[key])
+        assert row["geometric_mean_sensitivity_ratio"][key] == pytest.approx(ca.summarize_draws(np.exp(expected))[key])
+    assert row["probability_positive"] == np.mean(expected > 0)
+    assert row["probability_negative"] == np.mean(expected < 0)
+    assert row["probability_zero"] == np.mean(expected == 0)
+    assert len(row["cell_weights"]) == 6
+    assert set(row["cell_weights"].values()) == {-1 / 3, 1 / 3}
+    assert row["policy_version"] == "B3_descriptive_postreview_2026-10-07"
+    assert "not a pure causal reasoning effect" in row["interpretation"]
+    assert row["contrast_id"] not in {entry.get("contrast_id") for entry in report["rows"]}
+    assert report["contrast_decisions"] == ca._realized_contrast_report(
+        realized, payload["cell_ids"], payload["contrasts"], pool, DIAGNOSTICS)
+    json.dumps(report, allow_nan=False)
+
+
+@pytest.mark.parametrize("pool", ["venture", "hiring"])
+@pytest.mark.parametrize("required", [True, False])
+def test_sonnet_descriptive_missing_cells_never_reweight_or_fall_back(pool, required):
+    payload, cells, _ = _payload(pool)
+    expected = ca.posterior_fit_report(**payload)["sonnet_thinking_descriptive"]
+    model = "claude-sonnet-4-5-thinking" if required else config.REFERENCE_MODEL
+    removed = next(index for index, cell in enumerate(cells) if cell.model_name == model)
+    missing_id = payload["cell_ids"].pop(removed)
+    payload["z_alpha_draws"] = np.delete(payload["z_alpha_draws"], removed, axis=1)
+    row = ca.posterior_fit_report(**payload)["sonnet_thinking_descriptive"]
+    assert row["cell_weights"] == expected["cell_weights"]
+    if required:
+        assert row["status"] == "unavailable"
+        assert row["missing_cell_ids"] == [missing_id]
+        assert "gamma fallback" in row["reason"]
+        assert not {"median", "geometric_mean_sensitivity_ratio", "probability_positive", "decision", "rope_half_width"} & row.keys()
+    else:
+        assert row == expected
+
+
+def test_sonnet_descriptive_sign_probabilities_keep_exact_zeros():
+    payload, cells, _ = _payload(draw_count=5)
+    payload["gamma_draws"][:] = 0
+    payload["sigma_cell_draws"][:] = 1
+    payload["z_alpha_draws"][:] = 0
+    for index, cell in enumerate(cells):
+        if cell.model_name == "claude-sonnet-4-5-thinking":
+            payload["z_alpha_draws"][:, index] = [-1, 0, 0, 2, 3]
+    row = ca.posterior_fit_report(**payload)["sonnet_thinking_descriptive"]
+    assert row["probability_positive"] == 0.4
+    assert row["probability_negative"] == 0.2
+    assert row["probability_zero"] == 0.4
+
+
 def test_rq5_uses_three_prompt_means_in_the_matched_fit():
     payload, cells, realized = _payload("matched_rq5")
     report = ca.posterior_fit_report(**payload)
+    assert "sonnet_thinking_descriptive" not in report
     for model, row in zip(config.MODELS, report["contrast_decisions"]["rows"]):
         hiring = [index for index, cell in enumerate(cells) if cell.model_name == model.name and cell.pool_id == "hiring"]
         procurement = [index for index, cell in enumerate(cells) if cell.model_name == model.name and cell.pool_id == "venture"]
@@ -103,6 +188,14 @@ def test_realized_contrasts_follow_cell_ids_and_gamma_column_names(group):
                       for contrast in payload["contrasts"]],
     }
     actual = ca.posterior_fit_report(**reordered)
+    if group != "matched_rq5":
+        before = expected["sonnet_thinking_descriptive"]
+        after = actual["sonnet_thinking_descriptive"]
+        assert before["cell_weights"] == after["cell_weights"]
+        for key in ("mean", "lower_90", "median", "upper_90", "probability_positive", "probability_negative", "probability_zero"):
+            assert before[key] == pytest.approx(after[key])
+        for key in ("mean", "lower_90", "median", "upper_90"):
+            assert before["geometric_mean_sensitivity_ratio"][key] == pytest.approx(after["geometric_mean_sensitivity_ratio"][key])
     for before, after in zip(expected["rows"], actual["rows"]):
         for key in ("mean", "lower_90", "median", "upper_90"):
             assert before[key] == pytest.approx(after[key])

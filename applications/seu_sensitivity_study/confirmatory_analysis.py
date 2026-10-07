@@ -744,6 +744,43 @@ def _assessment_scale_report(values, cell_ids, contrasts, group, reference, gamm
     }
 
 
+def _sonnet_thinking_descriptive_report(values, cell_ids, pool_id):
+    thinking = "claude-sonnet-4-5-thinking"
+    base = "claude-sonnet-4-5"
+    weights = _model_cell_weights(pool_id, {thinking: 1.0, base: -1.0})
+    draws, missing = _cell_contrast_values(values, cell_ids, weights)
+    result = {
+        "policy_version": "B3_descriptive_postreview_2026-10-07",
+        "contrast_id": "sonnet_thinking_minus_base",
+        "label": f"{thinking} minus {base}",
+        "pool_id": pool_id,
+        "status": "unavailable" if missing else "descriptive",
+        "estimand": "realized_log_sensitivity",
+        "estimand_version": ESTIMAND_VERSION,
+        "included_in_primary_family": False,
+        "decision_count": 0,
+        "cell_weights": weights,
+        "missing_cell_ids": missing,
+        "interpretation": (
+            "Contrast of configured arms under their own fixed neutral assessments; "
+            "same endpoint but differing request settings and assessments, not a pure "
+            "causal reasoning effect. Equal weight across the three prompts."
+        ),
+        "ratio_definition": "exp(contrast): ratio of geometric-mean sensitivity across prompts",
+    }
+    if draws is None:
+        result["reason"] = "Required cells are missing; no renormalization, imputation or gamma fallback"
+    else:
+        result.update(summarize_draws(draws))
+        result.update({
+            "probability_positive": float(np.mean(draws > 0)),
+            "probability_negative": float(np.mean(draws < 0)),
+            "probability_zero": float(np.mean(draws == 0)),
+            "geometric_mean_sensitivity_ratio": summarize_draws(np.exp(draws)),
+        })
+    return result
+
+
 def posterior_fit_report(
     *,
     gamma_draws: Sequence[Sequence[float]],
@@ -783,6 +820,9 @@ def posterior_fit_report(
     )
     decision_rows = list(contrast_report["rows"]) + [rq6]
     return {
+        **({"sonnet_thinking_descriptive": _sonnet_thinking_descriptive_report(
+            values, cell_ids, group
+        )} if group in ("venture", "hiring") else {}),
         **({"assessment_scale": _assessment_scale_report(
             values, cell_ids, contrasts, group, assessment_scale_reference, gamma_size_draws
         )} if assessment_scale_reference is not None else {}),

@@ -1,6 +1,6 @@
 # October Independent Review Disposition
 
-Date: 2026-10-05; updated 2026-10-06
+Date: 2026-10-05; updated 2026-10-07
 
 Review: `local/seu_sensitivity_precollection_final_review.md`, reviewing
 `db145fe4a7b2340558b26e009fac55b27ea82d24`.
@@ -34,7 +34,7 @@ validation of the amended contract.
 | A4: predictive adequacy for size effects | Approved and implemented under Amendment 8: size/stratum, authored-filler, exposure-aware item, displayed-position and paired-presentation checks with explicit descriptive flags and RQ6 qualifications. No new fits or predictive gate. Offline tests pass; no production adequacy result exists. Optional anchored E1 pilot fit still requires separate authorization. |
 | B1: dependence | Retain response-independent presentation fits and report effect/interval changes, not just detection switches. Amendment 8 implements item and paired-presentation diagnostics; excess repetition qualifies independence but does not identify its cause. No requirement to exclude zero in both half-sized datasets and no menu random-effect model are added. |
 | B2: utility grid | Accept limited scope of the existing grid. Few argmax changes do not imply that full softmax probabilities are unchanged. A wider-grid or heuristic comparison needs a specified purpose and method before adding fits. Historical normalization wording is clarified by the preregistration banner. |
-| B3: treatment construction | Accept clearer interpretation as wording under fixed answer-first/output constraints, and explicit disclosure that probabilities are visible. Do not infer a necessary downward sensitivity bias from temperature alone. Add Sonnet-thinking minus Sonnet as a descriptive comparison in follow-up; do not add a primary hypothesis without a new decision. |
+| B3: treatment construction | Implemented under Amendment 9: separate descriptive Sonnet-thinking minus Sonnet realized-cell comparison within venture and hiring, with fixed equal prompt weights, intervals, sign probabilities and geometric-mean sensitivity ratios for all supplied valid variants. Configured arms use their own neutral assessments and differing request settings on the same endpoint; this is not a pure causal reasoning effect. No new primary hypothesis or matched contrast. Retain answer-first/output constraints and visible-probability disclosures; do not infer a necessary downward sensitivity bias from temperature alone. |
 | B4: matched comparison | Accept disclosure of consequence wording and coding-induced prior differences; read together with the descriptive scale check. Review-reported additive detection rates are not realized-RQ5 rates. Verify before incorporation. |
 | B5: recovery evidence | Verify and report shared truth vectors, independent simulated choices, and the generating priors. Preserve the distinction among 120 fits, three design geometries, and independent truth draws. Do not copy operating-characteristic rates into the evidence bundle before checking truth mapping, chain selection, counts and amended RQ5 contrasts. |
 | B6: missingness | Amendment 8 implements size/stratum/presentation counts and unresolved-rate ranges with reconciled denominators, plus retention qualifications alongside RQ6. No imputation trigger or extra sensitivity fit is adopted. These diagnostics do not establish robustness to missing-not-at-random choices. |
@@ -78,9 +78,22 @@ without fits; expanded output is about 5.2 MB per representative fit. Current
 preparation requires additional canonical role evidence; historical readability
 does not establish A4 completeness. Production adequacy remains unassessed.
 
-Next: add the descriptive Sonnet
-comparison; verify the review's
-saved-draw calculations; update the current review evidence without overwriting
+Amendment 9 implements B3 with policy `B3_descriptive_postreview_2026-10-07`.
+Focused checks cover direct realized draws, zero gamma with nonzero residuals,
+cell/column permutations, missing required cells, count-independent prompt
+weights, sign probabilities and valid prior-variant report integration. The
+26 named / 24 distinct primary decisions and 24-fit plan remain unchanged.
+No new matched contrast, assessment-scale grid, or numeric production result
+is added. Implementation checks do not establish behavioral or causal effects.
+
+Validation on October 7: 198 distinct tests passed across the focused
+contrast, realized-estimand, reporting and prior-contract modules, including
+the separately run all-24-fit synthetic integration test. The QMD rendered
+with execution disabled. No full application-suite rerun or posterior fitting
+was performed for this narrow addition.
+
+Next: verify the review's saved-recovery calculations, including truth mapping
+and amended realized RQ5; update the current review evidence without overwriting
 the September snapshot; test and review the amended contract as a whole.
 Only then obtain any required fit authorization and final-revision preflight
 and collection authorization. The clean-revision guard remains unchanged.

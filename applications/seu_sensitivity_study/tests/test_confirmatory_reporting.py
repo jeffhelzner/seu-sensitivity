@@ -319,8 +319,25 @@ def test_normal_runner_preparation_to_all_fifteen_bound_reports(tmp_path, monkey
     assert a3_report["predictive_check_policy"]["planned_fit_count"] == 24
     assert a3_report["matched_rq5"] == report["matched_rq5"]
     assert a3_report["rq4"] == report["rq4"]
+    assert a3_report["multiplicity"]["primary_decision_count"] == 26
+    assert a3_report["multiplicity"]["distinct_primary_decisions_up_to_sign"] == 24
     for group in ("venture", "hiring", "matched_rq5"):
         for variant in (*reporting.REQUIRED_VARIANTS, *ceiling_prior.PRIOR_VARIANTS):
+            if variant in ceiling_prior.PRIOR_VARIANTS:
+                fit_report = a3_report["ceiling_prior_sensitivity"]["groups"][group]["variants"][variant]["report"]
+            else:
+                section = a3_report["matched_rq5"] if group == "matched_rq5" else a3_report["pools"][group]
+                fit_report = section[variant]
+            assert ("sonnet_thinking_descriptive" in fit_report) == (group != "matched_rq5")
+            if group != "matched_rq5":
+                sonnet = fit_report["sonnet_thinking_descriptive"]
+                assert sonnet["status"] == "descriptive"
+                assert sonnet["pool_id"] == group
+                assert sonnet["median"] == pytest.approx(0)
+                assert sonnet["geometric_mean_sensitivity_ratio"]["median"] == pytest.approx(1)
+                assert sonnet["decision_count"] == 0
+                assert sonnet["included_in_primary_family"] is False
+                assert not {"decision", "rope_half_width", "substantive_interpretation", "assessment_scale"} & sonnet.keys()
             a4 = a3_report["posterior_predictive_checks"][group][variant]["a4"]
             assert a4["status"] == "descriptive"
             assert a4["decision_count"] == 0
@@ -393,12 +410,20 @@ def test_matched_off_support_padding_does_not_define_scale(artifacts):
 
 def test_saved_fit_residuals_use_cell_weights_not_observation_counts(artifacts):
     entry = artifacts["fits"]["venture"]["primary"]
+    cells = reporting.build_cells(["venture"])
+    thinking = [index for index, cell in enumerate(cells) if cell.model_name == "claude-sonnet-4-5-thinking"]
+    base = [index for index, cell in enumerate(cells) if cell.model_name == "claude-sonnet-4-5"]
 
     def unbalance_observations(data):
         data["M_total"] += 1
         data["M_per_cell"][0] += 1
         for field in ("cell", "I", "y"):
             data[field].append(data[field][0])
+        observation = data["cell"].index(thinking[0] + 1)
+        data["M_total"] += 20
+        data["M_per_cell"][thinking[0]] += 20
+        for field in ("cell", "I", "y"):
+            data[field].extend([data[field][observation]] * 20)
         sizes = np.asarray(data["I"]).sum(axis=1)
         data["s"] = (sizes - sizes.mean()).tolist()
 
@@ -412,6 +437,15 @@ def test_saved_fit_residuals_use_cell_weights_not_observation_counts(artifacts):
 
     report = reporting.build_report_from_manifest(artifacts, fit_loader=load_residual_fit)
     primary = report["pools"]["venture"]["primary"]
+    residuals = np.arange(len(cells)) / 10
+    expected = residuals[thinking].mean() - residuals[base].mean()
+    row = primary["sonnet_thinking_descriptive"]
+    assert row["median"] == pytest.approx(expected)
+    assert row["geometric_mean_sensitivity_ratio"]["median"] == pytest.approx(np.exp(expected))
+    data = json.loads(Path(entry["stan_data"]["path"]).read_text())
+    counts = np.asarray(data["M_per_cell"])
+    observation_weighted = np.average(residuals[thinking], weights=counts[thinking]) - np.average(residuals[base], weights=counts[base])
+    assert row["median"] != pytest.approx(observation_weighted)
     assert primary["contrast_decisions"]["rows"][0]["median"] == pytest.approx(0.6)
     assert primary["gamma_companion"]["rows"][0]["median"] == pytest.approx(0.3)
     assert primary["contrast_decisions"]["rows"][7]["median"] == pytest.approx(0.4)

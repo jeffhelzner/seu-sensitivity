@@ -40,8 +40,8 @@ validation of the amended contract.
 | B6: missingness | Amendment 8 implements size/stratum/presentation counts and unresolved-rate ranges with reconciled denominators, plus retention qualifications alongside RQ6. No imputation trigger or extra sensitivity fit is adopted. These diagnostics do not establish robustness to missing-not-at-random choices. |
 | C1: duplicate decisions | Correct count is 26 named decisions and 24 distinct comparisons up to sign, not 25: the OpenAI duplicate is present in each pool. Updated contract and report. |
 | C2: superseded text | Added a banner to the preregistration identifying controlling amendments; preserved historical record. |
-| C3: size-prior interval | Analytic interval is authoritative; historical Monte Carlo approximations must stay labeled with their sources rather than rewritten as new results. Further documentary reconciliation remains open. |
-| C4: display rounding and ties | Preserve raw numerical evidence. Display formatting and tolerance-consistent tie reporting remain open; do not change raw probabilities to hide floating-point representation. |
+| C3: size-prior interval | Reconciled October 7: analytic central 90% interval is [0.1389, 7.1982] for exp(6 gamma_size), using SD 0.2. Report labels and links E4's [0.135, 7.03] and Amendment 2's [0.14, 7.35] as historical finite-draw approximations, not alternative priors or fresh results. |
+| C4: display rounding and ties | Reconciled October 7: a report-local table filter displays neutral probabilities to six decimals without altering raw YAML or verbatim requests. Separate frozen-input appendix reports exact ties and additional near ties for all six arms in each primary pool and matched subset, using canonical normalized eta and absolute tolerance 1e-12, relative tolerance zero. Historical evidence and predictive exact-maximizer rules remain unchanged. |
 | C5: encoded position summary | Resolved under Amendment 8 with actual displayed-position checks stratified by size and presentation. Any retained sorted-index output is explicitly a legacy encoding diagnostic, not display-position evidence. |
 | C6: self-review | Report explicitly labels the author's nine affirmative responses as self-review, not independent acceptance. |
 
@@ -101,9 +101,16 @@ dependent contrasts and shared truths; they are not independent trial counts.
 No production adequacy, new SBC, null false-positive rate, or alternative-prior
 validation follows from this reanalysis.
 
-Next: reconcile remaining documentary issues (including C3/C4), explicitly
-resolve acceptance or remediation of missing historical choice-input provenance,
-and test and review the amended contract as a whole without overwriting the
-September snapshot.
+October 7 C3/C4 reconciliation passes 14 focused tests, including exact agreement
+with Amendment 6's geometry, the near-tie boundary, analytic prior quantiles,
+and table-only formatting with raw request preservation. The separate display
+supplement reproduces exactly from the frozen bundle and records source hashes.
+No assessment, menu, prior, likelihood, decision rule, or historical snapshot
+was changed.
+
+Next: explicitly resolve acceptance or remediation of missing historical
+choice-input provenance, reconcile current machine-contract recovery status
+with the verified evidence, and test and review the amended contract as a whole
+without overwriting the September snapshot.
 Only then obtain any required fit authorization and final-revision preflight
 and collection authorization. The clean-revision guard remains unchanged.

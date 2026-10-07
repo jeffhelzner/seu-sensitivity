@@ -28,15 +28,15 @@ validation of the amended contract.
 
 | Finding | Disposition and remaining work |
 |---|---|
-| A1: additive versus realized estimands | Scientific choice accepted and implemented under Amendment 5. The current report had already distinguished additive components from realized differences, so a literal prose-code contradiction was overstated. Fixed-design questions motivate the change, not greater detection rates. Verify saved-draw operating characteristics, including realized RQ5, before claiming validation. |
+| A1: additive versus realized estimands | Implemented under Amendment 5 on fixed-design scientific grounds, not greater detection rates. October 7 saved-draw verification now covers realized RQ1/RQ2/RQ5, with the historical choice-input provenance limitation recorded separately. The earlier report already distinguished additive components, so a literal prose-code contradiction was overstated. |
 | A2: assessment scale | Approved and implemented in Amendment 6: transform primary posterior draws using finite-set SDs over all 60 primary-pool items or each matched task's own 24. Report fixed-reference gap/tie geometry, original/standardized intervals, offsets and descriptive sign/zero-exclusion changes without ROPE decisions or refits. Hash-bound assembly references are recomputed and checked against retained eta; full menu counts and size/family allocation are enforced. Exact affine rescaling preserves choice probabilities; this does not show that different arms actually differ only by rescaling or that their stated beliefs are artifacts. |
 | A3: ceilings and prior sensitivity | Approved and implemented under Amendment 7: retained-choice geometry, conditional likelihood slices and exact limiting classifications, plus L/H/S prior checks on all three full-data datasets. Offline prior predictions and 841 application tests pass. Nine additional fits are planned, not executed or resource-authorized. No maximizer-rate gate or replacement primary prior is adopted. Posterior robustness and runtime/mixing remain unmeasured; recovery under fitting priors does not guarantee real-data adequacy. |
 | A4: predictive adequacy for size effects | Approved and implemented under Amendment 8: size/stratum, authored-filler, exposure-aware item, displayed-position and paired-presentation checks with explicit descriptive flags and RQ6 qualifications. No new fits or predictive gate. Offline tests pass; no production adequacy result exists. Optional anchored E1 pilot fit still requires separate authorization. |
 | B1: dependence | Retain response-independent presentation fits and report effect/interval changes, not just detection switches. Amendment 8 implements item and paired-presentation diagnostics; excess repetition qualifies independence but does not identify its cause. No requirement to exclude zero in both half-sized datasets and no menu random-effect model are added. |
 | B2: utility grid | Accept limited scope of the existing grid. Few argmax changes do not imply that full softmax probabilities are unchanged. A wider-grid or heuristic comparison needs a specified purpose and method before adding fits. Historical normalization wording is clarified by the preregistration banner. |
 | B3: treatment construction | Implemented under Amendment 9: separate descriptive Sonnet-thinking minus Sonnet realized-cell comparison within venture and hiring, with fixed equal prompt weights, intervals, sign probabilities and geometric-mean sensitivity ratios for all supplied valid variants. Configured arms use their own neutral assessments and differing request settings on the same endpoint; this is not a pure causal reasoning effect. No new primary hypothesis or matched contrast. Retain answer-first/output constraints and visible-probability disclosures; do not infer a necessary downward sensitivity bias from temperature alone. |
-| B4: matched comparison | Accept disclosure of consequence wording and coding-induced prior differences; read together with the descriptive scale check. Review-reported additive detection rates are not realized-RQ5 rates. Verify before incorporation. |
-| B5: recovery evidence | Verify and report shared truth vectors, independent simulated choices, and the generating priors. Preserve the distinction among 120 fits, three design geometries, and independent truth draws. Do not copy operating-characteristic rates into the evidence bundle before checking truth mapping, chain selection, counts and amended RQ5 contrasts. |
+| B4: matched comparison | Consequence wording and coding-induced prior differences remain disclosed. Verified realized RQ5 coverage is 218/240 contrast-dataset cases, mean interval width 0.5418. Review additive rates reproduce but concern different truths/bin memberships; they are not realized-RQ5 rates or a paired power comparison. |
+| B5: recovery evidence | October 7 audit verifies current truth mapping, 480 chain selections, generating priors and saved-draw scores for 120 iterations. Venture/hiring share full truths; matched residuals overlap a shifted RNG stream: 40 coupled seed clusters, not 120 independent truths. Original temporary choice inputs are missing, so exact choice replay and replacement-input equality remain unverified. Final review must explicitly dispose of this provenance limit. Historical evidence is untouched. |
 | B6: missingness | Amendment 8 implements size/stratum/presentation counts and unresolved-rate ranges with reconciled denominators, plus retention qualifications alongside RQ6. No imputation trigger or extra sensitivity fit is adopted. These diagnostics do not establish robustness to missing-not-at-random choices. |
 | C1: duplicate decisions | Correct count is 26 named decisions and 24 distinct comparisons up to sign, not 25: the OpenAI duplicate is present in each pool. Updated contract and report. |
 | C2: superseded text | Added a banner to the preregistration identifying controlling amendments; preserved historical record. |
@@ -92,8 +92,18 @@ the separately run all-24-fit synthetic integration test. The QMD rendered
 with execution disabled. No full application-suite rerun or posterior fitting
 was performed for this narrow addition.
 
-Next: verify the review's saved-recovery calculations, including truth mapping
-and amended realized RQ5; update the current review evidence without overwriting
-the September snapshot; test and review the amended contract as a whole.
+October 7 saved-draw verification is recorded in
+[the recovery note](REALIZED_RECOVERY_VERIFICATION_20261007.md) and a separate
+hash-bound artifact. All 120 current iterations verify and are sampler-eligible;
+all five reviewer detection rows reproduce. The verifier's 32 focused tests and
+exact full-artifact reproduction pass. Aggregate coverage denominators contain
+dependent contrasts and shared truths; they are not independent trial counts.
+No production adequacy, new SBC, null false-positive rate, or alternative-prior
+validation follows from this reanalysis.
+
+Next: reconcile remaining documentary issues (including C3/C4), explicitly
+resolve acceptance or remediation of missing historical choice-input provenance,
+and test and review the amended contract as a whole without overwriting the
+September snapshot.
 Only then obtain any required fit authorization and final-revision preflight
 and collection authorization. The clean-revision guard remains unchanged.

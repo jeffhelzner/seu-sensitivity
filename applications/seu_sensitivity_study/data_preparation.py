@@ -244,6 +244,51 @@ def build_observation_reference(scale_reference, problems):
     return {"version": 1, "menus": sorted(menus, key=lambda menu: menu["id"])}
 
 
+def build_predictive_reference(scale_reference, frozen_reference, items):
+    """Bind canonical authored roles without using assessed utilities or choices."""
+    from collections import Counter
+    from .pools import load_pool
+    from .problem_generation import DEFAULT_RECIPES
+
+    recipes = {recipe.stratum: {"contenders": list(recipe.contenders), "filler_label": recipe.filler_label}
+               for recipe in DEFAULT_RECIPES}
+    expected = {"strong": {"contenders": ["strong", "ambiguous"], "filler_label": "weak"},
+                "ambiguous": {"contenders": ["strong", "strong"], "filler_label": "weak"},
+                "weak": {"contenders": ["ambiguous", "ambiguous"], "filler_label": "weak"}}
+    if recipes != expected:
+        raise ValueError("A4 requires the frozen variant-D recipes")
+    canonical = {item["id"]: {**item, "pool_id": pool_id}
+                 for pool_id in {item["pool_id"] for item in scale_reference["items"]}
+                 for item in load_pool(pool_id)["items"]}
+    required_ids = {item["id"] for item in scale_reference["items"]}
+    if len(items) != len(required_ids) or {item["id"] for item in items} != required_ids:
+        raise ValueError("A4 requires the complete canonical role metadata")
+    for item in items:
+        if any(item.get(field) != canonical[item["id"]][field] for field in ("family", "quality_label")):
+            raise ValueError("A4 quality labels/families must match canonical items, not eta rankings")
+    bound_items = [{field: canonical[item_id][field] for field in ("id", "pool_id", "family", "quality_label")}
+                   for item_id in sorted(required_ids)]
+    menus = []
+    for menu in frozen_reference["menus"]:
+        family = canonical[menu["item_ids"][0]]["family"]
+        size = len(menu["item_ids"])
+        recipe = recipes[menu["difficulty_stratum"]]
+        labels = Counter(canonical[item_id]["quality_label"] for item_id in menu["item_ids"])
+        if (size not in (2, 4, 6, 8)
+                or labels != Counter(recipe["contenders"] + [recipe["filler_label"]] * (size - 2))
+                or any(canonical[item_id]["family"] != family for item_id in menu["item_ids"])):
+            raise ValueError("A4 menu violates the full frozen variant-D contender/filler recipe")
+        orders = {row["presentation_id"]: row["order"] for row in menu["presentations"]}
+        if orders[2] != list(reversed(orders[1])):
+            raise ValueError("A4 requires frozen reversal presentations")
+        menus.append({"id": menu["id"], "pool_id": menu["pool_id"], "family": family,
+                      "difficulty_stratum": menu["difficulty_stratum"], "menu_size": size,
+                      "filler_item_ids": sorted(item_id for item_id in menu["item_ids"]
+                                                if canonical[item_id]["quality_label"] == "weak")})
+    return {"version": 1, "recipe_id": "variant_D", "recipes": recipes,
+            "items": bound_items, "menus": menus}
+
+
 def build_stan_data(
     *,
     pool: Mapping[str, Any],
@@ -539,6 +584,12 @@ def build_stan_data(
         report["assessment_scale_reference"] = scale_reference
         report["observation_metadata_version"] = 2
         report["frozen_observation_reference"] = observation_reference
+        report["predictive_reference"] = build_predictive_reference(
+            scale_reference, observation_reference, pool["items"])
+        bound_menus = {menu["id"]: menu for menu in report["predictive_reference"]["menus"]}
+        if any(problem.get(field) != bound_menus[problem["id"]][field]
+               for problem in problem_set["problems"] for field in ("family", "menu_size")):
+            raise ValueError("A4 authored menu family/size disagrees with canonical composition")
         validate_retained_data(scale_reference, stan_data, report, group=problem_set["pool_id"])
     logger.info(
         "Built Stan data for pool %r: J=%d, R=%d, D=%s, M_total=%d (overall NA %.1f%%)",

@@ -160,10 +160,28 @@ def load_fit(paths):
     return FakeFit(data["P"], data, data_path)
 
 
-def test_build_report_from_saved_fit_manifest(artifacts, tmp_path):
+def test_build_report_from_saved_fit_manifest(artifacts, tmp_path, monkeypatch):
+    from copy import deepcopy
+
+    core_report = reporting.confirmatory_analysis.complete_confirmatory_report
+    original = {}
+
+    def capture_core(**kwargs):
+        result = core_report(**kwargs)
+        original.update(deepcopy(result))
+        return result
+
+    monkeypatch.setattr(reporting.confirmatory_analysis, "complete_confirmatory_report", capture_core)
     report = reporting.build_report_from_manifest(
         artifacts, fit_loader=load_fit
     )
+    for name in ("pools", "matched_rq5", "rq4", "multiplicity"):
+        actual = deepcopy(report[name])
+        sections = actual.values() if name == "pools" else [actual] if name == "matched_rq5" else []
+        for section in sections:
+            for variant in reporting.REQUIRED_VARIANTS:
+                section[variant]["rq6"].pop("predictive_interpretation")
+        assert actual == original[name]
 
     assert report["pools"]["venture"]["primary"]["contrast_decisions"][
         "decision_count"
@@ -189,6 +207,10 @@ def test_build_report_from_saved_fit_manifest(artifacts, tmp_path):
     assert provenance["model"] == f"{reporting.MODEL_NAME}_model"
     assert provenance["chains"] == 4
     assert provenance["max_treedepth"] == 12
+    assert report["posterior_predictive_checks"]["venture"]["primary"]["a4"]["status"] == "unavailable"
+    assert report["pools"]["venture"]["primary"]["rq6"]["predictive_interpretation"]["status"] == "unavailable"
+    comparison = report["pools"]["venture"]["primary"]["rq6"]["predictive_interpretation"]["presentation_comparison"]
+    assert comparison["presentation_1_only"]["change_from_primary"] == {"median": 0., "lower_90": 0., "upper_90": 0.}
     reporting.write_report(tmp_path / "report.json", report)
     json.dumps(report, allow_nan=False)
 
@@ -293,6 +315,25 @@ def test_normal_runner_preparation_to_all_fifteen_bound_reports(tmp_path, monkey
     assert a3_report["pools"] == report["pools"]
     assert a3_report["ceiling_prior_sensitivity"]["complete_fit_count"] == 9
     assert len(a3_report["ceiling_diagnostics"]["matched_rq5"]["cells"]) == 36
+    assert a3_report["predictive_check_policy"]["complete_fit_count"] == 24
+    assert a3_report["predictive_check_policy"]["planned_fit_count"] == 24
+    assert a3_report["matched_rq5"] == report["matched_rq5"]
+    assert a3_report["rq4"] == report["rq4"]
+    for group in ("venture", "hiring", "matched_rq5"):
+        for variant in (*reporting.REQUIRED_VARIANTS, *ceiling_prior.PRIOR_VARIANTS):
+            a4 = a3_report["posterior_predictive_checks"][group][variant]["a4"]
+            assert a4["status"] == "descriptive"
+            assert a4["decision_count"] == 0
+            assert a4["source_bindings"]["cryptographic_execution_proof"] is False
+            assert len(a4["source_bindings"]["observation_set_sha256"]) == 64
+            expected_pools = {"venture", "hiring"} if group == "matched_rq5" else {group}
+            assert {row["pool_id"] for row in a4["groups"]} == expected_pools
+            if variant.startswith("presentation_"):
+                assert all(row["same_item"]["status"] == "unavailable" for row in a4["pairs"])
+        section = a3_report["matched_rq5"] if group == "matched_rq5" else a3_report["pools"][group]
+        assert section["primary"]["rq6"]["predictive_interpretation"]["primary_decision_unchanged"]
+        assert set(section["primary"]["rq6"]["predictive_interpretation"]["presentation_comparison"]) == {
+            "presentation_1_only", "presentation_2_only"}
 
 
 @pytest.mark.parametrize("mutation", [
@@ -692,3 +733,63 @@ def test_rejects_low_ess_even_with_complete_summary():
     payload = reporting.fit_payload(fit, [f"cell-{index}" for index in range(18)], 7)
     with pytest.raises(ValueError, match="tail_ess"):
         reporting.confirmatory_analysis.assert_sampler_gates(payload["diagnostics"])
+
+
+def test_v2_rejects_stale_a4_reference_before_fit_loader(artifacts, monkeypatch):
+    artifacts["schema_version"] = 2
+    replace_json(artifacts["fits"]["venture"]["primary"], "preparation_report",
+                 lambda preparation: preparation.__setitem__("observation_metadata_version", 2))
+    monkeypatch.setattr(assessment_scale, "validate_retained_data", lambda *args, **kwargs: None)
+    with pytest.raises(ValueError, match="regenerate preparation reports.*refresh manifest"):
+        reporting.build_report_from_manifest(artifacts, fit_loader=lambda _: pytest.fail("Stale A4 reached loader"))
+
+
+@pytest.mark.parametrize("mode", ["missing", "failed", "sampler_failed", "missing_files", "no_fit"])
+def test_a4_prior_incompleteness_explicit(artifacts, monkeypatch, tmp_path, mode):
+    from applications.seu_sensitivity_study import ceiling_prior
+
+    artifacts["schema_version"] = 2
+    for variants in artifacts["fits"].values():
+        for entry in variants.values():
+            replace_json(entry, "preparation_report", lambda preparation: preparation.__setitem__("observation_metadata_version", 2))
+    monkeypatch.setattr(reporting.a4_checks, "validate_evidence", lambda *args: {})
+    monkeypatch.setattr(reporting.ceiling_diagnostics, "validate_observations", lambda *args: [])
+    monkeypatch.setattr(reporting.ceiling_diagnostics, "retained_ceiling_report", lambda *args: {})
+    if mode in ("missing", "failed"):
+        artifacts["fits"]["venture"]["prior_L"] = {"status": mode, "reason": "offline declared incomplete"}
+    else:
+        directory = tmp_path / "venture" / "prior_L"
+        chains = directory / "chains"
+        chains.mkdir(parents=True)
+        for index in range(4):
+            (chains / f"chain-{index}.csv").write_text(f"unique prior chain {index}")
+        primary = artifacts["fits"]["venture"]["primary"]
+        data = json.loads(Path(primary["stan_data"]["path"]).read_text())
+        model = Path(reporting.__file__).resolve().parents[2] / "models" / f"{ceiling_prior.SENSITIVITY_MODEL}.stan"
+        artifacts["fits"]["venture"]["prior_L"] = {
+            **primary, "chain_path": str(chains),
+            "chain_sha256": {path.name: reporting._sha256_file(path) for path in chains.glob("*.csv")},
+            "stan_data": bind_json(directory / "stan_data_size.json", ceiling_prior.sensitivity_data(data, "prior_L")),
+            "prior_contract": bind_json(directory / "prior_contract.json", ceiling_prior.prior_contract("prior_L")),
+            "model_source": {"path": str(model), "sha256": reporting._sha256_file(model)}}
+        if mode == "missing_files":
+            for path in chains.glob("*.csv"):
+                path.unlink()
+
+    def loader(paths):
+        if Path(paths[0]).parent.parent.name != "prior_L":
+            return load_fit(paths)
+        if mode == "no_fit":
+            return None
+        fit = load_fit(paths)
+        fit.metadata.cmdstan_config["model"] = ceiling_prior.SENSITIVITY_MODEL
+        fit.variables["prior_settings"] = np.tile(list(ceiling_prior.prior_fields("prior_L").values()), (500, 1))
+        fit.summary_frame.loc["gamma0", "ESS_tail"] = 10
+        return fit
+
+    report = reporting.build_report_from_manifest(artifacts, fit_loader=loader)
+    a4 = report["posterior_predictive_checks"]["venture"]["prior_L"]["a4"]
+    assert a4["status"] == "unavailable"
+    assert a4["fit_status"] == {"missing_files": "missing", "no_fit": "failed"}.get(mode, mode)
+    assert a4["reason"]
+    assert report["multiplicity"]["primary_decision_count"] == 26

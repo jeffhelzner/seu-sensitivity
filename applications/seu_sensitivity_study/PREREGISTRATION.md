@@ -12,6 +12,8 @@ Frozen: 2026-09-06
 > refitting or adding confirmatory decisions.
 > Amendment 7 adds ceiling diagnostics and nine prior-sensitivity fits, for
 > 24 planned fits; the primary priors and 26 named decisions remain unchanged.
+> Amendment 8 expands descriptive predictive checks and RQ6 qualifications
+> using saved replicas, without adding fits or primary decisions.
 > The fixed midpoint is a substantive utility assumption, not merely a choice
 > of units. Further independent-review conditions remain open; **NOT READY**.
 
@@ -692,3 +694,99 @@ A3 specification and offline implementation validation are complete; posterior
 checks and runtime/mixing remain unmeasured. A4, amended recovery verification,
 and other review conditions remain open. Status is **NOT READY**. No posterior
 fit, provider call, preflight, commit, push, or collection is authorized here.
+
+## Amendment 8: expanded predictive checks
+
+Amended: 2026-10-06, before production choice collection, with author approval.
+The complete [approved A4 specification](A4_PREDICTIVE_CHECK_PROPOSAL_20261006.md)
+controls the statistics, groupings, denominators, and interpretation rules.
+This amendment resolves the previously unspecified A4 procedure, the diagnostic
+parts of B1/B6, and C5. It adds no fits or primary decisions: the plan remains
+24 fits and 26 named decisions, 24 distinct up to sign.
+
+### Checks and interpretation
+
+Use the saved replicated choices and joint parameter draws for every supplied,
+sampler-valid variant, on exactly that fit's retained observations and eta.
+Keep the same posterior draw across observations and statistics. These are
+in-sample checks under the independent-choice likelihood, not held-out forecasts
+or calibrated tests. Missing or invalid prior variants remain incomplete.
+
+Report cell and pool/task summaries overall, by size, and by family x authored
+stratum x size. Keep procurement and hiring separate in the matched fit.
+Pool/task summaries weight retained observations equally and do not redefine
+the equally weighted cell estimands. Empty groups remain unavailable with zero
+counts, and all nonempty groups retain counts regardless of sample size.
+
+- Compare exact-maximizer fractions, mean regret, authored-filler fractions,
+  mean selected-choice probabilities and mean log scores. Exact eta maxima are
+  unchanged; A3 near-tie geometry stays separately labeled.
+- Validate the frozen variant-D recipe before classifying weak-labeled items
+  as fillers. A filler may maximize assessed utility. Size-2 filler selection
+  is a structural zero, not evidence that the model reproduces avoidance.
+- Report each item's exposures and observed/replicated selection counts,
+  exposure-conditional rates, and unconditional choice shares. Zero exposure
+  makes a conditional rate unavailable, not an observed zero preference.
+- Map choices from sorted-active index to item ID and then to frozen displayed
+  position. Stratify position distributions by size and presentation. Legacy
+  sorted-index summaries remain encoding diagnostics, not position-bias checks.
+- Pair only the same cell/menu with both presentations retained. Report
+  same-item and same-position fractions, conditional probability-product
+  expectations, and complete/singleton/neither-retained counts. Use both saved
+  replica entries from the same draw. Presentation-only paired checks are
+  unavailable by design; repeated menu compositions do not become one pair.
+- For maximizer, regret, and filler summaries, report equal-weight four-size
+  linear trends with weights `(size - 5) / 20`. Missing any of 2/4/6/8 makes
+  the trend unavailable. These behavioral trends are not gamma_size estimates.
+
+Observed and replicated statistics use consistent stable summation, including
+size-trend inputs, so identical contributions cannot receive discrepancy flags
+solely from different floating-point reduction paths. This does not replace
+exact eta or statistic comparisons with an arbitrary tolerance.
+
+Report central 90% predictive intervals, signed discrepancies, and separate
+less/equal/greater tail fractions. A fixed observed value strictly outside its
+predictive interval receives a descriptive review flag. For draw-dependent
+scores, use within-draw observed-minus-replicated differences and flag an
+interval excluding zero. Report every prespecified row. Flags are not
+multiplicity-controlled discoveries, independent failures, or an omnibus gate.
+
+The RQ6 output carries nonexclusive qualifications for unreproduced size trends,
+choice-pattern and display-position discrepancies, excess same-item repetition,
+missing sizes/pairs, and conditioning on retained observations. Report eligible,
+resolved, retained, unresolved and whole-cell-removed counts with reconciled
+denominators, and size-specific unresolved rates and ranges. Do not double-count
+unresolved rows also removed with their cell. Missingness is not modeled by the
+choice likelihood; predictive agreement cannot establish robustness to it.
+Preserve primary estimates and decisions alongside these qualifications, without
+automatic cancellation, replacement fits, causal mechanism claims, or launch
+clearance. Lack of flags is not proof of model adequacy or precise sensitivity.
+
+### Evidence, migration, and validation
+
+Policy ID is `amendment8_predictive_checks_v1`. Input manifest schema 2, output
+report schema 3, and observation metadata version 2 are unchanged. Preparation
+now additionally binds version-1 `predictive_reference` evidence containing
+canonical item quality labels, recipe `variant_D`, and frozen menus. Validate
+the complete role recipe and sibling evidence; do not infer roles from eta.
+Historical schema-1 preparation without this evidence yields A4 unavailable.
+Current schema-2 inputs require rebuilt preparation reports and refreshed
+SHA256 bindings. Rebuilding this metadata does not itself require refitting;
+any change to actual fit inputs must not be passed off as a metadata refresh.
+
+Expanded results are under `posterior_predictive_checks[group][variant].a4`;
+RQ6 carries `predictive_interpretation`. The full application suite and
+production-shaped offline benchmark completed successfully after an independent
+audit found and corrected aggregation roundoff that falsely flagged identical
+replicas. Regressions cover identical replicas, row permutations, exact tails,
+roles, item exposure, pairs, display mapping, trends, missingness, and unchanged
+primary results. The benchmark uses 5,040 observations, 18 cells, 60 items and
+500 saved synthetic replica draws; it is not a posterior fit or runtime forecast
+for sampling. Its expanded output is approximately 5.2 MB for one fit, so
+machine-readable tables should not all be inlined into the main report.
+
+Implementation validation is not a production adequacy result. No production
+posterior checks have run. Amended recovery verification and other review
+conditions remain open; final-revision preflight and collection authorization
+are still required. Status remains **NOT READY**. No fits, provider calls,
+commits, pushes, or collection are authorized by this amendment.

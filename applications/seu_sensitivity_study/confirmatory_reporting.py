@@ -13,6 +13,7 @@ from analysis.hierarchical_power import fit_diagnostics
 
 from . import confirmatory_analysis
 from . import ceiling_prior, ceiling_diagnostics
+from . import predictive_checks as a4_checks
 from .config import SEUSensitivityStudyConfig, build_cells
 
 REQUIRED_VARIANTS = (
@@ -222,6 +223,27 @@ def build_report_from_manifest(
     report["assessment_scale"] = confirmatory_analysis.assessment_scale.policy()
     report["ceiling_diagnostics"] = ceiling_reports
     report["input_manifest_schema_version"] = manifest["schema_version"]
+    report["predictive_check_policy"] = {"policy_version": a4_checks.POLICY_ID, "decision_count": 0,
+                                         "planned_fit_count": 24, "primary_emphasis": ["venture", "hiring", "matched_rq5"]}
+    for group in ("venture", "hiring", "matched_rq5"):
+        section = report["matched_rq5"] if group == "matched_rq5" else report["pools"][group]
+        for variant in REQUIRED_VARIANTS:
+            section[variant]["rq6"]["predictive_interpretation"] = a4_checks.interpretation(
+                predictive_checks[group][variant]["a4"])
+        section["primary"]["rq6"]["predictive_interpretation"]["presentation_comparison"] = {
+            variant: {
+                "estimate": {key: value for key, value in section[variant]["rq6"].items()
+                             if key != "predictive_interpretation"},
+                "change_from_primary": {key: section[variant]["rq6"][key] - section["primary"]["rq6"][key]
+                                        for key in ("median", "lower_90", "upper_90")},
+                "observation_sets_differ": True,
+                "primary_observation_set_sha256": predictive_checks[group]["primary"]["a4"]["source_bindings"]["observation_set_sha256"],
+                "variant_observation_set_sha256": predictive_checks[group][variant]["a4"]["source_bindings"]["observation_set_sha256"],
+            }
+            for variant in ("presentation_1_only", "presentation_2_only")}
+    report["predictive_check_policy"]["complete_fit_count"] = sum(
+        prediction["a4"]["status"] == "descriptive"
+        for variants in predictive_checks.values() for prediction in variants.values())
     return report
 
 
@@ -253,6 +275,7 @@ def _load_variants(
     provenance[group] = {}
     predictive_checks[group] = {}
     for variant in (*REQUIRED_VARIANTS, *ceiling_prior.PRIOR_VARIANTS):
+        predictive_checks[group][variant] = {"a4": a4_checks.unavailable("Fit not supplied")}
         is_prior = variant in ceiling_prior.PRIOR_VARIANTS
         entry = paths.get(variant)
         if is_prior and entry is None:
@@ -272,6 +295,8 @@ def _load_variants(
         preparation, _ = _load_json_binding(entry["preparation_report"], "preparation_report")
         if a3 and preparation.get("observation_metadata_version") != 2:
             raise ValueError("A3 manifests require version-2 complete frozen observation evidence for every fit")
+        if a3:
+            a4_checks.validate_evidence(data, preparation)
         contract, _ = _load_json_binding(entry["analysis_contract"], "analysis_contract")
         if is_prior:
             declared_prior, _ = _load_json_binding(entry["prior_contract"], "prior_contract")
@@ -303,6 +328,8 @@ def _load_variants(
                 ceiling_diagnostics.validate_observations(data, preparation)
         elif reference != primary_reference:
             raise ValueError("assessment_scale reference differs across sibling fit variants")
+        if variant != "primary" and preparation.get("predictive_reference") is not None:
+            a4_checks.validate_sibling_evidence(primary_preparation, preparation, variant)
         path = _absolute_path(entry["chain_path"], "chain_path")
         try:
             files = _fit_files(path)
@@ -342,11 +369,25 @@ def _load_variants(
         try:
             payload = fit_payload(fit, cell_ids, len(columns), max_treedepth=max_treedepth,
                                   prior_variant=variant if is_prior else "primary")
+            try:
+                confirmatory_analysis.assert_sampler_gates(payload["diagnostics"])
+            except ValueError as error:
+                raise SamplerFailure(str(error)) from error
             prediction = _predictive_checks(fit, data, cell_ids, payload)
+            prediction["a4"] = (a4_checks.build_predictive_report(
+                data, preparation, _draws(fit, "y_pred"), _draws(fit, "alpha_obs"))
+                if preparation.get("predictive_reference") is not None else
+                a4_checks.unavailable("Historical manifest lacks mandatory A4 canonical role/frozen recipe evidence"))
+            prediction["a4"]["source_bindings"] = {
+                "stan_data": entry["stan_data"], "preparation_report": entry["preparation_report"],
+                "chain_sha256": entry["chain_sha256"], "cryptographic_execution_proof": False,
+                "observation_set_sha256": ceiling_prior.digest(preparation.get("observations", [])),
+                "limitation": "Declared byte bindings and equation consistency, not proof of execution inputs"}
         except SamplerFailure as error:
             if not is_prior:
                 raise
             prior_fits[group][variant] = {"status": "sampler_failed", "reason": str(error), "artifacts": dict(entry)}
+            predictive_checks[group][variant] = {"a4": a4_checks.unavailable(f"Sampler-invalid fit: {error}")}
             continue
         if variant == "primary":
             payload["assessment_scale_reference"] = reference
@@ -380,6 +421,11 @@ def _load_variants(
                     {"status": "unavailable", "reason": "Historical manifest lacks mandatory A3 observation binding"})
         if not is_prior:
             variants[variant] = payload
+    for variant in ceiling_prior.PRIOR_VARIANTS:
+        if prior_fits[group][variant].get("status") != "complete":
+            incomplete = prior_fits[group][variant]
+            predictive_checks[group][variant] = {"a4": {
+                **a4_checks.unavailable(incomplete["reason"]), "fit_status": incomplete["status"]}}
     return variants
 
 

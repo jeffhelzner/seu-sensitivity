@@ -104,7 +104,7 @@ def test_matched_rq5_design_identifies_six_within_model_task_contrasts():
             assert sum(abs(value) for value in weights.values()) == 2.0
 
 
-def test_manifest_freezes_approved_rules_and_pending_estimands(design):
+def test_manifest_freezes_approved_rules_and_qualified_recovery_status(design):
     design_matrix, design_columns = design
     manifest = ca.contract_manifest(design_columns, design_matrix)
     assert manifest["interval_quantiles"] == [0.05, 0.95]
@@ -135,7 +135,25 @@ def test_manifest_freezes_approved_rules_and_pending_estimands(design):
         ],
     }
     assert manifest["formal_sbc"]["decision"] == "not_run"
-    assert "does not validate all Amendment 5" in manifest["formal_sbc"]["reason"]
-    assert "pending" in manifest["formal_sbc"]["amended_contrast_validation"]
+    assert "not formal SBC or production adequacy" in manifest["formal_sbc"]["reason"]
+    assert manifest["formal_sbc"]["amended_contrast_validation"] == (
+        "saved_draw_calculations_verified_with_unresolved_choice_input_provenance"
+    )
+    evidence = manifest["formal_sbc"]["recovery_evidence"]
+    assert evidence["verification_date"] == "2026-10-07"
+    assert evidence["artifact"].endswith("/realized_recovery_verification.json")
+    assert evidence["methods_and_limits"].endswith("/REALIZED_RECOVERY_VERIFICATION_20261007.md")
+    assert evidence["verified_iterations"] == 120
+    assert evidence["iterations_per_geometry"] == 40
+    assert evidence["selected_chains"] == 480
+    assert evidence["coupled_seed_clusters"] == 40
+    assert evidence["provenance_disposition"] == "requires_explicit_acceptance_or_remediation_before_final_review"
+    for limitation in (
+        "independent_truth_vectors_across_geometries", "contrast_cases_independent",
+        "choice_input_replay_verified", "replacement_choice_input_equality_verified",
+        "production_adequacy_established", "alternative_prior_recovery_established",
+        "exact_null_false_positive_rate_established",
+    ):
+        assert evidence[limitation] is False
     assert "repeated-menu dependence" in manifest["formal_sbc"]["scope_limitation"]
     assert manifest["rq5"]["representation"] == "assessment_anchored_no_pca"

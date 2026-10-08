@@ -108,9 +108,31 @@ supplement reproduces exactly from the frozen bundle and records source hashes.
 No assessment, menu, prior, likelihood, decision rule, or historical snapshot
 was changed.
 
+October 7 machine-contract reconciliation replaces obsolete pending-recovery
+metadata with verified saved-draw calculations and explicit unresolved
+choice-input provenance. It records 120 iterations, 480 selected chains and
+40 coupled seed clusters without asserting independent contrast cases,
+exact-null calibration, alternative-prior recovery or production adequacy.
+The no-new-SBC decision is unchanged. A read-only contract review also found
+an unqualified 15-fit count in current outputs; this now states 24 total,
+15 base and 9 additional prior fits, all planned rather than authorized.
+The Amendment 5 estimand version and 26 named / 24 distinct decisions remain
+unchanged. Pool and matched contracts are tested against the actual fit plan.
+
+The full application suite passed 935 tests in 6345.11 seconds after the
+recovery-status edit, before the subsequent fit-count metadata correction.
+After that correction, 53 focused contract/realized-estimand tests and all
+116 confirmatory-reporting tests passed (the latter in 795.23 seconds).
+Both October prior/recovery artifacts were regenerated and reproduced exactly
+against the final code. Structured comparisons with the committed artifacts
+found only source-hash changes: confirmatory_analysis in both, and a previously
+stale data_preparation hash in the prior artifact. All 6,410 prior and 18,098
+recovery numerical leaves were unchanged. No posterior fit or provider call
+was performed, and the September snapshot was not refreshed.
+
 Next: explicitly resolve acceptance or remediation of missing historical
-choice-input provenance, reconcile current machine-contract recovery status
-with the verified evidence, and test and review the amended contract as a whole
-without overwriting the September snapshot.
+choice-input provenance and obtain independent scientific acceptance of the
+amended contract. The implementation review and tests do not constitute that
+acceptance or final-revision preflight.
 Only then obtain any required fit authorization and final-revision preflight
 and collection authorization. The clean-revision guard remains unchanged.

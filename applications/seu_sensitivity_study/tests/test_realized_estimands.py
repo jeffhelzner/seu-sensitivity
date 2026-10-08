@@ -345,13 +345,32 @@ def test_rq4_missing_cells_and_missing_realized_information():
         ca.cross_pool_descriptive_report(**arguments)
 
 
+def test_current_pool_and_matched_contract_counts_match_fit_plan(tmp_path):
+    from applications.seu_sensitivity_study.ceiling_prior import fit_plan
+
+    plan = fit_plan(tmp_path)
+    design, columns, _ = config.SEUSensitivityStudyConfig().design_matrix_for_pool("venture")
+    manifests = [ca.contract_manifest(columns, design),
+                 ca.matched_rq5_contract(config.build_cells(["venture", "hiring"]))]
+    additional = sum(row["prior_variant"] != "primary" for row in plan["fits"])
+    for manifest in manifests:
+        contract = manifest["estimand_contract"]
+        assert contract["fit_count"] == plan["planned_fit_count"] == len(plan["fits"])
+        assert contract["additional_prior_fit_count"] == plan["additional_prior_fits"] == additional
+        assert contract["base_fit_count"] + additional == contract["fit_count"]
+        assert contract["version"] == ca.ESTIMAND_VERSION
+
+
 def test_amendment5_contract_retains_names_and_distinct_family_count():
     design, columns, _ = config.SEUSensitivityStudyConfig().design_matrix_for_pool("venture")
     manifest = ca.contract_manifest(columns, design)
     contract = manifest["estimand_contract"]
     assert contract["amendment"] == 5
     assert contract["version"] == ca.ESTIMAND_VERSION
-    assert contract["fit_count"] == 15
+    assert contract["fit_count"] == 24
+    assert contract["base_fit_count"] == 15
+    assert contract["additional_prior_fit_count"] == 9
+    assert "planned, not authorized" in contract["fit_count_scope"]
     assert contract["observation_count_weighting"] is False
     assert contract["gamma_companion"]["decision_count"] == 0
     rows = manifest["primary_contrasts"]

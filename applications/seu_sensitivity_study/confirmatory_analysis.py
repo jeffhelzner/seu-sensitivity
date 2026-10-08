@@ -1105,7 +1105,10 @@ def _estimand_contract() -> Dict[str, Any]:
         "global_rank_check": "retained design must remain full rank with intercept",
         "primary_decision_count": 26,
         "distinct_primary_decisions_up_to_sign": 24,
-        "fit_count": 15,
+        "fit_count": 24,
+        "base_fit_count": 15,
+        "additional_prior_fit_count": 9,
+        "fit_count_scope": "Amendment 7 full plan across venture, hiring and matched RQ5; planned, not authorized",
     }
 
 
@@ -1163,8 +1166,25 @@ def contract_manifest(
         },
         "formal_sbc": {
             "decision": "not_run",
-            "reason": "Historical production-geometry recovery evaluated the anchored model and additive estimands across 40 datasets per fit geometry; it does not validate all Amendment 5 realized-cell contrasts.",
-            "amended_contrast_validation": "pending saved-draw verification, including realized-cell RQ5; no new coverage or power claim",
+            "reason": "The no-new-SBC decision is unchanged. October 7 saved-draw verification reconstructs realized RQ1/RQ2/RQ5 and size-slope recovery for 40 iterations per geometry; this is recovery under the generating model, not formal SBC or production adequacy evidence.",
+            "amended_contrast_validation": "saved_draw_calculations_verified_with_unresolved_choice_input_provenance",
+            "recovery_evidence": {
+                "verification_date": "2026-10-07",
+                "artifact": "reports/applications/seu_sensitivity_study/data/realized_recovery_verification.json",
+                "methods_and_limits": "applications/seu_sensitivity_study/REALIZED_RECOVERY_VERIFICATION_20261007.md",
+                "verified_iterations": 120,
+                "iterations_per_geometry": 40,
+                "selected_chains": 480,
+                "coupled_seed_clusters": 40,
+                "independent_truth_vectors_across_geometries": False,
+                "contrast_cases_independent": False,
+                "choice_input_replay_verified": False,
+                "replacement_choice_input_equality_verified": False,
+                "provenance_disposition": "requires_explicit_acceptance_or_remediation_before_final_review",
+                "production_adequacy_established": False,
+                "alternative_prior_recovery_established": False,
+                "exact_null_false_positive_rate_established": False,
+            },
             "scope_limitation": "SBC under the fitted independent-observation model would not test misspecification from repeated-menu dependence.",
         },
         "multiplicity": {

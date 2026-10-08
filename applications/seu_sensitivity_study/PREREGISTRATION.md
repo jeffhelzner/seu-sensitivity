@@ -2,7 +2,7 @@
 
 Frozen: 2026-09-06
 
-> Current interpretation (2026-10-07): read the dated amendments before using
+> Current interpretation (2026-10-08): read the dated clarification and amendments before using
 > the historical body below. Amendment 1 replaces the latent-belief primary
 > model and the RQ4 variance-component interpretation. Amendment 2 changes the
 > size-slope prior. Amendments 3 and 4 specify the decision contract and required
@@ -17,7 +17,101 @@ Frozen: 2026-09-06
 > Amendment 9 adds a descriptive Sonnet-thinking minus Sonnet comparison
 > within each primary pool, without adding fits or primary decisions.
 > The fixed midpoint is a substantive utility assumption, not merely a choice
-> of units. Further independent-review conditions remain open; **NOT READY**.
+> of units. Independent review 2 and author approval establish **scientifically
+> ready for final preparation and preflight**, not operational readiness or
+> authorization to collect. The historical recovery-provenance limitation is
+> accepted with disclosure, without remediation.
+>
+> Amendment 4's phrases "direct production-geometry calibration" and "consistent
+> with nominal coverage" must be read in the narrower scope established by the
+> October 7 verification: recovery under the generating model with 40 coupled
+> seed clusters and dependent contrast cases, not a formal calibration claim.
+> Review 2 accepted the disclosed historical choice-input provenance limitation
+> on October 8; it did not establish exact replay or authorize collection.
+
+## Approved Review 2 Clarification (2026-10-08)
+
+The author approved all proposals in the [October 8 disposition](REVIEW_DISPOSITION_20261008.md)
+and selected the existing arm-wide **STOP** rule alone, with no descriptive
+available-cell companion. This dated clarification controls current interpretation;
+the historical body and amendment sections below, the October 5 disposition,
+and the September evidence snapshot remain unchanged. Historical **NOT READY**
+statements describe their dated checkpoints, not a reopened scientific review.
+
+**Missing-cell cascade.** Excluding GPT-4o's neutral cell makes eight of a
+pool's ten named primary decisions unavailable: six GPT-4o-involving RQ1
+decisions and both RQ2 decisions. Excluding its SEU-instruction or deliberative
+cell makes seven unavailable: the same six RQ1 decisions and the corresponding
+RQ2 decision. Provided the retained design stays full rank and other required
+checks pass, the Anthropic flagship-minus-small comparison and RQ6 remain
+available, as does the unaffected RQ2 comparison in the latter cases.
+Excluding an entire arm makes the original design rank deficient and stops
+that pool's analysis. No reweighting, additive fallback, reduced-model fit,
+or available-cell companion is adopted.
+
+**Fixed assessment-scale offsets.** The separately dated supplement is specified
+at [offset evidence](../../reports/applications/seu_sensitivity_study/data/offset_evidence.json).
+The supplement is published and its exact offline reproduction passed, as
+recorded in the October 8 disposition. RQ1 adds
+`log(S_a/S_b)` and RQ5 adds `log(S_hiring/S_procurement)`, where S is the
+population SD of normalized assessment-derived expected utilities at midpoint
+0.5 over all 60 primary-pool items or each matched task's own 24 items.
+RQ2 offsets cancel algebraically because prompt siblings share the anchor.
+Negative RQ5 offsets shift a contrast downward; they do not determine the sign
+of either production contrast. These are descriptive changes of scale, not
+new choice findings or decisions. Sonnet-thinking-minus-Sonnet offsets are
+fixed-input context only, not a new standardized Amendment 9 posterior analysis.
+
+**Dependence reporting.** An existing excess same-item repetition flag in
+contributing cells also qualifies the affected RQ1/RQ2/RQ5 reporting rows and
+is read alongside their existing presentation-only estimates. It raises concern
+about the independent-observation uncertainty model without identifying a cause
+or changing any interval, threshold, or primary detection decision. An
+unavailable paired diagnostic is not evidence of no dependence. Use existing
+flags and contributing-cell mappings; add no flag computation, aggregate test,
+refit, gate, or requirement that both presentation-only intervals exclude zero.
+Reporting code now attaches this conditional text and references to existing
+diagnostics and presentation comparisons; no production diagnostic result is claimed.
+
+**RQ2 interpretation.** Because the choice prompts display the assessed
+probabilities, an SEU-instruction effect may reflect following an explicit
+expected-utility calculation rather than greater coherence between beliefs and
+actions beyond that displayed task. Prompts and the estimand are unchanged.
+
+**Finding 5 prerequisite: NOT RUN; separately authorized.** Before L/H/S
+posterior fits, verify primary/prior-sibling log-density equivalence up to a
+constant at primary prior settings on shared unconstrained points and
+production-shaped inputs. Align parameter order, transformations, Jacobian
+settings and density-constant conventions; declare numerical tolerances.
+Check deterministic generated quantities and implied choice probabilities;
+random replicated choices require distributional consistency, not presumed
+bit-for-bit equality. This is required verification before the existing prior
+fits, not a scientific blocker before collection or an additional scientific
+gate. No compilation, density evaluation, generated-quantity execution or fit
+is authorized by this clarification.
+
+**Provenance and current status.** Review 2 accepts the historical evidence as
+saved-draw recovery under the working model at production geometry and an
+indication of precision in those settings, not formal calibration or production
+adequacy. The 120 iterations represent 40 coupled seed clusters with dependent
+contrast cases. Original choice inputs remain missing; exact seed-to-choice
+replay and replacement-input equality remain unverified. No remediation is
+requested or planned for this accepted limitation. The artifact-bound machine
+contract still requires provenance acceptance and its source is unchanged.
+This dated clarification and the October 8 disposition externally supersede
+the pending human-acceptance status only; they do not change verification
+fields, hashes, source bindings, or executable checks.
+
+The family remains 26 named decisions, 24 distinct up to sign; the fit plan
+remains 15 base fits plus nine L/H/S fits, not a crossed grid. Scientific
+readiness does not authorize a clean commit, fresh staging, final-revision
+preflight, a runtime benchmark, posterior fits, provider calls, spending or
+collection. Each remains separately authorized and outstanding for the final
+revision; none was run or authorized in this documentation update. A benchmark
+that fits a model requires fit authorization. Existing historical runs and
+budget approvals remain historical, not authorization for these next steps.
+
+## Historical Preregistration Body
 
 This document freezes the production design and confirmatory decision rules.
 The executable design is

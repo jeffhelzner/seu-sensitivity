@@ -175,8 +175,33 @@ def test_build_report_from_saved_fit_manifest(artifacts, tmp_path, monkeypatch):
     report = reporting.build_report_from_manifest(
         artifacts, fit_loader=load_fit
     )
+    for group in ("venture", "hiring", "matched_rq5"):
+        section = report["matched_rq5"] if group == "matched_rq5" else report["pools"][group]
+        for variant in reporting.REQUIRED_VARIANTS:
+            for row in section[variant]["contrast_decisions"]["rows"]:
+                qualification = row["dependence_qualification"]
+                diagnostic = report
+                for key in qualification["paired_diagnostic_path"]:
+                    diagnostic = diagnostic[key]
+                assert diagnostic["status"] == "unavailable"
+                assert "pairs" not in diagnostic
+                comparison = report
+                for key in qualification["presentation_comparison_path"]:
+                    comparison = comparison[key]
+                assert comparison is section["presentation_sensitivity"]
+
+    def remove_dependence_text(value):
+        if isinstance(value, dict):
+            value.pop("dependence_qualification", None)
+            for child in value.values():
+                remove_dependence_text(child)
+        elif isinstance(value, list):
+            for child in value:
+                remove_dependence_text(child)
+
     for name in ("pools", "matched_rq5", "rq4", "multiplicity"):
         actual = deepcopy(report[name])
+        remove_dependence_text(actual)
         sections = actual.values() if name == "pools" else [actual] if name == "matched_rq5" else []
         for section in sections:
             for variant in reporting.REQUIRED_VARIANTS:

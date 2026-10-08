@@ -228,6 +228,7 @@ def build_report_from_manifest(
     for group in ("venture", "hiring", "matched_rq5"):
         section = report["matched_rq5"] if group == "matched_rq5" else report["pools"][group]
         for variant in REQUIRED_VARIANTS:
+            _attach_contrast_dependence_text(section[variant], group=group, variant=variant)
             section[variant]["rq6"]["predictive_interpretation"] = a4_checks.interpretation(
                 predictive_checks[group][variant]["a4"])
         section["primary"]["rq6"]["predictive_interpretation"]["presentation_comparison"] = {
@@ -245,6 +246,22 @@ def build_report_from_manifest(
         prediction["a4"]["status"] == "descriptive"
         for variants in predictive_checks.values() for prediction in variants.values())
     return report
+
+
+def _attach_contrast_dependence_text(fit_report, *, group, variant):
+    for row in fit_report["contrast_decisions"]["rows"]:
+        if row["research_question"] not in ("RQ1", "RQ2", "RQ5"):
+            continue
+        row["dependence_qualification"] = {
+            "policy": "review2_reporting_clarification_2026-10-08",
+            "contributing_cell_ids": sorted(cell_id for cell_id, weight in row["cell_weights"].items() if weight),
+            "paired_diagnostic_path": ["posterior_predictive_checks", group, variant, "a4"],
+            "paired_diagnostic_section_when_available": "pairs",
+            "presentation_comparison_path": (["matched_rq5"] if group == "matched_rq5" else ["pools", group])
+                + ["presentation_sensitivity"],
+            "primary_decision_unchanged": True,
+            "text": "An excess same-item repetition flag in contributing cells also qualifies this comparison; read it with the existing presentation-only estimates. The flag raises concern about independent-observation uncertainty but does not identify the cause of repetition or change the interval, threshold or detection decision. Unavailable paired diagnostics are not evidence of no dependence.",
+        }
 
 
 def _load_variants(

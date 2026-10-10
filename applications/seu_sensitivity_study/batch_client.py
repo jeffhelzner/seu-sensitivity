@@ -68,7 +68,11 @@ class ProviderBatchClient:
     def process(
         self, requests: Sequence[BatchPrompt], *, state_path: Path
     ) -> Optional[BatchOutcome]:
-        with _single_writer(state_path):
+        from .batch_recovery import active_state_writer
+
+        with active_state_writer(
+            state_path, self.cell, has_reserver=self._submission_reserver is not None
+        ):
             request_hash = self.request_hash(requests)
             if not state_path.exists():
                 state = {
@@ -85,6 +89,8 @@ class ProviderBatchClient:
                 return None
 
             state = json.loads(state_path.read_text())
+            if state.get("provider") != self.provider or state.get("model") != self.model:
+                raise BatchResultError("Batch state provider or model does not match client")
             if state.get("request_hash") != request_hash:
                 raise BatchResultError(
                     f"Batch request changed after submission for {state_path}; "
@@ -95,6 +101,8 @@ class ProviderBatchClient:
                     f"Batch request count does not match durable state for {state_path}"
                 )
             if not state.get("batch_id"):
+                if state.get("status") == "completed":
+                    raise BatchResultError("Completed Batch state has no batch ID; refusing submission")
                 if state.get("status") == "reserving":
                     self._start_submission(requests, state_path, state)
                     return None

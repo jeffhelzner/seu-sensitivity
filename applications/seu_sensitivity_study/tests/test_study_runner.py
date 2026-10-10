@@ -617,6 +617,8 @@ class TestFullPipeline:
             {
                 "submission_id": "submission-1",
                 "status": "completed",
+                "request_hash": "hash-1", "request_count": 1,
+                "provider": cells[0].provider, "model": cells[0].endpoint,
                 "batch_id": "batch-1",
                 "usage": {"estimated_cost_usd": 0.04},
             },
@@ -635,6 +637,8 @@ class TestFullPipeline:
         runner._write_json(
             runner.checkpoint_dir / POOL_ID / "batches" / f"{cells[1].cell_id}.json",
             {"submission_id": "submission-2", "status": "completed",
+             "request_hash": "hash-2", "request_count": 1,
+             "provider": cells[1].provider, "model": cells[1].endpoint,
              "usage": {"estimated_cost_usd": 0.02, "usage_complete": False}},
         )
         runner._write_batch_budget_report()
@@ -663,7 +667,7 @@ class TestFullPipeline:
     def test_production_preflight_stages_and_binds_exact_inputs(
         self, runner, monkeypatch
     ):
-        self._run_all(runner)
+        runner.run(phases=["design", "embed", "assess"])
         repository_root = study_runner.Path(study_runner.__file__).resolve().parents[2]
         monkeypatch.setattr(
             study_runner,
@@ -734,6 +738,15 @@ class TestFullPipeline:
             study_runner.provenance, "toolchain_versions", original_toolchain
         )
 
+        original_sha256_file = study_runner._sha256_file
+        for filename in ("batch_recovery.py", "batch_client.py", "config.py", "study_runner.py"):
+            source = repository_root / "applications/seu_sensitivity_study" / filename
+            monkeypatch.setattr(study_runner, "_sha256_file", lambda path, source=source:
+                                "changed" if path == source else original_sha256_file(path))
+            with pytest.raises(RuntimeError, match="repository hash does not match"):
+                runner._assert_production_preflight(state, cell)
+        monkeypatch.setattr(study_runner, "_sha256_file", original_sha256_file)
+
         staged_problem_content = staged_problem.read_text()
         staged_problem.chmod(0o644)
         staged_problem.write_text(staged_problem_content + "\n")
@@ -751,7 +764,7 @@ class TestFullPipeline:
     def test_production_preflight_blocks_wave_liability_before_staging(
         self, runner, monkeypatch, existing_reserved
     ):
-        self._run_all(runner)
+        runner.run(phases=["design", "embed", "assess"])
         repository_root = study_runner.Path(study_runner.__file__).resolve().parents[2]
         monkeypatch.setattr(study_runner, "_clean_repository_identity", lambda: (repository_root, "test-commit"))
         cells = runner.config.cells_for_pool(POOL_ID)[:2]
@@ -779,6 +792,8 @@ class TestFullPipeline:
             ledger_path.write_text(json.dumps({
                 "submission_id": "prior-submission", "cell_id": "prior-cell",
                 "reservation_usd": existing_reserved,
+                "wave_id": "prior-wave", "request_hash": "prior-hash",
+                "request_count": 1, "provider": "openai", "model": "gpt-4o",
             }) + "\n")
         before = ledger_path.read_bytes() if ledger_path.exists() else None
         with pytest.raises(RuntimeError, match="budget exceeded before production staging"):

@@ -347,6 +347,7 @@ class TestProviderBatchClient:
         client = ProviderBatchClient(cell, sdk_client=sdk)
         path = tmp_path / "state.json"
         path.write_text(json.dumps({"request_hash": client.request_hash(self._requests()),
+                                   "provider": cell.provider, "model": cell.endpoint,
                                    "request_count": 2, "batch_id": "existing-batch"}))
         with pytest.raises(BatchResultError, match="failed request"):
             client.process(self._requests(), state_path=path)
@@ -665,6 +666,7 @@ class TestProviderBatchClient:
                     "request_count": len(self._requests()),
                     "submission_id": "ambiguous-intent",
                     "status": "submission_ambiguous",
+                    "provider": cell.provider, "model": cell.endpoint,
                 }
             )
         )
@@ -744,6 +746,7 @@ class TestProviderBatchClient:
                     "request_count": len(self._requests()),
                     "status": "submission_ambiguous",
                     "submission_id": submission_id,
+                    "provider": client.provider, "model": client.model,
                 }
             )
         )

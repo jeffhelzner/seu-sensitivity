@@ -339,6 +339,7 @@ class SEUSensitivityStudyConfig:
     batch_choice_reservation_per_request_usd: float = 31.0 / 10_080
     batch_wave_id: Optional[str] = None
     batch_wave_cell_ids: List[str] = field(default_factory=list)
+    batch_replacement_authorization: Optional[Dict[str, Any]] = None
 
     # Storage
     results_dir: Optional[str] = None
@@ -392,6 +393,19 @@ class SEUSensitivityStudyConfig:
             raise ValueError(
                 f"batch_wave_cell_ids contains unknown cells: {sorted(unknown_wave_cells)}"
             )
+        if self.batch_replacement_authorization is not None:
+            from .batch_recovery import validate_authorization
+
+            try:
+                authorization = validate_authorization(self.batch_replacement_authorization)
+            except RuntimeError as error:
+                raise ValueError(str(error)) from error
+            if (self.collection_mode != "batch"
+                    or self.batch_wave_id != authorization["wave_id"]
+                    or authorization["cell_id"] not in self.batch_wave_cell_ids
+                    or self.batch_choice_budget_usd != authorization["budget_ceiling_usd"]
+                    or str(Path(self.results_dir).resolve()) != authorization["campaign_root"]):
+                raise ValueError("Replacement config/root/wave/ceiling mismatch")
         if not 0 < self.primary_utility_middle < 1:
             raise ValueError("primary_utility_middle must be strictly between 0 and 1")
         if self.primary_utility_middle not in self.utility_middle_values:
@@ -496,6 +510,7 @@ class SEUSensitivityStudyConfig:
             ),
             "batch_wave_id": self.batch_wave_id,
             "batch_wave_cell_ids": list(self.batch_wave_cell_ids),
+            "batch_replacement_authorization": self.batch_replacement_authorization,
             "stan_model": self.stan_model,
             "primary_utility_middle": self.primary_utility_middle,
             "utility_middle_values": list(self.utility_middle_values),

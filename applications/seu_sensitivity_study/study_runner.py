@@ -56,6 +56,7 @@ from . import pools as pools_module, problem_generation
 from . import provenance, prompts as prompts_module, schemas
 from .assessment_collection import AssessmentCollector
 from .batch_client import ProviderBatchClient
+from . import batch_recovery
 from .choice_collection import ChoiceCollector
 from .client import build_client
 from .config import MODELS, CellSpec, SEUSensitivityStudyConfig, get_model_spec
@@ -441,12 +442,7 @@ class SEUSensitivityStudyRunner:
                 self.checkpoint_dir / pool_id / f"choices_{cell.cell_id}.json"
             )
             if self.config.collection_mode == "batch":
-                batch_state_path = (
-                    self.checkpoint_dir
-                    / pool_id
-                    / "batches"
-                    / f"{cell.cell_id}.json"
-                )
+                batch_state_path = self._batch_state_path(cell)
                 try:
                     payload = collector.collect_batch(
                         batch_client=batch_client,
@@ -880,48 +876,7 @@ class SEUSensitivityStudyRunner:
             request_hashes[cell.cell_id] = cell_evidence["request_hash"]
             request_evidence[cell.cell_id] = cell_evidence
 
-        liabilities = {
-            cell.cell_id: self._batch_request_liability(request_evidence[cell.cell_id], cell)
-            for cell in cells
-        }
-        reservations = self._load_batch_budget_records(
-            self.results_dir / "batch_budget_reservations.jsonl"
-        )
-        reserved_total = math.fsum(record["reservation_usd"] for record in reservations)
-        reserved_cells = {record["cell_id"]: record for record in reservations}
-        additional_liability = 0.0
-        for cell in cells:
-            liability = liabilities[cell.cell_id]["reservation_usd"]
-            existing = reserved_cells.get(cell.cell_id)
-            if existing is not None:
-                if (
-                    existing.get("wave_id") != self.config.batch_wave_id
-                    or existing.get("request_hash") != request_hashes[cell.cell_id]
-                    or existing.get("request_count") != liabilities[cell.cell_id]["request_count"]
-                    or existing["reservation_usd"] < liability
-                ):
-                    raise RuntimeError(
-                        f"Conflicting Batch budget reservation for {cell.cell_id}; "
-                        "replacement attempts require amended authorization"
-                    )
-            else:
-                additional_liability += liability
-        headroom = self.config.batch_choice_budget_usd - reserved_total
-        if additional_liability > headroom:
-            raise RuntimeError(
-                "Batch choice budget exceeded before production staging: "
-                f"reserved=${reserved_total:.6f}, requested=${additional_liability:.6f}, "
-                f"ceiling=${self.config.batch_choice_budget_usd:.2f}"
-            )
-        budget_evidence = {
-            "assumptions": dict(_BATCH_LIABILITY_ASSUMPTIONS),
-            "budget_ceiling_usd": self.config.batch_choice_budget_usd,
-            "reserved_total_usd": reserved_total,
-            "reservation_headroom_usd": headroom,
-            "wave_reservation_usd": math.fsum(item["reservation_usd"] for item in liabilities.values()),
-            "additional_reservation_usd": additional_liability,
-            "cells": liabilities,
-        }
+        budget_evidence = self._batch_budget_evidence(cells, request_evidence)
 
         generated_artifacts = {
             "preflight_config.json": self.config.to_dict(),
@@ -1216,6 +1171,60 @@ class SEUSensitivityStudyRunner:
             "requests": per_request,
         }
 
+    def _batch_budget_evidence(
+        self, cells: Sequence[Any], request_evidence: Mapping[str, Any]
+    ) -> Dict[str, Any]:
+        liabilities = {
+            cell.cell_id: self._batch_request_liability(request_evidence[cell.cell_id], cell)
+            for cell in cells
+        }
+        reservations = self._load_batch_budget_records(self.results_dir / "batch_budget_reservations.jsonl")
+        reserved_total = math.fsum(record["reservation_usd"] for record in reservations)
+        reserved_cells = {}
+        for record in reservations:
+            reserved_cells.setdefault(record["cell_id"], []).append(record)
+        additional_liability = 0.0
+        for cell in cells:
+            liability = liabilities[cell.cell_id]["reservation_usd"]
+            cell_records = reserved_cells.get(cell.cell_id, [])
+            self._refuse_completed_batch(cell)
+            if cell_records:
+                existing = cell_records[-1]
+                if "replacement_authorization" in existing:
+                    self._assert_replacement_config(existing)
+                    batch_recovery.validate_prepared_attempt(self.results_dir, existing)
+                if (
+                    existing.get("wave_id") != self.config.batch_wave_id
+                    or existing.get("request_hash") != request_evidence[cell.cell_id]["request_hash"]
+                    or existing.get("request_count") != liabilities[cell.cell_id]["request_count"]
+                    or existing.get("provider") != cell.provider
+                    or existing.get("model") != cell.endpoint
+                    or existing["reservation_usd"] < liability
+                ):
+                    raise RuntimeError(
+                        f"Conflicting Batch budget reservation for {cell.cell_id}; "
+                        "replacement attempts require amended authorization"
+                    )
+            else:
+                additional_liability += liability
+        headroom = self.config.batch_choice_budget_usd - reserved_total
+        if additional_liability > headroom:
+            raise RuntimeError(
+                "Batch choice budget exceeded before production staging: "
+                f"reserved=${reserved_total:.6f}, requested=${additional_liability:.6f}, "
+                f"ceiling=${self.config.batch_choice_budget_usd:.2f}"
+            )
+        return {
+            "assumptions": dict(_BATCH_LIABILITY_ASSUMPTIONS),
+            "budget_ceiling_usd": self.config.batch_choice_budget_usd,
+            "reserved_total_usd": reserved_total,
+            "reservation_headroom_usd": headroom,
+            "wave_reservation_usd": math.fsum(item["reservation_usd"] for item in liabilities.values()),
+            "additional_reservation_usd": additional_liability,
+            "retained_reservations": reservations,
+            "cells": liabilities,
+        }
+
     def _reserve_batch_budget(
         self, state: Mapping[str, Any], cell: Any
     ) -> None:
@@ -1243,6 +1252,7 @@ class SEUSensitivityStudyRunner:
                 ) from error
             records = self._load_batch_budget_records(path)
             cell_ids = {record["cell_id"] for record in records}
+            self._refuse_completed_batch(cell)
 
             submission_id = str(state["submission_id"])
             reservation_usd = liability["reservation_usd"]
@@ -1255,6 +1265,13 @@ class SEUSensitivityStudyRunner:
                 if record.get("submission_id") == submission_id
             ]
             if existing:
+                if "replacement_authorization" in existing[0]:
+                    self._assert_replacement_config(existing[0])
+                    prepared_path = batch_recovery.validate_prepared_attempt(self.results_dir, existing[0])
+                    if json.loads(prepared_path.read_text()) != dict(state) or state.get("status") != "reserving":
+                        raise RuntimeError("Replacement is not the exact prepared, unsubmitted intent")
+                elif any(record.get("replacement_authorization") and record["cell_id"] == cell.cell_id for record in records):
+                    raise RuntimeError("Prior intent has been replaced; refusing submission")
                 if (
                     existing[0]["reservation_usd"] < reservation_usd
                     or any(existing[0].get(key) != value for key, value in {
@@ -1423,16 +1440,24 @@ class SEUSensitivityStudyRunner:
         cell_ids = set()
         if not path.exists():
             return records
-        with open(path) as handle:
+        prefix_digest = hashlib.sha256()
+        with open(path, "rb") as handle:
             for line_number, line in enumerate(handle, start=1):
                 if not line.strip():
+                    prefix_digest.update(line)
                     continue
+                if not line.endswith(b"\n"):
+                    raise RuntimeError(f"Invalid or truncated budget ledger at line {line_number}: {path}")
                 try:
                     record = json.loads(line)
-                except json.JSONDecodeError as error:
+                except (json.JSONDecodeError, UnicodeDecodeError) as error:
                     raise RuntimeError(
                         f"Invalid or truncated budget ledger at line {line_number}: {path}"
                     ) from error
+                if not isinstance(record, dict):
+                    raise RuntimeError(
+                        f"Invalid or truncated budget ledger at line {line_number}: {path}"
+                    )
                 submission_id = record.get("submission_id")
                 reservation = record.get("reservation_usd")
                 cell_id = record.get("cell_id")
@@ -1446,24 +1471,67 @@ class SEUSensitivityStudyRunner:
                     or not math.isfinite(reservation)
                     or reservation <= 0
                     or submission_id in submission_ids
-                    or cell_id in cell_ids
                 ):
                     raise RuntimeError(
                         f"Invalid or truncated budget ledger at line {line_number}: {path}"
                     )
+                if (not isinstance(record.get("wave_id"), str) or not record["wave_id"]
+                        or not isinstance(record.get("request_hash"), str) or not record["request_hash"]
+                        or type(record.get("request_count")) is not int or record["request_count"] <= 0
+                        or not isinstance(record.get("provider"), str)
+                        or record["provider"] not in {"openai", "anthropic"}
+                        or not isinstance(record.get("model"), str) or not record["model"]):
+                    raise RuntimeError(f"Invalid or truncated budget ledger at line {line_number}: {path}")
+                prior_records = [prior for prior in records if prior["cell_id"] == cell_id]
+                if "replacement_authorization" in record:
+                    if len(prior_records) != 1 or "replacement_authorization" in prior_records[0]:
+                        raise RuntimeError("Invalid replacement ledger lineage")
+                    batch_recovery.validate_replacement_record(record, prior_records[0])
+                    if prefix_digest.hexdigest() != record["replacement_authorization"]["prior_ledger_sha256"]:
+                        raise RuntimeError("Replacement ledger prefix differs from retained original snapshot")
+                elif cell_id in cell_ids:
+                    raise RuntimeError(f"Invalid duplicate cell in budget ledger at line {line_number}: {path}")
                 submission_ids.add(submission_id)
                 cell_ids.add(cell_id)
                 records.append(record)
+                prefix_digest.update(line)
         return records
+
+    def _assert_replacement_config(self, record: Mapping[str, Any]) -> None:
+        authorization = record["replacement_authorization"]
+        if (self.config.batch_replacement_authorization != authorization
+                or self.config.batch_wave_id != authorization["wave_id"]
+                or authorization["cell_id"] not in self.config.batch_wave_cell_ids
+                or self.config.batch_choice_budget_usd != authorization["budget_ceiling_usd"]):
+            raise RuntimeError("Replacement requires exact explicit config authorization")
+
+    def _batch_state_path(self, cell: Any) -> Path:
+        with batch_recovery._single_writer(batch_recovery.cell_state_path(self.results_dir, cell)):
+            return batch_recovery.resolve_active_state(self.results_dir, cell)
+
+    def _refuse_completed_batch(self, cell: Any) -> None:
+        if (self._pool_dir(cell.pool_id) / "choices" / f"{cell.cell_id}.json").exists():
+            raise RuntimeError(f"Completed cell cannot be submitted: {cell.cell_id}")
+        paths = [self.checkpoint_dir / cell.pool_id / "batches" / f"{cell.cell_id}.json"]
+        paths.extend((self.checkpoint_dir / cell.pool_id / "batches" / "attempts").glob("*/state.json"))
+        for path in paths:
+            if path.exists():
+                state = json.loads(path.read_text())
+                if (path == paths[0] or state.get("cell_id") == cell.cell_id) and state.get("status") == "completed":
+                    raise RuntimeError(f"Completed cell cannot be submitted: {cell.cell_id}")
 
     def _write_batch_budget_report(self) -> None:
         ledger_path = self.results_dir / "batch_budget_reservations.jsonl"
         reservations = self._load_batch_budget_records(ledger_path)
         states = {}
-        for state_path in sorted(self.checkpoint_dir.glob("*/batches/*.json")):
+        state_paths = list(self.checkpoint_dir.glob("*/batches/*.json"))
+        state_paths.extend(self.checkpoint_dir.glob("*/batches/attempts/*/state.json"))
+        for state_path in sorted(state_paths):
             state = json.loads(state_path.read_text())
             submission_id = state.get("submission_id")
             if submission_id:
+                if submission_id in states:
+                    raise RuntimeError("Duplicate durable state for Batch submission intent")
                 states[submission_id] = (state_path, state)
 
         attempts = []
@@ -1471,6 +1539,17 @@ class SEUSensitivityStudyRunner:
         for reservation in reservations:
             state_entry = states.get(reservation["submission_id"])
             state_path, state = state_entry if state_entry else (None, {})
+            if "replacement_authorization" in reservation:
+                batch_recovery.validate_prepared_attempt(self.results_dir, reservation)
+            if state_entry:
+                for key in ("request_hash", "request_count", "provider", "model"):
+                    if state.get(key) != reservation.get(key):
+                        raise RuntimeError(f"Batch report state/reservation {key} mismatch")
+                expected_path = (batch_recovery.attempt_directory(self.results_dir, reservation["replacement_authorization"]) / "state.json"
+                                 if "replacement_authorization" in reservation else
+                                 self.checkpoint_dir / state_path.parent.parent.name / "batches" / f"{reservation['cell_id']}.json")
+                if state_path != expected_path:
+                    raise RuntimeError("Batch report state/cell path mismatch")
             usage = state.get("usage") or {}
             usage_estimated_cost = usage.get("estimated_cost_usd")
             if isinstance(usage_estimated_cost, (int, float)) and math.isfinite(

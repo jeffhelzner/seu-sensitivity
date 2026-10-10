@@ -130,8 +130,8 @@ reports/**/.jupyter_cache/
 *_files/
 
 # Reports legacy data (keep source .qmd files)
-reports/*.csv 
-reports/*.json  
+reports/*.csv
+reports/*.json
 
 # Prior-sensitivity sweep: regenerable MCMC draw caches (rebuilt by
 # working_papers/seu_sensitivity_methodology/spikes/report_prior_sensitivity_spike.py
@@ -153,3 +153,5 @@ plan.txt
 !reports/_freeze/**/figure-html/*.jpg
 
 local
+
+/.luarc.json

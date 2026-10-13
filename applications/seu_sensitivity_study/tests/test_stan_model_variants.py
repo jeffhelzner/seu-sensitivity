@@ -354,6 +354,35 @@ def test_sampler_summary_recovers_tail_evidence_and_rejects_missing(tmp_path):
     assert not report["all_passed"]
 
 
+@pytest.mark.parametrize("saved_warmup", [False, True])
+def test_fit_diagnostics_uses_post_warmup_method_rows(saved_warmup):
+    from analysis.hierarchical_power import posterior_method_variables
+
+    class SavedWarmupFit:
+        column_names = ("treedepth__", "divergent__", "energy__", "gamma0")
+        metadata = type("Metadata", (), {"cmdstan_config": {"model": "h_m01_size_assessment_anchored"}})()
+
+        def draws(self, *, inc_warmup=False):
+            posterior = np.array([[[5, 0, 1, 2]], [[6, 1, 2, 2]], [[5, 0, 1, 2]]], dtype=float)
+            warmup = np.array([[[12, 1, 100, 9]], [[12, 1, 200, 9]]], dtype=float)
+            return np.concatenate([warmup, posterior]) if inc_warmup and saved_warmup else posterior
+
+        def method_variables(self):
+            raise AssertionError("Do not use warmup-inclusive method_variables")
+
+        def summary(self):
+            return pd.DataFrame({"ESS_bulk": [600.0], "ESS_tail": [700.0], "R_hat": [1.001]}, index=["gamma0"])
+
+    fit = SavedWarmupFit()
+    methods = posterior_method_variables(fit)
+    assert methods["energy__"].shape == (3, 1)
+    assert "gamma0" not in methods
+    diagnostics = fit_diagnostics(fit, seconds=1, max_treedepth=12)
+    assert diagnostics["divergences"] == 1
+    assert diagnostics["treedepth_saturated_share"] == 0
+    assert diagnostics["min_ebfmi"] == pytest.approx(4.5)
+
+
 def test_fit_diagnostics_covers_parameters_and_excludes_observation_arrays():
     class FakeFit:
         metadata = type("Metadata", (), {"cmdstan_config": {"model": "h_m01_size_pinned"}})()

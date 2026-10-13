@@ -61,6 +61,15 @@ DIAGNOSTIC_EXCLUDE_PREFIXES = (
 )
 
 
+def posterior_method_variables(fit: Any) -> Dict[str, Any]:
+    """Read sampler diagnostics from the same post-warmup draws as parameters."""
+    if hasattr(fit, "draws") and hasattr(fit, "column_names"):
+        draws = fit.draws(inc_warmup=False)
+        return {name: draws[:, :, index] for index, name in enumerate(fit.column_names)
+                if name.endswith("__")}
+    return fit.method_variables()
+
+
 def fit_diagnostics(fit: Any, *, seconds: float, max_treedepth: int) -> Dict[str, Any]:
     """Return all-parameter mixing diagnostics, excluding per-observation arrays."""
     summary = fit.summary()
@@ -100,7 +109,7 @@ def fit_diagnostics(fit: Any, *, seconds: float, max_treedepth: int) -> Dict[str
     tail = {name: value if np.isfinite(value) else None for name, value in tail.items()}
     rhat = {name: value if np.isfinite(value) else None for name, value in rhat.items()}
 
-    method_variables = fit.method_variables()
+    method_variables = posterior_method_variables(fit)
     treedepth = np.asarray(method_variables["treedepth__"])
     divergent = np.asarray(method_variables["divergent__"])
     energy = np.asarray(method_variables.get("energy__", []), dtype=float)

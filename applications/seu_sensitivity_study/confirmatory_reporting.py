@@ -9,7 +9,7 @@ from typing import Any, Dict, Mapping
 
 import numpy as np
 
-from analysis.hierarchical_power import fit_diagnostics
+from analysis.hierarchical_power import fit_diagnostics, posterior_method_variables
 
 from . import confirmatory_analysis
 from . import ceiling_prior, ceiling_diagnostics
@@ -85,7 +85,7 @@ def fit_payload(
         raise ValueError("Posterior parameter arrays have inconsistent draw counts")
     if np.any(sigma_cell < 0):
         raise ValueError("sigma_cell draws must be nonnegative")
-    methods = fit.method_variables()
+    methods = posterior_method_variables(fit)
     if getattr(fit, "chains", None) != 4 or any(
         name not in methods
         or np.asarray(methods[name]).ndim != 2

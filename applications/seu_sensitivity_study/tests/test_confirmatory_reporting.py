@@ -80,6 +80,27 @@ class FakeFit:
         }
 
 
+def test_fit_payload_excludes_saved_warmup(monkeypatch):
+    fit = FakeFit(7)
+    posterior = fit.method_variables()
+    posterior["divergent__"][0, 1] = 1
+    names = tuple(posterior)
+
+    def draws(*, inc_warmup=False):
+        assert inc_warmup is False
+        return np.stack([posterior[name] for name in names], axis=2)
+
+    def forbidden_methods():
+        raise AssertionError("Warmup-inclusive method_variables must not be called")
+
+    monkeypatch.setattr(fit, "column_names", names, raising=False)
+    monkeypatch.setattr(fit, "draws", draws, raising=False)
+    monkeypatch.setattr(fit, "method_variables", forbidden_methods)
+    payload = reporting.fit_payload(fit, [f"cell_{index}" for index in range(18)], 7)
+    assert payload["diagnostics"]["divergences"] == 1
+    assert payload["diagnostics"]["treedepth_saturated_share"] == 0
+
+
 def bind_json(path, payload):
     path.write_text(json.dumps(payload))
     return {"path": str(path), "sha256": reporting._sha256_file(path)}

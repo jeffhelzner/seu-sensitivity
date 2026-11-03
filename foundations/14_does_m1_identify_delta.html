@@ -2,12 +2,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.10.19">
+<meta name="generator" content="quarto-1.11.9">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Jeff Helzner">
-<meta name="dcterms.date" content="2026-10-13">
+<meta name="dcterms.date" content="2026-11-03">
 <meta name="description" content="Matched-design parameter recovery testing whether adding risky choices (model m_1) delivers the δ identification gain over uncertain-only choices (model m_0) that the theoretical argument in Report 5 predicts.">
 
 <title>Does m_1 Actually Identify δ? – SEU Sensitivity</title>
@@ -76,18 +76,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <meta name="quarto:offset" content="../">
 <script src="../site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/scrollable-regions/scrollable-regions.js" type="module"></script>
 <script src="../site_libs/quarto-html/popper.min.js"></script>
 <script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="../site_libs/quarto-html/anchor.min.js"></script>
 <link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-b626d73c4c936ccc3cb08be7d45d1df6.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
-<link href="../site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-447e42e69aaa9833c0ba1b986f430b20.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-c437ad11e1d67a51fa3dde503bd277dc.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-5e239b22ec86e4a63f82b282723b4b9a.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-c437ad11e1d67a51fa3dde503bd277dc.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-60914fbec40499f9cff500616e78cd0c.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-d3abddf4db13a0ef7bbf441d66447479.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-60914fbec40499f9cff500616e78cd0c.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -150,64 +151,16 @@ window.Quarto = {
 <link rel="stylesheet" href="../styles/seu-sensitivity.css">
 <meta name="citation_title" content="Does m_1 Actually Identify δ?">
 <meta name="citation_author" content="Jeff Helzner">
-<meta name="citation_publication_date" content="2026-10-13">
-<meta name="citation_cover_date" content="2026-10-13">
+<meta name="citation_publication_date" content="2026-11-03">
+<meta name="citation_cover_date" content="2026-11-03">
 <meta name="citation_year" content="2026">
-<meta name="citation_online_date" content="2026-10-13">
+<meta name="citation_online_date" content="2026-11-03">
 <meta name="citation_fulltext_html_url" content="https://jeffhelzner.github.io/seu-sensitivity/foundations/14_does_m1_identify_delta.html">
 <meta name="citation_language" content="en">
 <meta name="citation_journal_title" content="SEU Sensitivity Project">
-<meta name="citation_reference" content="citation_title=Sensitivity to subjective expected utility maximization: A methodological study, with an illustrative application to LLM decision-making;,citation_author=Jeff Helzner;,citation_publication_date=2026;,citation_cover_date=2026;,citation_year=2026;,citation_fulltext_html_url=https://arxiv.org/abs/2607.11920v1;,citation_doi=10.48550/arXiv.2607.11920;">
-<meta name="citation_reference" content="citation_title=Theory of games and economic behavior;,citation_author=John Neumann;,citation_author=Oskar Morgenstern;,citation_publication_date=1947;,citation_cover_date=1947;,citation_year=1947;">
-<meta name="citation_reference" content="citation_title=The foundations of statistics;,citation_author=Leonard J. Savage;,citation_publication_date=1954;,citation_cover_date=1954;,citation_year=1954;">
-<meta name="citation_reference" content="citation_title=Individual choice behavior: A theoretical analysis;,citation_author=R. Duncan Luce;,citation_publication_date=1959;,citation_cover_date=1959;,citation_year=1959;">
-<meta name="citation_reference" content="citation_title=Conditional logit analysis of qualitative choice behavior;,citation_author=Daniel McFadden;,citation_editor=Paul Zarembka;,citation_publication_date=1974;,citation_cover_date=1974;,citation_year=1974;,citation_inbook_title=Frontiers in econometrics;">
-<meta name="citation_reference" content="citation_title=Discrete choice methods with simulation;,citation_author=Kenneth E. Train;,citation_publication_date=2009;,citation_cover_date=2009;,citation_year=2009;">
-<meta name="citation_reference" content="citation_title=Validating Bayesian inference algorithms with simulation-based calibration;,citation_author=Sean Talts;,citation_author=Michael Betancourt;,citation_author=Daniel Simpson;,citation_author=Aki Vehtari;,citation_author=Andrew Gelman;,citation_publication_date=2018;,citation_cover_date=2018;,citation_year=2018;,citation_journal_title=arXiv preprint arXiv:1804.06788;">
-<meta name="citation_reference" content="citation_title=Bayesian workflow;,citation_author=Andrew Gelman;,citation_author=Aki Vehtari;,citation_author=Daniel Simpson;,citation_author=Charles C. Margossian;,citation_author=Bob Carpenter;,citation_author=Yuling Yao;,citation_author=Lauren Kennedy;,citation_author=Jonah Gabry;,citation_author=Paul-Christian Bürkner;,citation_author=Martin Modrák;,citation_publication_date=2020;,citation_cover_date=2020;,citation_year=2020;,citation_journal_title=arXiv preprint arXiv:2011.01808;">
-<meta name="citation_reference" content="citation_title=Stan: A probabilistic programming language;,citation_author=Bob Carpenter;,citation_author=Andrew Gelman;,citation_author=Matthew D. Hoffman;,citation_author=Daniel Lee;,citation_author=Ben Goodrich;,citation_author=Michael Betancourt;,citation_author=Marcus Brubaker;,citation_author=Jiqiang Guo;,citation_author=Peter Li;,citation_author=Allen Riddell;,citation_publication_date=2017;,citation_cover_date=2017;,citation_year=2017;,citation_issue=1;,citation_volume=76;,citation_journal_title=Journal of Statistical Software;">
-<meta name="citation_reference" content="citation_title=Visualization in Bayesian workflow;,citation_author=Jonah Gabry;,citation_author=Daniel Simpson;,citation_author=Aki Vehtari;,citation_author=Michael Betancourt;,citation_author=Andrew Gelman;,citation_publication_date=2019;,citation_cover_date=2019;,citation_year=2019;,citation_issue=2;,citation_volume=182;,citation_journal_title=Journal of the Royal Statistical Society: Series A;">
-<meta name="citation_reference" content="citation_title=The logic of decision;,citation_author=Richard C. Jeffrey;,citation_publication_date=1965;,citation_cover_date=1965;,citation_year=1965;">
-<meta name="citation_reference" content="citation_title=Prospect theory: An analysis of decision under risk;,citation_author=Daniel Kahneman;,citation_author=Amos Tversky;,citation_publication_date=1979;,citation_cover_date=1979;,citation_year=1979;,citation_issue=2;,citation_volume=47;,citation_journal_title=Econometrica;">
-<meta name="citation_reference" content="citation_title=Advances in prospect theory: Cumulative representation of uncertainty;,citation_author=Amos Tversky;,citation_author=Daniel Kahneman;,citation_publication_date=1992;,citation_cover_date=1992;,citation_year=1992;,citation_issue=4;,citation_volume=5;,citation_journal_title=Journal of Risk and Uncertainty;">
-<meta name="citation_reference" content="citation_title=The enterprise of knowledge: An essay on knowledge, credal probability, and chance;,citation_author=Isaac Levi;,citation_publication_date=1980;,citation_cover_date=1980;,citation_year=1980;">
-<meta name="citation_reference" content="citation_title=Hard choices: Decision making under unresolved conflict;,citation_author=Isaac Levi;,citation_publication_date=1986;,citation_cover_date=1986;,citation_year=1986;">
-<meta name="citation_reference" content="citation_title=A behavioral model of rational choice;,citation_author=Herbert A. Simon;,citation_publication_date=1955;,citation_cover_date=1955;,citation_year=1955;,citation_issue=1;,citation_volume=69;,citation_journal_title=The Quarterly Journal of Economics;">
-<meta name="citation_reference" content="citation_title=Reasoning the fast and frugal way: Models of bounded rationality;,citation_author=Gerd Gigerenzer;,citation_author=Daniel G. Goldstein;,citation_publication_date=1996;,citation_cover_date=1996;,citation_year=1996;,citation_volume=103;,citation_inbook_title=Psychological review;">
-<meta name="citation_reference" content="citation_title=The methodology of positive economics;,citation_author=Milton Friedman;,citation_publication_date=1953;,citation_cover_date=1953;,citation_year=1953;,citation_journal_title=Essays in Positive Economics;,citation_publisher=University of Chicago Press;">
-<meta name="citation_reference" content="citation_title=Risk, uncertainty and profit;,citation_author=Frank H. Knight;,citation_publication_date=1921;,citation_cover_date=1921;,citation_year=1921;">
-<meta name="citation_reference" content="citation_title=Theory of games and economic behavior;,citation_author=John Neumann;,citation_author=Oskar Morgenstern;,citation_publication_date=1944;,citation_cover_date=1944;,citation_year=1944;">
-<meta name="citation_reference" content="citation_title=The foundations of statistics;,citation_author=Leonard J. Savage;,citation_publication_date=1954;,citation_cover_date=1954;,citation_year=1954;">
-<meta name="citation_reference" content="citation_title=A definition of subjective probability;,citation_author=Francis J. Anscombe;,citation_author=Robert J. Aumann;,citation_publication_date=1963;,citation_cover_date=1963;,citation_year=1963;,citation_issue=1;,citation_volume=34;,citation_journal_title=Annals of Mathematical Statistics;">
-<meta name="citation_reference" content="citation_title=Notes on the theory of choice;,citation_author=David M. Kreps;,citation_publication_date=1988;,citation_cover_date=1988;,citation_year=1988;">
-<meta name="citation_reference" content="citation_title=Identification in parametric models;,citation_author=Thomas J. Rothenberg;,citation_publication_date=1971;,citation_cover_date=1971;,citation_year=1971;,citation_issue=3;,citation_volume=39;,citation_journal_title=Econometrica;,citation_publisher=Wiley;">
-<meta name="citation_reference" content="citation_title=Telling more than we can know: Verbal reports on mental processes;,citation_author=Richard E. Nisbett;,citation_author=Timothy D. Wilson;,citation_publication_date=1977;,citation_cover_date=1977;,citation_year=1977;,citation_issue=3;,citation_volume=84;,citation_journal_title=Psychological Review;,citation_publisher=American Psychological Association;">
-<meta name="citation_reference" content="citation_title=Verbal overshadowing of visual memories: Some things are better left unsaid;,citation_author=Jonathan W. Schooler;,citation_author=Tonya Y. Engstler-Schooler;,citation_publication_date=1990;,citation_cover_date=1990;,citation_year=1990;,citation_issue=1;,citation_volume=22;,citation_journal_title=Cognitive Psychology;,citation_publisher=Elsevier;">
-<meta name="citation_reference" content="citation_title=Data analysis using regression and multilevel/hierarchical models;,citation_author=Andrew Gelman;,citation_author=Jennifer Hill;,citation_publication_date=2007;,citation_cover_date=2007;,citation_year=2007;">
-<meta name="citation_reference" content="citation_title=Investigating generalizations of expected utility theory using experimental data;,citation_author=John D. Hey;,citation_author=Chris Orme;,citation_publication_date=1994;,citation_cover_date=1994;,citation_year=1994;,citation_issue=6;,citation_volume=62;,citation_journal_title=Econometrica;">
-<meta name="citation_reference" content="citation_title=Quantal response equilibria for normal form games;,citation_author=Richard D. McKelvey;,citation_author=Thomas R. Palfrey;,citation_publication_date=1995;,citation_cover_date=1995;,citation_year=1995;,citation_issue=1;,citation_volume=10;,citation_journal_title=Games and Economic Behavior;">
-<meta name="citation_reference" content="citation_title=Rational use of cognitive resources: Levels of analysis between the computational and the algorithmic;,citation_author=Thomas L. Griffiths;,citation_author=Falk Lieder;,citation_author=Noah D. Goodman;,citation_publication_date=2015;,citation_cover_date=2015;,citation_year=2015;,citation_issue=2;,citation_volume=7;,citation_journal_title=Topics in Cognitive Science;">
-<meta name="citation_reference" content="citation_title=Resource-rational analysis: Understanding human cognition as the optimal use of limited computational resources;,citation_author=Falk Lieder;,citation_author=Thomas L. Griffiths;,citation_publication_date=2020;,citation_cover_date=2020;,citation_year=2020;,citation_volume=43;,citation_journal_title=Behavioral and Brain Sciences;,citation_publisher=Cambridge University Press;">
-<meta name="citation_reference" content="citation_title=Implications of rational inattention;,citation_author=Christopher A. Sims;,citation_publication_date=2003;,citation_cover_date=2003;,citation_year=2003;,citation_issue=3;,citation_volume=50;,citation_journal_title=Journal of Monetary Economics;">
-<meta name="citation_reference" content="citation_title=Revealed preference, rational inattention, and costly information acquisition;,citation_author=Andrew Caplin;,citation_author=Mark Dean;,citation_publication_date=2015;,citation_cover_date=2015;,citation_year=2015;,citation_issue=7;,citation_volume=105;,citation_journal_title=American Economic Review;">
-<meta name="citation_reference" content="citation_title=Risk, ambiguity, and the Savage axioms;,citation_author=Daniel Ellsberg;,citation_publication_date=1961;,citation_cover_date=1961;,citation_year=1961;,citation_issue=4;,citation_volume=75;,citation_journal_title=The Quarterly Journal of Economics;">
-<meta name="citation_reference" content="citation_title=Recent developments in modeling preferences: Uncertainty and ambiguity;,citation_author=Colin Camerer;,citation_author=Martin Weber;,citation_publication_date=1992;,citation_cover_date=1992;,citation_year=1992;,citation_issue=4;,citation_volume=5;,citation_journal_title=Journal of Risk and Uncertainty;">
-<meta name="citation_reference" content="citation_title=Maxmin expected utility with non-unique prior;,citation_author=Itzhak Gilboa;,citation_author=David Schmeidler;,citation_publication_date=1989;,citation_cover_date=1989;,citation_year=1989;,citation_issue=2;,citation_volume=18;,citation_journal_title=Journal of Mathematical Economics;">
-<meta name="citation_reference" content="citation_title=Ambiguity and ambiguity aversion;,citation_author=Mark J. Machina;,citation_author=Marciano Siniscalchi;,citation_editor=Mark J. Machina;,citation_editor=W. Kip Viscusi;,citation_publication_date=2014;,citation_cover_date=2014;,citation_year=2014;,citation_volume=1;,citation_inbook_title=Handbook of the economics of risk and uncertainty;">
-<meta name="citation_reference" content="citation_title=Differentiating ambiguity and ambiguity attitude;,citation_author=Paolo Ghirardato;,citation_author=Fabio Maccheroni;,citation_author=Massimo Marinacci;,citation_publication_date=2004;,citation_cover_date=2004;,citation_year=2004;,citation_issue=2;,citation_volume=118;,citation_journal_title=Journal of Economic Theory;">
-<meta name="citation_reference" content="citation_title=Ambiguity attitudes;,citation_author=Stefan T. Trautmann;,citation_author=Gijs Kuilen;,citation_editor=Gideon Keren;,citation_editor=George Wu;,citation_publication_date=2015;,citation_cover_date=2015;,citation_year=2015;,citation_inbook_title=The Wiley Blackwell handbook of judgment and decision making;">
-<meta name="citation_reference" content="citation_title=Reinforcement learning: An introduction;,citation_author=Richard S. Sutton;,citation_author=Andrew G. Barto;,citation_publication_date=2018;,citation_cover_date=2018;,citation_year=2018;">
-<meta name="citation_reference" content="citation_title=Reexamination of the perfectness concept for equilibrium points in extensive games;,citation_author=Reinhard Selten;,citation_publication_date=1975;,citation_cover_date=1975;,citation_year=1975;,citation_issue=1;,citation_volume=4;,citation_journal_title=International Journal of Game Theory;">
-<meta name="citation_reference" content="citation_title=The effect of sampling temperature on problem solving in large language models;,citation_author=Matthew Renze;,citation_author=Erhan Guven;,citation_publication_date=2024;,citation_cover_date=2024;,citation_year=2024;,citation_journal_title=arXiv preprint arXiv:2402.05201;">
-<meta name="citation_reference" content="citation_title=Human-like intuitive behavior and reasoning biases emerged in large language models but disappeared in ChatGPT;,citation_author=Thilo Hagendorff;,citation_author=Sarah Fabi;,citation_author=Michal Kosinski;,citation_publication_date=2023;,citation_cover_date=2023;,citation_year=2023;,citation_issue=10;,citation_volume=3;,citation_journal_title=Nature Computational Science;">
-<meta name="citation_reference" content="citation_title=Bayesian estimation supersedes the t test;,citation_author=John K. Kruschke;,citation_publication_date=2013;,citation_cover_date=2013;,citation_year=2013;,citation_issue=2;,citation_volume=142;,citation_journal_title=Journal of Experimental Psychology: General;">
-<meta name="citation_reference" content="citation_title=Risk and rationality: Uncovering heterogeneity in probability distortion;,citation_author=Adrian Bruhin;,citation_author=Helga Fehr-Duda;,citation_author=Thomas Epper;,citation_publication_date=2010;,citation_cover_date=2010;,citation_year=2010;,citation_issue=4;,citation_volume=78;,citation_journal_title=Econometrica;">
-<meta name="citation_reference" content="citation_title=Using cognitive psychology to understand GPT-3;,citation_author=Marcel Binz;,citation_author=Eric Schulz;,citation_publication_date=2023;,citation_cover_date=2023;,citation_year=2023;,citation_issue=6;,citation_volume=120;,citation_journal_title=Proceedings of the National Academy of Sciences;">
-<meta name="citation_reference" content="citation_title=Rational inattention to discrete choices: A new foundation for the multinomial logit model;,citation_author=Filip Matějka;,citation_author=Alisdair McKay;,citation_publication_date=2015;,citation_cover_date=2015;,citation_year=2015;,citation_issue=1;,citation_volume=105;,citation_journal_title=American Economic Review;">
-<meta name="citation_reference" content="citation_title=The effect of cognitive load on economic decision making: A survey and new experiments;,citation_author=Cary Deck;,citation_author=Salar Jahedi;,citation_publication_date=2015;,citation_cover_date=2015;,citation_year=2015;,citation_volume=78;,citation_journal_title=European Economic Review;">
 </head>
 
-<body class="nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+<body class="nav-fixed quarto-light"><a id="quarto-skip-link" class="visually-hidden-focusable" href="#quarto-document-content">Skip to main content</a><script id="quarto-html-before-body" type="application/javascript">
     const toggleBodyColorMode = (bsSheetEl) => {
       const mode = bsSheetEl.getAttribute("data-mode");
       const bodyEl = window.document.querySelector("body");
@@ -230,6 +183,7 @@ window.Quarto = {
       for (let i=0; i < toggles.length; i++) {
         const toggle = toggles[i];
         if (toggle) {
+          toggle.setAttribute("aria-checked", alternate ? "true" : "false");
           if (alternate) {
             toggle.classList.add("alternate");
           } else {
@@ -259,13 +213,19 @@ window.Quarto = {
       manageTransitions('#quarto-margin-sidebar .nav-link', true);
       // Switch the toggles
       setColorSchemeToggle(alternate)
-      // Hack to workaround the fact that safari doesn't
-      // properly recolor the scrollbar when toggling (#1455)
+    }
+    // Hack to workaround the fact that safari doesn't
+    // properly recolor the scrollbar when toggling (#1455).
+    // Not run on load: stylesheets are set before first paint there, and
+    // scrolling would undo the scroll to a URL fragment (#14973).
+    // The one pixel nudge keeps the reader where they were.
+    const refreshSafariScrollbar = () => {
       if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
         manageTransitions("body", false);
-        window.scrollTo(0, 1);
+        const scrollY = window.scrollY;
+        window.scrollTo(0, scrollY > 0 ? scrollY - 1 : 1);
         setTimeout(() => {
-          window.scrollTo(0, 0);
+          window.scrollTo(0, scrollY);
           manageTransitions("body", true);
         }, 40);
       }
@@ -359,6 +319,7 @@ window.Quarto = {
       // Read the current dark / light value
       let toAlternate = !hasAlternateSentinel();
       toggleColorMode(toAlternate);
+      refreshSafariScrollbar();
       setStyleSentinel(toAlternate);
       toggleGiscusIfUsed(toAlternate, darkModeDefault);
       window.dispatchEvent(new Event('resize'));
@@ -373,15 +334,14 @@ window.Quarto = {
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top">
-    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark" aria-label="Site">
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="../index.html">
     <span class="navbar-title">SEU Sensitivity</span>
     </a>
   </div>
-            <div id="quarto-search" class="" title="Search"></div>
-          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
   <span class="navbar-toggler-icon"></span>
 </button>
           <div class="collapse navbar-collapse" id="navbarCollapse">
@@ -516,8 +476,9 @@ window.Quarto = {
 </ul>
           </div> <!-- /navcollapse -->
             <div class="quarto-navbar-tools">
-  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+  <button type="button" role="switch" aria-checked="false" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode" aria-label="Toggle dark mode"><i class="bi"></i></button>
 </div>
+            <div id="quarto-search" class="" title="Search"></div>
       </div> <!-- /container-fluid -->
     </nav>
 </header>
@@ -526,7 +487,7 @@ window.Quarto = {
 <!-- sidebar -->
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        <nav id="TOC" role="doc-toc" class="toc-active" data-toc-expanded="2">
+        <nav id="TOC" role="doc-toc" aria-labelledby="toc-title" class="toc-active" data-toc-expanded="2">
     <h2 id="toc-title">On this page</h2>
    
   <ul>
@@ -544,7 +505,7 @@ window.Quarto = {
 </nav>
     </div>
 <!-- main -->
-<main class="content" id="quarto-document-content">
+<main class="content" id="quarto-document-content" tabindex="-1">
 
 
 <header id="title-block-header" class="quarto-title-block default">
@@ -579,7 +540,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">October 13, 2026</p>
+      <p class="date">November 3, 2026</p>
     </div>
   </div>
   
@@ -917,30 +878,65 @@ Figure&nbsp;3: Within-iteration A→B (m_0 data quantity) and B→C (model + dat
 
 </section>
 
-<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@online{helzner2026,
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a></div></div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><div class="code-copy-outer-scaffold"><pre class="sourceCode quarto-appendix-bibtex code-with-copy"><code class="sourceCode bibtex">@online{helzner2026,
   author = {Helzner, Jeff},
   title = {Does m\_1 {Actually} {Identify} δ?},
-  date = {2026-10-13},
+  date = {2026-11-03},
   url = {https://jeffhelzner.github.io/seu-sensitivity/foundations/14_does_m1_identify_delta.html},
   langid = {en}
 }
-</code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-helzner2026" class="csl-entry quarto-appendix-citeas" role="listitem">
+</code></pre><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-helzner2026" class="csl-entry quarto-appendix-citeas" role="listitem">
 Helzner, Jeff. 2026. <span>“Does m_1 Actually Identify δ?”</span> SEU
-Sensitivity Project, October 13. <a href="https://jeffhelzner.github.io/seu-sensitivity/foundations/14_does_m1_identify_delta.html">https://jeffhelzner.github.io/seu-sensitivity/foundations/14_does_m1_identify_delta.html</a>.
+Sensitivity Project, November 3. <a href="https://jeffhelzner.github.io/seu-sensitivity/foundations/14_does_m1_identify_delta.html">https://jeffhelzner.github.io/seu-sensitivity/foundations/14_does_m1_identify_delta.html</a>.
 </div></div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
     // Ensure there is a toggle, if there isn't float one in the top right
     if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
-      const a = window.document.createElement('a');
-      a.classList.add('top-right');
-      a.classList.add('quarto-color-scheme-toggle');
-      a.href = "";
-      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const toggle = window.document.createElement('button');
+      toggle.type = "button";
+      toggle.setAttribute("role", "switch");
+      toggle.setAttribute("aria-checked", "false");
+      toggle.classList.add('top-right');
+      toggle.classList.add('quarto-color-scheme-toggle');
+      toggle.setAttribute("aria-label", "Toggle dark mode");
+      toggle.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
       const i = window.document.createElement("i");
       i.classList.add('bi');
-      a.appendChild(i);
-      window.document.body.appendChild(a);
+      toggle.appendChild(i);
+      // Put the toggle in a landmark of its own, so that landmark navigation
+      // can reach it.
+      //
+      // The container is always a fresh direct child of body, and the toggle is
+      // never moved into page furniture that the theme or the author controls.
+      // The toggle is positioned against the page, so any ancestor that
+      // establishes a containing block captures it: a positioned element or a
+      // grid for position: absolute, and transform, filter, will-change or
+      // contain for position: fixed. A direct child of body has none of these
+      // to inherit, and the shift when one appears is silent and visual.
+      //
+      // ARIA says a document should have at most one banner, and axe reports a
+      // duplicate whether or not the banners carry distinct labels. So use a
+      // header when the page has no banner yet, and a named region otherwise.
+      //
+      // A header is a banner wherever it sits, unless it is inside sectioning
+      // content, so this cannot just look at the children of body: a custom
+      // page layout wraps the title block header in a plain div. An explicit
+      // role="banner" always counts.
+      const sectioning = 'article, aside, main, nav, section, [role="article"], [role="complementary"], [role="main"], [role="navigation"], [role="region"]';
+      const hasBanner = Array.from(
+        window.document.querySelectorAll('header:not([role]), [role="banner"]')
+      ).some(function(el) {
+        return el.hasAttribute("role") || el.closest(sectioning) === null;
+      });
+      const container = window.document.createElement(hasBanner ? "div" : "header");
+      if (hasBanner) {
+        container.setAttribute("role", "region");
+        container.setAttribute("aria-label", "Toggle dark mode");
+      }
+      container.classList.add('quarto-color-scheme-toggle-container');
+      container.appendChild(toggle);
+      window.document.body.appendChild(container);
     }
     setColorSchemeToggle(hasAlternateSentinel())
     const icon = "";
@@ -1070,7 +1066,8 @@ Sensitivity Project, October 13. <a href="https://jeffhelzner.github.io/seu-sens
           return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
       }
       // Inspect non-navigation links and adorn them if external
-     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      window.quartoDecorateExternalLinks = function (root) {
+     var links = (root || window.document).querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
       for (var i=0; i<links.length; i++) {
         const link = links[i];
         if (!isInternal(link.href)) {
@@ -1079,8 +1076,69 @@ Sensitivity Project, October 13. <a href="https://jeffhelzner.github.io/seu-sens
           if (link.dataset.originalHref !== undefined) {
             link.href = link.dataset.originalHref;
           }
+          if (!link.classList.contains('no-external-icon')) {
+          }
         }
       }
+      };
+      window.quartoDecorateExternalLinks(window.document);
+    // Esc closes the popup (WCAG 1.4.13) and focus leaving both trigger and
+    // popup closes it (WCAG 2.4.11); tippy handles neither for interactive popups.
+    const hideOnEscAndFocusOut = {
+      name: 'hideOnEscAndFocusOut',
+      defaultValue: true,
+      fn(instance) {
+        const dismiss = () => {
+          // A show scheduled by the trigger delay would otherwise reopen it
+          instance.clearDelayTimeouts();
+          instance.hide();
+        };
+        const onKeyDown = (event) => {
+          if (event.key !== 'Escape') {
+            return;
+          }
+          // Keep Esc from also reaching page handlers (e.g. reveal.js overview),
+          // except an open reveal.js slide menu, which Esc should close too.
+          // The menu handles keys only when its keyboard option is on.
+          const menuHandlesEsc = window.Reveal?.getPlugin?.('menu')?.isOpen() &&
+            window.Reveal.getConfig().menu?.keyboard !== false;
+          if (!menuHandlesEsc) {
+            event.stopPropagation();
+          }
+          if (instance.popper.contains(window.document.activeElement)) {
+            // Disabled while refocusing so the focus trigger does not reopen it
+            instance.disable();
+            instance.reference.focus();
+            instance.enable();
+          }
+          dismiss();
+        };
+        const onFocusOut = (event) => {
+          const target = event.relatedTarget;
+          if (target && !instance.reference.contains(target) &&
+              !instance.popper.contains(target)) {
+            dismiss();
+          }
+        };
+        // On the trigger too: a click trigger (code-annotations: select) has no
+        // blur handling. Attached for the instance's lifetime so leaving the
+        // trigger also cancels a show still pending on the trigger delay.
+        instance.reference.addEventListener('focusout', onFocusOut);
+        return {
+          onShow() {
+            window.document.addEventListener('keydown', onKeyDown, true);
+            instance.popper.addEventListener('focusout', onFocusOut);
+          },
+          onHide() {
+            window.document.removeEventListener('keydown', onKeyDown, true);
+            instance.popper.removeEventListener('focusout', onFocusOut);
+          },
+          onDestroy() {
+            instance.reference.removeEventListener('focusout', onFocusOut);
+          },
+        };
+      },
+    };
     function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
       const config = {
         allowHTML: true,
@@ -1094,6 +1152,7 @@ Sensitivity Project, October 13. <a href="https://jeffhelzner.github.io/seu-sens
         interactiveBorder: 10,
         theme: 'quarto',
         placement: 'bottom-start',
+        plugins: [hideOnEscAndFocusOut],
       };
       if (contentFn) {
         config.content = contentFn;
@@ -1256,44 +1315,54 @@ Sensitivity Project, October 13. <a href="https://jeffhelzner.github.io/seu-sens
           const lineIds = lines.map((line) => {
             return targetCell + "-" + line;
           })
-          let top = null;
-          let height = null;
-          let parent = null;
+          // Each band is positioned against its own containing block, which is
+          // not the offsetParent of the lines, so place it from client rects.
+          const placeBand = (band, firstEl, lastEl, codeBlock) => {
+            const container = band.offsetParent;
+            if (container === null) {
+              return;
+            }
+            const containerRect = container.getBoundingClientRect();
+            // Reveal.js scales slides with a transform, so convert client
+            // pixels back to the CSS pixels of the container.
+            const scale = containerRect.height / container.offsetHeight || 1;
+            const firstRect = firstEl.getBoundingClientRect();
+            const lastRect = lastEl.getBoundingClientRect();
+            const top = (firstRect.top - containerRect.top) / scale - container.clientTop + container.scrollTop;
+            const height = (lastRect.bottom - firstRect.top) / scale;
+            band.style.top = top - 2 + "px";
+            band.style.height = height + 4 + "px";
+            if (codeBlock) {
+              // Without the copy button wrapper, the containing block is wider
+              // than the code block, so span the code block explicitly.
+              const blockRect = codeBlock.getBoundingClientRect();
+              band.style.left = (blockRect.left - containerRect.left) / scale - container.clientLeft + container.scrollLeft + "px";
+              band.style.width = blockRect.width / scale + "px";
+            }
+          };
           if (lineIds.length > 0) {
-              //compute the position of the single el (top and bottom and make a div)
-              const el = window.document.getElementById(lineIds[0]);
-              top = el.offsetTop;
-              height = el.offsetHeight;
-              parent = el.parentElement.parentElement;
-            if (lineIds.length > 1) {
-              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
-              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
-              height = bottom - top;
+            const el = window.document.getElementById(lineIds[0]);
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const parent = el.parentElement.parentElement;
+            // cook up a div (if necessary) and position it
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
             }
-            if (top !== null && height !== null && parent !== null) {
-              // cook up a div (if necessary) and position it 
-              let div = window.document.getElementById("code-annotation-line-highlight");
-              if (div === null) {
-                div = window.document.createElement("div");
-                div.setAttribute("id", "code-annotation-line-highlight");
-                div.style.position = 'absolute';
-                parent.appendChild(div);
-              }
-              div.style.top = top - 2 + "px";
-              div.style.height = height + 4 + "px";
-              div.style.left = 0;
-              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
-              if (gutterDiv === null) {
-                gutterDiv = window.document.createElement("div");
-                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
-                gutterDiv.style.position = 'absolute';
-                const codeCell = window.document.getElementById(targetCell);
-                const gutter = codeCell.querySelector('.code-annotation-gutter');
-                gutter.appendChild(gutterDiv);
-              }
-              gutterDiv.style.top = top - 2 + "px";
-              gutterDiv.style.height = height + 4 + "px";
+            placeBand(div, el, lastEl, parent.closest("div.sourceCode") || parent);
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
             }
+            placeBand(gutterDiv, el, lastEl);
             selectedAnnoteEl = annoteEl;
           }
         };
@@ -1391,6 +1460,9 @@ Sensitivity Project, October 13. <a href="https://jeffhelzner.github.io/seu-sens
       }
     }
   });
+  </script>
+  <script type="application/javascript">
+  window.quartoScrollableRegionsLabels = {"code":"Scrollable code","output":"Scrollable output"};
   </script><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "Does m_1 Actually Identify δ?"</span></span>

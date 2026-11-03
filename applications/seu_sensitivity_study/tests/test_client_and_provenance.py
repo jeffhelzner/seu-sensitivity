@@ -48,19 +48,23 @@ class RateLimitError(Exception):
 
 @pytest.mark.parametrize("provider,model", [("openai", "gpt-4o"), ("anthropic", "claude-sonnet-4-5")])
 def test_batch_sdk_does_not_retry_lost_create_response(provider, model, monkeypatch):
-    import httpx
+    import importlib
+
     import openai
     import anthropic
 
     attempts = []
+    module, constructor = (openai, "OpenAI") if provider == "openai" else (anthropic, "Anthropic")
+    # Newer SDK releases build on httpx2 instead of httpx; mock whichever transport the SDK actually uses.
+    sdk_base = importlib.import_module(f"{module.__name__}._base_client")
+    http = getattr(sdk_base, "httpx2", None) or getattr(sdk_base, "httpx")
 
     def handler(request):
         attempts.append(request)
-        raise httpx.ReadTimeout("Response lost after acceptance", request=request)
+        raise http.ReadTimeout("Response lost after acceptance", request=request)
 
-    module, constructor = (openai, "OpenAI") if provider == "openai" else (anthropic, "Anthropic")
     real_constructor = getattr(module, constructor)
-    transport = httpx.Client(transport=httpx.MockTransport(handler))
+    transport = http.Client(transport=http.MockTransport(handler))
     monkeypatch.setattr(module, constructor, lambda **kwargs: real_constructor(
         api_key="offline-test", http_client=transport, **kwargs
     ))

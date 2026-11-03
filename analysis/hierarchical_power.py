@@ -74,14 +74,19 @@ def fit_diagnostics(fit: Any, *, seconds: float, max_treedepth: int) -> Dict[str
     """Return all-parameter mixing diagnostics, excluding per-observation arrays."""
     summary = fit.summary()
     model = getattr(getattr(fit, "metadata", None), "cmdstan_config", {}).get("model")
-    fixed_utility = model in {
+    prior_sibling = model in {
+        "h_m01_size_assessment_anchored_prior", "h_m01_size_assessment_anchored_prior_model",
+    }
+    fixed_utility = prior_sibling or model in {
         "h_m01_size_pinned", "h_m01_size_pinned_model",
         "h_m01_size_assessment_anchored", "h_m01_size_assessment_anchored_model",
     }
+    # Fixed utilities and the prior sibling's prior_settings echo are data constants (undefined R-hat/ESS).
     parameters = [
         name for name in summary.index
         if not name.startswith(DIAGNOSTIC_EXCLUDE_PREFIXES)
         and not (fixed_utility and name.startswith(("delta[", "upsilon[")))
+        and not (prior_sibling and name.startswith("prior_settings["))
     ]
     bulk_columns = [
         column for column in summary.columns

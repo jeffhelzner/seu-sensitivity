@@ -426,3 +426,34 @@ def test_fit_diagnostics_covers_parameters_and_excludes_observation_arrays():
     assert invalid["min_ess_bulk"] is None
     assert invalid["min_ess_tail"] is None
     assert invalid["max_rhat"] is None
+
+
+@pytest.mark.parametrize("model", ["h_m01_size_assessment_anchored_prior", "h_m01_size_assessment_anchored_prior_model"])
+def test_fit_diagnostics_exempts_prior_sibling_constants_only(model):
+    nan = float("nan")
+
+    class FakeFit:
+        metadata = type("Metadata", (), {"cmdstan_config": {"model": model}})()
+
+        def summary(self):
+            return pd.DataFrame(
+                {"ESS_bulk": [600.0, 450.0, nan, nan, nan, nan],
+                 "ESS_tail": [700.0, 420.0, nan, nan, nan, nan],
+                 "R_hat": [1.001, 1.004, nan, nan, nan, nan]},
+                index=["gamma0", "sigma_cell", "delta[1]", "upsilon[2]", "prior_settings[1]", "prior_settings[5]"],
+            )
+
+        def method_variables(self):
+            return {"treedepth__": [[5, 6], [6, 5]], "divergent__": [[0, 0], [0, 0]],
+                    "energy__": [[1.0, 2.0], [2.0, 4.0], [1.0, 2.0]]}
+
+    diagnostics = fit_diagnostics(FakeFit(), seconds=1.0, max_treedepth=12)
+    assert diagnostics["invalid_diagnostic_parameters"] == []
+    assert diagnostics["max_rhat"] == 1.004
+    assert diagnostics["min_ess_bulk"] == 450.0 and diagnostics["min_ess_tail"] == 420.0
+    assert set(diagnostics["ess_bulk"]) == {"gamma0", "sigma_cell"}
+
+    FakeFit.metadata.cmdstan_config["model"] = "h_m01_size_assessment_anchored_model"
+    primary = fit_diagnostics(FakeFit(), seconds=1.0, max_treedepth=12)
+    assert primary["invalid_diagnostic_parameters"] == ["prior_settings[1]", "prior_settings[5]"]
+    assert primary["max_rhat"] is None

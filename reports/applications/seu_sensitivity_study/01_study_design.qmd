@@ -18,6 +18,10 @@ execute:
 
 ## Purpose of This Review
 
+::: {.callout-note title="Status, November 2026"}
+Collection and analysis are complete. All results, including every preregistered decision, sensitivity analysis and model check, are reported in the [results report](02_results.qmd). This design report is unchanged apart from this note. Its status statements, including "No production effect estimates appear in this report", describe the pre-collection checkpoint at which it was written.
+:::
+
 This report describes a study of how closely language-model choices conform to subjective expected utility (SEU) maximization, and how that conformity varies with model arm, prompt condition, decision context, and menu size. It is a **pre-collection design report**: its empirical material concerns preparation, not the substantive results of production collection. The purpose is to make the proposed experiment sufficiently explicit that a scientifically minded reader can review its assumptions, comparisons, and limitations before collection begins.
 
 The design crosses six model arms with three prompt conditions in each of two fixed pools, venture and hiring. Each pool supplies 140 menus, each presented in two opposite orders. This yields 36 cells and 10,080 planned choice requests. Those requests are not 10,080 independent items, agents, or replications of a decision domain. The repeated use of items and menus is central to both the comparisons and their limitations.

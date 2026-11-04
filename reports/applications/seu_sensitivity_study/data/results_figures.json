@@ -1,0 +1,22 @@
+{
+ "figures": [
+  "results_decisions.png",
+  "results_cells.png",
+  "results_sensitivity.png",
+  "results_repetition.png",
+  "results_size.png",
+  "results_slices.png",
+  "results_positions.png"
+ ],
+ "inputs_sha256": "ac9e887858b546dcdd8c86013dcfe26fefce2d843f7e27dc2ca2ae8dbfbc11f7",
+ "matplotlib": "3.10.9",
+ "png_sha256": {
+  "results_cells.png": "3b2cae3f23781392ae28e13d564441c38c2d20e81a60c65c2d148601c6ee541e",
+  "results_decisions.png": "7e55d0662c0caa546a3e9783621c17131a17569cd0209acf93f6b108cab818aa",
+  "results_positions.png": "cc6db4cc0098ecfbf7807621784b05527c4f7f24ae249a83057766f048137634",
+  "results_repetition.png": "5ae605b87cf41dacd079a3e799dabf111c86a78d821cde127eefa8defa6bfdaa",
+  "results_sensitivity.png": "e2bba241d280e8fbc251f636ce766c8050281af81a043ce376b045f4fc024ed4",
+  "results_size.png": "069b5269714465a50a88f71bad0c832cef4988dbc8bf73f76934fff6a9aadb45",
+  "results_slices.png": "c7277be8569ce85f2e74fa3a458c0035d7a3b69f77bbde17966f4835e363dd4e"
+ }
+}

@@ -72,6 +72,8 @@ website:
           - text: "SEU Sensitivity Study"
           - text: "1. Study Design"
             href: applications/seu_sensitivity_study/01_study_design.qmd
+          - text: "2. Results"
+            href: applications/seu_sensitivity_study/02_results.qmd
     right:
       - icon: github
         href: https://github.com/jeffhelzner/seu-sensitivity
